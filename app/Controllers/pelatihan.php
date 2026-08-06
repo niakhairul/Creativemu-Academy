@@ -32,5 +32,20 @@ class Pelatihan extends BaseController
     public function detailKelas()
     {
     return view('peserta/detail_kelas');
-}
+    }
+
+    public function materi()
+    {
+    return view('peserta/materi');
+    }
+
+    public function tugas()
+    {
+    return view('peserta/tugas');
+    }
+
+    public function dashboard()
+    {
+    return view('peserta/dashboard');
+    }
 }

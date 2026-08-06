@@ -18,91 +18,140 @@
 
             <hr>
 
+<h5 class="mb-3">Progress Belajar</h5>
+
+<div class="progress mb-4" style="height:20px;">
+
+    <div class="progress-bar bg-success"
+         style="width:40%;">
+
+        40%
+
+    </div>
+
+</div>
+
+<div class="row mb-4">
+
+    <div class="col-md-4">
+
+        <strong>Metode</strong><br>
+        Online
+
+    </div>
+
+    <div class="col-md-4">
+
+        <strong>Jadwal</strong><br>
+        Senin & Rabu
+
+    </div>
+
+    <div class="col-md-4">
+
+        <strong>Jam</strong><br>
+        19.00 WIB
+
+    </div>
+
+</div>
+
+            <hr>
+
             <h4 class="mb-4">
                 Daftar Materi
             </h4>
 
             <div class="list-group">
 
-                <div class="list-group-item d-flex justify-content-between align-items-center">
+    <!-- Pertemuan 1 -->
+    <div class="list-group-item d-flex justify-content-between align-items-center">
 
-                    <div>
+        <div>
 
-                        <strong>Pertemuan 1</strong>
+            <h5 class="mb-1">📘 Pertemuan 1</h5>
 
-                        <br>
+            <p class="mb-1">Pengenalan Digital Marketing</p>
 
-                        Pengenalan Digital Marketing
+            <span class="badge bg-success">
+                Selesai
+            </span>
 
-                    </div>
+        </div>
 
-                    <button class="btn btn-primary">
+        <a href="<?= base_url('pelatihan/materi') ?>"
+           class="btn btn-primary">
 
-                        Lihat Materi
+            Lihat Materi
 
-                    </button>
+        </a>
 
-                </div>
+    </div>
 
-                <div class="list-group-item d-flex justify-content-between align-items-center">
+    <!-- Pertemuan 2 -->
+    <div class="list-group-item d-flex justify-content-between align-items-center">
 
-                    <div>
+        <div>
 
-                        <strong>Pertemuan 2</strong>
+            <h5 class="mb-1">📘 Pertemuan 2</h5>
 
-                        <br>
+            <p class="mb-1">SEO Dasar</p>
 
-                        SEO Dasar
+            <span class="badge bg-warning text-dark">
+                Sedang Dipelajari
+            </span>
 
-                    </div>
+        </div>
 
-                    <button class="btn btn-primary">
+        <a href="<?= base_url('pelatihan/materi') ?>"
+           class="btn btn-primary">
 
-                        Lihat Materi
+            Lihat Materi
 
-                    </button>
+        </a>
 
-                </div>
+    </div>
 
-                <div class="list-group-item d-flex justify-content-between align-items-center">
+    <!-- Pertemuan 3 -->
+    <div class="list-group-item d-flex justify-content-between align-items-center">
 
-                    <div>
+        <div>
 
-                        <strong>Pertemuan 3</strong>
+            <h5 class="mb-1">📘 Pertemuan 3</h5>
 
-                        <br>
+            <p class="mb-1">Social Media Marketing</p>
 
-                        Social Media Marketing
+            <span class="badge bg-secondary">
+                Belum Dibuka
+            </span>
 
-                    </div>
+        </div>
 
-                    <button class="btn btn-primary">
+        <a href="<?= base_url('pelatihan/materi') ?>"
+           class="btn btn-primary">
 
-                        Lihat Materi
+            Lihat Materi
 
-                    </button>
+        </a>
 
-                </div>
+    </div>
 
-            </div>
+</div>
 
-            <hr class="my-5">
+            <hr class="my-4">
 
-            <h4>
-                Tugas
-            </h4>
+<div class="d-flex justify-content-between">
 
-            <p>
-                Upload tugas setelah menyelesaikan materi.
-            </p>
+    <a href="<?= base_url('pelatihan/kelas') ?>"
+       class="btn btn-outline-secondary">
 
-            <input type="file" class="form-control mb-3">
+        <i class="bi bi-arrow-left"></i>
 
-            <button class="btn btn-success">
+        Kembali ke Kelas Saya
 
-                Upload Tugas
+    </a>
 
-            </button>
+</div>
 
         </div>
 

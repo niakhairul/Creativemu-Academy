@@ -69,12 +69,17 @@
 
                     </div>
 
-                    <a href="#"
-                       class="btn btn-primary mt-4">
+                    <div class="d-flex justify-content-between mt-4">
 
-                        Refresh Status
+    <a href="<?= base_url('/') ?>" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Beranda
+    </a>
 
-                    </a>
+    <a href="<?= base_url('pelatihan/kelas') ?>" class="btn btn-primary">
+        Kelas Saya <i class="bi bi-arrow-right"></i>
+    </a>
+
+</div>
 
                 </div>
 

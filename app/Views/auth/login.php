@@ -12,52 +12,86 @@
 
                 <div class="card-body p-5">
 
+                    <?php if(session()->getFlashdata('success')) : ?>
+
+                        <div class="alert alert-success">
+
+                            <?= session()->getFlashdata('success') ?>
+
+                        </div>
+
+                    <?php endif; ?>
+
+                    <?php if(session()->getFlashdata('error')) : ?>
+
+                        <div class="alert alert-danger">
+
+                            <?= session()->getFlashdata('error') ?>
+
+                        </div>
+
+                    <?php endif; ?>
+
                     <div class="text-center mb-4">
 
-    <img
-        src="<?= base_url('assets/img/logo_creativemu_academy.jpg') ?>"
-        width="170"
-        class="mb-3">
+                        <img
+                            src="<?= base_url('assets/img/logo_creativemu_academy.jpg') ?>"
+                            width="170"
+                            class="mb-3">
 
-    <h3 class="fw-bold text-primary">
-        Selamat Datang
-    </h3>
+                        <h3 class="fw-bold text-primary">
 
-    <p class="text-muted">
-        Sistem Pelatihan Creativemu Academy
-    </p>
+                            Selamat Datang
 
-</div>
+                        </h3>
 
-                    <form>
+                        <p class="text-muted">
+
+                            Sistem Pelatihan Creativemu Academy
+
+                        </p>
+
+                    </div>
+
+                    <form action="<?= base_url('login/process') ?>" method="post">
 
                         <div class="mb-3">
 
                             <label class="form-label">
+
                                 Email
+
                             </label>
 
                             <input
                                 type="email"
+                                name="email"
                                 class="form-control form-control-lg"
-                                placeholder="Masukkan Email">
+                                placeholder="Masukkan Email"
+                                required>
 
                         </div>
 
                         <div class="mb-4">
 
                             <label class="form-label">
+
                                 Password
+
                             </label>
 
                             <input
                                 type="password"
+                                name="password"
                                 class="form-control form-control-lg"
-                                placeholder="Masukkan Password">
+                                placeholder="Masukkan Password"
+                                required>
 
                         </div>
 
-                        <button class="btn btn-primary w-100 btn-lg">
+                        <button
+                            type="submit"
+                            class="btn btn-primary w-100 btn-lg">
 
                             Login
 
@@ -69,7 +103,7 @@
 
                         Belum punya akun?
 
-                        <a href="#">
+                        <a href="<?= base_url('pelatihan/register') ?>">
 
                             Daftar
 
