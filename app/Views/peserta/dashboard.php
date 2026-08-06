@@ -15,7 +15,7 @@
                 <div class="col-md-8">
 
                     <h2 class="fw-bold text-primary">
-                        Halo, Ika 👋
+                        Halo, <?= esc(session('nama')) ?> 👋
                     </h2>
 
                     <p class="text-muted mb-4">

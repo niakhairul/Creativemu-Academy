@@ -74,4 +74,12 @@ class Auth extends BaseController
 
         return redirect()->to(base_url('peserta/dashboard'));
     }
+
+    public function logout()
+{
+    session()->destroy();
+
+    return redirect()->to(base_url('pelatihan/login'))
+                     ->with('success', 'Berhasil logout.');
+}
 }

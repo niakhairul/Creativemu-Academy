@@ -45,7 +45,13 @@ class Pelatihan extends BaseController
     }
 
     public function dashboard()
-    {
-    return view('peserta/dashboard');
+{
+    if (!session()->get('logged_in')) {
+
+        return redirect()->to(base_url('pelatihan/login'));
+
     }
+
+    return view('peserta/dashboard');
+}
 }

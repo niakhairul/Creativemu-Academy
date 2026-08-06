@@ -21,8 +21,8 @@
          width="90">
 
     <h5 class="mt-3 mb-1 fw-bold">
-        Ika Cahya
-    </h5>
+    <?= esc(ucwords(session('nama'))) ?>
+</h5>
 
     <span class="badge bg-light text-dark">
         Peserta
@@ -96,14 +96,10 @@
 
             <li>
 
-                <a href="#">
-
-                    <i class="bi bi-box-arrow-right"></i>
-
-                    Logout
-
-                </a>
-
+                <a href="<?= base_url('logout') ?>">
+    <i class="bi bi-box-arrow-right"></i>
+    Logout
+</a>
             </li>
 
         </ul>
