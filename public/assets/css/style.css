@@ -1,0 +1,22 @@
+*{
+    font-family: 'Poppins', sans-serif;
+}
+
+body{
+    background: linear-gradient(135deg, #7B2CBF, #9D4EDD);
+    min-height: 100vh;
+}
+
+.card{
+    border-radius: 20px;
+    border: none;
+}
+
+.btn-primary{
+    background: #7B2CBF;
+    border: none;
+}
+
+.btn-primary:hover{
+    background: #6925a7;
+}
