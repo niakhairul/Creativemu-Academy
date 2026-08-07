@@ -6,17 +6,8 @@ use CodeIgniter\Model;
 
 class KelasModel extends Model
 {
-    protected $table = 'kelas';
-
-    protected $primaryKey = 'id';
-
-    protected $allowedFields = [
-        'nama_kelas',
-        'mentor',
-        'metode',
-        'jadwal',
-        'jam',
-        'deskripsi',
-        'status'
-    ];
+    protected $table            = 'kelas';
+    protected $primaryKey       = 'id';
+    protected $allowedFields    = ['nama_kelas', 'mentor', 'metode', 'jadwal', 'jam', 'deskripsi', 'status', 'kuota'];
+    protected $useTimestamps    = true;
 }

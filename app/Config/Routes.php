@@ -4,6 +4,8 @@ use CodeIgniter\Router\RouteCollection;
 
 /** @var RouteCollection $routes */
 
+$routes->get('/', 'Pelatihan::login');
+
 $routes->get('pelatihan/login', 'Pelatihan::login');
 $routes->get('pelatihan/register', 'Pelatihan::register');
 
@@ -30,5 +32,14 @@ $routes->get('pelatihan/kbm', 'Pelatihan::kbm');
 $routes->get('pelatihan/pengaturan', 'Pelatihan::pengaturan');
 $routes->post('pelatihan/daftar', 'Pelatihan::simpanPendaftaran');
 $routes->get('pelatihan/kelas', 'Pelatihan::kelas');
-$routes->get('admin/dashboard', 'Admin::dashboard');
-$routes->get('admin/pendaftaran', 'Admin::pendaftaran');
+
+// ===== MENU ADMIN =====
+$routes->group('admin', function($routes) {
+    $routes->get('dashboard', 'Admin::dashboard');
+    $routes->get('pendaftaran', 'Admin::pendaftaran');
+    $routes->get('master-kelas', 'Admin::masterKelas'); // Perbaikan: hilangkan kata 'admin/'
+    $routes->post('master-kelas/simpan', 'Admin::simpanKelas');
+    $routes->get('data-peserta', 'Admin::dataPeserta');
+    $routes->get('validasi', 'Admin::validasi');
+    $routes->get('validasi/update/(:num)/(:alphanum)', 'Admin::updateValidasi/$1/$2');
+});

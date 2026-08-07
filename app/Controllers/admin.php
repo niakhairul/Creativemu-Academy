@@ -2,25 +2,65 @@
 
 namespace App\Controllers;
 
-use App\Models\PendaftaranModel;
-
 class Admin extends BaseController
 {
-    public function dashboard()
+    public function __construct()
     {
-        return view('admin/dashboard');
+        helper(['url', 'form']);
     }
 
-    public function pendaftaran()
+    public function dashboard()
     {
-        $pendaftaranModel = new PendaftaranModel();
+        $data = [
+            'title'            => 'Dashboard Admin',
+            'total_kelas'      => 12,
+            'total_mentor'     => 5,
+            'total_peserta'    => 48,
+            'pending_validasi' => 3, // Jumlah pendaftaran yang butuh validasi
+        ];
 
-        $data['pendaftaran'] = $pendaftaranModel
-            ->select('pendaftaran.*, users.nama, kelas.nama_kelas')
-            ->join('users', 'users.id = pendaftaran.user_id')
-            ->join('kelas', 'kelas.id = pendaftaran.kelas_id')
-            ->findAll();
+        return view('admin/dashboard', $data);
+    }
 
-        return view('admin/pendaftaran', $data);
+    public function masterKelas()
+    {
+        $data = [
+            'title' => 'Master Kelas - Panel Admin'
+        ];
+
+        return view('admin/master_kelas/index', $data);
+    }
+
+    public function dataPeserta()
+    {
+        $data = [
+            'title' => 'Data Peserta - Panel Admin'
+        ];
+
+        return view('admin/data_peserta/index', $data);
+    }
+
+    public function validasi()
+    {
+        $data = [
+            'title' => 'Validasi Pendaftaran - Panel Admin'
+        ];
+
+        return view('admin/validasi/index', $data);
+    }
+
+    // Process Validasi (Terima / Tolak)
+    public function updateValidasi($id = null, $status = null)
+    {
+        // Nantinya di sini diproses perubahan status ke database
+        // $this->pendaftaranModel->update($id, ['status_pendaftaran' => $status]);
+
+        if ($status == 'Diterima') {
+            session()->setFlashdata('success', 'Pendaftaran berhasil disetujui/divalidasi!');
+        } else {
+            session()->setFlashdata('warning', 'Pendaftaran telah ditolak.');
+        }
+
+        return redirect()->to(base_url('admin/validasi'));
     }
 }
