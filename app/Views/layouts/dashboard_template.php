@@ -32,77 +32,58 @@
 
 </div>
 
-        <ul>
+       <ul>
 
-            <li class="active">
+    <li class="active">
+        <a href="<?= base_url('peserta/dashboard') ?>">
+            <i class="bi bi-house-door-fill"></i>
+            Dashboard
+        </a>
+    </li>
 
-                <a href="<?= base_url('peserta/dashboard') ?>">
+    <li>
+        <a href="<?= base_url('pelatihan/profil') ?>">
+            <i class="bi bi-person-circle"></i>
+            Profil
+        </a>
+    </li>
 
-                    <i class="bi bi-house-door-fill"></i>
+    <li>
+        <a href="<?= base_url('pelatihan/daftar-kelas') ?>">
+            <i class="bi bi-grid-fill"></i>
+            Daftar Kelas
+        </a>
+    </li>
 
-                    Dashboard
+    <li>
+        <a href="<?= base_url('pelatihan/kelas') ?>">
+            <i class="bi bi-book-fill"></i>
+            Kelas Saya
+        </a>
+    </li>
 
-                </a>
+    <li>
+        <a href="<?= base_url('pelatihan/kbm') ?>">
+            <i class="bi bi-mortarboard-fill"></i>
+            KBM
+        </a>
+    </li>
 
-            </li>
+    <li>
+        <a href="<?= base_url('pelatihan/pengaturan') ?>">
+            <i class="bi bi-gear-fill"></i>
+            Pengaturan
+        </a>
+    </li>
 
-            <li>
+    <li>
+        <a href="<?= base_url('logout') ?>">
+            <i class="bi bi-box-arrow-right"></i>
+            Logout
+        </a>
+    </li>
 
-                <a href="<?= base_url('pelatihan/kelas') ?>">
-
-                    <i class="bi bi-book-fill"></i>
-
-                    Kelas Saya
-
-                </a>
-
-            </li>
-
-            <li>
-
-                <a href="<?= base_url('pelatihan/materi') ?>">
-
-                    <i class="bi bi-journal-bookmark-fill"></i>
-
-                    Materi
-
-                </a>
-
-            </li>
-
-            <li>
-
-                <a href="#">
-
-                    <i class="bi bi-file-earmark-text-fill"></i>
-
-                    Tugas
-
-                </a>
-
-            </li>
-
-            <li>
-
-                <a href="#">
-
-                    <i class="bi bi-person-circle"></i>
-
-                    Profil
-
-                </a>
-
-            </li>
-
-            <li>
-
-                <a href="<?= base_url('logout') ?>">
-    <i class="bi bi-box-arrow-right"></i>
-    Logout
-</a>
-            </li>
-
-        </ul>
+</ul>
 
     </div>
 

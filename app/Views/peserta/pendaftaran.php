@@ -1,132 +1,186 @@
-<?= $this->extend('layouts/auth_template') ?>
+<?= $this->extend('layouts/dashboard_template') ?>
 
 <?= $this->section('content') ?>
 
-<div class="container py-5">
+<div class="container-fluid">
 
     <div class="row justify-content-center">
 
-        <div class="col-lg-8">
+        <div class="col-lg-9">
 
-            <div class="card shadow-lg border-0 rounded-4">
+            <div class="card shadow border-0 rounded-4">
 
                 <div class="card-body p-5">
 
                     <div class="text-center mb-4">
 
                         <img src="<?= base_url('assets/img/logo_creativemu_academy.jpg') ?>"
-                             width="160"
+                             width="120"
                              class="mb-3">
 
-                        <h3 class="fw-bold text-primary">
+                        <h2 class="fw-bold text-primary">
                             Form Pendaftaran Pelatihan
-                        </h3>
+                        </h2>
 
                         <p class="text-muted">
-                            Silakan lengkapi data berikut.
+                            Lengkapi data berikut untuk mendaftar kelas.
                         </p>
 
                     </div>
 
-                    <form>
+                    <form action="<?= base_url('pelatihan/daftar') ?>"
+                          method="post"
+                          enctype="multipart/form-data">
 
-                        <h5 class="mb-3">Data Peserta</h5>
+                        <?= csrf_field(); ?>
 
-                        <div class="mb-3">
-                            <label>Nama Lengkap</label>
-                            <input type="text"
-                                   class="form-control"
-                                   value="Nama Peserta"
-                                   readonly>
-                        </div>
+                        <input type="hidden"
+                               name="kelas_id"
+                               value="<?= $kelas['id']; ?>">
 
-                        <div class="mb-4">
-                            <label>Email</label>
-                            <input type="email"
-                                   class="form-control"
-                                   value="email@gmail.com"
-                                   readonly>
-                        </div>
+                        <!-- ===================== -->
+                        <!-- DATA PESERTA -->
+                        <!-- ===================== -->
 
-                        <hr>
-
-                        <h5 class="mb-3 mt-4">Data Pelatihan</h5>
+                        <h4 class="fw-bold mb-3">
+                            Data Peserta
+                        </h4>
 
                         <div class="mb-3">
 
-                            <label>Pilih Kelas</label>
-
-                            <select class="form-select">
-
-                                <option selected disabled>
-                                    -- Pilih Kelas --
-                                </option>
-
-                                <option>
-                                    Digital Marketing
-                                </option>
-
-                                <option>
-                                    UI / UX Design
-                                </option>
-
-                                <option>
-                                    Web Development
-                                </option>
-
-                                <option>
-                                    Mobile Development
-                                </option>
-
-                            </select>
-
-                        </div>
-
-                        <div class="mb-4">
-
-                            <label class="mb-2">
-                                Metode Pembelajaran
+                            <label class="form-label">
+                                Nama
                             </label>
 
-                            <div class="form-check">
+                            <input type="text"
+                                   class="form-control"
+                                   value="<?= esc($user['nama']) ?>"
+                                   readonly>
 
-                                <input class="form-check-input"
-                                       type="radio"
-                                       name="metode">
+                        </div>
 
-                                <label class="form-check-label">
-                                    Online
-                                </label>
+                        <div class="mb-3">
 
-                            </div>
+                            <label class="form-label">
+                                Email
+                            </label>
 
-                            <div class="form-check">
+                            <input type="email"
+                                   class="form-control"
+                                   value="<?= esc($user['email']) ?>"
+                                   readonly>
 
-                                <input class="form-check-input"
-                                       type="radio"
-                                       name="metode">
+                        </div>
 
-                                <label class="form-check-label">
-                                    Offline
-                                </label>
+                        <div class="mb-4">
 
-                            </div>
+                            <label class="form-label">
+                                Nomor HP
+                            </label>
+
+                            <input type="text"
+                                   class="form-control"
+                                   value="<?= esc($user['no_hp']) ?>"
+                                   readonly>
 
                         </div>
 
                         <hr>
 
-                        <h5 class="mb-3 mt-4">
+                        <!-- ===================== -->
+                        <!-- DATA KELAS -->
+                        <!-- ===================== -->
+
+                        <h4 class="fw-bold mb-3">
+                            Data Kelas
+                        </h4>
+
+                        <div class="card bg-light border-0 mb-4">
+
+                            <div class="card-body">
+
+                                <p>
+                                    <strong>Nama Kelas :</strong><br>
+                                    <?= esc($kelas['nama_kelas']) ?>
+                                </p>
+
+                                <p>
+                                    <strong>Mentor :</strong><br>
+                                    <?= esc($kelas['mentor']) ?>
+                                </p>
+
+                                <p>
+                                    <strong>Metode :</strong>
+                                    <?= esc($kelas['metode']) ?>
+                                </p>
+
+                                <p>
+                                    <strong>Jadwal :</strong><br>
+                                    <?= esc($kelas['jadwal']) ?>
+                                </p>
+
+                                <p>
+                                    <strong>Jam :</strong>
+                                    <?= esc($kelas['jam']) ?>
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <!-- ===================== -->
+                        <!-- METODE PEMBELAJARAN -->
+                        <!-- ===================== -->
+
+                        <h4 class="fw-bold mb-3">
+                            Metode Pembelajaran
+                        </h4>
+
+                        <div class="form-check">
+
+                            <input class="form-check-input"
+                                   type="radio"
+                                   name="metode"
+                                   value="Online"
+                                   required>
+
+                            <label class="form-check-label">
+                                Online
+                            </label>
+
+                        </div>
+
+                        <div class="form-check mb-4">
+
+                            <input class="form-check-input"
+                                   type="radio"
+                                   name="metode"
+                                   value="Offline">
+
+                            <label class="form-check-label">
+                                Offline
+                            </label>
+
+                        </div>
+
+                        <hr>
+
+                        <!-- ===================== -->
+                        <!-- PEMBAYARAN -->
+                        <!-- ===================== -->
+
+                        <h4 class="fw-bold mb-3">
                             Metode Pembayaran
-                        </h5>
+                        </h4>
 
                         <div class="form-check">
 
                             <input class="form-check-input"
                                    type="radio"
                                    name="pembayaran"
-                                   value="cod"
-                                   onclick="toggleUpload()">
+                                   value="COD"
+                                   onclick="togglePembayaran()"
+                                   required>
 
                             <label class="form-check-label">
                                 COD (Bayar di Tempat)
@@ -139,29 +193,42 @@
                             <input class="form-check-input"
                                    type="radio"
                                    name="pembayaran"
-                                   value="transfer"
-                                    onclick="toggleUpload()">
+                                   value="Transfer"
+                                   onclick="togglePembayaran()">
 
                             <label class="form-check-label">
                                 Transfer Bank
                             </label>
 
                         </div>
-                        <small class="text-muted d-block mb-3">
-    Jika memilih Transfer, silakan upload bukti pembayaran.
-</small>
 
-                        <div class="mb-4" id="uploadBukti" style="display:none;">
+                        <div id="rekening"
+                             class="alert alert-info"
+                             style="display:none;">
 
-    <label class="form-label">
-        Upload Bukti Pembayaran
-    </label>
+                            <strong>Transfer ke :</strong><br>
 
-    <input
-        type="file"
-        class="form-control">
+                            Bank BCA<br>
 
-</div>
+                            1234567890<br>
+
+                            a.n. Creativemu Academy
+
+                        </div>
+
+                        <div id="uploadBukti"
+                             style="display:none;"
+                             class="mb-4">
+
+                            <label class="form-label">
+                                Upload Bukti Pembayaran
+                            </label>
+
+                            <input type="file"
+                                   name="bukti"
+                                   class="form-control">
+
+                        </div>
 
                         <button class="btn btn-primary w-100">
 
@@ -169,9 +236,30 @@
 
                         </button>
 
-                    </form>
+                                    </form>
 
-                </div>
+                <script>
+                function togglePembayaran() {
+
+                    let pembayaran = document.querySelector('input[name="pembayaran"]:checked').value;
+
+                    let rekening = document.getElementById('rekening');
+                    let upload = document.getElementById('uploadBukti');
+
+                    if (pembayaran == "Transfer") {
+
+                        rekening.style.display = "block";
+                        upload.style.display = "block";
+
+                    } else {
+
+                        rekening.style.display = "none";
+                        upload.style.display = "none";
+
+                    }
+
+                }
+                </script>
 
             </div>
 
@@ -180,9 +268,11 @@
     </div>
 
 </div>
+</div>
+
 <script>
 
-function toggleUpload(){
+function togglePembayaran(){
 
     const pembayaran =
         document.querySelector('input[name="pembayaran"]:checked').value;
@@ -190,17 +280,23 @@ function toggleUpload(){
     const upload =
         document.getElementById('uploadBukti');
 
-    if(pembayaran == "transfer"){
+    const rekening =
+        document.getElementById('rekening');
+
+    if(pembayaran == "Transfer"){
 
         upload.style.display = "block";
+        rekening.style.display = "block";
 
     }else{
 
         upload.style.display = "none";
+        rekening.style.display = "none";
 
     }
 
 }
 
 </script>
+
 <?= $this->endSection() ?>
