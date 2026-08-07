@@ -199,13 +199,35 @@ public function pendaftaran()
     // KBM
     // ==========================
     public function kbm()
-    {
-        if (!session()->get('logged_in')) {
-            return redirect()->to(base_url('pelatihan/login'));
-        }
-
-        return view('peserta/kbm');
+{
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'));
     }
+
+    $pendaftaranModel = new PendaftaranModel();
+    $kelasModel = new KelasModel();
+
+    // Ambil pendaftaran peserta
+    $pendaftaran = $pendaftaranModel
+        ->where('user_id', session()->get('id'))
+        ->where('status_pendaftaran', 'Disetujui')
+        ->first();
+
+    // Kalau belum disetujui, tidak boleh masuk KBM
+    if (!$pendaftaran) {
+
+        return redirect()->to(base_url('pelatihan/kelas'))
+            ->with('error', 'Kelas Anda belum disetujui admin.');
+
+    }
+
+    // Ambil data kelas
+    $kelas = $kelasModel->find($pendaftaran['kelas_id']);
+
+    return view('peserta/kbm', [
+        'kelas' => $kelas
+    ]);
+}
 
     // ==========================
     // PENGATURAN AKUN
