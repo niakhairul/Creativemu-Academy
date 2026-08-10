@@ -211,7 +211,34 @@
 
     <div class="card-body p-4">
 
-        <div class="d-flex align-items-center gap-3">
+    <div class="d-flex align-items-center gap-3">
+
+        <?php if ($pengumpulan): ?>
+
+            <div class="status-icon bg-success-subtle text-success">
+                ✓
+            </div>
+
+            <div>
+
+                <h6 class="fw-bold mb-1">
+                    Tugas Sudah Dikumpulkan
+                </h6>
+
+                <p class="text-muted mb-1">
+                    File:
+                    <strong>
+                        <?= esc($pengumpulan['file_tugas']) ?>
+                    </strong>
+                </p>
+
+                <span class="badge bg-warning text-dark">
+                    <?= esc($pengumpulan['status']) ?>
+                </span>
+
+            </div>
+
+        <?php else: ?>
 
             <div class="status-icon">
                 ⏳
@@ -220,18 +247,20 @@
             <div>
 
                 <h6 class="fw-bold mb-1">
-                    Status Pengumpulan
+                    Belum Mengumpulkan Tugas
                 </h6>
 
                 <p class="text-muted mb-0">
-                    Menunggu penilaian dari mentor.
+                    Silakan upload tugas Anda terlebih dahulu.
                 </p>
 
             </div>
 
-        </div>
+        <?php endif; ?>
 
     </div>
+
+</div>
 
 </div>
 
@@ -248,14 +277,28 @@
     </a>
 
 
+    <?php if ($pengumpulan): ?>
+
     <button
-        class="btn btn-secondary"
+        class="btn btn-warning text-dark"
         disabled>
 
         <i class="bi bi-hourglass-split"></i>
         Menunggu Penilaian
 
     </button>
+
+<?php else: ?>
+
+    <a href="#"
+       class="btn btn-success">
+
+        <i class="bi bi-upload"></i>
+        Upload Tugas
+
+    </a>
+
+<?php endif; ?>
 
 </div>
 

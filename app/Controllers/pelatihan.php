@@ -145,9 +145,12 @@ public function tugas()
 
     $pendaftaranModel = new PendaftaranModel();
     $kelasModel = new KelasModel();
+    $pengumpulanModel = new PengumpulanTugasModel();
+
+    $userId = session()->get('id');
 
     $pendaftaran = $pendaftaranModel
-        ->where('user_id', session()->get('id'))
+        ->where('user_id', $userId)
         ->where('status_pendaftaran', 'Disetujui')
         ->first();
 
@@ -157,11 +160,17 @@ public function tugas()
 
     $kelas = $kelasModel->find($pendaftaran['kelas_id']);
 
+    // Cek apakah peserta sudah mengumpulkan tugas
+    $pengumpulan = $pengumpulanModel
+        ->where('user_id', $userId)
+        ->where('tugas_id', 1)
+        ->first();
+
     return view('peserta/tugas', [
-        'kelas' => $kelas
+        'kelas' => $kelas,
+        'pengumpulan' => $pengumpulan
     ]);
 }
-
 // ==========================
 // UPLOAD TUGAS
 // ==========================
