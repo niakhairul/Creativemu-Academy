@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\UserModel;
 use App\Models\KelasModel;
 use App\Models\PendaftaranModel;
+use App\Models\PengumpulanTugasModel;
 
 class Pelatihan extends BaseController
 {
@@ -93,20 +94,78 @@ public function pendaftaran()
     }
 
     // ==========================
+// DAFTAR MATERI
+// ==========================
+public function daftarMateri()
+{
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'));
+    }
+
+    return view('peserta/daftar_materi');
+}
+
+    // ==========================
     // MATERI
     // ==========================
     public function materi()
-    {
-        return view('peserta/materi');
+{
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'));
     }
 
-    // ==========================
-    // TUGAS
-    // ==========================
-    public function tugas()
-    {
-        return view('peserta/tugas');
+    $pendaftaranModel = new PendaftaranModel();
+    $kelasModel = new KelasModel();
+
+    $pendaftaran = $pendaftaranModel
+        ->where('user_id', session()->get('id'))
+        ->where('status_pendaftaran', 'Disetujui')
+        ->first();
+
+    if (!$pendaftaran) {
+        return redirect()->to(base_url('pelatihan/kelas'));
     }
+
+    $kelas = $kelasModel->find($pendaftaran['kelas_id']);
+
+    return view('peserta/materi', [
+        'kelas' => $kelas
+    ]);
+}
+
+   
+// ==========================
+// TUGAS
+// ==========================
+public function tugas()
+{
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'));
+    }
+
+    $pendaftaranModel = new PendaftaranModel();
+    $kelasModel = new KelasModel();
+
+    $pendaftaran = $pendaftaranModel
+        ->where('user_id', session()->get('id'))
+        ->where('status_pendaftaran', 'Disetujui')
+        ->first();
+
+    if (!$pendaftaran) {
+        return redirect()->to(base_url('pelatihan/kelas'));
+    }
+
+    $kelas = $kelasModel->find($pendaftaran['kelas_id']);
+
+    return view('peserta/tugas', [
+        'kelas' => $kelas
+    ]);
+}
+
+// ==========================
+// UPLOAD TUGAS
+// ==========================
+
 
     // ==========================
     // DASHBOARD PESERTA
@@ -163,6 +222,50 @@ public function pendaftaran()
         ]);
     }
 
+    public function editProfil()
+{
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'));
+    }
+
+    $userModel = new UserModel();
+
+    $user = $userModel->find(session()->get('id'));
+
+    return view('peserta/edit_profil', [
+        'user' => $user
+    ]);
+}
+
+public function updateProfil()
+{
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'));
+    }
+
+    $userModel = new UserModel();
+
+    $id = session()->get('id');
+
+    $data = [
+        'nama' => $this->request->getPost('nama'),
+        'email' => $this->request->getPost('email'),
+        'no_hp' => $this->request->getPost('no_hp'),
+        'asal_sekolah' => $this->request->getPost('asal_sekolah'),
+    ];
+
+    $userModel->update($id, $data);
+
+    session()->set([
+        'nama' => $data['nama'],
+        'email' => $data['email'],
+        'no_hp' => $data['no_hp'],
+        'asal_sekolah' => $data['asal_sekolah'],
+    ]);
+
+    return redirect()->to(base_url('pelatihan/profil'))
+        ->with('success', 'Profil berhasil diperbarui.');
+}
     // ==========================
     // DAFTAR KELAS
     // ==========================
@@ -247,6 +350,40 @@ public function pendaftaran()
         ]);
     }
 
+    // ==========================
+// UPLOAD TUGAS
+// ==========================
+public function uploadTugas()
+{
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'));
+    }
+
+    $file = $this->request->getFile('tugas');
+
+    if (!$file->isValid()) {
+        return redirect()->back()->with('error', 'File tidak valid.');
+    }
+
+    $namaFile = $file->getRandomName();
+
+    $file->move(
+        FCPATH . 'uploads/tugas',
+        $namaFile
+    );
+
+    $model = new PengumpulanTugasModel();
+
+    $model->save([
+        'tugas_id'   => 1,
+        'user_id'    => session()->get('id'),
+        'file_tugas' => $namaFile,
+        'status'     => 'Belum Dinilai'
+    ]);
+
+    return redirect()->back()
+        ->with('success', 'Tugas berhasil diupload.');
+}
     // ==========================
 // SIMPAN PENDAFTARAN
 // ==========================

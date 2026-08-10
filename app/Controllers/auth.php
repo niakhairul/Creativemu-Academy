@@ -42,38 +42,38 @@ class Auth extends BaseController
     // Login
     // ==========================
     public function loginProcess()
-    {
-        $userModel = new UserModel();
+{
+    $userModel = new UserModel();
 
-        $email = $this->request->getPost('email');
-        $password = $this->request->getPost('password');
+    $email = trim($this->request->getPost('email'));
+    $password = trim($this->request->getPost('password'));
 
-        $user = $userModel->where('email', $email)->first();
+    $user = $userModel->where('email', $email)->first();
 
-        if (!$user) {
-
-            return redirect()->back()->with('error', 'Email tidak ditemukan.');
-
-        }
-
-        if (!password_verify($password, $user['password'])) {
-
-            return redirect()->back()->with('error', 'Password salah.');
-
-        }
-
-        session()->set([
-
-            'id'        => $user['id'],
-            'nama'      => $user['nama'],
-            'email'     => $user['email'],
-            'role'      => $user['role'],
-            'logged_in' => true
-
-        ]);
-
-        return redirect()->to(base_url('peserta/dashboard'));
+    if (!$user) {
+        dd('EMAIL TIDAK DITEMUKAN');
     }
+
+    // dd(
+//     $password,
+//     $user['password'],
+//     password_verify($password, $user['password'])
+// );
+
+if (!password_verify($password, $user['password'])) {
+    return redirect()->back()->with('error', 'Password salah.');
+}
+
+session()->set([
+    'id'        => $user['id'],
+    'nama'      => $user['nama'],
+    'email'     => $user['email'],
+    'role'      => $user['role'],
+    'logged_in' => true
+]);
+
+return redirect()->to(base_url('peserta/dashboard'));
+}
 
     public function logout()
 {

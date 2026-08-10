@@ -80,7 +80,7 @@
                                     Lihat materi pembelajaran.
                                 </p>
 
-                                <a href="<?= base_url('pelatihan/materi') ?>"
+                                <a href="<?= base_url('pelatihan/daftar-materi') ?>"
                                    class="btn btn-primary">
 
                                     Buka

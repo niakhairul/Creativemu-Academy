@@ -1,44 +1,69 @@
-<?= $this->extend('layouts/auth_template') ?>
+<?= $this->extend('layouts/dashboard_template') ?>
 
 <?= $this->section('content') ?>
 
-<div class="container py-5">
+<div class="card shadow-lg border-0 rounded-4">
 
-    <div class="card shadow-lg border-0 rounded-4">
+    <div class="card-body p-5">
 
-        <div class="card-body p-5">
+        <h2 class="fw-bold text-primary">
+            Tugas Digital Marketing
+        </h2>
 
-            <h2 class="fw-bold text-primary">
-                Tugas Pertemuan 1
-            </h2>
+        <p class="text-muted">
+            Mentor : Bapak Andi Saputra
+        </p>
 
-            <p class="text-muted">
-                Digital Marketing
-            </p>
+        <hr>
 
-            <hr>
+        <h4>📝 Deskripsi Tugas</h4>
 
-            <h5>Instruksi Tugas</h5>
+        <p>
+            Buatlah strategi promosi sebuah produk menggunakan media sosial
+            (Instagram atau TikTok) kemudian simpan dalam bentuk PDF.
+        </p>
 
-            <p>
-                Buatlah analisis sederhana mengenai strategi digital marketing
-                dari salah satu produk UMKM di sekitar Anda.
-            </p>
+        <hr>
 
-            <div class="mb-4">
+        <h4>📤 Upload Tugas</h4>
 
-                <label class="form-label">
-                    Upload Jawaban
-                </label>
+        <form action="<?= base_url('pelatihan/upload-tugas') ?>"
+              method="post"
+              enctype="multipart/form-data">
 
-                <input type="file"
-                       class="form-control">
+            <?= csrf_field(); ?>
 
-            </div>
+            <input
+                type="file"
+                name="tugas"
+                class="form-control mb-3"
+                required>
 
-            <button class="btn btn-success">
+            <button
+                class="btn btn-success">
 
-                Kirim Tugas
+                Upload Tugas
+
+            </button>
+
+        </form>
+
+        <hr>
+
+        <div class="d-flex justify-content-between">
+
+            <a href="<?= base_url('pelatihan/materi?id=' . $kelas['id']) ?>"
+               class="btn btn-secondary">
+
+                ← Kembali ke Materi
+
+            </a>
+
+            <button
+                class="btn btn-primary"
+                disabled>
+
+                Menunggu Penilaian Mentor
 
             </button>
 
@@ -47,5 +72,4 @@
     </div>
 
 </div>
-
 <?= $this->endSection() ?>

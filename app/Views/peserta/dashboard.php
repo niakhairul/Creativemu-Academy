@@ -111,7 +111,7 @@
 
                     <?php else: ?>
 
-                        <?php if($pendaftaran['status']=="Menunggu"): ?>
+                        <?php if($pendaftaran['status_pendaftaran']=="Menunggu"): ?>
 
                             <span class="badge bg-warning fs-6">
 
@@ -119,7 +119,7 @@
 
                             </span>
 
-                        <?php elseif($pendaftaran['status']=="Disetujui"): ?>
+                        <?php elseif($pendaftaran['status_pendaftaran']=="Disetujui"): ?>
 
                             <span class="badge bg-success fs-6">
 
@@ -225,67 +225,6 @@
 
 </div>
 
-<div class="card shadow border-0 rounded-4 mt-4">
 
-    <div class="card-body">
-
-        <h4 class="fw-bold mb-4">
-
-            🚀 Menu Cepat
-
-        </h4>
-
-        <div class="row">
-
-            <div class="col-md-4 mb-3">
-
-                <a href="<?= base_url('pelatihan/daftar-kelas') ?>"
-                   class="btn btn-outline-primary w-100 p-4">
-
-                    <i class="bi bi-grid fs-2"></i>
-
-                    <br>
-
-                    Daftar Kelas
-
-                </a>
-
-            </div>
-
-            <div class="col-md-4 mb-3">
-
-                <a href="#"
-                   class="btn btn-outline-success w-100 p-4">
-
-                    <i class="bi bi-book fs-2"></i>
-
-                    <br>
-
-                    Kelas Saya
-
-                </a>
-
-            </div>
-
-            <div class="col-md-4 mb-3">
-
-                <a href="#"
-                   class="btn btn-outline-warning w-100 p-4">
-
-                    <i class="bi bi-gear fs-2"></i>
-
-                    <br>
-
-                    Pengaturan
-
-                </a>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
 
 <?= $this->endSection() ?>

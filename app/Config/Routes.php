@@ -20,13 +20,16 @@ $routes->get('pelatihan/status', 'Pelatihan::status');
 $routes->get('pelatihan/detail-kelas', 'Pelatihan::detailKelas');
 
 $routes->get('pelatihan/materi', 'Pelatihan::materi');
+$routes->get('pelatihan/daftar-materi', 'Pelatihan::daftarMateri');
 $routes->get('pelatihan/tugas', 'Pelatihan::tugas');
-
+$routes->post('pelatihan/upload-tugas', 'Pelatihan::uploadTugas');
 $routes->get('peserta/dashboard', 'Pelatihan::dashboard');
 
 // ===== MENU BARU PESERTA =====
 
 $routes->get('pelatihan/profil', 'Pelatihan::profil');
+$routes->get('pelatihan/edit-profil', 'Pelatihan::editProfil');
+$routes->post('pelatihan/update-profil', 'Pelatihan::updateProfil');
 $routes->get('pelatihan/daftar-kelas', 'Pelatihan::daftarKelas');
 $routes->get('pelatihan/kbm', 'Pelatihan::kbm');
 $routes->get('pelatihan/pengaturan', 'Pelatihan::pengaturan');
