@@ -13,6 +13,22 @@
         Kelola informasi profil peserta Anda.
     </p>
 
+    <?php if (session()->getFlashdata('success')): ?>
+
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+
+        <strong>✅ Berhasil!</strong>
+        <?= session()->getFlashdata('success') ?>
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+
+    </div>
+
+<?php endif; ?>
+
 </div>
 
 

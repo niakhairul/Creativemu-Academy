@@ -33,6 +33,8 @@ $routes->post('pelatihan/update-profil', 'Pelatihan::updateProfil');
 $routes->get('pelatihan/daftar-kelas', 'Pelatihan::daftarKelas');
 $routes->get('pelatihan/kbm', 'Pelatihan::kbm');
 $routes->get('pelatihan/pengaturan', 'Pelatihan::pengaturan');
+$routes->get('pelatihan/ubah-password', 'Pelatihan::ubahPassword');
+$routes->post('pelatihan/update-password', 'Pelatihan::updatePassword');
 $routes->post('pelatihan/daftar', 'Pelatihan::simpanPendaftaran');
 $routes->get('pelatihan/kelas', 'Pelatihan::kelas');
 

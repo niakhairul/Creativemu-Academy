@@ -350,7 +350,53 @@ public function updateProfil()
         ]);
     }
 
+    public function ubahPassword()
+{
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'));
+    }
+
+    return view('peserta/ubah_password');
+}
+
+public function updatePassword()
+{
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'));
+    }
+
+    $userModel = new UserModel();
+
+    $id = session()->get('id');
+
+    $user = $userModel->find($id);
+
+    $passwordLama = $this->request->getPost('password_lama');
+    $passwordBaru = $this->request->getPost('password_baru');
+    $konfirmasi = $this->request->getPost('konfirmasi_password');
+
+    // Cek password lama
+    if (!password_verify($passwordLama, $user['password'])) {
+        return redirect()->back()->with('error', 'Password lama salah.');
+    }
+
+    // Cek konfirmasi password
+    if ($passwordBaru !== $konfirmasi) {
+        return redirect()->back()->with('error', 'Konfirmasi password tidak cocok.');
+    }
+
+    // Update password
+    $userModel->update($id, [
+        'password' => password_hash($passwordBaru, PASSWORD_DEFAULT)
+    ]);
+
+    return redirect()->to(base_url('pelatihan/pengaturan'))
+        ->with('success', 'Password berhasil diubah.');
+}
     // ==========================
+// UPLOAD TUGAS
+// ==========================
+// ==========================
 // UPLOAD TUGAS
 // ==========================
 public function uploadTugas()
@@ -361,17 +407,27 @@ public function uploadTugas()
 
     $file = $this->request->getFile('tugas');
 
-    if (!$file->isValid()) {
-        return redirect()->back()->with('error', 'File tidak valid.');
+    // Cek file
+    if (!$file || !$file->isValid()) {
+        return redirect()->back()
+            ->with('error', 'File tidak valid.');
     }
 
+    // Folder upload
+    $folder = FCPATH . 'uploads/tugas';
+
+    // Buat folder jika belum ada
+    if (!is_dir($folder)) {
+        mkdir($folder, 0777, true);
+    }
+
+    // Buat nama file acak
     $namaFile = $file->getRandomName();
 
-    $file->move(
-        FCPATH . 'uploads/tugas',
-        $namaFile
-    );
+    // Pindahkan file
+    $file->move($folder, $namaFile);
 
+    // Simpan ke database
     $model = new PengumpulanTugasModel();
 
     $model->save([
@@ -381,9 +437,11 @@ public function uploadTugas()
         'status'     => 'Belum Dinilai'
     ]);
 
-    return redirect()->back()
+    // Kembali ke halaman tugas
+    return redirect()->to(base_url('pelatihan/tugas'))
         ->with('success', 'Tugas berhasil diupload.');
 }
+
     // ==========================
 // SIMPAN PENDAFTARAN
 // ==========================
