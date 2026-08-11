@@ -3,96 +3,140 @@
 <?= $this->section('content') ?>
 
 <div class="container py-4">
+<div class="mb-4">
 
-    <div class="mb-4">
-        <h2 class="fw-bold">Edit Profil</h2>
-        <p class="text-muted">
-            Perbarui informasi pribadi Anda.
-        </p>
-    </div>
+    <h2 class="fw-bold">
+        Edit Profil
+    </h2>
 
-    <div class="card border-0 shadow-sm">
+    <p class="text-muted">
+        Perbarui informasi pribadi Anda.
+    </p>
 
-        <div class="card-body p-4">
-
-            <form action="<?= base_url('pelatihan/update-profil') ?>" method="post">
-
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">
-                        Nama Lengkap
-                    </label>
-
-                    <input
-    type="text"
-    name="nama"
-    class="form-control"
-    value="<?= esc($user['nama'] ?? '') ?>"
-    placeholder="Masukkan nama lengkap"
->
-                </div>
+</div>
 
 
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">
-                        Email
-                    </label>
+<div class="card border-0 shadow-sm">
 
-                    <input
-    type="email"
-    name="email"
-    class="form-control"
-    value="<?= esc($user['email'] ?? '') ?>"
-    placeholder="Masukkan email"
->
-                </div>
+    <div class="card-body p-4">
+
+        <form action="<?= base_url('pelatihan/update-profil') ?>"
+              method="post"
+              enctype="multipart/form-data">
 
 
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">
-                        Nomor HP
-                    </label>
+            <!-- Nama Lengkap -->
+            <div class="mb-3">
 
-                    <input
-    type="text"
-    name="no_hp"
-    class="form-control"
-    value="<?= esc($user['no_hp'] ?? '') ?>"
-    placeholder="08xxxxxxxxxx"
->
-                </div>
+                <label class="form-label fw-semibold">
+                    Nama Lengkap
+                </label>
 
+                <input
+                    type="text"
+                    name="nama"
+                    class="form-control"
+                    value="<?= esc($user['nama'] ?? '') ?>"
+                    placeholder="Masukkan nama lengkap">
 
-                <div class="mb-4">
-                    <label class="form-label fw-semibold">
-                        Asal Sekolah / Kampus
-                    </label>
-
-                    <input
-    type="text"
-    name="asal_sekolah"
-    class="form-control"
-    value="<?= esc($user['asal_sekolah'] ?? '') ?>"
-    placeholder="Masukkan asal sekolah/kampus"
->
-                </div>
+            </div>
 
 
-                <div class="d-flex gap-2">
+            <!-- Email -->
+            <div class="mb-3">
 
-                    <button type="submit" class="btn btn-primary">
-                        💾 Simpan Perubahan
-                    </button>
+                <label class="form-label fw-semibold">
+                    Email
+                </label>
 
-                    <a href="<?= base_url('pelatihan/profil') ?>"
-                       class="btn btn-light">
-                        Batal
-                    </a>
+                <input
+                    type="email"
+                    name="email"
+                    class="form-control"
+                    value="<?= esc($user['email'] ?? '') ?>"
+                    placeholder="Masukkan email">
 
-                </div>
+            </div>
 
-            </form>
 
-        </div>
+            <!-- Nomor HP -->
+            <div class="mb-3">
+
+                <label class="form-label fw-semibold">
+                    Nomor HP
+                </label>
+
+                <input
+                    type="text"
+                    name="no_hp"
+                    class="form-control"
+                    value="<?= esc($user['no_hp'] ?? '') ?>"
+                    placeholder="08xxxxxxxxxx">
+
+            </div>
+
+
+            <!-- Asal Sekolah -->
+            <div class="mb-4">
+
+                <label class="form-label fw-semibold">
+                    Asal Sekolah / Kampus
+                </label>
+
+                <input
+                    type="text"
+                    name="asal_sekolah"
+                    class="form-control"
+                    value="<?= esc($user['asal_sekolah'] ?? '') ?>"
+                    placeholder="Masukkan asal sekolah/kampus">
+
+            </div>
+
+
+            <!-- Foto Profil -->
+            <div class="mb-4">
+
+                <label class="form-label fw-semibold">
+                    Foto Profil
+                </label>
+
+                <input
+                    type="file"
+                    name="foto"
+                    class="form-control"
+                    accept=".jpg,.jpeg,.png">
+
+                <small class="text-muted">
+                    Format JPG, JPEG, atau PNG. Maksimal 2 MB.
+                </small>
+
+            </div>
+
+
+            <!-- Tombol -->
+            <div class="d-flex gap-2">
+
+                <button
+                    type="submit"
+                    class="btn btn-primary">
+
+                    💾 Simpan Perubahan
+
+                </button>
+
+
+                <a
+                    href="<?= base_url('pelatihan/profil') ?>"
+                    class="btn btn-light">
+
+                    Batal
+
+                </a>
+
+            </div>
+
+
+        </form>
 
     </div>
 

@@ -42,8 +42,25 @@
             <div class="card-body text-center p-4">
 
                 <div class="profile-avatar mx-auto mb-3">
-                    👤
-                </div>
+
+    <?php if (!empty($user['foto'])): ?>
+
+        <img src="<?= base_url('uploads/profil/' . $user['foto']) ?>"
+             alt="Foto Profil"
+             class="rounded-circle"
+             width="100"
+             height="100"
+             style="object-fit: cover;">
+
+    <?php else: ?>
+
+        <span style="font-size: 60px;">
+            👤
+        </span>
+
+    <?php endif; ?>
+
+</div>
 
                 <h5 class="fw-bold">
                     <?= esc($user['nama'] ?? 'Peserta') ?>

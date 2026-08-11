@@ -16,10 +16,22 @@
     <div class="sidebar">
     <div class="logo">
 
+    <?php if (!empty(session('foto'))): ?>
+
+    <img src="<?= base_url('uploads/profil/' . session('foto')) ?>"
+         class="rounded-circle shadow"
+         width="90"
+         height="90"
+         style="object-fit: cover;">
+
+<?php else: ?>
+
     <img src="<?= base_url('assets/img/logo creativemu academy.jpg') ?>"
          class="rounded-circle shadow"
-         width="90">
+         width="90"
+         height="90">
 
+<?php endif; ?>
     <h5 class="mt-3 mb-1 fw-bold">
     <?= esc(ucwords(session('nama'))) ?>
 </h5>

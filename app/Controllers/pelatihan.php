@@ -256,21 +256,63 @@ public function updateProfil()
 
     $id = session()->get('id');
 
+    // Data profil
     $data = [
-        'nama' => $this->request->getPost('nama'),
-        'email' => $this->request->getPost('email'),
-        'no_hp' => $this->request->getPost('no_hp'),
-        'asal_sekolah' => $this->request->getPost('asal_sekolah'),
+        'nama'          => $this->request->getPost('nama'),
+        'email'         => $this->request->getPost('email'),
+        'no_hp'         => $this->request->getPost('no_hp'),
+        'asal_sekolah'  => $this->request->getPost('asal_sekolah'),
     ];
 
+    // Ambil file foto
+    $foto = $this->request->getFile('foto');
+
+    // Kalau peserta memilih foto
+    if ($foto && $foto->isValid() && !$foto->hasMoved()) {
+
+        // Validasi ukuran maksimal 2 MB
+        if ($foto->getSize() > 2 * 1024 * 1024) {
+            return redirect()->back()
+                ->with('error', 'Ukuran foto maksimal 2 MB.');
+        }
+
+        // Validasi ekstensi
+        $ext = strtolower($foto->getClientExtension());
+
+        if (!in_array($ext, ['jpg', 'jpeg', 'png'])) {
+            return redirect()->back()
+                ->with('error', 'Format foto harus JPG, JPEG, atau PNG.');
+        }
+
+        // Folder penyimpanan foto
+        $folder = FCPATH . 'uploads/profil';
+
+        // Buat folder jika belum ada
+        if (!is_dir($folder)) {
+            mkdir($folder, 0777, true);
+        }
+
+        // Nama file acak
+        $namaFoto = $foto->getRandomName();
+
+        // Pindahkan foto
+        $foto->move($folder, $namaFoto);
+
+        // Simpan nama foto ke database
+        $data['foto'] = $namaFoto;
+    }
+
+    // Update data user
     $userModel->update($id, $data);
 
-    session()->set([
-        'nama' => $data['nama'],
-        'email' => $data['email'],
-        'no_hp' => $data['no_hp'],
-        'asal_sekolah' => $data['asal_sekolah'],
-    ]);
+    // Update session
+session()->set([
+    'nama'          => $data['nama'],
+    'email'         => $data['email'],
+    'no_hp'         => $data['no_hp'],
+    'asal_sekolah'  => $data['asal_sekolah'],
+    'foto'          => $data['foto'] ?? null,
+]);
 
     return redirect()->to(base_url('pelatihan/profil'))
         ->with('success', 'Profil berhasil diperbarui.');
