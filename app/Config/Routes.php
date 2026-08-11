@@ -37,6 +37,9 @@ $routes->get('pelatihan/ubah-password', 'Pelatihan::ubahPassword');
 $routes->post('pelatihan/update-password', 'Pelatihan::updatePassword');
 $routes->post('pelatihan/daftar', 'Pelatihan::simpanPendaftaran');
 $routes->get('pelatihan/kelas', 'Pelatihan::kelas');
+$routes->get('pelatihan/absensi', 'pelatihan::absensi');
+$routes->post('pelatihan/absensi/simpan', 'pelatihan::simpanAbsensi');
+$routes->get('pelatihan/riwayat-absensi', 'Pelatihan::riwayatAbsensi');
 
 // ===== MENU ADMIN =====
 $routes->group('admin', function($routes) {

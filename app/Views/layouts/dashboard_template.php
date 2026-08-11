@@ -82,6 +82,20 @@
     </li>
 
     <li>
+    <a href="<?= base_url('pelatihan/absensi') ?>">
+        <i class="bi bi-calendar-check-fill"></i>
+        Absensi
+    </a>
+</li>
+
+<li>
+    <a href="<?= base_url('pelatihan/riwayat-absensi') ?>">
+        <i class="bi bi-clock-history"></i>
+        Riwayat Absensi
+    </a>
+</li>
+
+    <li>
         <a href="<?= base_url('pelatihan/pengaturan') ?>">
             <i class="bi bi-gear-fill"></i>
             Pengaturan

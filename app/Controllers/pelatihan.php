@@ -6,6 +6,8 @@ use App\Models\UserModel;
 use App\Models\KelasModel;
 use App\Models\PendaftaranModel;
 use App\Models\PengumpulanTugasModel;
+use App\Models\JadwalKelasModel;
+use App\Models\AbsensiModel;
 
 class Pelatihan extends BaseController
 {
@@ -383,6 +385,195 @@ session()->set([
     ]);
 }
 
+// ==========================
+// ABSENSI PESERTA
+// ==========================
+public function absensi()
+{
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'));
+    }
+
+    $pendaftaranModel = new PendaftaranModel();
+    $jadwalModel = new JadwalKelasModel();
+    $absensiModel = new AbsensiModel();
+
+    // Cek peserta sudah memiliki kelas yang disetujui
+    $pendaftaran = $pendaftaranModel
+        ->where('user_id', session()->get('id'))
+        ->where('status_pendaftaran', 'Disetujui')
+        ->first();
+
+    if (!$pendaftaran) {
+        return redirect()->to(base_url('pelatihan/kelas'))
+            ->with('error', 'Anda belum memiliki kelas yang disetujui.');
+    }
+
+    // Ambil jadwal berdasarkan kelas peserta
+    $jadwal = $jadwalModel
+        ->where('id_kelas', $pendaftaran['kelas_id'])
+        ->orderBy('pertemuan_ke', 'ASC')
+        ->findAll();
+
+    // Ambil absensi peserta yang sedang login
+    $userId = session()->get('id');
+
+    foreach ($jadwal as &$j) {
+
+        $j['absensi'] = $absensiModel
+            ->where('id_jadwal_kelas', $j['id_jadwal_kelas'])
+            ->where('id_user', $userId)
+            ->first();
+    }
+
+    return view('peserta/absensi', [
+        'jadwal' => $jadwal
+    ]);
+}
+
+// ==========================
+// SIMPAN ABSENSI PESERTA
+// ==========================
+public function simpanAbsensi()
+{
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'));
+    }
+
+    $jadwalModel = new JadwalKelasModel();
+    $absensiModel = new AbsensiModel();
+
+    $userId = session()->get('id');
+
+    // Ambil ID jadwal dari form
+    $idJadwal = $this->request->getPost('id_jadwal_kelas');
+
+    // Cari jadwal
+    $jadwal = $jadwalModel->find($idJadwal);
+
+    if (!$jadwal) {
+        return redirect()->back()
+            ->with('error', 'Jadwal tidak ditemukan.');
+    }
+
+    // Waktu sekarang
+    $sekarang = time();
+
+    // Waktu mulai
+    $waktuMulai = strtotime($jadwal['tanggal_kbm']);
+
+    // Waktu selesai
+    $waktuSelesai = strtotime(
+        date('Y-m-d', $waktuMulai) . ' ' . $jadwal['jam_selesai']
+    );
+
+    // Pastikan peserta hanya bisa absen sesuai jadwal
+    if ($sekarang < $waktuMulai) {
+        return redirect()->back()
+            ->with('error', 'Absensi belum dibuka.');
+    }
+
+    if ($sekarang > $waktuSelesai) {
+        return redirect()->back()
+            ->with('error', 'Waktu absensi sudah ditutup.');
+    }
+
+    // Cek apakah peserta sudah pernah absen
+    $sudahAbsen = $absensiModel
+        ->where('id_jadwal_kelas', $idJadwal)
+        ->where('id_user', $userId)
+        ->first();
+
+    if ($sudahAbsen) {
+        return redirect()->back()
+            ->with('error', 'Anda sudah melakukan absensi pada pertemuan ini.');
+    }
+
+    // Simpan absensi
+    $absensiModel->insert([
+        'id_jadwal_kelas' => $idJadwal,
+        'id_user'         => $userId,
+        'status'          => 'hadir',
+        'waktu_absen'     => date('Y-m-d H:i:s')
+    ]);
+
+    return redirect()->to(base_url('pelatihan/absensi'))
+        ->with('success', 'Absensi berhasil. Anda tercatat hadir.');
+}
+
+// ==========================
+// RIWAYAT ABSENSI PESERTA
+// ==========================
+public function riwayatAbsensi()
+{
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'));
+    }
+
+    $pendaftaranModel = new PendaftaranModel();
+    $jadwalModel = new JadwalKelasModel();
+    $absensiModel = new AbsensiModel();
+
+    $userId = session()->get('id');
+
+    // Cek kelas peserta
+    $pendaftaran = $pendaftaranModel
+        ->where('user_id', $userId)
+        ->where('status_pendaftaran', 'Disetujui')
+        ->first();
+
+    if (!$pendaftaran) {
+        return redirect()->to(base_url('pelatihan/kelas'))
+            ->with('error', 'Anda belum memiliki kelas yang disetujui.');
+    }
+
+    // Ambil semua jadwal kelas peserta
+    $jadwal = $jadwalModel
+        ->where('id_kelas', $pendaftaran['kelas_id'])
+        ->orderBy('pertemuan_ke', 'ASC')
+        ->findAll();
+
+    // Variabel rekap
+    $totalPertemuan = count($jadwal);
+    $jumlahHadir = 0;
+    $jumlahIzin = 0;
+    $jumlahAlpa = 0;
+
+    // Ambil status absensi masing-masing pertemuan
+    foreach ($jadwal as &$j) {
+
+        $j['absensi'] = $absensiModel
+            ->where('id_jadwal_kelas', $j['id_jadwal_kelas'])
+            ->where('id_user', $userId)
+            ->first();
+
+        // Hitung status absensi
+        if (!empty($j['absensi'])) {
+
+            if ($j['absensi']['status'] === 'hadir') {
+                $jumlahHadir++;
+            } elseif ($j['absensi']['status'] === 'izin') {
+                $jumlahIzin++;
+            } elseif ($j['absensi']['status'] === 'alpa') {
+                $jumlahAlpa++;
+            }
+        }
+    }
+
+    // Hitung persentase kehadiran
+    $persentaseKehadiran = $totalPertemuan > 0
+        ? round(($jumlahHadir / $totalPertemuan) * 100)
+        : 0;
+
+    return view('peserta/riwayat_absensi', [
+        'jadwal' => $jadwal,
+        'totalPertemuan' => $totalPertemuan,
+        'jumlahHadir' => $jumlahHadir,
+        'jumlahIzin' => $jumlahIzin,
+        'jumlahAlpa' => $jumlahAlpa,
+        'persentaseKehadiran' => $persentaseKehadiran
+    ]);
+}
     // ==========================
     // PENGATURAN AKUN
     // ==========================
