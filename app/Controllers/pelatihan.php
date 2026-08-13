@@ -350,11 +350,10 @@ session()->set([
         'kelas'=>$kelas
     ]);
 }
-
-    // ==========================
-    // KBM
-    // ==========================
-    public function kbm()
+// ==========================
+// KBM
+// ==========================
+public function kbm()
 {
     if (!session()->get('logged_in')) {
         return redirect()->to(base_url('pelatihan/login'));
@@ -371,10 +370,8 @@ session()->set([
 
     // Kalau belum disetujui, tidak boleh masuk KBM
     if (!$pendaftaran) {
-
         return redirect()->to(base_url('pelatihan/kelas'))
             ->with('error', 'Kelas Anda belum disetujui admin.');
-
     }
 
     // Ambil data kelas
@@ -385,6 +382,125 @@ session()->set([
     ]);
 }
 
+
+// ==========================
+// UJIAN PESERTA
+// ==========================
+public function ujian()
+{
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'));
+    }
+
+    $data = [
+        'title' => 'Ujian Peserta',
+        'ujian_selesai' => session()->get('ujian_selesai')
+    ];
+
+    return view('peserta/ujian', $data);
+}
+
+// ==========================
+// KERJAKAN UJIAN PESERTA
+// ==========================
+public function kerjakanUjian()
+{
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'));
+    }
+
+    // Contoh soal sementara
+    // Nanti soal ini akan diambil dari database yang dibuat oleh mentor
+    $soal = [
+        [
+            'id' => 1,
+            'pertanyaan' => 'Apa yang dimaksud dengan Digital Marketing?',
+            'pilihan_a' => 'Pemasaran menggunakan media digital',
+            'pilihan_b' => 'Pemasaran menggunakan koran saja',
+            'pilihan_c' => 'Pemasaran secara langsung',
+            'pilihan_d' => 'Pemasaran tanpa internet',
+        ],
+        [
+            'id' => 2,
+            'pertanyaan' => 'Manakah yang termasuk media sosial untuk pemasaran?',
+            'pilihan_a' => 'Instagram',
+            'pilihan_b' => 'Kalkulator',
+            'pilihan_c' => 'Notepad',
+            'pilihan_d' => 'File Explorer',
+        ],
+        [
+            'id' => 3,
+            'pertanyaan' => 'Apa tujuan utama promosi melalui media sosial?',
+            'pilihan_a' => 'Mengurangi pelanggan',
+            'pilihan_b' => 'Meningkatkan jangkauan pemasaran',
+            'pilihan_c' => 'Menghapus produk',
+            'pilihan_d' => 'Mengurangi informasi produk',
+        ],
+    ];
+
+    return view('peserta/kerjakan_ujian', [
+        'soal' => $soal
+    ]);
+}
+
+public function submitUjian()
+{
+    // Jawaban yang dipilih peserta
+    $jawaban = $this->request->getPost('jawaban');
+
+    // Kunci jawaban sementara
+    $kunci = [
+        1 => 'A',
+        2 => 'A',
+        3 => 'B'
+    ];
+
+    $benar = 0;
+
+    if (is_array($jawaban)) {
+        foreach ($kunci as $nomor => $jawabanBenar) {
+            if (
+                isset($jawaban[$nomor]) &&
+                $jawaban[$nomor] === $jawabanBenar
+            ) {
+                $benar++;
+            }
+        }
+    }
+
+    // Hitung nilai
+$jumlahSoal = count($kunci);
+$nilai = ($benar / $jumlahSoal) * 100;
+
+// Simpan hasil ujian ke session
+session()->set([
+    'ujian_selesai' => true,
+    'ujian_benar' => $benar,
+    'ujian_jumlah_soal' => $jumlahSoal,
+    'ujian_nilai' => $nilai
+]);
+
+return view('peserta/hasil_ujian', [
+    'benar' => $benar,
+    'jumlahSoal' => $jumlahSoal,
+    'nilai' => $nilai
+]);
+}
+// ==========================
+// HASIL UJIAN PESERTA
+// ==========================
+public function hasilUjian()
+{
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'));
+    }
+
+    return view('peserta/hasil_ujian', [
+        'benar' => session()->get('ujian_benar') ?? 0,
+        'jumlahSoal' => session()->get('ujian_jumlah_soal') ?? 0,
+        'nilai' => session()->get('ujian_nilai') ?? 0
+    ]);
+}
 // ==========================
 // ABSENSI PESERTA
 // ==========================
@@ -635,9 +751,7 @@ public function updatePassword()
     return redirect()->to(base_url('pelatihan/pengaturan'))
         ->with('success', 'Password berhasil diubah.');
 }
-    // ==========================
-// UPLOAD TUGAS
-// ==========================
+   
 // ==========================
 // UPLOAD TUGAS
 // ==========================

@@ -100,13 +100,14 @@
 
             <div>
 
-                <a href="#"
-                   class="btn btn-outline-primary">
+                <a href="<?= base_url('uploads/modul/TEMPLATE DESAIN.pdf') ?>"
+   class="btn btn-outline-primary"
+   download>
 
-                    <i class="bi bi-download"></i>
-                    Download Modul
+    <i class="bi bi-download"></i>
+    Download Modul
 
-                </a>
+</a>
 
             </div>
 
