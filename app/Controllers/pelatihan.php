@@ -400,6 +400,103 @@ public function ujian()
     return view('peserta/ujian', $data);
 }
 
+public function angket()
+{
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'));
+    }
+
+    $userId = session()->get('id');
+
+    // Ambil data pendaftaran peserta
+    $pendaftaranModel = new \App\Models\PendaftaranModel();
+
+    $pendaftaran = $pendaftaranModel
+        ->where('user_id', $userId)
+        ->first();
+
+    if (!$pendaftaran) {
+        return redirect()->to(base_url('pelatihan/dashboard'))
+            ->with('error', 'Data pendaftaran kelas tidak ditemukan.');
+    }
+
+    // Cek apakah peserta sudah mengisi angket
+    $angketModel = new \App\Models\AngketModel();
+
+    $sudahIsi = $angketModel
+        ->where('user_id', $userId)
+        ->where('kelas_id', $pendaftaran['kelas_id'])
+        ->first();
+
+    return view('peserta/angket', [
+        'pendaftaran' => $pendaftaran,
+        'sudahIsi'    => $sudahIsi
+    ]);
+}
+
+public function sertifikat()
+{
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'));
+    }
+
+    $userId = session()->get('id');
+
+    // Ambil data pendaftaran peserta
+    $pendaftaranModel = new \App\Models\PendaftaranModel();
+
+    $pendaftaran = $pendaftaranModel
+        ->where('user_id', $userId)
+        ->first();
+
+    // Kalau belum ada data pendaftaran
+    if (!$pendaftaran) {
+        return redirect()->to(base_url('pelatihan/dashboard'))
+            ->with('error', 'Data pendaftaran kelas tidak ditemukan.');
+    }
+
+    // Cek apakah peserta sudah mengisi angket
+    $angketModel = new \App\Models\AngketModel();
+
+    $angket = $angketModel
+        ->where('user_id', $userId)
+        ->where('kelas_id', $pendaftaran['kelas_id'])
+        ->first();
+
+    // Ambil hasil ujian dari session
+    $nilai = session()->get('ujian_nilai');
+
+    // Untuk sementara belum menentukan batas lulus
+    $lulus = false;
+
+    // Data yang dikirim ke halaman sertifikat
+    return view('peserta/sertifikat', [
+        'angket' => $angket,
+        'nilai'  => $nilai,
+        'lulus'  => $lulus
+    ]);
+}
+public function simpanAngket()
+{
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'));
+    }
+
+    $model = new \App\Models\AngketModel();
+
+    $model->save([
+        'user_id'     => session()->get('id'),
+        'kelas_id'    => $this->request->getPost('kelas_id'),
+        'materi'      => $this->request->getPost('materi'),
+        'mentor'      => $this->request->getPost('mentor'),
+        'penyampaian' => $this->request->getPost('penyampaian'),
+        'manfaat'     => $this->request->getPost('manfaat'),
+        'saran'       => $this->request->getPost('saran')
+    ]);
+
+    return redirect()->to(base_url('pelatihan/angket'))
+        ->with('success', 'Angket berhasil dikirim. Terima kasih sudah memberikan penilaian dan masukan.');
+}
 // ==========================
 // KERJAKAN UJIAN PESERTA
 // ==========================

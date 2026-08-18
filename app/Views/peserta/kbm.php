@@ -10,6 +10,7 @@
 
             <div class="card-body p-4">
 
+                <!-- JUDUL -->
                 <h2 class="fw-bold text-primary">
                     Kegiatan Belajar Mengajar
                 </h2>
@@ -20,8 +21,10 @@
 
                 <hr>
 
+                <!-- INFORMASI KELAS -->
                 <div class="row">
 
+                    <!-- INFORMASI -->
                     <div class="col-md-6">
 
                         <h4 class="fw-bold">
@@ -50,11 +53,14 @@
 
                     </div>
 
+                    <!-- LOGO -->
                     <div class="col-md-6 text-center">
 
-                        <img src="<?= base_url('assets/img/logo_creativemu_academy.jpg') ?>"
-                             width="180"
-                             class="img-fluid rounded">
+                        <img
+                            src="<?= base_url('assets/img/logo_creativemu_academy.jpg') ?>"
+                            width="180"
+                            class="img-fluid rounded"
+                        >
 
                     </div>
 
@@ -62,11 +68,13 @@
 
                 <hr>
 
-                <div class="row">
+                <!-- MENU KBM -->
+                <div class="row g-3">
 
-                    <div class="col-md-4 mb-3">
+                    <!-- ================= MATERI ================= -->
+                    <div class="col-md-3 mb-3">
 
-                        <div class="card border-primary">
+                        <div class="card border-primary h-100">
 
                             <div class="card-body text-center">
 
@@ -80,11 +88,11 @@
                                     Lihat materi pembelajaran.
                                 </p>
 
-                                <a href="<?= base_url('pelatihan/daftar-materi') ?>"
-                                   class="btn btn-primary">
-
+                                <a
+                                    href="<?= base_url('pelatihan/daftar-materi') ?>"
+                                    class="btn btn-primary"
+                                >
                                     Buka
-
                                 </a>
 
                             </div>
@@ -93,9 +101,11 @@
 
                     </div>
 
-                    <div class="col-md-4 mb-3">
 
-                        <div class="card border-success">
+                    <!-- ================= TUGAS ================= -->
+                    <div class="col-md-3 mb-3">
+
+                        <div class="card border-success h-100">
 
                             <div class="card-body text-center">
 
@@ -109,11 +119,11 @@
                                     Kerjakan tugas dari mentor.
                                 </p>
 
-                                <a href="<?= base_url('pelatihan/tugas') ?>"
-                                   class="btn btn-success">
-
+                                <a
+                                    href="<?= base_url('pelatihan/tugas') ?>"
+                                    class="btn btn-success"
+                                >
                                     Buka
-
                                 </a>
 
                             </div>
@@ -122,9 +132,42 @@
 
                     </div>
 
-                    <div class="col-md-4 mb-3">
 
-                        <div class="card border-warning">
+                    <!-- ================= UJIAN ================= -->
+                    <div class="col-md-3 mb-3">
+
+                        <div class="card border-danger h-100">
+
+                            <div class="card-body text-center">
+
+                                <i class="bi bi-pencil-square fs-1 text-danger"></i>
+
+                                <h5 class="mt-3">
+                                    Ujian
+                                </h5>
+
+                                <p>
+                                    Kerjakan ujian akhir kelas.
+                                </p>
+
+                                <a
+                                    href="<?= base_url('pelatihan/ujian') ?>"
+                                    class="btn btn-danger"
+                                >
+                                    Mulai Ujian
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ================= PROGRESS ================= -->
+                    <div class="col-md-3 mb-3">
+
+                        <div class="card border-warning h-100">
 
                             <div class="card-body text-center">
 
@@ -134,13 +177,13 @@
                                     Progress
                                 </h5>
 
-                                <div class="progress">
+                                <div class="progress mt-4">
 
-                                    <div class="progress-bar bg-success"
-                                         style="width:25%;">
-
+                                    <div
+                                        class="progress-bar bg-success"
+                                        style="width:25%;"
+                                    >
                                         25%
-
                                     </div>
 
                                 </div>
