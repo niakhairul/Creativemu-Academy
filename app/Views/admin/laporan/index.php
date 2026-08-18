@@ -3,228 +3,439 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan - Creativemu</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <title><?= esc($title); ?> - Creativemu Academy</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --primary-color: #6f42c1;
-            --primary-light: #ebe5f7;
-            --bg-color: #f6f5fa;
+            --sidebar-bg: #22133c;
+            --sidebar-active: linear-gradient(135deg, #794bc4 0%, #5931a0 100%);
+            --primary-purple: #794bc4;
+            --dark-purple: #1e0f33;
+            --bg-light: #f7f5fd;
         }
 
-        body { background-color: var(--bg-color); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; }
-
-        .sidebar {
-            width: 260px; height: 100vh; position: fixed; top: 0; left: 0;
-            background-color: #ffffff; padding: 24px 16px; border-right: 1px solid #eaeaea;
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-light);
+            overflow-x: hidden;
+            margin: 0;
         }
 
-        .sidebar-brand { font-size: 1.35rem; font-weight: 700; color: var(--primary-color); margin-bottom: 32px; display: flex; align-items: center; gap: 10px; padding-left: 12px; }
-
-        .nav-link-custom {
-            display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #6c757d;
-            font-weight: 600; text-decoration: none; border-radius: 12px; margin-bottom: 6px; transition: all 0.2s ease;
+        /* SIDEBAR UTAMA */
+        #sidebar {
+            width: 275px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: var(--sidebar-bg);
+            color: #c8bfe7;
+            z-index: 1000;
+            box-shadow: 8px 0 30px rgba(121, 75, 196, 0.08);
+            overflow-y: auto;
+        }
+        .sidebar-header {
+            padding: 25px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        #sidebar .nav { padding: 20px 14px; }
+        #sidebar .nav-item { margin-bottom: 6px; }
+        #sidebar .nav-link {
+            color: #c8bfe7;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.9rem;
+            text-decoration: none;
+        }
+        #sidebar .nav-link i { margin-right: 14px; width: 22px; text-align: center; font-size: 1.1rem; }
+        #sidebar .nav-link:hover {
+            background-color: rgba(121, 75, 196, 0.2);
+            color: #ffffff;
+            transform: translateX(6px);
+        }
+        #sidebar .nav-link.active {
+            background: var(--sidebar-active);
+            color: #ffffff;
+            box-shadow: 0 6px 20px rgba(121, 75, 196, 0.4);
+            font-weight: 600;
         }
 
-        .nav-link-custom:hover, .nav-link-custom.active { background-color: var(--primary-light); color: var(--primary-color); }
-
-        .main-content { margin-left: 260px; padding: 40px; }
-        .page-header h2 { font-weight: 700; color: var(--primary-color); margin-bottom: 4px; }
-        .page-header p { color: #888; margin-bottom: 24px; }
-
-        .card-custom {
-            background: #ffffff; border-radius: 16px; border: none;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); padding: 28px; margin-bottom: 24px;
+        /* MAIN CONTENT AREA */
+        #main-content {
+            margin-left: 275px;
+            padding: 35px;
         }
 
-        .nav-pills .nav-link { color: #6c757d; font-weight: 600; border-radius: 10px; padding: 10px 20px; }
-        .nav-pills .nav-link.active { background-color: var(--primary-color); color: #fff; }
+        .top-navbar {
+            background: #ffffff;
+            padding: 22px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(121, 75, 196, 0.04);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(121, 75, 196, 0.04);
+            animation: fadeInDown 0.6s ease;
+        }
 
-        .table-custom { border-collapse: separate; border-spacing: 0; width: 100%; }
-        .table-custom thead th { background-color: var(--primary-light); color: var(--primary-color); font-weight: 700; border: none; padding: 14px 16px; }
-        .table-custom thead th:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; }
-        .table-custom thead th:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
-        .table-custom tbody td { padding: 16px; vertical-align: middle; border-bottom: 1px solid #f0f0f0; }
+        /* LAPORAN LAYOUT */
+        .laporan-wrapper {
+            display: grid;
+            grid-template-columns: 290px 1fr;
+            gap: 25px;
+            align-items: start;
+        }
 
+        /* MENU SEBELAH KIRI (PILIHAN LAPORAN) */
+        .menu-laporan-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(121, 75, 196, 0.04);
+            border: 1px solid rgba(121, 75, 196, 0.04);
+            animation: fadeInLeft 0.6s ease;
+        }
+        .menu-laporan-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 18px;
+            color: #6c757d;
+            font-weight: 500;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        .menu-laporan-item i {
+            font-size: 1.1rem;
+            margin-right: 14px;
+            width: 24px;
+            transition: transform 0.3s ease;
+        }
+        .menu-laporan-item:hover {
+            background-color: #f4f0fc;
+            color: var(--primary-purple);
+            transform: translateX(4px);
+        }
+        .menu-laporan-item:hover i {
+            transform: scale(1.2);
+        }
+        .menu-laporan-item.active {
+            background: var(--sidebar-active);
+            color: #ffffff;
+            box-shadow: 0 6px 15px rgba(121, 75, 196, 0.3);
+            font-weight: 600;
+        }
+
+        /* KONTEN TABEL SEBELAH KANAN */
+        .content-laporan-card {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(121, 75, 196, 0.04);
+            border: 1px solid rgba(121, 75, 196, 0.04);
+            animation: fadeInRight 0.6s ease;
+            min-height: 450px;
+        }
+
+        .laporan-section {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        .laporan-section.active-section {
+            display: block;
+        }
+
+        /* Custom Table Styling */
+        .table {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .table thead th {
+            background-color: var(--dark-purple);
+            color: #ffffff;
+            border: none;
+            padding: 12px 16px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        .table tbody td {
+            padding: 14px 16px;
+            color: #495057;
+            vertical-align: middle;
+            font-size: 0.9rem;
+            border-color: #f0ecfa;
+        }
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: #faf8fd;
+        }
+        .table tbody tr:hover {
+            background-color: #f2edf9;
+            transition: background 0.2s ease;
+        }
+
+        /* Tombol Cetak Modern */
+        .btn-print-custom {
+            background: var(--sidebar-active);
+            border: none;
+            border-radius: 12px;
+            padding: 10px 22px;
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(121, 75, 196, 0.3);
+            transition: all 0.3s ease;
+        }
+        .btn-print-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(121, 75, 196, 0.4);
+            color: #fff;
+        }
+
+        /* Animasi Keyframes */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Mode Cetak (Print) */
         @media print {
-            .sidebar, .filter-section, .nav-pills, .btn-print { display: none !important; }
-            .main-content { margin-left: 0 !important; padding: 0 !important; }
-            .card-custom { box-shadow: none !important; border: none !important; }
+            #sidebar, .top-navbar, .menu-laporan-card, .btn-print-custom {
+                display: none !important;
+            }
+            #main-content {
+                margin-left: 0 !important;
+                padding: 0 !important;
+            }
+            .content-laporan-card {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+            .laporan-section {
+                display: block !important;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- Sidebar Menu -->
-    <div class="sidebar">
-        <div class="sidebar-brand">
-            <i class="fa-solid fa-graduation-cap"></i> Creativemu
+    <!-- === SIDEBAR UTAMA === -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h5 class="text-white fw-bold m-0" style="letter-spacing: -0.5px;">Creativemu Academy</h5>
         </div>
-        <nav class="nav flex-column">
-            <a class="nav-link-custom" href="<?= base_url('admin/dashboard') ?>"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
-            <a class="nav-link-custom" href="<?= base_url('admin/master-kelas') ?>"><i class="fa-solid fa-book"></i> Master Kelas</a>
-            <a class="nav-link-custom" href="<?= base_url('admin/data-peserta') ?>"><i class="fa-solid fa-users"></i> Data Peserta</a>
-            <a class="nav-link-custom" href="<?= base_url('admin/validasi') ?>"><i class="fa-solid fa-user-check"></i> Validasi Pendaftaran</a>
-            <a class="nav-link-custom" href="<?= base_url('admin/sertifikat') ?>"><i class="fa-solid fa-certificate"></i> Sertifikat</a>
-            <a class="nav-link-custom active" href="<?= base_url('admin/laporan') ?>"><i class="fa-solid fa-file-lines"></i> Laporan</a>
-            <a class="nav-link-custom" href="#"><i class="fa-solid fa-gear"></i> Pengaturan</a>
-        </nav>
-    </div>
+        <ul class="nav flex-column">
+            <li class="nav-item"><a href="<?= base_url('admin/dashboard'); ?>" class="nav-link"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link"><i class="fas fa-book"></i> <span>Master Kelas</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/mentor'); ?>" class="nav-link"><i class="fas fa-chalkboard-user"></i> <span>Mentor</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link"><i class="fas fa-users"></i> <span>Data Peserta</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/validasi'); ?>" class="nav-link"><i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link"><i class="fas fa-award"></i> <span>Sertifikat</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/laporan'); ?>" class="nav-link active"><i class="fas fa-file-lines"></i> <span>Laporan</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link"><i class="fas fa-gear"></i> <span>Pengaturan</span></a></li>
+            <li class="nav-item mt-4"><a href="<?= base_url('logout'); ?>" class="nav-link text-danger"><i class="fas fa-right-from-bracket"></i> <span>Logout</span></a></li>
+        </ul>
+    </nav>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="page-header d-flex justify-content-between align-items-center">
+    <!-- === KONTEN UTAMA === -->
+    <div id="main-content">
+        
+        <!-- TOP NAVBAR -->
+        <div class="top-navbar">
             <div>
-                <h2>Rekapitulasi Laporan</h2>
-                <p>Pilih kategori laporan untuk melihat dan mencetak data rekapitulasi.</p>
+                <h3 class="fw-bold m-0" style="color: var(--dark-purple);">Pusat Laporan Akademik</h3>
+                <p class="text-muted m-0 small">Kelola, tinjau, dan cetak seluruh rekapitulasi data akademik dengan mudah.</p>
             </div>
-            <button onclick="window.print()" class="btn btn-outline-primary btn-print font-weight-bold">
-                <i class="fa-solid fa-print"></i> Cetak Laporan
+            <button onclick="window.print()" class="btn btn-print-custom">
+                <i class="fa-solid fa-print me-2"></i> Cetak Laporan
             </button>
         </div>
 
-        <!-- Tab Pilihan Laporan -->
-        <ul class="nav nav-pills mb-4 filter-section">
-            <li class="nav-item">
-                <a class="nav-link <?= ($jenis == 'peserta') ? 'active' : '' ?>" href="<?= base_url('admin/laporan?jenis=peserta') ?>">
-                    <i class="fa-solid fa-user-graduate"></i> Laporan Peserta
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link <?= ($jenis == 'mentor') ? 'active' : '' ?>" href="<?= base_url('admin/laporan?jenis=mentor') ?>">
-                    <i class="fa-solid fa-chalkboard-user"></i> Laporan Mentor
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link <?= ($jenis == 'angket') ? 'active' : '' ?>" href="<?= base_url('admin/laporan?jenis=angket') ?>">
-                    <i class="fa-solid fa-poll"></i> Laporan Angket / Evaluasi
-                </a>
-            </li>
-        </ul>
-
-        <!-- Filter Periode -->
-        <div class="card-custom filter-section">
-            <form action="<?= base_url('admin/laporan') ?>" method="get" class="row g-3 align-items-end">
-                <input type="hidden" name="jenis" value="<?= esc($jenis) ?>">
-                <div class="col-md-4">
-                    <label class="form-label font-weight-bold">Tanggal Mulai</label>
-                    <input type="date" name="tgl_mulai" class="form-control" value="<?= esc($tglMulai) ?>">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label font-weight-bold">Tanggal Selesai</label>
-                    <input type="date" name="tgl_selesai" class="form-control" value="<?= esc($tglSelesai) ?>">
-                </div>
-                <div class="col-md-4 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary w-100" style="background-color: var(--primary-color); border: none;">
-                        <i class="fa-solid fa-filter"></i> Filter Data
-                    </button>
-                    <a href="<?= base_url('admin/laporan?jenis=' . $jenis) ?>" class="btn btn-light w-100 border">Reset</a>
-                </div>
-            </form>
-        </div>
-
-        <!-- Tabel Laporan Dynamic -->
-        <div class="card-custom">
+        <!-- LAYOUT UTAMA LAPORAN (KIRI: MENU, KANAN: TABEL) -->
+        <div class="laporan-wrapper">
             
-            <?php if ($jenis == 'peserta'): ?>
-                <h5 class="fw-bold mb-3 text-purple" style="color: var(--primary-color);"><i class="fa-solid fa-users"></i> Data Laporan Peserta</h5>
-                <table class="table table-custom">
-                    <thead>
-                        <tr>
-                            <th style="width: 50px;">No</th>
-                            <th>Peserta</th>
-                            <th>Kelas</th>
-                            <th>Tanggal Daftar</th>
-                            <th>Status Validasi</th>
-                            <th>No. Sertifikat</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($laporanData)): ?>
-                            <?php $no = 1; foreach ($laporanData as $row): ?>
-                                <tr>
-                                    <td><?= $no++ ?></td>
-                                    <td><strong><?= esc($row['nama'] ?? '-') ?></strong><br><small class="text-muted"><?= esc($row['email'] ?? '-') ?></small></td>
-                                    <td><?= esc($row['nama_kelas'] ?? '-') ?></td>
-                                    <td><?= !empty($row['created_at']) ? date('d M Y', strtotime($row['created_at'])) : '-' ?></td>
-                                    <td><span class="badge bg-success"><?= esc($row['status_validasi'] ?? 'Menunggu') ?></span></td>
-                                    <td><?= esc($row['no_sertifikat'] ?? '-') ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr><td colspan="6" class="text-center py-4 text-muted">Data peserta belum tersedia.</td></tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+            <!-- MENU PILIHAN LAPORAN DI KIRI -->
+            <div class="menu-laporan-card">
+                <span class="d-block text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">Kategori Laporan</span>
+                
+                <a class="menu-laporan-item active" onclick="switchTab(event, 'peserta')">
+                    <i class="fas fa-users"></i> Laporan Peserta
+                </a>
+                <a class="menu-laporan-item" onclick="switchTab(event, 'mentor')">
+                    <i class="fas fa-chalkboard-user"></i> Laporan Mentor
+                </a>
+                <a class="menu-laporan-item" onclick="switchTab(event, 'angket')">
+                    <i class="fas fa-poll"></i> Laporan Angket Mentor
+                </a>
+                <a class="menu-laporan-item" onclick="switchTab(event, 'absen')">
+                    <i class="fas fa-clipboard-user"></i> Laporan Absen Siswa
+                </a>
+            </div>
 
-            <?php elseif ($jenis == 'mentor'): ?>
-                <h5 class="fw-bold mb-3" style="color: var(--primary-color);"><i class="fa-solid fa-chalkboard-user"></i> Data Laporan Mentor</h5>
-                <table class="table table-custom">
-                    <thead>
-                        <tr>
-                            <th style="width: 50px;">No</th>
-                            <th>Nama Mentor</th>
-                            <th>Email / Kontak</th>
-                            <th>Mengajar Kelas</th>
-                            <th>Keahlian</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($laporanData)): ?>
-                            <?php $no = 1; foreach ($laporanData as $row): ?>
+            <!-- KONTEN TABEL DI KANAN -->
+            <div class="content-laporan-card">
+                
+                <!-- 1. SECTION LAPORAN PESERTA -->
+                <div id="section-peserta" class="laporan-section active-section">
+                    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+                        <div>
+                            <h5 class="fw-bold m-0" style="color: var(--dark-purple);"><i class="fas fa-users text-purple me-2"></i> Rekapitulasi Data Peserta</h5>
+                            <small class="text-muted">Daftar seluruh siswa/peserta yang terdaftar di sistem.</small>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped align-middle">
+                            <thead>
                                 <tr>
-                                    <td><?= $no++ ?></td>
-                                    <td><strong><?= esc($row['nama_mentor'] ?? $row['nama'] ?? '-') ?></strong></td>
-                                    <td><?= esc($row['email'] ?? '-') ?></td>
-                                    <td><?= esc($row['nama_kelas'] ?? '-') ?></td>
-                                    <td><?= esc($row['keahlian'] ?? '-') ?></td>
+                                    <th width="5%">No</th>
+                                    <th>Nama Peserta</th>
+                                    <th>Email</th>
+                                    <th>Telepon</th>
                                 </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr><td colspan="5" class="text-center py-4 text-muted">Data mentor belum tersedia.</td></tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($peserta)): ?>
+                                    <?php $no = 1; foreach ($peserta as $p) : ?>
+                                    <tr>
+                                        <td><?= $no++; ?></td>
+                                        <td class="fw-semibold"><?= $p['nama_peserta']; ?></td>
+                                        <td><?= $p['email']; ?></td>
+                                        <td><?= $p['no_whatsapp'] ?? '-'; ?></td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr><td colspan="4" class="text-center text-muted py-4">Belum ada data peserta.</td></tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
-            <?php elseif ($jenis == 'angket'): ?>
-                <h5 class="fw-bold mb-3" style="color: var(--primary-color);"><i class="fa-solid fa-poll"></i> Hasil Evaluasi / Angket</h5>
-                <table class="table table-custom">
-                    <thead>
-                        <tr>
-                            <th style="width: 50px;">No</th>
-                            <th>Nama Peserta</th>
-                            <th>Kelas</th>
-                            <th>Rating</th>
-                            <th>Saran / Masukan</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($laporanData)): ?>
-                            <?php $no = 1; foreach ($laporanData as $row): ?>
+                <!-- 2. SECTION LAPORAN MENTOR -->
+                <div id="section-mentor" class="laporan-section">
+                    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+                        <div>
+                            <h5 class="fw-bold m-0" style="color: var(--dark-purple);"><i class="fas fa-chalkboard-user text-purple me-2"></i> Rekapitulasi Data Mentor</h5>
+                            <small class="text-muted">Daftar mentor ahli yang aktif mengajar di akademi.</small>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped align-middle">
+                            <thead>
                                 <tr>
-                                    <td><?= $no++ ?></td>
-                                    <td><strong><?= esc($row['nama_peserta'] ?? '-') ?></strong></td>
-                                    <td><?= esc($row['nama_kelas'] ?? '-') ?></td>
-                                    <td>
-                                        <span class="badge bg-warning text-dark">
-                                            <i class="fa-solid fa-star"></i> <?= esc($row['rating'] ?? '5') ?> / 5
-                                        </span>
-                                    </td>
-                                    <td><?= esc($row['saran'] ?? $row['pesan'] ?? '-') ?></td>
+                                    <th width="5%">No</th>
+                                    <th>Nama Mentor</th>
+                                    <th>Keahlian</th>
+                                    <th>Email</th>
+                                    <th>Telepon</th>
                                 </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr><td colspan="5" class="text-center py-4 text-muted">Data angket/evaluasi belum tersedia.</td></tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            <?php endif; ?>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($mentor)): ?>
+                                    <?php $no = 1; foreach ($mentor as $m) : ?>
+                                    <tr>
+                                        <td><?= $no++; ?></td>
+                                        <td class="fw-semibold"><?= $m['nama_mentor']; ?></td>
+                                        <td><span class="badge bg-light text-dark border px-2 py-1"><?= $m['keahlian']; ?></span></td>
+                                        <td><?= $m['email']; ?></td>
+                                        <td><?= $m['telepon']; ?></td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr><td colspan="5" class="text-center text-muted py-4">Belum ada data mentor.</td></tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 3. SECTION LAPORAN ANGKET MENTOR -->
+                <div id="section-angket" class="laporan-section">
+                    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+                        <div>
+                            <h5 class="fw-bold m-0" style="color: var(--dark-purple);"><i class="fas fa-poll text-purple me-2"></i> Laporan Angket / Penilaian Mentor</h5>
+                            <small class="text-muted">Hasil rekap umpan balik dan evaluasi kualitas pengajaran mentor.</small>
+                        </div>
+                    </div>
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-folder-open fa-3x mb-3 text-secondary opacity-50"></i>
+                        <p class="m-0">Belum ada data angket atau penilaian mentor yang terekam.</p>
+                    </div>
+                </div>
+
+                <!-- 4. SECTION LAPORAN ABSEN SISWA -->
+                <div id="section-absen" class="laporan-section">
+                    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+                        <div>
+                            <h5 class="fw-bold m-0" style="color: var(--dark-purple);"><i class="fas fa-clipboard-user text-purple me-2"></i> Laporan Absensi Siswa</h5>
+                            <small class="text-muted">Rekapitulasi tingkat kehadiran peserta dalam sesi kelas.</small>
+                        </div>
+                    </div>
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-calendar-xmark fa-3x mb-3 text-secondary opacity-50"></i>
+                        <p class="m-0">Belum ada data absensi siswa yang tersedia saat ini.</p>
+                    </div>
+                </div>
+
+            </div>
 
         </div>
+
     </div>
 
+    <!-- Script JavaScript Interaktif untuk Animasi Tab -->
+    <script>
+        function switchTab(event, sectionId) {
+            // Hapus class active dari semua menu di kiri
+            document.querySelectorAll('.menu-laporan-item').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Tambahkan class active ke menu yang sedang diklik
+            event.currentTarget.classList.add('active');
+            
+            // Sembunyikan semua section tabel di kanan dengan efek transisi
+            document.querySelectorAll('.laporan-section').forEach(el => {
+                el.classList.remove('active-section');
+            });
+            
+            // Tampilkan section tabel yang dipilih
+            const targetSection = document.getElementById('section-' + sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active-section');
+            }
+        }
+    </script>
+
+    <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

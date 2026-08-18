@@ -3,7 +3,9 @@
 namespace App\Controllers;
 
 use App\Models\MentorModel;
-use App\Models\KelasModel; // Pastikan Model Kelas dipanggil di atas
+use App\Models\KelasModel;
+use App\Models\PesertaModel;
+use App\Models\SertifikatModel;
 
 class Admin extends BaseController
 {
@@ -14,190 +16,137 @@ class Admin extends BaseController
 
     public function dashboard()
     {
-        $mentorModel = new MentorModel(); // Panggil MentorModel di dashboard
-
+        $mentorModel = new MentorModel();
         $data = [
             'title'            => 'Dashboard Admin',
             'total_kelas'      => 12,
-            'total_mentor'     => $mentorModel->where('status', 'Aktif')->countAllResults(), // <-- DIPERBAIKI: Menghitung mentor yang statusnya 'Aktif' saja dari database
+            'total_mentor'     => $mentorModel->where('status', 'Aktif')->countAllResults(),
             'total_peserta'    => 48,
             'pending_validasi' => 3,
             'admin_name'       => 'Super Admin',
             'admin_photo'      => base_url('assets/img/admin-profile.jpg'),
         ];
-
         return view('admin/dashboard', $data);
     }
 
     public function masterKelas()
     {
-        $kelasModel  = new KelasModel();
-        $mentorModel = new MentorModel();
+        $kelasModel  = new \App\Models\KelasModel();
+        $mentorModel = new \App\Models\MentorModel(); // <-- Panggil model mentor
 
         $data = [
             'title'  => 'Master Kelas - Panel Admin',
             'kelas'  => $kelasModel->findAll(),
-            'mentor' => $mentorModel->where('status', 'Aktif')->findAll() // <-- Opsional: jika di master kelas pilihan mentor yang muncul hanya yang aktif
+            'mentor' => $mentorModel->findAll()  // <-- Kirim variabel mentor ke view
         ];
         
         return view('admin/master_kelas/index', $data);
     }
 
-    public function tambahKelas()
-    {
-        $mentorModel = new MentorModel();
-
-        $data = [
-            'title'  => 'Tambah Kelas Baru',
-            'mentor' => $mentorModel->where('status', 'Aktif')->findAll() // <-- DIPERBAIKI: Hanya mengambil mentor yang statusnya 'Aktif' untuk form kelas
-        ];
-
-        return view('admin/kelas/tambah', $data);
-    }
-
-    public function simpanKelas()
-    {
-        $kelasModel = new KelasModel();
-
-        $data = [
-            'nama_kelas'    => $this->request->getVar('nama_kelas'),
-            'id_mentor'     => $this->request->getVar('id_mentor'),
-            'kategori'      => $this->request->getVar('kategori'),
-            'kapasitas'     => $this->request->getVar('kapasitas'),
-            'tanggal_kelas' => $this->request->getVar('tanggal_kelas'),
-            'ringkasan'     => $this->request->getVar('ringkasan'),
-            'deskripsi'     => $this->request->getVar('deskripsi'),
-        ];
-
-        if (empty($data['nama_kelas'])) {
-            return redirect()->back()->with('error', 'Form nama kelas wajib diisi!');
-        }
-
-        $kelasModel->insert($data);
-
-        return redirect()->to(base_url('admin/master-kelas'))->with('success', 'Kelas baru berhasil ditambahkan!');
-    }
-
     public function mentor()
     {
-        $mentorModel = new MentorModel();
-
+        $mentorModel = new \App\Models\MentorModel();
+        
         $data = [
-            'title'  => 'Data Mentor - Panel Admin',
+            'title'  => 'Manajemen Mentor - Panel Admin',
             'mentor' => $mentorModel->findAll()
         ];
         
-        return view('admin/mentor/index', $data);
+        return view('admin/mentor/index', $data); // Sesuaikan path view mentor Anda jika berbeda
     }
-
-    public function simpanMentor()
-    {
-        $namaMentor = $this->request->getPost('nama_mentor');
-        if (empty($namaMentor)) {
-            return redirect()->back()->with('error', 'Nama mentor wajib diisi!');
-        }
-
-        $fileCv = $this->request->getFile('cv');
-        $namaCv = null;
-
-        if ($fileCv && $fileCv->isValid() && !$fileCv->hasMoved()) {
-            $namaCv = $fileCv->getRandomName();
-            $fileCv->move('uploads/cv', $namaCv);
-        }
-
-        $db = \Config\Database::connect();
-        $builder = $db->table('mentor');
-
-        $data = [
-            'id_user'     => session()->get('id_user') ?? 1,
-            'nama_mentor' => $namaMentor,
-            'email'       => $this->request->getPost('email'),
-            'telepon'     => $this->request->getPost('telepon'),
-            'keahlian'    => $this->request->getPost('keahlian'),
-            'pengalaman'  => $this->request->getPost('pengalaman'),
-            'status'      => $this->request->getPost('status'),
-            'cv'          => $namaCv,
-            'created_at'  => date('Y-m-d H:i:s')
-        ];
-
-        $builder->insert($data);
-
-        return redirect()->to(base_url('admin/mentor'))->with('success', 'Data mentor berhasil ditambahkan!');
-    }
-
-    // ==========================================
-    // TAMBAHAN METHOD AKSI MENTOR (DETAIL, EDIT, UPDATE, DELETE)
-    // ==========================================
-
-    public function detailMentor($id)
-    {
-        $mentorModel = new MentorModel();
-        $data = [
-            'title'  => 'Detail Mentor - Panel Admin',
-            'mentor' => $mentorModel->find($id)
-        ];
-
-        return view('admin/mentor/detail', $data);
-    }
-
-    public function editMentor($id)
-    {
-        $mentorModel = new MentorModel();
-        $data = [
-            'title'  => 'Edit Data Mentor - Panel Admin',
-            'mentor' => $mentorModel->find($id)
-        ];
-
-        return view('admin/mentor/edit', $data);
-    }
-
-    public function updateMentor($id)
-    {
-        $mentorModel = new MentorModel();
-        
-        $mentorModel->update($id, [
-            'nama_mentor' => $this->request->getPost('nama_mentor'),
-            'email'       => $this->request->getPost('email'),
-            'telepon'     => $this->request->getPost('telepon'),
-            'keahlian'    => $this->request->getPost('keahlian'),
-            'pengalaman'  => $this->request->getPost('pengalaman'),
-            'status'      => $this->request->getPost('status')
-        ]);
-
-        return redirect()->to(base_url('admin/mentor'))->with('success', 'Data mentor berhasil diperbarui!');
-    }
-
-    public function deleteMentor($id)
-    {
-        $mentorModel = new MentorModel();
-        $mentorModel->delete($id);
-
-        return redirect()->to(base_url('admin/mentor'))->with('success', 'Data mentor berhasil dihapus!');
-    }
-
-    // ==========================================
 
     public function dataPeserta()
     {
-        $data = ['title' => 'Data Peserta - Panel Admin'];
-        return view('admin/data_peserta/index', $data);
+        $pesertaModel = new \App\Models\PesertaModel();
+        
+        $data = [
+            'title'   => 'Data Peserta - Panel Admin',
+            'peserta' => $pesertaModel->findAll()
+        ];
+        
+        // Sesuaikan dengan nama folder view yang ada di dalam folder app/Views/admin/
+        return view('admin/data_peserta/index', $data); 
     }
 
     public function validasi()
     {
-        $data = ['title' => 'Validasi Pendaftaran - Panel Admin'];
+        // Panggil model yang sesuai untuk validasi pendaftaran, contoh: PendaftaranModel
+        $pendaftaranModel = new \App\Models\PendaftaranModel();
+        
+        $data = [
+            'title'      => 'Validasi Pendaftaran - Panel Admin',
+            'pendaftaran' => $pendaftaranModel->findAll()
+        ];
+        
+        // Sesuaikan path view dengan struktur folder Anda di app/Views/admin/
         return view('admin/validasi/index', $data);
     }
-
+    
     public function sertifikat()
     {
-        $data = ['title' => 'Manajemen Sertifikat - Panel Admin'];
+        $sertifikatModel = new SertifikatModel();
+        $data['sertifikat'] = $sertifikatModel->select('sertifikat.*, peserta.nama_peserta, peserta.email, peserta.telepon, kelas.nama_kelas')
+                                        ->join('peserta', 'peserta.id_peserta = sertifikat.id_peserta')
+                                        ->join('kelas', 'kelas.id_kelas = sertifikat.id_kelas')
+                                        ->findAll();
+        $data['title'] = 'Manajemen Sertifikat Peserta';
         return view('admin/sertifikat/index', $data);
     }
 
+    public function uploadSertifikat()
+    {
+        $pesertaModel = new PesertaModel();
+        $kelasModel   = new KelasModel();
+        $data = [
+            'title'   => 'Upload Sertifikat',
+            'peserta' => $pesertaModel->findAll(),
+            'kelas'   => $kelasModel->findAll()
+        ];
+        return view('admin/sertifikat/upload', $data);
+    }
+
+    public function storeSertifikat()
+    {
+        $fileSertifikat = $this->request->getFile('file_sertifikat');
+        if ($fileSertifikat && $fileSertifikat->isValid() && !$fileSertifikat->hasMoved()) {
+            $namaFile = $fileSertifikat->getRandomName();
+            $fileSertifikat->move('uploads/sertifikat', $namaFile);
+            $sertifikatModel = new SertifikatModel();
+            $sertifikatModel->save([
+                'nomor_sertifikat' => $this->request->getPost('nomor_sertifikat'),
+                'id_peserta'       => $this->request->getPost('id_peserta'),
+                'id_kelas'         => $this->request->getPost('id_kelas'),
+                'tanggal_terbit'   => $this->request->getPost('tanggal_terbit'),
+                'file_sertifikat'  => $namaFile
+            ]);
+            return redirect()->to(base_url('admin/sertifikat'))->with('success', 'Sertifikat berhasil diunggah!');
+        }
+        return redirect()->back()->with('error', 'Gagal mengunggah file sertifikat.');
+    }
+
+    public function downloadSertifikat($id)
+    {
+        $sertifikatModel = new SertifikatModel();
+        $sertifikat = $sertifikatModel->find($id);
+        if ($sertifikat) {
+            $path = 'uploads/sertifikat/' . $sertifikat['file_sertifikat'];
+            return $this->response->download($path, null);
+        }
+        return redirect()->to(base_url('admin/sertifikat'))->with('error', 'Sertifikat tidak ditemukan.');
+    }
+
+    // FUNGSI LAPORAN (Pindahkan dari file lain ke sini)
     public function laporan()
     {
-        $data = ['title' => 'Laporan - Panel Admin'];
+        $pesertaModel = new PesertaModel();
+        $mentorModel  = new MentorModel();
+
+        $data = [
+            'title'   => 'Laporan Data Peserta & Mentor',
+            'peserta' => $pesertaModel->findAll(),
+            'mentor'  => $mentorModel->findAll(),
+        ];
+
         return view('admin/laporan/index', $data);
     }
 
@@ -207,14 +156,56 @@ class Admin extends BaseController
         return view('admin/pengaturan/index', $data);
     }
 
-    public function updateValidasi($id = null, $status = null)
+   public function updatePengaturan()
     {
-        if ($status == 'Diterima') {
-            session()->setFlashdata('success', 'Pendaftaran berhasil disetujui/divalidasi!');
-        } else {
-            session()->setFlashdata('warning', 'Pendaftaran telah ditolak.');
+        $session = session();
+        $emailLogin = $session->get('email') ?? 'admin@creativemu.ac.id';
+
+        // Tangkap data dari form
+        $namaAdmin    = $this->request->getPost('nama_admin');
+        $emailAdmin   = $this->request->getPost('email_admin');
+        $passwordBaru = $this->request->getPost('password_baru');
+
+        $dataUpdate = [
+            'nama'  => $namaAdmin,   
+            'email' => $emailAdmin
+        ];
+
+        // Upload foto profil baru jika ada
+        $fileFoto = $this->request->getFile('foto_profil');
+        if ($fileFoto && $fileFoto->isValid() && !$fileFoto->hasMoved()) {
+            $namaFile = $fileFoto->getRandomName();
+            $fileFoto->move('assets/img', $namaFile);
+            
+            // UBAH 'foto' DI BAWAH INI MENJADI NAMA KOLOM ASLI DI DATABASE ANDA (contoh: 'foto_profil' atau 'avatar')
+            $dataUpdate['foto_profil'] = $namaFile; 
+            
+            $session->set('foto', $namaFile);
         }
 
-        return redirect()->to(base_url('admin/validasi'));
+        // Perubahan password
+        if (!empty($passwordBaru)) {
+            $dataUpdate['password'] = password_hash($passwordBaru, PASSWORD_DEFAULT);
+        }
+
+        // Simpan ke database
+        $db = \Config\Database::connect();
+        $db->table('users') // Ganti dengan nama tabel Anda jika berbeda
+           ->where('email', $emailLogin) 
+           ->update($dataUpdate);
+
+        $session->set('nama', $namaAdmin);
+        $session->set('email', $emailAdmin);
+
+        return redirect()->to(base_url('admin/pengaturan'))->with('success', 'Pengaturan berhasil diperbarui!');
     }
+
+    public function logout()
+{
+    // Menghapus session
+    session()->destroy();
+
+    // Redirect ke halaman login
+    return redirect()->to('/')->with('success', 'Berhasil logout.');
+}
 }

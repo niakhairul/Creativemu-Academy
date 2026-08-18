@@ -10,14 +10,12 @@ $routes->get('pelatihan/login', 'Pelatihan::login');
 $routes->get('pelatihan/register', 'Pelatihan::register');
 
 $routes->post('register/save', 'Auth::saveRegister');
-// Menggunakan match untuk menangani metode GET maupun POST agar tidak 404
 $routes->match(['get', 'post'], 'login/process', 'Auth::loginProcess');
 $routes->match(['get', 'post'], 'pelatihan/login/process', 'Auth::loginProcess');
 
 $routes->get('logout', 'Auth::logout');
 
 $routes->get('pelatihan/pendaftaran', 'Pelatihan::pendaftaran');
-
 $routes->get('pelatihan/status', 'Pelatihan::status');
 $routes->get('pelatihan/detail-kelas', 'Pelatihan::detailKelas');
 
@@ -28,7 +26,6 @@ $routes->post('pelatihan/upload-tugas', 'Pelatihan::uploadTugas');
 $routes->get('peserta/dashboard', 'Pelatihan::dashboard');
 
 // ===== MENU BARU PESERTA =====
-
 $routes->get('pelatihan/profil', 'Pelatihan::profil');
 $routes->get('pelatihan/edit-profil', 'Pelatihan::editProfil');
 $routes->post('pelatihan/update-profil', 'Pelatihan::updateProfil');
@@ -56,7 +53,6 @@ $routes->group('admin', function($routes) {
     $routes->get('pendaftaran', 'Admin::pendaftaran');
     $routes->get('master-kelas', 'Admin::masterKelas');
     
-    // Ubah dari $routes->post menjadi $routes->match(['get', 'post'], ...)
     $routes->match(['get', 'post'], 'master-kelas/store', 'Admin::simpanKelas');
     $routes->match(['get', 'post'], 'master-kelas/simpan', 'Admin::simpanKelas');
 
@@ -65,14 +61,27 @@ $routes->group('admin', function($routes) {
     $routes->match(['get', 'post'], 'mentor/store', 'Admin::simpanMentor');
     $routes->match(['get', 'post'], 'mentor/simpan', 'Admin::simpanMentor');
     
-    // Rute Tombol Aksi Mentor (Detail, Edit, Update, Delete)
     $routes->get('mentor/detail/(:num)', 'Admin::detailMentor/$1');
     $routes->get('mentor/edit/(:num)', 'Admin::editMentor/$1');
     $routes->post('mentor/update/(:num)', 'Admin::updateMentor/$1');
     $routes->match(['get', 'post'], 'mentor/delete/(:num)', 'Admin::deleteMentor/$1');
-    // =============================
 
     $routes->get('data-peserta', 'Admin::dataPeserta');
     $routes->get('validasi', 'Admin::validasi');
     $routes->get('validasi/update/(:num)/(:alphanum)', 'Admin::updateValidasi/$1/$2');
-});
+
+    $routes->get('sertifikat', 'Admin::sertifikat');
+    $routes->get('sertifikat/upload', 'Admin::uploadSertifikat');
+    $routes->post('sertifikat/store', 'Admin::storeSertifikat');
+    $routes->get('sertifikat/download/(:num)', 'Admin::downloadSertifikat/$1');
+    $routes->get('sertifikat/delete/(:num)', 'Admin::deleteSertifikat/$1');
+
+    $routes->get('laporan', 'Admin::laporan');
+
+    // ===== RUTE PENGATURAN ADMIN =====
+    $routes->get('pengaturan', 'Admin::pengaturan');
+    $routes->match(['get', 'post'], 'pengaturan/update', 'Admin::updatePengaturan');
+
+    $routes->get('logout', 'Auth::logout');
+
+    });
