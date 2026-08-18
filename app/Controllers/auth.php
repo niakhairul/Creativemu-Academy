@@ -2,84 +2,38 @@
 
 namespace App\Controllers;
 
-use App\Models\UserModel;
+use App\Controllers\BaseController;
 
 class Auth extends BaseController
 {
-    // ==========================
-    // Registrasi
-    // ==========================
-    public function saveRegister()
+    public function loginProcess()
     {
-        if ($this->request->getPost('password') != $this->request->getPost('konfirmasi_password')) {
+        $email = trim($this->request->getPost('email'));
+        $password = trim($this->request->getPost('password'));
 
-            return redirect()->back()->with('error', 'Konfirmasi password tidak sesuai.');
+        $db = \Config\Database::connect();
+        $user = $db->table('users')->where('email', $email)->get()->getRowArray();
 
+        if (!$user) {
+            return redirect()->back()->with('error', 'Email tidak ditemukan.');
         }
 
-        $userModel = new UserModel();
+        if (!password_verify($password, $user['password'])) {
+            return redirect()->back()->with('error', 'Password salah.');
+        }
 
-        $data = [
+        session()->set([
+            'id_users'  => $user['id_users'],
+            'nama'      => $user['nama'],
+            'email'     => $user['email'],
+            'role'      => $user['role'],
+            'logged_in' => true
+        ]);
 
-            'nama'           => $this->request->getPost('nama'),
-            'jenis_kelamin'  => $this->request->getPost('jenis_kelamin'),
-            'email'          => $this->request->getPost('email'),
-            'no_hp'          => $this->request->getPost('no_hp'),
-            'password'       => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
-            'role'           => 'peserta',
-            'status'         => 'aktif'
+        if ($user['role'] === 'admin') {
+            return redirect()->to(base_url('admin/dashboard'));
+        }
 
-        ];
-
-        $userModel->insert($data);
-
-        return redirect()->to(base_url('pelatihan/login'))
-                         ->with('success', 'Registrasi berhasil, silakan login.');
+        return redirect()->to(base_url('peserta/dashboard'));
     }
-
-
-    // ==========================
-    // Login
-    // ==========================
-    public function loginProcess()
-{
-    $userModel = new UserModel();
-
-    $email = trim($this->request->getPost('email'));
-    $password = trim($this->request->getPost('password'));
-
-    $user = $userModel->where('email', $email)->first();
-
-    if (!$user) {
-        dd('EMAIL TIDAK DITEMUKAN');
-    }
-
-    // dd(
-//     $password,
-//     $user['password'],
-//     password_verify($password, $user['password'])
-// );
-
-if (!password_verify($password, $user['password'])) {
-    return redirect()->back()->with('error', 'Password salah.');
-}
-
-session()->set([
-    'id'        => $user['id'],
-    'nama'      => $user['nama'],
-    'email'     => $user['email'],
-    'role'      => $user['role'],
-    'logged_in' => true
-]);
-
-return redirect()->to(base_url('peserta/dashboard'));
-}
-
-    public function logout()
-{
-    session()->destroy();
-
-    return redirect()->to(base_url('pelatihan/login'))
-                     ->with('success', 'Berhasil logout.');
-}
 }

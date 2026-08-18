@@ -11,8 +11,8 @@ class PengumpulanTugasModel extends Model
     protected $primaryKey = 'id';
 
     protected $allowedFields = [
-        'tugas_id',
-        'user_id',
+        'id_tugas',
+        'id_users',
         'file_tugas',
         'nilai',
         'status'

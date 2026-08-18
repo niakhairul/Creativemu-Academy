@@ -10,7 +10,9 @@ $routes->get('pelatihan/login', 'Pelatihan::login');
 $routes->get('pelatihan/register', 'Pelatihan::register');
 
 $routes->post('register/save', 'Auth::saveRegister');
-$routes->post('login/process', 'Auth::loginProcess');
+// Menggunakan match untuk menangani metode GET maupun POST agar tidak 404
+$routes->match(['get', 'post'], 'login/process', 'Auth::loginProcess');
+$routes->match(['get', 'post'], 'pelatihan/login/process', 'Auth::loginProcess');
 
 $routes->get('logout', 'Auth::logout');
 
@@ -52,8 +54,24 @@ $routes->get('pelatihan/riwayat-absensi', 'Pelatihan::riwayatAbsensi');
 $routes->group('admin', function($routes) {
     $routes->get('dashboard', 'Admin::dashboard');
     $routes->get('pendaftaran', 'Admin::pendaftaran');
-    $routes->get('master-kelas', 'Admin::masterKelas'); // Perbaikan: hilangkan kata 'admin/'
-    $routes->post('master-kelas/simpan', 'Admin::simpanKelas');
+    $routes->get('master-kelas', 'Admin::masterKelas');
+    
+    // Ubah dari $routes->post menjadi $routes->match(['get', 'post'], ...)
+    $routes->match(['get', 'post'], 'master-kelas/store', 'Admin::simpanKelas');
+    $routes->match(['get', 'post'], 'master-kelas/simpan', 'Admin::simpanKelas');
+
+    // ===== RUTE MENTOR ADMIN =====
+    $routes->get('mentor', 'Admin::mentor');
+    $routes->match(['get', 'post'], 'mentor/store', 'Admin::simpanMentor');
+    $routes->match(['get', 'post'], 'mentor/simpan', 'Admin::simpanMentor');
+    
+    // Rute Tombol Aksi Mentor (Detail, Edit, Update, Delete)
+    $routes->get('mentor/detail/(:num)', 'Admin::detailMentor/$1');
+    $routes->get('mentor/edit/(:num)', 'Admin::editMentor/$1');
+    $routes->post('mentor/update/(:num)', 'Admin::updateMentor/$1');
+    $routes->match(['get', 'post'], 'mentor/delete/(:num)', 'Admin::deleteMentor/$1');
+    // =============================
+
     $routes->get('data-peserta', 'Admin::dataPeserta');
     $routes->get('validasi', 'Admin::validasi');
     $routes->get('validasi/update/(:num)/(:alphanum)', 'Admin::updateValidasi/$1/$2');

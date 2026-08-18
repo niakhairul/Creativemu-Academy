@@ -80,7 +80,7 @@ public function pendaftaran()
     $kelas = $pendaftaranModel
         ->select('pendaftaran.*, kelas.nama_kelas, kelas.mentor, kelas.metode, kelas.jadwal, kelas.jam')
         ->join('kelas', 'kelas.id = pendaftaran.kelas_id')
-        ->where('user_id', session()->get('id'))
+        ->where('id_users', session()->get('id'))
         ->first();
 
     return view('peserta/kelas', [
@@ -120,7 +120,7 @@ public function daftarMateri()
     $kelasModel = new KelasModel();
 
     $pendaftaran = $pendaftaranModel
-        ->where('user_id', session()->get('id'))
+        ->where('id_users', session()->get('id'))
         ->where('status_pendaftaran', 'Disetujui')
         ->first();
 
@@ -152,7 +152,7 @@ public function tugas()
     $userId = session()->get('id');
 
     $pendaftaran = $pendaftaranModel
-        ->where('user_id', $userId)
+        ->where('id_users', $userId)
         ->where('status_pendaftaran', 'Disetujui')
         ->first();
 
@@ -164,7 +164,7 @@ public function tugas()
 
     // Cek apakah peserta sudah mengumpulkan tugas
     $pengumpulan = $pengumpulanModel
-        ->where('user_id', $userId)
+        ->where('id_users', $userId)
         ->where('tugas_id', 1)
         ->first();
 
@@ -201,7 +201,7 @@ public function tugas()
 
         // Status pendaftaran user
         $pendaftaran = $pendaftaranModel
-                            ->where('user_id', session()->get('id'))
+                            ->where('id_users', session()->get('id'))
                             ->first();
 
         $data = [
@@ -364,7 +364,7 @@ public function kbm()
 
     // Ambil pendaftaran peserta
     $pendaftaran = $pendaftaranModel
-        ->where('user_id', session()->get('id'))
+        ->where('id_users', session()->get('id'))
         ->where('status_pendaftaran', 'Disetujui')
         ->first();
 
@@ -613,7 +613,7 @@ public function absensi()
 
     // Cek peserta sudah memiliki kelas yang disetujui
     $pendaftaran = $pendaftaranModel
-        ->where('user_id', session()->get('id'))
+        ->where('id_users', session()->get('id'))
         ->where('status_pendaftaran', 'Disetujui')
         ->first();
 
@@ -731,7 +731,7 @@ public function riwayatAbsensi()
 
     // Cek kelas peserta
     $pendaftaran = $pendaftaranModel
-        ->where('user_id', $userId)
+        ->where('id_users', $userId)
         ->where('status_pendaftaran', 'Disetujui')
         ->first();
 
@@ -885,7 +885,7 @@ public function uploadTugas()
 
     $model->save([
         'tugas_id'   => 1,
-        'user_id'    => session()->get('id'),
+        'id_users'    => session()->get('id'),
         'file_tugas' => $namaFile,
         'status'     => 'Belum Dinilai'
     ]);
@@ -908,7 +908,7 @@ public function simpanPendaftaran()
 
     // Cek apakah sudah pernah mendaftar
     $cek = $pendaftaranModel
-            ->where('user_id', session()->get('id'))
+            ->where('id_users', session()->get('id'))
             ->first();
 
     if ($cek) {
@@ -944,9 +944,9 @@ public function simpanPendaftaran()
 
     $pendaftaranModel->save([
 
-        'user_id' => session()->get('id'),
+        'id_users' => session()->get('id'),
 
-        'kelas_id' => $this->request->getPost('kelas_id'),
+        'id_kelas' => $this->request->getPost('kelas_id'),
 
         'metode_pembelajaran' => $this->request->getPost('metode'),
 
