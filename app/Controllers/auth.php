@@ -12,18 +12,24 @@ class Auth extends BaseController
         $password = trim($this->request->getPost('password'));
 
         $db = \Config\Database::connect();
-        $user = $db->table('users')->where('email', $email)->get()->getRowArray();
+
+        $user = $db->table('users')
+            ->where('email', $email)
+            ->get()
+            ->getRowArray();
 
         if (!$user) {
-            return redirect()->back()->with('error', 'Email tidak ditemukan.');
+            return redirect()->back()
+                ->with('error', 'Email tidak ditemukan.');
         }
 
         if (!password_verify($password, $user['password'])) {
-            return redirect()->back()->with('error', 'Password salah.');
+            return redirect()->back()
+                ->with('error', 'Password salah.');
         }
 
         session()->set([
-            'id_users'  => $user['id_users'],
+            'id'        => $user['id'],
             'nama'      => $user['nama'],
             'email'     => $user['email'],
             'role'      => $user['role'],

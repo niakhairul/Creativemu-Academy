@@ -68,6 +68,23 @@ class Admin extends BaseController
         return view('admin/data_peserta/index', $data); 
     }
 
+    public function pendaftaran()
+{
+    $pendaftaranModel = new \App\Models\PendaftaranModel();
+
+    $data = [
+        'title' => 'Data Pendaftaran Peserta',
+
+        'pendaftaran' => $pendaftaranModel
+            ->select('pendaftaran.*, users.nama, users.email, users.no_hp, kelas.nama_kelas')
+            ->join('users', 'users.id = pendaftaran.user_id', 'left')
+            ->join('kelas', 'kelas.id = pendaftaran.kelas_id', 'left')
+            ->orderBy('pendaftaran.id', 'DESC')
+            ->findAll()
+    ];
+
+    return view('admin/pendaftaran/index', $data);
+}
     public function validasi()
     {
         // Panggil model yang sesuai untuk validasi pendaftaran, contoh: PendaftaranModel

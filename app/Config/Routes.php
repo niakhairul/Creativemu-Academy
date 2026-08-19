@@ -52,7 +52,7 @@ $routes->group('admin', function($routes) {
     $routes->get('dashboard', 'Admin::dashboard');
     $routes->get('pendaftaran', 'Admin::pendaftaran');
     $routes->get('master-kelas', 'Admin::masterKelas');
-    
+    $routes->get('master-kelas/edit/(:num)', 'Admin::editKelas/$1');
     $routes->match(['get', 'post'], 'master-kelas/store', 'Admin::simpanKelas');
     $routes->match(['get', 'post'], 'master-kelas/simpan', 'Admin::simpanKelas');
 

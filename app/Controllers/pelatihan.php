@@ -82,7 +82,7 @@ public function pendaftaran()
     $kelas = $pendaftaranModel
         ->select('pendaftaran.*, kelas.nama_kelas, kelas.mentor, kelas.metode, kelas.jadwal, kelas.jam')
         ->join('kelas', 'kelas.id = pendaftaran.kelas_id')
-        ->where('id_users', session()->get('id'))
+       ->where('user_id', session()->get('id'))
         ->first();
 
     return view('peserta/kelas', [
@@ -122,7 +122,7 @@ public function daftarMateri()
     $kelasModel = new KelasModel();
 
     $pendaftaran = $pendaftaranModel
-        ->where('id_users', session()->get('id'))
+        ->where('pendaftaran.user_id', session()->get('id'))
         ->where('status_pendaftaran', 'Disetujui')
         ->first();
 
@@ -202,10 +202,10 @@ public function tugas()
                     ->findAll();
 
         // Status pendaftaran user
-        $pendaftaran = $pendaftaranModel
-                            ->where('id_users', session()->get('id'))
-                            ->first();
-
+        // Status pendaftaran user
+$pendaftaran = $pendaftaranModel
+                    ->where('user_id', session()->get('id'))
+                    ->first();
         $data = [
             'user'         => $user,
             'kelas'        => $kelas,
@@ -982,14 +982,18 @@ public function simpanPendaftaran()
 
     $pendaftaranModel = new PendaftaranModel();
 
-    // Cek apakah sudah pernah mendaftar
+    $userId = session()->get('id');
+    $kelasId = $this->request->getPost('kelas_id');
+
+    // Cek apakah peserta sudah mendaftar kelas tersebut
     $cek = $pendaftaranModel
-            ->where('id_users', session()->get('id'))
-            ->first();
+        ->where('user_id', $userId)
+        ->where('kelas_id', $kelasId)
+        ->first();
 
     if ($cek) {
         return redirect()->back()
-                ->with('error', 'Anda sudah mendaftar kelas.');
+            ->with('error', 'Anda sudah mendaftar kelas ini.');
     }
 
     // Upload bukti pembayaran
@@ -1001,42 +1005,39 @@ public function simpanPendaftaran()
 
         $namaFile = $file->getRandomName();
 
-        $file->move(
-            FCPATH . 'uploads/bukti_pembayaran',
-            $namaFile
-        );
+        $folder = FCPATH . 'uploads/bukti_pembayaran';
+
+        if (!is_dir($folder)) {
+            mkdir($folder, 0777, true);
+        }
+
+        $file->move($folder, $namaFile);
     }
 
-    // Status pembayaran
-    if ($this->request->getPost('pembayaran') == 'Transfer') {
+    // Ambil metode pembayaran
+    $pembayaran = $this->request->getPost('pembayaran');
 
+    if ($pembayaran == 'Transfer') {
         $statusPembayaran = 'Belum Diverifikasi';
-
     } else {
-
         $statusPembayaran = 'Lunas';
-
     }
 
-    $pendaftaranModel->save([
-
-        'id_users' => session()->get('id'),
-
-        'id_kelas' => $this->request->getPost('kelas_id'),
-
-        'metode_pembelajaran' => $this->request->getPost('metode'),
-
-        'metode_pembayaran' => $this->request->getPost('pembayaran'),
-
-        'bukti_pembayaran' => $namaFile,
-
-        'status_pendaftaran' => 'Menunggu',
-
-        'status_pembayaran' => $statusPembayaran
-
+    // Simpan pendaftaran
+    $pendaftaranModel->insert([
+        'user_id'              => $userId,
+        'kelas_id'             => $kelasId,
+        'metode_pembelajaran'  => $this->request->getPost('metode'),
+        'metode_pembayaran'    => $pembayaran,
+        'bukti_pembayaran'     => $namaFile,
+        'status_pendaftaran'   => 'Menunggu',
+        'status_pembayaran'    => $statusPembayaran
     ]);
 
     return redirect()->to(base_url('peserta/dashboard'))
-            ->with('success', 'Pendaftaran berhasil, silakan menunggu validasi admin.');
+        ->with(
+            'success',
+            'Pendaftaran berhasil, silakan menunggu validasi admin.'
+        );
 }
 }
