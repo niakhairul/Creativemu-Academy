@@ -18,6 +18,9 @@ class Auth extends BaseController
             ->get()
             ->getRowArray();
 
+        // (Opsional) Uncomment baris di bawah untuk mengecek apakah data user terambil
+        // echo "<pre>"; print_r($user); echo "</pre>"; die();
+
         if (!$user) {
             return redirect()->back()
                 ->with('error', 'Email tidak ditemukan.');

@@ -190,16 +190,19 @@
                 <p>Form untuk mengunggah sertifikat kelulusan peserta.</p>
             </div>
             <div class="d-flex align-items-center gap-4">
+                <div class="text-muted d-none d-md-block px-3 py-2 rounded-pill bg-light" id="current-date" style="font-size: 0.82rem; font-weight: 600; color: #794bc4 !important;">
+                    Memuat tanggal...
+                </div>
                 <div class="admin-profile d-flex align-items-center gap-3">
-                    <img src="https://ui-avatars.com/api/?name=Super+Admin&background=794bc4&color=fff&size=128" alt="Admin Photo" style="width: 45px; height: 45px; border-radius: 50%;">
+                    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover;">
                     <div>
-                        <h6 class="m-0 fw-bold" style="color: var(--dark-purple);">Super Admin</h6>
+                        <h6 class="m-0 fw-bold" style="color: var(--dark-purple);"><?= esc(session()->get('nama') ?? 'Super Admin'); ?></h6>
                         <small class="text-muted">Administrator</small>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <div class="container-fluid px-0">
             <div class="mb-3">
                 <a href="<?= base_url('admin/sertifikat') ?>" class="btn btn-secondary mb-3" style="border-radius: 10px;">
@@ -209,7 +212,6 @@
 
             <div class="card shadow-sm border-0" style="border-radius: 20px;">
                 <div class="card-body p-4">
-                    <!-- Sesuaikan action dengan method di controller Anda (misal: admin/sertifikat/store) -->
                     <form action="<?= base_url('admin/sertifikat/store'); ?>" method="post" enctype="multipart/form-data">
                         <?= csrf_field(); ?>
 
@@ -248,5 +250,12 @@
 
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Script untuk Mengisi Tanggal Otomatis -->
+    <script>
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const tanggalHariIni = new Date().toLocaleDateString('id-ID', options);
+        document.getElementById('current-date').innerText = tanggalHariIni;
+    </script>
 </body>
 </html>

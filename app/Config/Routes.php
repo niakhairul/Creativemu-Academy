@@ -13,7 +13,8 @@ $routes->post('register/save', 'Auth::saveRegister');
 $routes->match(['get', 'post'], 'login/process', 'Auth::loginProcess');
 $routes->match(['get', 'post'], 'pelatihan/login/process', 'Auth::loginProcess');
 
-$routes->get('logout', 'Auth::logout');
+// Pindahkan rute logout ke luar grup admin agar bisa diakses langsung via base_url('logout')
+$routes->get('logout', 'Admin::logout');
 
 $routes->get('pelatihan/pendaftaran', 'Pelatihan::pendaftaran');
 $routes->get('pelatihan/status', 'Pelatihan::status');
@@ -82,6 +83,5 @@ $routes->group('admin', function($routes) {
     $routes->get('pengaturan', 'Admin::pengaturan');
     $routes->match(['get', 'post'], 'pengaturan/update', 'Admin::updatePengaturan');
 
-    $routes->get('logout', 'Auth::logout');
-
-    });
+    // (Baris logout di dalam grup admin sudah dihapus agar tidak bentrok)
+});

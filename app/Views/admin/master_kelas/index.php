@@ -359,12 +359,12 @@
                     Memuat tanggal...
                 </div>
                 <div class="admin-profile">
-                    <img src="https://ui-avatars.com/api/?name=Super+Admin&background=794bc4&color=fff&size=128" alt="Admin Photo">
-                    <div class="admin-info">
-                        <h6>Super Admin</h6>
-                        <small>Administrator</small>
-                    </div>
-                </div>
+    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
+    <div class="admin-info">
+        <?= esc(session()->get('nama')); ?>
+        <small>Administrator</small>
+    </div>
+</div>
             </div>
         </div>
 

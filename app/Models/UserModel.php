@@ -15,6 +15,12 @@ class UserModel extends Model
         'nama',
         'email',
         'password',
-        'role'
+        'role',
+        'no_hp',
+        'foto_profil'
     ];
+
+    protected $useTimestamps = true;
+    protected $createdField  = 'created_at';
+    protected $updatedField  = 'updated_at';
 }
