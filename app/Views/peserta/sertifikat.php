@@ -4,83 +4,138 @@
 
 <div class="row justify-content-center">
 
-    <div class="col-lg-8">
+    <div class="col-lg-10">
 
         <div class="card shadow border-0 rounded-4">
 
-            <div class="card-body p-5 text-center">
+            <div class="card-body p-5">
 
-                <!-- Icon -->
-                <div class="mb-4">
+                <!-- JUDUL -->
+                <div class="text-center mb-4">
+
                     <i class="bi bi-award-fill text-warning"
-                       style="font-size: 80px;"></i>
+                       style="font-size: 70px;"></i>
+
+                    <h2 class="fw-bold text-primary mt-3">
+                        Sertifikat Pelatihan
+                    </h2>
+
+                    <p class="text-muted">
+                        Sertifikat yang diperoleh setelah peserta memenuhi
+                        persyaratan pelatihan.
+                    </p>
+
                 </div>
 
-                <!-- Judul -->
-                <h2 class="fw-bold text-primary">
-                    Sertifikat Pelatihan
-                </h2>
+                <hr>
 
-                <p class="text-muted mt-3">
-                    Sertifikat pelatihan akan tersedia setelah peserta
-                    memenuhi seluruh persyaratan yang telah ditentukan.
-                </p>
+                <!-- INFORMASI -->
+                <div class="alert alert-info">
 
-                <hr class="my-4">
+                    <i class="bi bi-info-circle-fill"></i>
 
-                <!-- Informasi Persyaratan -->
-                <div class="alert alert-info text-start">
+                    <strong>Informasi Sertifikat</strong>
 
-                    <div class="fw-bold mb-2">
-                        <i class="bi bi-info-circle-fill"></i>
-                        Persyaratan Sertifikat
+                    <p class="mb-0 mt-2">
+                        Peserta harus dinyatakan lulus oleh mentor dan
+                        menyelesaikan angket evaluasi sebelum sertifikat
+                        pelatihan dapat diterbitkan.
+                    </p>
+
+                </div>
+
+                <!-- DUA SERTIFIKAT -->
+                <div class="row g-4 mt-2">
+
+                    <!-- SERTIFIKAT CREATIVEMU -->
+                    <div class="col-md-6">
+
+                        <div class="card border-primary h-100">
+
+                            <div class="card-body text-center p-4">
+
+                                <i class="bi bi-patch-check-fill text-primary"
+                                   style="font-size: 60px;"></i>
+
+                                <h4 class="fw-bold mt-3">
+                                    Sertifikat CreativeMU Academy
+                                </h4>
+
+                                <p class="text-muted">
+                                    Sertifikat pelatihan yang diterbitkan
+                                    oleh Admin CreativeMU Academy.
+                                </p>
+
+                                <button type="button"
+                                        class="btn btn-secondary"
+                                        disabled>
+
+                                    <i class="bi bi-download"></i>
+                                    Download Sertifikat
+
+                                </button>
+
+                                <div class="mt-3">
+
+                                    <span class="badge bg-warning text-dark">
+                                        Belum tersedia
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
                     </div>
 
-                    <ul class="mb-0">
-                        <li>Dinyatakan lulus ujian oleh sistem/mentor.</li>
-                        <li>Telah mengisi angket evaluasi pelatihan.</li>
-                        <li>Memenuhi persyaratan pelatihan lainnya.</li>
-                    </ul>
 
-                </div>
+                    <!-- SERTIFIKAT BNSP -->
+                    <div class="col-md-6">
 
-                <!-- Status -->
-                <div class="card bg-light border-0 rounded-3 mt-4">
+                        <div class="card border-warning h-100">
 
-                    <div class="card-body">
+                            <div class="card-body text-center p-4">
 
-                        <i class="bi bi-hourglass-split text-warning"
-                           style="font-size: 35px;"></i>
+                                <i class="bi bi-award-fill text-warning"
+                                   style="font-size: 60px;"></i>
 
-                        <h5 class="fw-bold mt-3">
-                            Sertifikat Belum Tersedia
-                        </h5>
+                                <h4 class="fw-bold mt-3">
+                                    Sertifikat BNSP
+                                </h4>
 
-                        <p class="text-muted mb-0">
-                            Hasil kelulusan ujian belum ditentukan.
-                            Silakan menunggu informasi dari mentor.
-                        </p>
+                                <p class="text-muted">
+                                    Sertifikat kompetensi yang diperoleh
+                                    melalui proses sertifikasi BNSP.
+                                </p>
+
+                                <button type="button"
+                                        class="btn btn-secondary"
+                                        disabled>
+
+                                    <i class="bi bi-download"></i>
+                                    Download Sertifikat
+
+                                </button>
+
+                                <div class="mt-3">
+
+                                    <span class="badge bg-warning text-dark">
+                                        Belum tersedia
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
 
                     </div>
 
                 </div>
 
-                <!-- Tombol Download -->
-                <div class="mt-4">
-
-                    <button type="button"
-                            class="btn btn-secondary"
-                            disabled>
-
-                        <i class="bi bi-download"></i>
-                        Download Sertifikat
-
-                    </button>
-
-                </div>
-
-                <!-- Kembali -->
-                <div class="mt-4">
+                <!-- KEMBALI -->
+                <div class="text-center mt-5">
 
                     <a href="<?= base_url('pelatihan/kbm') ?>"
                        class="btn btn-outline-primary">

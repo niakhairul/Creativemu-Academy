@@ -95,6 +95,19 @@
     </a>
 </li>
 
+<li>
+    <a href="<?= base_url('pelatihan/angket') ?>">
+        <i class="bi bi-clipboard-check-fill"></i>
+        Angket Evaluasi
+    </a>
+</li>
+
+<li>
+    <a href="<?= base_url('pelatihan/sertifikat') ?>">
+        <i class="bi bi-award-fill"></i>
+        Sertifikat
+    </a>
+</li>
     <li>
         <a href="<?= base_url('pelatihan/pengaturan') ?>">
             <i class="bi bi-gear-fill"></i>

@@ -8,6 +8,8 @@ use App\Models\PendaftaranModel;
 use App\Models\PengumpulanTugasModel;
 use App\Models\JadwalKelasModel;
 use App\Models\AbsensiModel;
+use App\Models\AngketModel;
+use App\Models\HasilUjianModel;
 
 class Pelatihan extends BaseController
 {
@@ -442,38 +444,62 @@ public function sertifikat()
 
     $userId = session()->get('id');
 
-    // Ambil data pendaftaran peserta
-    $pendaftaranModel = new \App\Models\PendaftaranModel();
+    // Model
+    $pendaftaranModel = new PendaftaranModel();
+    $hasilUjianModel = new HasilUjianModel();
+    $angketModel = new AngketModel();
 
+    // Ambil kelas peserta yang sudah disetujui
     $pendaftaran = $pendaftaranModel
         ->where('user_id', $userId)
+        ->where('status_pendaftaran', 'Disetujui')
         ->first();
 
-    // Kalau belum ada data pendaftaran
-    if (!$pendaftaran) {
-        return redirect()->to(base_url('pelatihan/dashboard'))
-            ->with('error', 'Data pendaftaran kelas tidak ditemukan.');
+    // Default status
+    $statusLulus = false;
+    $statusAngket = false;
+    $sertifikatAcademy = false;
+
+    if ($pendaftaran) {
+
+        $kelasId = $pendaftaran['kelas_id'];
+
+        // Ambil hasil ujian peserta
+        $hasilUjian = $hasilUjianModel
+            ->where('id_user', $userId)
+            ->where('id_kelas', $kelasId)
+            ->first();
+
+        // Cek apakah peserta sudah dinyatakan lulus
+        if (
+            $hasilUjian &&
+            $hasilUjian['status_kelulusan'] === 'lulus'
+        ) {
+            $statusLulus = true;
+        }
+
+        // Cek apakah peserta sudah mengisi angket
+        $angket = $angketModel
+            ->where('user_id', $userId)
+            ->where('kelas_id', $kelasId)
+            ->first();
+
+        if ($angket) {
+            $statusAngket = true;
+        }
+
+        // Sertifikat Academy hanya tersedia jika:
+        // 1. Lulus
+        // 2. Sudah mengisi angket
+        if ($statusLulus && $statusAngket) {
+            $sertifikatAcademy = true;
+        }
     }
 
-    // Cek apakah peserta sudah mengisi angket
-    $angketModel = new \App\Models\AngketModel();
-
-    $angket = $angketModel
-        ->where('user_id', $userId)
-        ->where('kelas_id', $pendaftaran['kelas_id'])
-        ->first();
-
-    // Ambil hasil ujian dari session
-    $nilai = session()->get('ujian_nilai');
-
-    // Untuk sementara belum menentukan batas lulus
-    $lulus = false;
-
-    // Data yang dikirim ke halaman sertifikat
     return view('peserta/sertifikat', [
-        'angket' => $angket,
-        'nilai'  => $nilai,
-        'lulus'  => $lulus
+        'statusLulus' => $statusLulus,
+        'statusAngket' => $statusAngket,
+        'sertifikatAcademy' => $sertifikatAcademy
     ]);
 }
 public function simpanAngket()
@@ -542,7 +568,11 @@ public function kerjakanUjian()
 
 public function submitUjian()
 {
-    // Jawaban yang dipilih peserta
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'));
+    }
+
+    // Jawaban peserta
     $jawaban = $this->request->getPost('jawaban');
 
     // Kunci jawaban sementara
@@ -556,6 +586,7 @@ public function submitUjian()
 
     if (is_array($jawaban)) {
         foreach ($kunci as $nomor => $jawabanBenar) {
+
             if (
                 isset($jawaban[$nomor]) &&
                 $jawaban[$nomor] === $jawabanBenar
@@ -566,22 +597,67 @@ public function submitUjian()
     }
 
     // Hitung nilai
-$jumlahSoal = count($kunci);
-$nilai = ($benar / $jumlahSoal) * 100;
+    $jumlahSoal = count($kunci);
+    $nilai = ($benar / $jumlahSoal) * 100;
 
-// Simpan hasil ujian ke session
-session()->set([
-    'ujian_selesai' => true,
-    'ujian_benar' => $benar,
-    'ujian_jumlah_soal' => $jumlahSoal,
-    'ujian_nilai' => $nilai
-]);
+    // Ambil user yang sedang login
+    $userId = session()->get('id');
 
-return view('peserta/hasil_ujian', [
-    'benar' => $benar,
-    'jumlahSoal' => $jumlahSoal,
-    'nilai' => $nilai
-]);
+    // Cari kelas peserta yang sudah disetujui
+    $pendaftaranModel = new PendaftaranModel();
+
+    $pendaftaran = $pendaftaranModel
+        ->where('user_id', $userId)
+        ->where('status_pendaftaran', 'Disetujui')
+        ->first();
+
+    if (!$pendaftaran) {
+        return redirect()->back()
+            ->with('error', 'Data kelas peserta tidak ditemukan.');
+    }
+
+    // Ambil ID kelas
+    $idKelas = $pendaftaran['kelas_id'];
+
+    // Model hasil ujian
+    $hasilUjianModel = new HasilUjianModel();
+
+    // Cek apakah peserta sudah pernah mengumpulkan ujian
+    $hasilSebelumnya = $hasilUjianModel
+        ->where('id_user', $userId)
+        ->where('id_kelas', $idKelas)
+        ->first();
+
+    if ($hasilSebelumnya) {
+        return redirect()->to(base_url('pelatihan/hasil-ujian'))
+            ->with('error', 'Anda sudah mengumpulkan ujian.');
+    }
+
+    // Simpan hasil ujian ke database
+    $hasilUjianModel->insert([
+        'id_user'           => $userId,
+        'id_kelas'          => $idKelas,
+        'benar'             => $benar,
+        'jumlah_soal'       => $jumlahSoal,
+        'nilai'             => $nilai,
+        'status_penilaian'  => 'menunggu',
+        'status_kelulusan'  => 'menunggu',
+        'catatan_mentor'    => null
+    ]);
+
+    // Simpan juga ke session untuk menampilkan hasil
+    session()->set([
+        'ujian_selesai'      => true,
+        'ujian_benar'        => $benar,
+        'ujian_jumlah_soal'  => $jumlahSoal,
+        'ujian_nilai'        => $nilai
+    ]);
+
+    return view('peserta/hasil_ujian', [
+        'benar'      => $benar,
+        'jumlahSoal' => $jumlahSoal,
+        'nilai'      => $nilai
+    ]);
 }
 // ==========================
 // HASIL UJIAN PESERTA
