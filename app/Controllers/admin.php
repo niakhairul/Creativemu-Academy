@@ -140,16 +140,24 @@ class Admin extends BaseController
     return view('admin/pendaftaran/index', $data);
 }
     public function validasi()
-    {
-        $pendaftaranModel = new PendaftaranModel();
-        
-        $data = [
-            'title'       => 'Validasi Pendaftaran - Panel Admin',
-            'pendaftaran' => $pendaftaranModel->findAll()
-        ];
-        
-        return view('admin/validasi/index', $data);
-    }
+{
+    $pendaftaranModel = new PendaftaranModel();
+
+    $data = [
+        'title' => 'Validasi Pendaftaran - Panel Admin',
+
+        'pendaftaran' => $pendaftaranModel
+            ->select('pendaftaran.*, users.nama, users.email, users.no_hp, kelas.nama_kelas')
+            ->join('users', 'users.id_users = pendaftaran.user_id', 'left')
+            ->join('kelas', 'kelas.id = pendaftaran.kelas_id', 'left')
+            ->orderBy('pendaftaran.id', 'DESC')
+            ->findAll()
+    ];
+
+    return view('admin/validasi/index', $data);
+}
+
+
     
     public function sertifikat()
     {
