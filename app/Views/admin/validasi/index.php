@@ -427,7 +427,7 @@
     <!-- === SIDEBAR MENU === -->
     <nav id="sidebar">
         <div class="sidebar-header">
-            <img src="<?= base_url('assets/img/logo-creativemu.png'); ?>" alt="Creativemu Academy" class="img-fluid">
+            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
         </div>
         <ul class="nav flex-column">
             <li class="nav-item">

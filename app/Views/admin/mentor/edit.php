@@ -388,7 +388,7 @@
                 </a>
             </div>
 
-            <form action="<?= base_url('admin/mentor/update/' . ($mentor['id_mentor'] ?? $mentor['id'])); ?>" method="POST" enctype="multipart/form-data">
+            <form action="<?= base_url('admin/mentor/update/' . $mentor['id_mentor']); ?>" method="POST" enctype="multipart/form-data"></form>
                 <?= csrf_field(); ?>
                 
                 <div class="row g-4">

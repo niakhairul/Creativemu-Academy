@@ -330,7 +330,7 @@
     <nav id="sidebar">
         <div class="sidebar-header">
             <!-- Logo Creativemu Academy -->
-            <img src="<?= base_url('assets/img/logo-creativemu.png'); ?>" alt="Creativemu Academy" class="img-fluid">
+            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
         </div>
         <ul class="nav flex-column">
             <li class="nav-item">
@@ -395,12 +395,12 @@
                     Memuat tanggal...
                 </div>
                 <div class="admin-profile">
-    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
-    <div class="admin-info">
-        <?= esc(session()->get('nama')); ?>
-        <small>Administrator</small>
-    </div>
-</div>
+                <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
+                <div class="admin-info">
+                <?= esc(session()->get('nama')); ?>
+                <small>Administrator</small>
+                </div>
+                </div>
             </div>
         </div>
 
