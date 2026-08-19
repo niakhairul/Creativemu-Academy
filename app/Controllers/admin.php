@@ -6,6 +6,7 @@ use App\Models\MentorModel;
 use App\Models\KelasModel;
 use App\Models\PesertaModel;
 use App\Models\SertifikatModel;
+use App\Models\PendaftaranModel;
 
 class Admin extends BaseController
 {
@@ -17,27 +18,37 @@ class Admin extends BaseController
     public function dashboard()
     {
         $mentorModel = new MentorModel();
+        $db = \Config\Database::connect();
+        $userId = session()->get('id_users');
+        
+        // Ambil data user yang sedang login dari database
+        $currentUser = $db->table('users')->where('id_users', $userId)->get()->getRowArray();
+
+        // Tentukan foto profil (gunakan bawaan jika kosong)
+        $foto = (!empty($currentUser['foto_profil'])) ? $currentUser['foto_profil'] : 'admin-profile.jpg';
+
         $data = [
             'title'            => 'Dashboard Admin',
             'total_kelas'      => 12,
             'total_mentor'     => $mentorModel->where('status', 'Aktif')->countAllResults(),
             'total_peserta'    => 48,
             'pending_validasi' => 3,
-            'admin_name'       => 'Super Admin',
-            'admin_photo'      => base_url('assets/img/admin-profile.jpg'),
+            'admin_name'       => $currentUser['nama'] ?? 'Super Admin',
+            'admin_photo'      => base_url('assets/img/' . $foto),
         ];
+        
         return view('admin/dashboard', $data);
     }
 
     public function masterKelas()
     {
-        $kelasModel  = new \App\Models\KelasModel();
-        $mentorModel = new \App\Models\MentorModel(); // <-- Panggil model mentor
+        $kelasModel  = new KelasModel();
+        $mentorModel = new MentorModel(); // Panggil model mentor
 
         $data = [
             'title'  => 'Master Kelas - Panel Admin',
             'kelas'  => $kelasModel->findAll(),
-            'mentor' => $mentorModel->findAll()  // <-- Kirim variabel mentor ke view
+            'mentor' => $mentorModel->findAll()  // Kirim variabel mentor ke view
         ];
         
         return view('admin/master_kelas/index', $data);
@@ -45,40 +56,77 @@ class Admin extends BaseController
 
     public function mentor()
     {
-        $mentorModel = new \App\Models\MentorModel();
+        $mentorModel = new MentorModel();
         
         $data = [
             'title'  => 'Manajemen Mentor - Panel Admin',
             'mentor' => $mentorModel->findAll()
         ];
         
-        return view('admin/mentor/index', $data); // Sesuaikan path view mentor Anda jika berbeda
+        return view('admin/mentor/index', $data); 
+    }
+
+    // Menampilkan halaman form edit mentor berdasarkan ID
+    public function editMentor($id)
+    {
+        $mentorModel = new MentorModel();
+        
+        $data = [
+            'title'  => 'Edit Mentor',
+            'mentor' => $mentorModel->find($id)
+        ];
+
+        return view('admin/mentor/edit', $data);
+    }
+
+    // Memproses update data mentor ke database
+    public function update($id)
+    {
+        $mentorModel = new MentorModel();
+
+        $dataUpdate = [
+            'nama'     => $this->request->getPost('nama'),
+            'keahlian' => $this->request->getPost('keahlian'),
+            'status'   => $this->request->getPost('status')
+        ];
+
+        // Jika ada file foto baru yang diunggah
+        $fileFoto = $this->request->getFile('foto');
+        if ($fileFoto && $fileFoto->isValid() && !$fileFoto->hasMoved()) {
+            $namaFile = $fileFoto->getRandomName();
+            
+            // Simpan ke folder public/assets/img menggunakan FCPATH
+            $fileFoto->move(FCPATH . 'assets/img', $namaFile);
+            
+            $dataUpdate['foto'] = $namaFile;
+        }
+
+        $mentorModel->update($id, $dataUpdate);
+
+        return redirect()->to(base_url('admin/mentor'))->with('success', 'Data mentor berhasil diperbarui!');
     }
 
     public function dataPeserta()
     {
-        $pesertaModel = new \App\Models\PesertaModel();
+        $pesertaModel = new PesertaModel();
         
         $data = [
             'title'   => 'Data Peserta - Panel Admin',
             'peserta' => $pesertaModel->findAll()
         ];
         
-        // Sesuaikan dengan nama folder view yang ada di dalam folder app/Views/admin/
         return view('admin/data_peserta/index', $data); 
     }
 
     public function validasi()
     {
-        // Panggil model yang sesuai untuk validasi pendaftaran, contoh: PendaftaranModel
-        $pendaftaranModel = new \App\Models\PendaftaranModel();
+        $pendaftaranModel = new PendaftaranModel();
         
         $data = [
-            'title'      => 'Validasi Pendaftaran - Panel Admin',
+            'title'       => 'Validasi Pendaftaran - Panel Admin',
             'pendaftaran' => $pendaftaranModel->findAll()
         ];
         
-        // Sesuaikan path view dengan struktur folder Anda di app/Views/admin/
         return view('admin/validasi/index', $data);
     }
     
@@ -86,9 +134,9 @@ class Admin extends BaseController
     {
         $sertifikatModel = new SertifikatModel();
         $data['sertifikat'] = $sertifikatModel->select('sertifikat.*, peserta.nama_peserta, peserta.email, peserta.telepon, kelas.nama_kelas')
-                                        ->join('peserta', 'peserta.id_peserta = sertifikat.id_peserta')
-                                        ->join('kelas', 'kelas.id_kelas = sertifikat.id_kelas')
-                                        ->findAll();
+                                            ->join('peserta', 'peserta.id_peserta = sertifikat.id_peserta')
+                                            ->join('kelas', 'kelas.id_kelas = sertifikat.id_kelas')
+                                            ->findAll();
         $data['title'] = 'Manajemen Sertifikat Peserta';
         return view('admin/sertifikat/index', $data);
     }
@@ -135,7 +183,6 @@ class Admin extends BaseController
         return redirect()->to(base_url('admin/sertifikat'))->with('error', 'Sertifikat tidak ditemukan.');
     }
 
-    // FUNGSI LAPORAN (Pindahkan dari file lain ke sini)
     public function laporan()
     {
         $pesertaModel = new PesertaModel();
@@ -152,14 +199,24 @@ class Admin extends BaseController
 
     public function pengaturan()
     {
-        $data = ['title' => 'Pengaturan Akun - Panel Admin'];
+        $session = session();
+        $userId = $session->get('id_users'); // Ambil ID user dari session login
+
+        $db = \Config\Database::connect();
+        $user = $db->table('users')->where('id_users', $userId)->get()->getRowArray();
+
+        $data = [
+            'title' => 'Pengaturan Akun - Panel Admin',
+            'user'  => $user // Pastikan baris ini ada agar $user terbaca di view
+        ];
+
         return view('admin/pengaturan/index', $data);
     }
 
-   public function updatePengaturan()
+    public function updatePengaturan()
     {
         $session = session();
-        $emailLogin = $session->get('email') ?? 'admin@creativemu.ac.id';
+        $userId = $session->get('id_users'); // Gunakan ID agar aman
 
         // Tangkap data dari form
         $namaAdmin    = $this->request->getPost('nama_admin');
@@ -177,23 +234,22 @@ class Admin extends BaseController
             $namaFile = $fileFoto->getRandomName();
             $fileFoto->move('assets/img', $namaFile);
             
-            // UBAH 'foto' DI BAWAH INI MENJADI NAMA KOLOM ASLI DI DATABASE ANDA (contoh: 'foto_profil' atau 'avatar')
             $dataUpdate['foto_profil'] = $namaFile; 
-            
-            $session->set('foto', $namaFile);
+            $session->set('foto_profil', $namaFile);
         }
 
-        // Perubahan password
+        // Perubahan password jika diisi
         if (!empty($passwordBaru)) {
             $dataUpdate['password'] = password_hash($passwordBaru, PASSWORD_DEFAULT);
         }
 
-        // Simpan ke database
+        // Simpan ke database berdasarkan id_users
         $db = \Config\Database::connect();
-        $db->table('users') // Ganti dengan nama tabel Anda jika berbeda
-           ->where('email', $emailLogin) 
+        $db->table('users')
+           ->where('id_users', $userId) 
            ->update($dataUpdate);
 
+        // Perbarui data session agar langsung berubah di navbar/tampilan
         $session->set('nama', $namaAdmin);
         $session->set('email', $emailAdmin);
 
@@ -201,11 +257,11 @@ class Admin extends BaseController
     }
 
     public function logout()
-{
-    // Menghapus session
-    session()->destroy();
+    {
+        // Menghapus session
+        session()->destroy();
 
-    // Redirect ke halaman login
-    return redirect()->to('/')->with('success', 'Berhasil logout.');
-}
+        // Redirect ke halaman login (atau root '/')
+        return redirect()->to('/')->with('success', 'Berhasil logout.');
+    }
 }

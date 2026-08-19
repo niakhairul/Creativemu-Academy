@@ -4,9 +4,15 @@ use CodeIgniter\Model;
 
 class UserModel extends Model
 {
-    protected $table            = 'users'; // Sesuaikan dengan nama tabel Anda
-    protected $primaryKey       = 'id_users'; // <-- Ubah dari 'user_id' menjadi 'id_users' (atau nama kolom ID yang asli di database)
+    protected $table            = 'users';
+    protected $primaryKey       = 'id_users';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
-    protected $allowedFields    = ['nama', 'email', 'password', 'role']; // Sesuaikan kolom tabel Anda
+    
+    // Tambahkan 'no_hp' dan 'foto_profil' agar sinkron dengan database
+    protected $allowedFields    = ['nama', 'email', 'password', 'role', 'no_hp', 'foto_profil'];
+    
+    protected $useTimestamps    = true; // Aktifkan jika Anda menggunakan created_at dan updated_at otomatis
+    protected $createdField     = 'created_at';
+    protected $updatedField     = 'updated_at';
 }

@@ -221,7 +221,7 @@
                     
                     <div class="profile-avatar-container">
                         <!-- Tampilkan foto profil admin saat ini -->
-                        <img src="<?= base_url('assets/img/admin-profile.jpg'); ?>" alt="Admin Profile" id="previewImage">
+                        <img src="<?= base_url('assets/img/' . (!empty($user['foto_profil']) ? $user['foto_profil'] : 'admin-profile.jpg')); ?>" alt="Admin Profile" id="previewImage">
                         <label for="fotoInput" class="upload-badge" title="Ganti Foto">
                             <i class="fas fa-camera"></i>
                         </label>
@@ -242,14 +242,14 @@
                         <input type="file" id="fotoInput" name="foto_profil" class="d-none" accept="image/*" onchange="previewFile(this)">
 
                         <div class="mb-3">
-                            <label class="form-label">Nama Lengkap Administrator</label>
-                            <input type="text" name="nama_admin" class="form-control" value="Super Admin" required>
-                        </div>
+    <label class="form-label">Nama Lengkap Administrator</label>
+    <input type="text" name="nama_admin" class="form-control" value="<?= esc($user['nama']); ?>" required>
+</div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Alamat Email</label>
-                            <input type="email" name="email_admin" class="form-control" value="admin@creativemu.ac.id" required>
-                        </div>
+<div class="mb-3">
+    <label class="form-label">Alamat Email</label>
+    <input type="email" name="email_admin" class="form-control" value="<?= esc($user['email']); ?>" required>
+</div>
 
                         <hr class="my-4" style="border-color: #f0ecfa;">
 

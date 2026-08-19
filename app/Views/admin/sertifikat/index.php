@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= esc($title ?? 'Upload Sertifikat'); ?> - Creativemu Academy</title>
+    <title><?= esc($title); ?> - Creativemu Academy</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
@@ -29,10 +29,12 @@
             margin: 0;
         }
 
+        /* --- Custom Scrollbar --- */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f7f5fd; }
         ::-webkit-scrollbar-thumb { background: #b293f0; border-radius: 10px; }
 
+        /* --- Sidebar Styling --- */
         #sidebar {
             width: 275px;
             height: 100vh;
@@ -41,6 +43,7 @@
             left: 0;
             background-color: var(--sidebar-bg);
             color: var(--sidebar-text);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
             z-index: 1000;
             box-shadow: 8px 0 30px rgba(121, 75, 196, 0.08);
             overflow-y: auto;
@@ -78,6 +81,7 @@
             font-size: 1.1rem;
             width: 22px;
             text-align: center;
+            transition: transform 0.3s ease;
         }
 
         #sidebar .nav-link:hover {
@@ -93,11 +97,20 @@
             font-weight: 600;
         }
 
+        #sidebar .nav-link.text-danger:hover {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: #ff6b6b !important;
+        }
+
+        /* --- Main Content Area --- */
         #main-content {
             margin-left: 275px;
             padding: 35px;
+            transition: all 0.4s ease;
+            animation: mainFadeIn 0.7s cubic-bezier(0.165, 0.84, 0.44, 1);
         }
 
+        /* --- Top Navbar --- */
         .top-navbar {
             background: #ffffff;
             padding: 22px 30px;
@@ -121,6 +134,38 @@
             color: #8c83a5;
             font-size: 0.9rem;
             margin-bottom: 0;
+        }
+
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .admin-profile img {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2.5px solid var(--primary-purple);
+            box-shadow: 0 4px 12px rgba(121, 75, 196, 0.2);
+        }
+
+        .admin-info h6 {
+            margin: 0;
+            font-weight: 700;
+            color: var(--dark-purple);
+            font-size: 0.98rem;
+        }
+
+        .admin-info small {
+            color: #8c83a5;
+            font-size: 0.78rem;
+        }
+
+        @keyframes mainFadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -186,60 +231,74 @@
         <!-- === TOP NAVBAR === -->
         <div class="top-navbar">
             <div class="dash-header">
-                <h3>Upload Sertifikat</h3>
-                <p>Form untuk mengunggah sertifikat kelulusan peserta.</p>
+                <h3>Manajemen Sertifikat</h3>
+                <p>Kelola sertifikat kelulusan peserta dengan mudah.</p>
             </div>
             <div class="d-flex align-items-center gap-4">
-                <div class="admin-profile d-flex align-items-center gap-3">
-                    <img src="https://ui-avatars.com/api/?name=Super+Admin&background=794bc4&color=fff&size=128" alt="Admin Photo" style="width: 45px; height: 45px; border-radius: 50%;">
-                    <div>
-                        <h6 class="m-0 fw-bold" style="color: var(--dark-purple);">Super Admin</h6>
-                        <small class="text-muted">Administrator</small>
-                    </div>
+                <div class="text-muted d-none d-md-block px-3 py-2 rounded-pill bg-light" id="current-date" style="font-size: 0.82rem; font-weight: 600; color: #794bc4 !important;">
+                    Memuat tanggal...
+                </div>
+                <div class="admin-profile">
+                <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
+                <div class="admin-info">
+                <?= esc(session()->get('nama')); ?>
+                <small>Administrator</small>
+                </div>
                 </div>
             </div>
         </div>
         
         <div class="container-fluid px-0">
             <div class="mb-3">
-                <a href="<?= base_url('admin/sertifikat') ?>" class="btn btn-secondary mb-3" style="border-radius: 10px;">
-                    <i class="fa-solid fa-arrow-left"></i> Kembali
+                <a href="<?= base_url('admin/sertifikat/upload') ?>" class="btn btn-primary" style="background: var(--sidebar-active-gradient); border: none; border-radius: 12px; padding: 10px 20px;">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload Sertifikat
                 </a>
             </div>
 
-            <div class="card shadow-sm border-0" style="border-radius: 20px;">
+            <div class="card mb-4 shadow-sm border-0" style="border-radius: 20px; overflow: hidden;">
                 <div class="card-body p-4">
-                    <!-- Sesuaikan action dengan method di controller Anda (misal: admin/sertifikat/store) -->
-                    <form action="<?= base_url('admin/sertifikat/store'); ?>" method="post" enctype="multipart/form-data">
-                        <?= csrf_field(); ?>
+                    <table class="table table-bordered table-striped align-middle table-hover">
+                        <thead class="table-dark" style="background-color: var(--dark-purple);">
+                            <tr>
+                                <th>No</th>
+                                <th>Nama Peserta</th>
+                                <th>Judul Kelas</th>
+                                <th>File Sertifikat</th>
+                                <th class="text-center" style="width: 25%;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php $no = 1; foreach ($sertifikat as $s) : ?>
+                            <tr>
+                                <td><?= $no++; ?></td>
+                                <td><?= $s['nama_peserta']; ?></td>
+                                <td><?= $s['nama_kelas']; ?></td>
+                                <td>
+                                    <a href="<?= base_url('uploads/sertifikat/' . $s['file_sertifikat']); ?>" target="_blank" class="text-decoration-none">
+                                        <i class="fa-solid fa-file-pdf text-danger"></i> <?= $s['file_sertifikat']; ?>
+                                    </a>
+                                </td>
+                                <td class="text-center">
+                                    <a href="<?= base_url('admin/sertifikat/download/' . $s['id_sertifikat']); ?>" class="btn btn-success btn-sm" title="Unduh Sertifikat">
+                                        <i class="fa-solid fa-download"></i>
+                                    </a>
 
-                        <div class="mb-3">
-                            <label for="id_peserta" class="form-label fw-bold">Pilih Peserta</label>
-                            <select name="id_peserta" id="id_peserta" class="form-select" required>
-                                <option value="">-- Pilih Peserta --</option>
-                                <?php if (!empty($peserta)): ?>
-                                    <?php foreach ($peserta as $p): ?>
-                                        <option value="<?= $p['id_peserta']; ?>"><?= $p['nama_peserta']; ?> (<?= $p['email']; ?>)</option>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </select>
-                        </div>
+                                    <a href="https://api.whatsapp.com/send?phone=<?= $s['no_whatsapp']; ?>&text=Halo%20<?= $s['nama_peserta']; ?>,%20berikut%20sertifikat%20kelulusan%20Anda%20untuk%20kelas%20<?= $s['nama_kelas']; ?>:%20<?= base_url('uploads/sertifikat/' . $s['file_sertifikat']); ?>" target="_blank" class="btn btn-info btn-sm text-white" title="Kirim via WhatsApp">
+                                        <i class="fa-brands fa-whatsapp"></i>
+                                    </a>
 
-                        <div class="mb-3">
-                            <label for="nama_kelas" class="form-label fw-bold">Judul Kelas</label>
-                            <input type="text" class="form-control" id="nama_kelas" name="nama_kelas" placeholder="Contoh: Fullstack Web Development" required>
-                        </div>
+                                    <a href="mailto:<?= $s['email']; ?>?subject=Sertifikat Kelulusan Creativemu Academy&body=Halo <?= $s['nama_peserta']; ?>, berikut adalah link unduh sertifikat kelas <?= $s['nama_kelas']; ?> Anda: <?= base_url('uploads/sertifikat/' . $s['file_sertifikat']); ?>" class="btn btn-warning btn-sm text-white" title="Kirim via Email">
+                                        <i class="fa-solid fa-envelope"></i>
+                                    </a>
 
-                        <div class="mb-3">
-                            <label for="file_sertifikat" class="form-label fw-bold">File Sertifikat (PDF / Gambar)</label>
-                            <input type="file" class="form-control" id="file_sertifikat" name="file_sertifikat" required>
-                            <small class="text-muted">Format yang diizinkan: PDF, JPG, PNG.</small>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary" style="background: var(--sidebar-active-gradient); border: none; border-radius: 12px; padding: 10px 25px;">
-                            <i class="fa-solid fa-upload"></i> Unggah Sekarang
-                        </button>
-                    </form>
+                                    <a href="<?= base_url('admin/sertifikat/delete/' . $s['id_sertifikat']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus sertifikat ini?')" title="Hapus">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -248,5 +307,12 @@
 
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script untuk Mengisi Tanggal Otomatis -->
+    <script>
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const tanggalHariIni = new Date().toLocaleDateString('id-ID', options);
+        document.getElementById('current-date').innerText = tanggalHariIni;
+    </script>
 </body>
 </html>

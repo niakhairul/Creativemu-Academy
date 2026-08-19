@@ -14,6 +14,9 @@ class Auth extends BaseController
         $db = \Config\Database::connect();
         $user = $db->table('users')->where('email', $email)->get()->getRowArray();
 
+        // (Opsional) Uncomment baris di bawah untuk mengecek apakah data user terambil
+        // echo "<pre>"; print_r($user); echo "</pre>"; die();
+
         if (!$user) {
             return redirect()->back()->with('error', 'Email tidak ditemukan.');
         }

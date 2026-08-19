@@ -357,14 +357,14 @@
             <div class="d-flex align-items-center gap-4">
                 <div class="text-muted d-none d-md-block px-3 py-2 rounded-pill bg-light" id="current-date" style="font-size: 0.82rem; font-weight: 600; color: #794bc4 !important;">
                     Memuat tanggal...
-                </div>
+              </div>
                 <div class="admin-profile">
-                    <img src="https://ui-avatars.com/api/?name=Super+Admin&background=794bc4&color=fff&size=128" alt="Admin Photo">
-                    <div class="admin-info">
-                        <h6>Super Admin</h6>
-                        <small>Administrator</small>
-                    </div>
-                </div>
+    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
+    <div class="admin-info">
+        <?= esc(session()->get('nama')); ?>
+        <small>Administrator</small>
+    </div>
+</div>
             </div>
         </div>
 
