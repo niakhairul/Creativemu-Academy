@@ -63,8 +63,11 @@ $routes->group('admin', function($routes) {
     $routes->match(['get', 'post'], 'mentor/simpan', 'Admin::simpanMentor');
     
     $routes->get('mentor/detail/(:num)', 'Admin::detailMentor/$1');
-    $routes->get('mentor/edit/(:num)', 'Admin::editMentor/$1');
-    $routes->post('mentor/update/(:num)', 'Admin::updateMentor/$1');
+    
+    // TAMBAHKAN BARIS INI UNTUK RUTE EDIT:
+    $routes->match(['get', 'post'], 'mentor/edit/(:num)', 'Admin::editMentor/$1');
+    
+    $routes->match(['get', 'post'], 'mentor/update/(:num)', 'Admin::updateMentor/$1');
     $routes->match(['get', 'post'], 'mentor/delete/(:num)', 'Admin::deleteMentor/$1');
 
     $routes->get('data-peserta', 'Admin::dataPeserta');

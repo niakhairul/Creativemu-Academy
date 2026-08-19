@@ -80,30 +80,34 @@ class Admin extends BaseController
     }
 
     // Memproses update data mentor ke database
-    public function update($id)
+    // Memproses update data mentor ke database
+    public function updateMentor($id)
     {
         $mentorModel = new MentorModel();
 
-        $dataUpdate = [
-            'nama'     => $this->request->getPost('nama'),
-            'keahlian' => $this->request->getPost('keahlian'),
-            'status'   => $this->request->getPost('status')
+        // Ambil data dari form
+        $data = [
+            'nama_mentor' => $this->request->getPost('nama_mentor'),
+            'email'       => $this->request->getPost('email'),
+            'telepon'     => $this->request->getPost('telepon'),
+            'keahlian'    => $this->request->getPost('keahlian'),
+            'pengalaman'  => $this->request->getPost('pengalaman'),
+            'status'      => $this->request->getPost('status'),
         ];
 
-        // Jika ada file foto baru yang diunggah
-        $fileFoto = $this->request->getFile('foto');
-        if ($fileFoto && $fileFoto->isValid() && !$fileFoto->hasMoved()) {
-            $namaFile = $fileFoto->getRandomName();
-            
-            // Simpan ke folder public/assets/img menggunakan FCPATH
-            $fileFoto->move(FCPATH . 'assets/img', $namaFile);
-            
-            $dataUpdate['foto'] = $namaFile;
+        // Tangkap file CV jika ada yang di-upload baru
+        $fileCv = $this->request->getFile('cv');
+        if ($fileCv && $fileCv->isValid() && !$fileCv->hasMoved()) {
+            $namaFileCv = $fileCv->getRandomName();
+            $fileCv->move('uploads/cv', $namaFileCv);
+            $data['cv'] = $namaFileCv;
         }
 
-        $mentorModel->update($id, $dataUpdate);
+        // Simpan perubahan ke database menggunakan Model
+        $mentorModel->update($id, $data);
 
-        return redirect()->to(base_url('admin/mentor'))->with('success', 'Data mentor berhasil diperbarui!');
+        // Redirect kembali dengan pesan sukses
+        return redirect()->to(base_url('admin/mentor'))->with('success', 'Data mentor berhasil diperbarui.');
     }
 
     public function dataPeserta()
