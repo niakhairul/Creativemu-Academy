@@ -8,9 +8,10 @@ class HasilUjianModel extends Model
 {
     protected $table = 'hasil_ujian';
     protected $primaryKey = 'id_hasil_ujian';
-
+    protected $returnType = 'array';
     protected $allowedFields = [
         'id_user',
+        'id_users',
         'id_kelas',
         'benar',
         'jumlah_soal',
@@ -19,8 +20,7 @@ class HasilUjianModel extends Model
         'status_kelulusan',
         'catatan_mentor',
         'created_at',
-        'updated_at'
+        'updated_at',
     ];
-
     protected $useTimestamps = true;
 }

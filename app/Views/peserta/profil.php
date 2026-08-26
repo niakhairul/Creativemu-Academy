@@ -66,9 +66,15 @@
                     <?= esc($user['nama'] ?? 'Peserta') ?>
                 </h5>
 
-                <p class="text-muted mb-0">
-                    Peserta Creativemu Academy
-                </p>
+                <?php if (!empty($pendaftaran)): ?>
+                    <?php $statusDaftar = $pendaftaran['status_pendaftaran'] ?? 'Menunggu'; ?>
+                    <div class="badge <?= $statusDaftar === 'Disetujui' ? 'bg-success' : ($statusDaftar === 'Ditolak' ? 'bg-danger' : 'bg-warning text-dark') ?> mt-2">
+                        <?= $statusDaftar === 'Disetujui' ? 'Sudah divalidasi' : esc($statusDaftar) ?>
+                    </div>
+                    <p class="text-muted small mt-2 mb-0"><?= esc($pendaftaran['nama_kelas'] ?? '-') ?></p>
+                <?php else: ?>
+                    <p class="text-muted mb-0">Belum mendaftar kelas</p>
+                <?php endif; ?>
 
             </div>
 

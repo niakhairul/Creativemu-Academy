@@ -37,37 +37,35 @@
 
                     <hr>
 
+                   
+
                     <div class="row text-start mt-4">
+    <div class="col-md-6 mb-3">
+        <strong>Status Pendaftaran</strong>
+        <br>
+        <?php if (isset($pendaftaran['status_pendaftaran']) && $pendaftaran['status_pendaftaran'] == 'Disetujui'): ?>
+            <span class="badge bg-success">Disetujui</span>
+        <?php else: ?>
+            <span class="badge bg-warning text-dark">Menunggu Validasi</span>
+        <?php endif; ?>
+    </div>
 
-                        <div class="col-md-6 mb-3">
-
-                            <strong>Status Pendaftaran</strong>
-
-                            <br>
-
-                            <span class="badge bg-warning text-dark">
-
-                                Menunggu Validasi
-
-                            </span>
-
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-
-                            <strong>Status Pembayaran</strong>
-
-                            <br>
-
-                            <span class="badge bg-secondary">
-
-                                Belum Diverifikasi
-
-                            </span>
-
-                        </div>
-
-                    </div>
+    <div class="col-md-6 mb-3">
+        <strong>Status Pembayaran</strong>
+        <br>
+        <?php if (isset($pendaftaran['status_pembayaran'])): ?>
+            <?php if ($pendaftaran['status_pembayaran'] == 'terkonfirmasi'): ?>
+                <span class="badge bg-success">Terkonfirmasi</span>
+            <?php elseif ($pendaftaran['status_pembayaran'] == 'batal'): ?>
+                <span class="badge bg-danger">Ditolak</span>
+            <?php else: ?>
+                <span class="badge bg-warning text-dark">Pending</span>
+            <?php endif; ?>
+        <?php else: ?>
+            <span class="badge bg-secondary">Belum Diverifikasi</span>
+        <?php endif; ?>
+    </div>
+</div>
 
                     <div class="d-flex justify-content-between mt-4">
 

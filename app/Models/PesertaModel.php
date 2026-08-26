@@ -10,5 +10,5 @@ class PesertaModel extends Model
     protected $primaryKey       = 'id_peserta';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
-    protected $allowedFields    = ['nama_peserta', 'email', 'no_whatsapp', 'created_at'];
+    protected $allowedFields    = ['nama_peserta', 'email', 'telepon', 'created_at'];
 }

@@ -359,6 +359,11 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="<?= base_url('admin/angket'); ?>" class="nav-link">
+                    <i class="fas fa-award"></i> <span>Angket</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link">
                     <i class="fas fa-award"></i> <span>Sertifikat</span>
                 </a>

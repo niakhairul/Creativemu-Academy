@@ -133,9 +133,8 @@
                     <?= csrf_field() ?>
 
                     <div class="mb-3">
-                        <label class="form-label">Nama Lengkap</label>
-                        <input type="text" name="nama" class="form-control" placeholder="Masukkan nama lengkap" required>
-                    </div>
+    <label class="form-label">Nama Lengkap</label>
+    <input type="text" name="nama" class="form-control" placeholder="Masukkan Nama Lengkap" required>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">

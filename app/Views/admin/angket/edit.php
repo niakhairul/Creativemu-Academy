@@ -308,7 +308,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="<?= base_url('admin/mentor'); ?>" class="nav-link active">
+                <a href="<?= base_url('admin/mentor'); ?>" class="nav-link">
                     <i class="fas fa-chalkboard-user"></i> <span>Mentor</span>
                 </a>
             </li>
@@ -322,8 +322,8 @@
                     <i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span>
                 </a>
             </li>
-             <li class="nav-item">
-                <a href="<?= base_url('admin/angket'); ?>" class="nav-link">
+            <li class="nav-item">
+                <a href="<?= base_url('admin/angket'); ?>" class="nav-link active">
                     <i class="fas fa-award"></i> <span>Angket</span>
                 </a>
             </li>
@@ -356,109 +356,121 @@
         <!-- === TOP NAVBAR === -->
         <div class="top-navbar">
             <div class="dash-header">
-                <h3>Master Kelas</h3>
-                <p>Kelola data pelatihan, tambah kelas baru, dan atur jadwal dengan mudah.</p>
+                <h3>Edit Angket</h3>
+                <p>Ubah dan perbarui data pertanyaan angket yang tersedia.</p>
             </div>
             <div class="d-flex align-items-center gap-4">
                 <div class="text-muted d-none d-md-block px-3 py-2 rounded-pill bg-light" id="current-date" style="font-size: 0.82rem; font-weight: 600; color: #794bc4 !important;">
                     Memuat tanggal...
                 </div>
                 <div class="admin-profile">
-    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
-    <div class="admin-info">
-        <?= esc(session()->get('nama')); ?>
-        <small>Administrator</small>
-    </div>
-</div>
+                    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
+                    <div class="admin-info">
+                        <h6><?= esc(session()->get('nama')); ?></h6>
+                        <small>Administrator</small>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <?php if (session()->getFlashdata('error')): ?>
-            <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm" role="alert">
-                <i class="fas fa-circle-exclamation me-2"></i> <?= session()->getFlashdata('error'); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endif; ?>
+        <!-- === FORM EDIT CONTENT === -->
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="content-card">
+                        <h4 class="card-title-custom mb-4">
+                            <i class="fas fa-pen-to-square"></i> Form Edit Angket
+                        </h4>
+                        
+                        <form action="<?= base_url('admin/angket/update/' . $id); ?>" method="post">
+                            <!-- Judul Angket -->
+                            <div class="mb-3">
+                                <label class="form-label">Judul Angket</label>
+                                <input type="text" name="judul_angket" class="form-control" value="<?= esc($angket['judul_angket'] ?? ''); ?>" required>
+                            </div>
 
-        <div class="content-card">
-            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
-                <div class="card-title-custom d-flex align-items-center">
-                    <div class="rounded-circle p-2 bg-light text-primary me-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                        <i class="fas fa-pen-to-square text-purple" style="color: var(--primary-purple);"></i>
-                    </div>
-                    <span>Formulir Perubahan Data Mentor</span>
-                </div>
-                <a href="<?= base_url('admin/mentor'); ?>" class="btn btn-light-custom text-decoration-none">
-                    <i class="fas fa-arrow-left me-2"></i> Kembali
-                </a>
-            </div>
+                            <!-- Pilihan Kelas -->
+                            <div class="mb-3">
+                                <label class="form-label">Kelas</label>
+                                <select name="id_kelas" class="form-select">
+                                    <?php foreach ($kelas as $k): ?>
+                                        <option value="<?= $k['id_kelas']; ?>" <?= ($angket['id_kelas'] == $k['id_kelas']) ? 'selected' : ''; ?>>
+                                            <?= $k['nama_kelas']; ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
 
-            <form action="<?= base_url('admin/mentor/update/' . $mentor['id_mentor']); ?>" method="POST" enctype="multipart/form-data">
-                <?= csrf_field(); ?>
-                
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <label class="form-label">Nama Lengkap & Gelar</label>
-                        <input type="text" name="nama_mentor" class="form-control" value="<?= esc($mentor['nama_mentor']); ?>" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Alamat Email Aktif</label>
-                        <input type="email" name="email" class="form-control" value="<?= esc($mentor['email']); ?>" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">No. Telepon / WhatsApp</label>
-                        <input type="text" name="telepon" class="form-control" value="<?= esc($mentor['telepon']); ?>" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Keahlian Utama / Bidang Pengajaran</label>
-                        <input type="text" name="keahlian" class="form-control" value="<?= esc($mentor['keahlian']); ?>" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Pengalaman Kerja (Tahun)</label>
-                        <input type="number" name="pengalaman" class="form-control" value="<?= esc($mentor['pengalaman']); ?>" min="0" required>
-                    </div>
-                    <div class="col-12">
-    <label class="form-label">Bio / Biografi Singkat</label>
-    <textarea name="bio" class="form-control" rows="3" placeholder="Masukkan bio singkat mentor..."><?= isset($mentor['bio']) ? esc($mentor['bio']) : ''; ?></textarea>
+                            <div class="mb-3">
+    <label class="form-label">Kelas & Mentor</label>
+    <select name="id_kelas" class="form-select" required>
+        <?php foreach ($kelas as $k) : ?>
+            <option value="<?= $k['id_kelas']; ?>" <?= ($k['id_kelas'] == $angket['id_kelas']) ? 'selected' : ''; ?>>
+                <?= $k['nama_kelas']; ?> 
+                <?php 
+                    // Mencari nama mentor berdasarkan id_mentor dari kelas tersebut
+                    $namaMentor = '-';
+                    foreach ($mentor as $m) {
+                        if ($m['id_mentor'] == $k['id_mentor']) {
+                            $namaMentor = $m['nama_mentor'];
+                            break;
+                        }
+                    }
+                ?>
+                (Mentor: <?= $namaMentor; ?>)
+            </option>
+        <?php endforeach; ?>
+    </select>
 </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Status Keaktifan</label>
-                        <select name="status" class="form-select" required>
-                            <option value="Aktif" <?= ($mentor['status'] == 'Aktif') ? 'selected' : ''; ?>>Aktif Mengajar</option>
-                            <option value="Non-Aktif" <?= ($mentor['status'] == 'Non-Aktif') ? 'selected' : ''; ?>>Cuti / Non-Aktif</option>
-                        </select>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">Unggah Dokumen CV Baru (Opsional)</label>
-                        <input type="file" name="cv" class="form-control" accept=".pdf,.doc,.docx">
-                        <div class="form-text mt-2">
-                            <i class="fas fa-file-pdf text-danger me-1"></i> CV Saat Ini: 
-                            <?php if (!empty($mentor['cv'])): ?>
-                                <a href="<?= base_url('uploads/cv/' . $mentor['cv']); ?>" target="_blank" class="text-decoration-underline fw-semibold" style="color: var(--primary-purple);"><?= esc($mentor['cv']); ?></a>
-                            <?php else: ?>
-                                <span class="text-muted italic">Tidak ada file CV yang terunggah sebelumnya.</span>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="mt-5 pt-4 border-top d-flex justify-content-end gap-3">
-                    <a href="<?= base_url('admin/mentor'); ?>" class="btn btn-light-custom px-4">Batal</a>
-                    <button type="submit" class="btn btn-purple px-4">
-                        <i class="fas fa-save me-2"></i> Simpan Perubahan
-                    </button>
+                            <!-- Pertanyaan (Textarea) -->
+                            <!-- Ganti bagian input pertanyaan lama Anda dengan perulangan ini -->
+<div id="container-pertanyaan">
+    <?php if (!empty($semua_pertanyaan)) : ?>
+        <?php foreach ($semua_pertanyaan as $row) : ?>
+            <div class="card p-3 mb-3 border-light shadow-sm">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label class="form-label">Kategori</label>
+                        <input type="text" name="kategori[]" class="form-control" value="<?= esc($row['kategori']); ?>">
+                    </div>
+                    <div class="col-md-9">
+                        <label class="form-label">Pertanyaan</label>
+                        <input type="text" name="pertanyaan[]" class="form-control" value="<?= esc($row['pertanyaan']); ?>" required>
+                    </div>
                 </div>
-            </form>
+            </div>
+        <?php endforeach; ?>
+    <?php endif; ?>
+</div>
+
+                            <!-- Kotak Saran (Opsional) -->
+                            <div class="mb-3">
+                                <label class="form-label">Kotak Saran</label>
+                                <textarea name="saran" class="form-control" rows="2"><?= esc($angket['saran'] ?? ''); ?></textarea>
+                            </div>
+
+                            <!-- Status -->
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select name="status" class="form-select">
+                                    <option value="Aktif" <?= ($angket['status'] == 'Aktif') ? 'selected' : ''; ?>>Aktif</option>
+                                    <option value="Nonaktif" <?= ($angket['status'] == 'Nonaktif') ? 'selected' : ''; ?>>Nonaktif</option>
+                                </select>
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-4">
+                                <a href="<?= base_url('admin/angket'); ?>" class="btn btn-secondary rounded-pill px-4">Kembali</a>
+                                <button type="submit" class="btn btn-purple px-4">Simpan Perubahan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const today = new Date();
-        document.getElementById('current-date').innerText = today.toLocaleDateString('id-ID', options);
-    </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

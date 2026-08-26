@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= esc($title); ?> - Creativemu Academy</title>
+    
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
@@ -322,6 +323,11 @@
                     <i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span>
                 </a>
             </li>
+             <li class="nav-item">
+                <a href="<?= base_url('admin/angket'); ?>" class="nav-link">
+                    <i class="fas fa-award"></i> <span>Angket</span>
+                </a>
+            </li>
             <li class="nav-item">
                 <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link">
                     <i class="fas fa-award"></i> <span>Sertifikat</span>
@@ -359,164 +365,324 @@
                     Memuat tanggal...
                 </div>
                 <div class="admin-profile">
-    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
-    <div class="admin-info">
-        <?= esc(session()->get('nama')); ?>
-        <small>Administrator</small>
-    </div>
-</div>
+                    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
+                    <div class="admin-info">
+                        <h6><?= esc(session()->get('nama')); ?></h6>
+                        <small>Administrator</small>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- === SECTION: DAFTAR KELAS & TOMBOL TAMBAH === -->
-        <div class="content-card">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-                <div class="card-title-custom">
-                    <i class="fas fa-list-check"></i> Daftar Kelas Tersedia
-                </div>
-                <div class="d-flex align-items-center gap-3">
-                    <span class="badge px-3 py-2 rounded-pill fw-semibold" style="background-color: var(--light-purple); color: var(--primary-purple) !important;">
-                        Total: <?= isset($kelas) ? count($kelas) : 0; ?> Kelas Aktif
-                    </span>
-                    <!-- Tombol Trigger untuk Membuka Modal Form di Tengah -->
-                    <button type="button" class="btn btn-purple rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalTambahKelas">
-                        <i class="fas fa-plus me-2"></i> Tambah Kelas
-                    </button>
-                </div>
-            </div>
+   <!-- Notifikasi Flashdata (Jika ada) -->
+<?php if (session()->getFlashdata('pesan')): ?>
+    <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
+        <i class="fas fa-check-circle me-2"></i> <?= session()->getFlashdata('pesan'); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
 
-            <div class="table-responsive">
-                <table class="table table-custom table-hover align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Nama Kelas</th>
-                            <th>Kategori</th>
-                            <th>Mentor</th>
-                            <th>Kapasitas</th>
-                            <th>Tanggal</th>
-                            <th class="text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($kelas) && is_array($kelas)): ?>
-                            <?php $no = 1; foreach ($kelas as $row): ?>
-                                <tr>
-                                    <td class="fw-semibold"><?= $no++; ?></td>
-                                    <td>
-                                        <div class="fw-bold" style="color: var(--dark-purple);"><?= esc($row['nama_kelas']); ?></div>
-                                        <small class="text-muted"><?= esc($row['ringkasan']); ?></small>
-                                    </td>
-                                    <td><span class="badge px-2 py-1" style="background: var(--light-purple); color: var(--primary-purple);"><?= esc($row['kategori']); ?></span></td>
-                                    <td>Mentor ID: <?= esc($row['id_mentor']); ?></td>
-                                    <td><i class="fas fa-users me-1 text-muted"></i> <?= esc($row['kapasitas']); ?> Peserta</td>
-                                    <td><?= esc($row['tanggal_kelas']); ?></td>
-                                    <td class="text-center">
-                                        <a href="<?= base_url('admin/master-kelas/edit/' . $row['id']); ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3 me-1" title="Edit Kelas">
-                                            <i class="fas fa-pen-to-square"></i>
-                                        </a>
-                                        <a href="<?= base_url('admin/master-kelas/delete/' . $row['id']); ?>" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Hapus Kelas" onclick="return confirm('Yakin ingin menghapus kelas ini?')">
-                                            <i class="fas fa-trash-can"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">Belum ada data kelas yang tersedia.</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
+<!-- === SECTION: DAFTAR KELAS (BENTUK GRID/KOTAK) === -->
+<div class="content-card">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div class="card-title-custom">
+            <i class="fas fa-th-large me-2"></i> Katalog Kelas Akademi
         </div>
-
+        <div class="d-flex align-items-center gap-3">
+            <span class="badge px-3 py-2 rounded-pill fw-semibold" style="background-color: var(--light-purple); color: var(--primary-purple) !important;">
+                Total: <?= isset($kelas) ? count($kelas) : 0; ?> Kelas
+            </span>
+            <!-- Tombol Trigger Modal Tambah Kelas -->
+            <button type="button" class="btn btn-purple rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalTambahKelas">
+                <i class="fas fa-plus me-2"></i> Tambah Kelas
+            </button>
+        </div>
     </div>
 
-    <!-- === MODAL FORM TAMBAH KELAS (DI TENGAH LAYAR) === -->
-    <div class="modal fade" id="modalTambahKelas" tabindex="-1" aria-labelledby="modalTambahKelasLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="card-title-custom mb-0" id="modalTambahKelasLabel">
-                        <i class="fas fa-circle-plus"></i> Form Tambah Kelas Baru
-                    </h5>
-                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- === MODAL TAMBAH KELAS === -->
+    <div class="modal fade" id="modalTambahKelas" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header bg-light">
+                    <h5 class="fw-bold text-dark mb-0"><i class="fas fa-plus-circle me-2 text-purple"></i> Tambah Kelas Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="<?= base_url('admin/master-kelas/store'); ?>" method="POST">
+                
+                <form action="<?= base_url('admin/master-kelas/tambah'); ?>" method="post" enctype="multipart/form-data">
                     <?= csrf_field(); ?>
-                    <div class="modal-body">
-                        <div class="row g-4">
+                    <div class="modal-body p-4">
+                        <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="nama_kelas" class="form-label">Nama Kelas</label>
-                                <input type="text" class="form-control" id="nama_kelas" name="nama_kelas" required>
+                                <label class="form-label">Nama Kelas</label>
+                                <input type="text" name="nama_kelas" class="form-control" required>
                             </div>
-
+                            
+                            <!-- Pilih Mentor -->
                             <div class="col-md-6">
-    <label for="id_mentor" class="form-label">Mentor Pengampu</label>
-    <select class="form-select" id="id_mentor" name="id_mentor" required>
-        <option value="">-- Pilih Mentor Pengajar --</option>
-
-        <?php foreach ($mentor as $m) : ?>
-            <option value="<?= $m['id_mentor']; ?>">
-                <?= esc($m['nama_mentor']); ?> (<?= esc($m['keahlian']); ?>)
-            </option>
-        <?php endforeach; ?>
-
-    </select>
-</div>
-
-                            <div class="col-md-4">
-                                <label for="kategori" class="form-label">Kategori</label>
-                                <select class="form-select" id="kategori" name="kategori" required>
-                                    <option value="" selected disabled>-- Pilih Kategori --</option>
-                                    <option value="Web Development">Web Development</option>
-                                    <option value="Mobile App">Mobile App</option>
-                                    <option value="UI/UX Design">UI/UX Design</option>
-                                    <option value="Cyber Security">Cyber Security</option>
+                                <label for="id_mentor" class="form-label">Pilih Mentor</label>
+                                <select name="id_mentor" id="id_mentor" class="form-control" required>
+                                    <option value="">-- Pilih Mentor --</option>
+                                    <?php if (!empty($mentor)) : ?>
+                                        <?php foreach ($mentor as $m) : ?>
+                                            <option value="<?= $m['id_mentor']; ?>"><?= $m['nama_mentor']; ?></option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </select>
                             </div>
 
-                            <div class="col-md-4">
-                                <label for="kapasitas" class="form-label">Kapasitas Peserta</label>
-                                <input type="number" class="form-control" id="kapasitas" name="kapasitas" placeholder="Contoh: 30" min="1" required>
+                            <!-- Kategori & Jumlah Pertemuan -->
+                            <div class="col-md-6">
+                                <label class="form-label">Kategori</label>
+                                <input type="text" name="kategori" class="form-control" required>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label">Jml Pertemuan</label>
+                                <input type="number" name="jumlah_pertemuan" class="form-control" min="1" required>
                             </div>
 
-                            <div class="col-md-4">
-                                <label for="tanggal_kelas" class="form-label">Tanggal Pelaksanaan</label>
-                                <input type="date" class="form-control" id="tanggal_kelas" name="tanggal_kelas" required>
+                            <!-- Harga Reguler & Privat -->
+                            <div class="col-md-6">
+                                <label class="form-label">Harga Reguler (Rp)</label>
+                                <input type="number" name="harga_reguler" class="form-control" min="0" placeholder="Contoh: 150000" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Harga Privat (Rp)</label>
+                                <input type="number" name="harga_privat" class="form-control" min="0" placeholder="Contoh: 500000" required>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label">Kapasitas Peserta</label>
+                                <input type="number" name="kapasitas" class="form-control" required>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label">Tanggal Mulai</label>
+                                <input type="date" name="tanggal_mulai_kelas" class="form-control" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Status Kelas</label>
+                                <select name="status" class="form-control" required>
+                                    <option value="aktif">Aktif</option>
+                                    <option value="nonaktif">Nonaktif</option>
+                                    <option value="draft">Draft</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Tipe Kelas</label>
+                                <select name="tipe_kelas" class="form-control" required>
+                                    <option value="Online">Online</option>
+                                    <option value="Offline">Offline</option>
+                                    <option value="Hybrid">Hybrid</option>
+                                </select>
                             </div>
 
                             <div class="col-12">
-                                <label for="ringkasan" class="form-label">Ringkasan Singkat Kelas</label>
-                                <input type="text" class="form-control" id="ringkasan" name="ringkasan" placeholder="Tuliskan ringkasan singkat yang menarik minat peserta..." required>
+                                <label class="form-label">Ringkasan</label>
+                                <textarea name="ringkasan" class="form-control" rows="2" required></textarea>
                             </div>
-
                             <div class="col-12">
-                                <label for="deskripsi" class="form-label">Deskripsi Lengkap</label>
-                                <textarea class="form-control" id="deskripsi" name="deskripsi" rows="3" placeholder="Jelaskan silabus, materi, atau benefit dari kelas ini..." required></textarea>
+                                <label class="form-label">Deskripsi Lengkap</label>
+                                <textarea name="deskripsi" class="form-control" rows="3" required></textarea>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label class="form-label">Thumbnail / Foto</label>
+                                <input type="file" name="foto" class="form-control" accept="image/*">
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-light px-4 rounded-pill text-muted fw-semibold" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-purple px-4 rounded-pill">
-                            <i class="fas fa-save me-2"></i> Simpan Kelas Baru
-                        </button>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-purple rounded-pill px-4">Simpan Kelas</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap 5 JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Grid Container -->
+    <div class="row g-4">
+        <?php if (!empty($kelas) && is_array($kelas)): ?>
+            <?php foreach ($kelas as $row): ?>
+                <div class="col-md-6 col-xl-4">
+                    <div class="class-card shadow-sm border-0 rounded-4 overflow-hidden bg-white">
+                        <div class="class-card-img-wrapper position-relative" style="height: 180px; overflow: hidden;">
+                            <?php 
+                                $fotoKelas = !empty($row['thumbnail']) ? $row['thumbnail'] : (!empty($row['foto']) ? $row['foto'] : 'default.jpg');
+                            ?>
+                            <img src="<?= base_url('uploads/kelas/' . $fotoKelas); ?>" alt="Foto Kelas" class="w-100 h-100 object-fit-cover">
+                            
+                            <!-- Badge Kategori & Tipe -->
+                            <div class="class-badge-overlay position-absolute top-0 start-0 p-2 d-flex gap-1">
+                                <span class="badge px-2 py-1 shadow-sm" style="background: rgba(121, 75, 196, 0.85); backdrop-filter: blur(4px); font-size: 0.72rem;"><?= esc($row['kategori'] ?? 'Umum'); ?></span>
+                                <span class="badge bg-dark bg-opacity-75 px-2 py-1 shadow-sm" style="backdrop-filter: blur(4px); font-size: 0.72rem;"><?= esc($row['tipe_kelas'] ?? $row['jenis_kelas'] ?? 'Online'); ?></span>
+                            </div>
 
-    <script>
-        // Script Tanggal Dinamis Bahasa Indonesia
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const today = new Date();
-        document.getElementById('current-date').innerText = today.toLocaleDateString('id-ID', options);
-    </script>
+                            <!-- Badge Status -->
+                            <div class="class-status-overlay position-absolute top-0 end-0 p-2">
+                                <?php 
+                                    $statusKelas = strtolower($row['status'] ?? 'draft');
+                                    if ($statusKelas == 'aktif'): 
+                                ?>
+                                    <span class="badge bg-success shadow-sm" style="font-size: 0.72rem;">Aktif</span>
+                                <?php elseif ($statusKelas == 'nonaktif'): ?>
+                                    <span class="badge bg-secondary shadow-sm" style="font-size: 0.72rem;">Nonaktif</span>
+                                <?php else: ?>
+                                    <span class="badge bg-warning text-dark shadow-sm" style="font-size: 0.72rem;">Draft</span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <div class="class-card-body p-3">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="fw-bold mb-0 text-truncate" style="color: var(--dark-purple); font-size: 1.05rem;" title="<?= esc($row['nama_kelas']); ?>"><?= esc($row['nama_kelas']); ?></h5>
+                                </div>
+                                <p class="text-muted small mb-3 text-truncate"><?= esc($row['ringkasan'] ?? 'Tidak ada ringkasan.'); ?></p>
+                            </div>
+
+                            <div class="border-top pt-3 mt-2">
+                                <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 0.82rem;">
+                                    <span class="text-muted text-truncate" style="max-width: 55%;" title="<?= esc($row['nama_mentor'] ?? 'Belum ada mentor'); ?>">
+                                        <i class="fas fa-chalkboard-user me-1 text-primary"></i> <?= esc($row['nama_mentor'] ?? 'Belum ditentukan'); ?>
+                                    </span>
+                                    <span class="fw-bold text-dark"><i class="fas fa-rotate text-purple me-1"></i> <?= esc($row['jumlah_pertemuan']); ?>x Pertemuan</span>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center mb-3" style="font-size: 0.82rem;">
+                                    <span class="text-muted"><i class="fas fa-calendar-days me-1 text-muted"></i> <?= esc($row['tanggal_mulai_kelas'] ?? '-'); ?></span>
+                                    
+                                    <!-- Harga Format Rupiah Lengkap Menggunakan $row -->
+                                    <span class="fw-bold text-success fs-6">
+                                        <div class="pricing-info">
+                                            <p class="mb-1"><strong>Reg:</strong> Rp <?= number_format($row['harga_reguler'] ?? 0, 0, ',', '.'); ?></p>
+                                            <p class="mb-0"><strong>Priv:</strong> Rp <?= number_format($row['harga_privat'] ?? 0, 0, ',', '.'); ?></p>
+                                        </div>
+                                    </span>
+                                </div>
+
+                                <!-- Tombol Aksi -->
+                                <div class="d-flex flex-column gap-2">
+                                    <button type="button" class="btn btn-sm btn-info text-white rounded-pill py-1 w-100" style="font-size: 0.82rem;" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalDetailKelas<?= $row['id_kelas']; ?>">
+                                        <i class="fas fa-eye me-1"></i> Lihat Detail Kelas
+                                    </button>
+                                    <div class="d-flex gap-2">
+                                        <a href="<?= base_url('admin/master-kelas/edit/' . $row['id_kelas']); ?>" class="btn btn-sm btn-outline-primary rounded-pill w-50 py-1" style="font-size: 0.82rem;">
+                                            <i class="fas fa-pen-to-square me-1"></i> Edit
+                                        </a>
+                                        <a href="<?= base_url('admin/master-kelas/delete/' . $row['id_kelas']); ?>" class="btn btn-sm btn-outline-danger rounded-pill w-50 py-1" style="font-size: 0.82rem;" onclick="return confirm('Yakin ingin menghapus kelas ini?')">
+                                            <i class="fas fa-trash-can me-1"></i> Hapus
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- === MODAL DETAIL KELAS PER ITEM === -->
+                <div class="modal fade" id="modalDetailKelas<?= $row['id_kelas']; ?>" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content rounded-4 border-0 shadow">
+                            <div class="modal-header bg-light">
+                                <h5 class="fw-bold text-dark mb-0"><i class="fas fa-info-circle me-2 text-purple"></i> Detail Kelas: <?= esc($row['nama_kelas']); ?></h5>
+                                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body p-4">
+                                <div class="row g-4">
+                                    <div class="col-md-5 text-center">
+                                        <img src="<?= base_url('uploads/kelas/' . $fotoKelas); ?>" alt="Banner" class="img-fluid rounded-4 shadow-sm w-100 object-fit-cover" style="max-height: 220px;">
+                                        <div class="mt-3">
+                                            <span class="badge px-3 py-2 
+                                                <?
+                                                    if ($statusKelas == 'aktif') echo 'bg-success';
+                                                    elseif ($statusKelas == 'nonaktif') echo 'bg-secondary';
+                                                    else echo 'bg-warning text-dark';
+                                                ?>">
+                                                <?= ucfirst(esc($row['status'] ?? 'Draft')); ?>
+                                            </span>
+                                            <span class="badge px-3 py-2" style="background-color: #794bc4; color: #fff;"><?= esc($row['tipe_kelas'] ?? $row['jenis_kelas'] ?? 'Online'); ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <table class="table table-borderless table-sm mb-0">
+                                            <tr>
+                                                <td class="fw-semibold text-muted" width="35%">Nama Kelas</td>
+                                                <td>: <?= esc($row['nama_kelas']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-semibold text-muted">Mentor Pengampu</td>
+                                                <td>: <?= esc($row['nama_mentor'] ?? '-'); ?> <?= !empty($row['keahlian']) ? '(' . esc($row['keahlian']) . ')' : ''; ?></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-semibold text-muted">Kategori</td>
+                                                <td>: <?= esc($row['kategori']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-semibold text-muted">Harga Reguler</td>
+                                                <td>: Rp <?= number_format($row['harga_reguler'] ?? 0, 0, ',', '.'); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-semibold text-muted">Harga Privat</td>
+                                                <td>: Rp <?= number_format($row['harga_privat'] ?? 0, 0, ',', '.'); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-semibold text-muted">Jumlah Pertemuan</td>
+                                                <td>: <?= esc($row['jumlah_pertemuan']); ?>x Pertemuan</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-semibold text-muted">Kapasitas Peserta</td>
+                                                <td>: <?= esc($row['kapasitas']); ?> Peserta</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-semibold text-muted">Tanggal Mulai</td>
+                                                <td>: <?= esc($row['tanggal_mulai_kelas'] ?? '-'); ?></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <div class="col-12 border-top pt-3">
+                                        <h6 class="fw-bold text-dark">Ringkasan:</h6>
+                                        <p class="text-muted small"><?= esc($row['ringkasan'] ?? '-'); ?></p>
+                                        
+                                        <h6 class="fw-bold text-dark mt-3">Deskripsi Lengkap:</h6>
+                                        <p class="text-muted small" style="white-space: pre-line;"><?= esc($row['deskripsi'] ?? '-'); ?></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer bg-light">
+                                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Tutup</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- === AKHIR MODAL DETAIL === -->
+
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="col-12 text-center py-5">
+                <div class="text-muted py-4">Belum ada data kelas yang tersedia. Silakan tambahkan kelas baru.</div>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<script>
+    // Script Tanggal Dinamis Bahasa Indonesia
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const today = new Date();
+    const dateEl = document.getElementById('current-date');
+    if (dateEl) {
+        dateEl.innerText = today.toLocaleDateString('id-ID', options);
+    }
+</script>
+
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

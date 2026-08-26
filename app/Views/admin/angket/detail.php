@@ -163,6 +163,23 @@
             font-size: 0.78rem;
         }
 
+        /* --- Content Cards --- */
+        .content-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(121, 75, 196, 0.04);
+            margin-bottom: 30px;
+            border: 1px solid rgba(121, 75, 196, 0.05);
+        }
+
+        .table-custom th {
+            background-color: var(--light-purple);
+            color: var(--dark-purple);
+            font-weight: 700;
+            border: none;
+        }
+
         @keyframes mainFadeIn {
             from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
@@ -208,7 +225,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link active">
+                <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link">
                     <i class="fas fa-award"></i> <span>Sertifikat</span>
                 </a>
             </li>
@@ -236,88 +253,77 @@
         <!-- === TOP NAVBAR === -->
         <div class="top-navbar">
             <div class="dash-header">
-                <h3>Manajemen Sertifikat</h3>
-                <p>Kelola sertifikat kelulusan peserta dengan mudah.</p>
+                <h3>Detail Angket</h3>
+                <p>Informasi lengkap judul, kelas, mentor, dan rincian pertanyaan angket.</p>
             </div>
             <div class="d-flex align-items-center gap-4">
-                <div class="text-muted d-none d-md-block px-3 py-2 rounded-pill bg-light" id="current-date" style="font-size: 0.82rem; font-weight: 600; color: #794bc4 !important;">
-                    Memuat tanggal...
-                </div>
                 <div class="admin-profile">
-                <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
-                <div class="admin-info">
-                <?= esc(session()->get('nama')); ?>
-                <small>Administrator</small>
-                </div>
+                    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
+                    <div class="admin-info">
+                        <h6><?= esc(session()->get('nama')); ?></h6>
+                        <small>Administrator</small>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <div class="container-fluid px-0">
-            <div class="mb-3">
-                <a href="<?= base_url('admin/sertifikat/upload') ?>" class="btn btn-primary" style="background: var(--sidebar-active-gradient); border: none; border-radius: 12px; padding: 10px 20px;">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload Sertifikat
-                </a>
+
+        <!-- === PAGE CONTENT === -->
+        <div class="content-card">
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <label class="text-muted small fw-bold">Judul Angket:</label>
+                    <p class="fs-5 fw-semibold text-dark mb-0"><?= esc($angket['judul_angket'] ?? '-'); ?></p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="text-muted small fw-bold">Nama Kelas:</label>
+                    <p class="fs-6 fw-semibold text-dark mb-0"><?= esc($angket['nama_kelas'] ?? '-'); ?></p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="text-muted small fw-bold">Nama Mentor:</label>
+                    <p class="fs-6 text-dark mb-0"><?= esc($angket['nama_mentor'] ?? '-'); ?></p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="text-muted small fw-bold">Tanggal Dibuat:</label>
+                    <p class="fs-6 text-dark mb-0"><?= esc($angket['created_at'] ?? '-'); ?></p>
+                </div>
             </div>
 
-            <div class="card mb-4 shadow-sm border-0" style="border-radius: 20px; overflow: hidden;">
-                <div class="card-body p-4">
-                    <table class="table table-bordered table-striped align-middle table-hover">
-                        <thead class="table-dark" style="background-color: var(--dark-purple);">
-                            <tr>
-                                <th>No</th>
-                                <th>Nama Peserta</th>
-                                <th>Judul Kelas</th>
-                                <th>File Sertifikat</th>
-                                <th class="text-center" style="width: 25%;">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php $no = 1; foreach ($sertifikat as $s) : ?>
-                            <tr>
-                                <td><?= $no++; ?></td>
-                                <td><?= $s['nama_peserta']; ?></td>
-                                <td><?= $s['nama_kelas']; ?></td>
-                                <td>
-                                    <a href="<?= base_url('uploads/sertifikat/' . $s['file_sertifikat']); ?>" target="_blank" class="text-decoration-none">
-                                        <i class="fa-solid fa-file-pdf text-danger"></i> <?= $s['file_sertifikat']; ?>
-                                    </a>
-                                </td>
-                                <td class="text-center">
-                                    <a href="<?= base_url('admin/sertifikat/download/' . $s['id_sertifikat']); ?>" class="btn btn-success btn-sm" title="Unduh Sertifikat">
-                                        <i class="fa-solid fa-download"></i>
-                                    </a>
+            <hr class="text-muted my-4">
 
-                                    <a href="https://api.whatsapp.com/send?phone=<?= $s['no_whatsapp']; ?>&text=Halo%20<?= $s['nama_peserta']; ?>,%20berikut%20sertifikat%20kelulusan%20Anda%20untuk%20kelas%20<?= $s['nama_kelas']; ?>:%20<?= base_url('uploads/sertifikat/' . $s['file_sertifikat']); ?>" target="_blank" class="btn btn-info btn-sm text-white" title="Kirim via WhatsApp">
-                                        <i class="fa-brands fa-whatsapp"></i>
-                                    </a>
-
-                                    <a href="mailto:<?= $s['email']; ?>?subject=Sertifikat Kelulusan Creativemu Academy&body=Halo <?= $s['nama_peserta']; ?>, berikut adalah link unduh sertifikat kelas <?= $s['nama_kelas']; ?> Anda: <?= base_url('uploads/sertifikat/' . $s['file_sertifikat']); ?>" class="btn btn-warning btn-sm text-white" title="Kirim via Email">
-                                        <i class="fa-solid fa-envelope"></i>
-                                    </a>
-
-                                    <a href="<?= base_url('admin/sertifikat/delete/' . $s['id_sertifikat']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus sertifikat ini?')" title="Hapus">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </a>
-                                </td>
-                            </tr>
+            <h5 class="fw-bold mb-3 text-dark"><i class="fas fa-list-check me-2 text-purple"></i>Rincian Pertanyaan</h5>
+            <div class="table-responsive">
+                <table class="table table-custom table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th width="10%">No</th>
+                            <th width="25%">Kategori</th>
+                            <th width="65%">Pertanyaan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($semua_pertanyaan)) : ?>
+                            <?php $no = 1; foreach ($semua_pertanyaan as $row) : ?>
+                                <tr>
+                                    <td><?= $no++; ?></td>
+                                    <td><span class="badge bg-light text-dark border"><?= esc($row['kategori'] ?? 'Umum'); ?></span></td>
+                                    <td><?= esc($row['pertanyaan']); ?></td>
+                                </tr>
                             <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+                        <?php else : ?>
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">Tidak ada pertanyaan ditemukan.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-4">
+                <a href="<?= base_url('admin/angket'); ?>" class="btn btn-secondary rounded-pill px-4">Kembali</a>
             </div>
         </div>
 
     </div>
 
-    <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Script untuk Mengisi Tanggal Otomatis -->
-    <script>
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const tanggalHariIni = new Date().toLocaleDateString('id-ID', options);
-        document.getElementById('current-date').innerText = tanggalHariIni;
-    </script>
 </body>
 </html>

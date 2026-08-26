@@ -5,34 +5,52 @@ namespace App\Controllers;
 use App\Models\MentorModel;
 use App\Models\KelasModel;
 use App\Models\PesertaModel;
+use App\Models\AngketModel;
 use App\Models\SertifikatModel;
 use App\Models\PendaftaranModel;
 
 class Admin extends BaseController
 {
+    
+    public function index()
+{
+    // 1. Panggil model mentor (sesuaikan nama modelnya jika berbeda)
+    $mentorModel = new \App\Models\MentorModel();
+    
+    // 2. Masukkan data mentor ke dalam array $data
+    $data = [
+        'title' => 'Master Kelas',
+        'data_mentor' => $mentorModel->findAll() // <-- INI YANG KURANG
+    ];
+
+    // 3. Kirim $data ke view
+    return view('admin/master_kelas/index', $data);
+}
+
     public function __construct()
     {
         helper(['url', 'form']);
     }
 
+    // --- DASHBOARD ---
     public function dashboard()
     {
-        $mentorModel = new MentorModel();
+        $mentorModel       = new MentorModel();
+        $kelasModel        = new KelasModel();
+        $pendaftaranModel  = new PendaftaranModel();
+        
         $db = \Config\Database::connect();
         $userId = session()->get('id_users');
         
-        // Ambil data user yang sedang login dari database
         $currentUser = $db->table('users')->where('id_users', $userId)->get()->getRowArray();
-
-        // Tentukan foto profil (gunakan bawaan jika kosong)
         $foto = (!empty($currentUser['foto_profil'])) ? $currentUser['foto_profil'] : 'admin-profile.jpg';
 
         $data = [
             'title'            => 'Dashboard Admin',
-            'total_kelas'      => 12,
+            'total_kelas'      => $kelasModel->countAllResults(), 
             'total_mentor'     => $mentorModel->where('status', 'Aktif')->countAllResults(),
-            'total_peserta'    => 48,
-            'pending_validasi' => 3,
+            'total_peserta'    => $pendaftaranModel->countAllResults(),
+            'pending_validasi' => $pendaftaranModel->where('status_pembayaran', 'pending')->countAllResults(), // Dihitung otomatis
             'admin_name'       => $currentUser['nama'] ?? 'Super Admin',
             'admin_photo'      => base_url('assets/img/' . $foto),
         ];
@@ -40,33 +58,171 @@ class Admin extends BaseController
         return view('admin/dashboard', $data);
     }
 
-    public function masterKelas()
+    // --- MASTER KELAS ---
+    // --- MASTER KELAS ---
+public function masterKelas()
+{
+    $kelasModel  = new \App\Models\KelasModel();
+    $mentorModel = new \App\Models\MentorModel();
+
+    $data = [
+        'title'  => 'Master Kelas',
+        'kelas'  => $kelasModel->select('kelas.*, mentor.nama_mentor, mentor.keahlian')
+                                ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+                                ->findAll(),
+        // Ubah kembali menjadi 'mentor' agar cocok dengan view
+        'mentor' => $mentorModel->findAll() 
+    ];
+
+    return view('admin/master_kelas/index', $data);
+}
+
+    public function simpanKelas()
     {
-        $kelasModel  = new KelasModel();
-        $mentorModel = new MentorModel(); // Panggil model mentor
+        $allPostData = $this->request->getPost();
+        
+        // Cek apakah id_mentor ada dalam data yang dikirim
+        if (!isset($allPostData['id_mentor']) || empty($allPostData['id_mentor'])) {
+            die("Error: 'id_mentor' tidak ditemukan atau kosong. Data yang diterima: " . print_r($allPostData, true));
+        }
+
+        $kelasModel = new KelasModel();
+
+        $fileThumbnail = $this->request->getFile('foto');
+        $namaThumbnail = 'default-kelas.jpg';
+        
+        if ($fileThumbnail && $fileThumbnail->isValid() && !$fileThumbnail->hasMoved()) {
+            $namaThumbnail = $fileThumbnail->getRandomName();
+            $fileThumbnail->move('uploads/kelas/', $namaThumbnail);
+        }
 
         $data = [
-            'title'  => 'Master Kelas - Panel Admin',
-            'kelas'  => $kelasModel->findAll(),
-            'mentor' => $mentorModel->findAll()  // Kirim variabel mentor ke view
+            'id_mentor'           => $this->request->getPost('id_mentor'),
+            'kategori'            => $this->request->getPost('kategori'),
+            'nama_kelas'          => $this->request->getPost('nama_kelas'),
+            'deskripsi'           => $this->request->getPost('deskripsi'),
+            'kapasitas'           => $this->request->getPost('kapasitas'),
+            'jumlah_pertemuan'    => $this->request->getPost('jumlah_pertemuan'),
+            'harga_reguler'       => $this->request->getPost('harga_reguler'), // <-- Diubah ke harga reguler
+            'harga_privat'        => $this->request->getPost('harga_privat'),   // <-- Ditambahkan harga privat
+            'tanggal_mulai_kelas' => $this->request->getPost('tanggal_mulai_kelas'), 
+            'ringkasan'           => $this->request->getPost('ringkasan'),
+            'status'              => $this->request->getPost('status'),
+            'tipe_kelas'          => $this->request->getPost('tipe_kelas'), 
+            'lokasi_media'        => '-', 
+            'thumbnail'           => $namaThumbnail,
         ];
-        
-        return view('admin/master_kelas/index', $data);
+
+        if (!$kelasModel->insert($data)) {
+            dd($kelasModel->errors());
+        }
+
+        return redirect()->to('/admin/master-kelas')->with('success', 'Master kelas berhasil ditambahkan!');
     }
 
+    public function editKelas($id)
+    {
+        $kelasModel  = new KelasModel();
+        $mentorModel = new MentorModel();
+
+        $data = [
+            'title'  => 'Edit Kelas',
+            'kelas'  => $kelasModel->find($id),
+            'mentor' => $mentorModel->findAll()
+        ];
+
+        return view('admin/master_kelas/edit', $data);
+    }
+
+    public function updateKelas($id)
+    {
+        $kelasModel = new KelasModel();
+
+        $idMentor = $this->request->getPost('id_mentor');
+        if (empty($idMentor)) {
+            return redirect()->back()->withInput()->with('error', 'Silakan pilih mentor pengampu terlebih dahulu!');
+        }
+        
+        // Ambil data kelas lama untuk pengecekan gambar
+        $kelasLama = $kelasModel->find($id);
+
+        $data = [
+            'nama_kelas'          => $this->request->getPost('nama_kelas'),
+            'id_mentor'           => $this->request->getPost('id_mentor'),
+            'kategori'            => $this->request->getPost('kategori'),
+            'tipe_kelas'          => $this->request->getPost('tipe_kelas'),
+            'harga_reguler'       => $this->request->getPost('harga_reguler'), // <-- Diubah ke harga reguler
+            'harga_privat'        => $this->request->getPost('harga_privat'),   // <-- Ditambahkan harga privat
+            'jumlah_pertemuan'    => $this->request->getPost('jumlah_pertemuan'),
+            'kapasitas'           => $this->request->getPost('kapasitas'),
+            'tanggal_mulai_kelas' => $this->request->getPost('tanggal_mulai_kelas'),
+            'ringkasan'           => $this->request->getPost('ringkasan'), 
+            'deskripsi'           => $this->request->getPost('deskripsi'), 
+            'status'              => $this->request->getPost('status'),
+        ];
+
+        // Cek apakah ada file foto/thumbnail banner baru yang di-upload
+        $fileThumbnail = $this->request->getFile('foto');
+        if ($fileThumbnail && $fileThumbnail->isValid() && !$fileThumbnail->hasMoved()) {
+            $namaThumbnail = $fileThumbnail->getRandomName();
+            $fileThumbnail->move('uploads/kelas/', $namaThumbnail);
+            
+            $data['thumbnail'] = $namaThumbnail;
+
+            if (!empty($kelasLama['thumbnail']) && $kelasLama['thumbnail'] != 'default-kelas.jpg') {
+                $pathLama = 'uploads/kelas/' . $kelasLama['thumbnail'];
+                if (file_exists($pathLama)) {
+                    unlink($pathLama);
+                }
+            }
+        }
+
+        $kelasModel->update($id, $data);
+
+        return redirect()->to('/admin/master-kelas')->with('success', 'Data kelas berhasil diperbarui!');
+    }
+
+    // --- MENTOR ---
     public function mentor()
     {
         $mentorModel = new MentorModel();
         
         $data = [
-            'title'  => 'Manajemen Mentor - Panel Admin',
-            'mentor' => $mentorModel->findAll()
+            'title'       => 'Manajemen Mentor - Panel Admin',
+            'mentor'      => $mentorModel->findAll(),
+            'total_aktif' => $mentorModel->where('status', 'Aktif')->countAllResults(false)
         ];
         
         return view('admin/mentor/index', $data); 
     }
 
-    // Menampilkan halaman form edit mentor berdasarkan ID
+    public function simpan()
+{
+    $db = \Config\Database::connect();
+
+    $data = [
+        'id_users'     => session()->get('id_users') ? session()->get('id_users') : 1,
+        'nama_mentor' => $this->request->getPost('nama_mentor'),
+        'email'       => $this->request->getPost('email'),
+        'telepon'     => $this->request->getPost('telepon'),
+        'keahlian'    => $this->request->getPost('keahlian'),
+        'pengalaman'  => $this->request->getPost('pengalaman'),
+        'bio'         => $this->request->getPost('bio'), 
+        'status'      => $this->request->getPost('status'),
+    ];
+
+    $fileCv = $this->request->getFile('cv');
+    if ($fileCv && $fileCv->isValid() && !$fileCv->hasMoved()) {
+        $namaFileCv = $fileCv->getRandomName();
+        $fileCv->move('uploads/cv', $namaFileCv);
+        $data['cv'] = $namaFileCv;
+    }
+
+    // Insert langsung ke tabel database (bypass model)
+    $db->table('mentor')->insert($data);
+
+    return redirect()->to(base_url('admin/mentor'))->with('success', 'Mentor baru berhasil ditambahkan.');
+}
     public function editMentor($id)
     {
         $mentorModel = new MentorModel();
@@ -79,23 +235,20 @@ class Admin extends BaseController
         return view('admin/mentor/edit', $data);
     }
 
-    // Memproses update data mentor ke database
-    // Memproses update data mentor ke database
     public function updateMentor($id)
     {
         $mentorModel = new MentorModel();
 
-        // Ambil data dari form
         $data = [
             'nama_mentor' => $this->request->getPost('nama_mentor'),
             'email'       => $this->request->getPost('email'),
             'telepon'     => $this->request->getPost('telepon'),
             'keahlian'    => $this->request->getPost('keahlian'),
             'pengalaman'  => $this->request->getPost('pengalaman'),
+            'bio'         => $this->request->getPost('bio'), 
             'status'      => $this->request->getPost('status'),
         ];
 
-        // Tangkap file CV jika ada yang di-upload baru
         $fileCv = $this->request->getFile('cv');
         if ($fileCv && $fileCv->isValid() && !$fileCv->hasMoved()) {
             $namaFileCv = $fileCv->getRandomName();
@@ -103,13 +256,12 @@ class Admin extends BaseController
             $data['cv'] = $namaFileCv;
         }
 
-        // Simpan perubahan ke database menggunakan Model
         $mentorModel->update($id, $data);
 
-        // Redirect kembali dengan pesan sukses
         return redirect()->to(base_url('admin/mentor'))->with('success', 'Data mentor berhasil diperbarui.');
     }
 
+    // --- PESERTA & PENDAFTARAN ---
     public function dataPeserta()
     {
         $pesertaModel = new PesertaModel();
@@ -123,41 +275,251 @@ class Admin extends BaseController
     }
 
     public function pendaftaran()
+    {
+        $pendaftaranModel = new PendaftaranModel();
+
+        $data = [
+            'title' => 'Data Pendaftaran Peserta',
+            'pendaftaran' => $pendaftaranModel
+                ->select('pendaftaran.*, users.nama, users.email, users.no_hp, kelas.nama_kelas')
+                ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
+                ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+                ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+                ->findAll()
+        ];
+
+        return view('admin/pendaftaran/index', $data);
+    }
+
+    public function validasi()
+    {
+        $pendaftaranModel = new PendaftaranModel();
+
+        $data = [
+            'title' => 'Validasi Pendaftaran - Panel Admin',
+            'pendaftaran' => $pendaftaranModel
+                ->select('pendaftaran.*, users.nama, users.email, users.no_hp, kelas.nama_kelas')
+                ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
+                ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+                ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+                ->findAll()
+        ];
+
+        return view('admin/validasi/index', $data);
+    }
+
+    // Fungsi untuk menyetujui validasi pembayaran pendaftaran
+    public function updateValidasi($id_pendaftaran)
 {
     $pendaftaranModel = new \App\Models\PendaftaranModel();
 
-    $data = [
-        'title' => 'Data Pendaftaran Peserta',
+    // Pastikan nilai yang dikirim adalah 'terkonfirmasi'
+    $pendaftaranModel->update($id_pendaftaran, [
+        'status_pembayaran' => 'terkonfirmasi'
+    ]);
 
-        'pendaftaran' => $pendaftaranModel
-            ->select('pendaftaran.*, users.nama, users.email, users.no_hp, kelas.nama_kelas')
-            ->join('users', 'users.id = pendaftaran.user_id', 'left')
-            ->join('kelas', 'kelas.id = pendaftaran.kelas_id', 'left')
-            ->orderBy('pendaftaran.id', 'DESC')
-            ->findAll()
-    ];
-
-    return view('admin/pendaftaran/index', $data);
+    return redirect()->to(base_url('admin/validasi'))->with('pesan', 'Pendaftaran berhasil disetujui!');
 }
-    public function validasi()
+
+   public function angket()
 {
-    $pendaftaranModel = new PendaftaranModel();
+    $db = \Config\Database::connect();
+    
+    // Sambungkan angket ke kelas, lalu kelas ke mentor
+    $data['angket'] = $db->table('angket_pertanyaan')
+                         ->select('angket_pertanyaan.*, kelas.nama_kelas, mentor.nama_mentor')
+                         ->join('kelas', 'kelas.id_kelas = angket_pertanyaan.id_kelas', 'left')
+                         ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left') // <- Ambil mentor lewat kelas
+                         ->groupBy('angket_pertanyaan.judul_angket') 
+                         ->get()
+                         ->getResultArray();
 
-    $data = [
-        'title' => 'Validasi Pendaftaran - Panel Admin',
-
-        'pendaftaran' => $pendaftaranModel
-            ->select('pendaftaran.*, users.nama, users.email, users.no_hp, kelas.nama_kelas')
-            ->join('users', 'users.id_users = pendaftaran.user_id', 'left')
-            ->join('kelas', 'kelas.id = pendaftaran.kelas_id', 'left')
-            ->orderBy('pendaftaran.id', 'DESC')
-            ->findAll()
-    ];
-
-    return view('admin/validasi/index', $data);
+    $data['title'] = 'Monitoring Angket';
+    return view('admin/angket/index', $data);
 }
 
+    // --- TAMBAH ANGKET ---
+    public function tambahAngket()
+{
+    $kelasModel  = new \App\Models\KelasModel();
+    $mentorModel = new \App\Models\MentorModel(); // Pastikan model mentor dipanggil
 
+    $data = [
+        'title'  => 'Buat Angket Evaluasi',
+        'kelas'  => $kelasModel->findAll(),
+        'mentor' => $mentorModel->findAll() // Pastikan variabel 'mentor' dikirim ke view
+    ];
+
+    return view('admin/angket/tambah_angket', $data);
+}
+
+public function simpanAngket()
+{
+    // 1. Menangkap data utama dari form
+    $judulAngket = $this->request->getPost('judul_angket'); // <-- Tangkap judul angket
+    $idKelas     = $this->request->getPost('id_kelas');
+    $kategori    = $this->request->getPost('kategori');   // Berbentuk Array
+    $pertanyaan  = $this->request->getPost('pertanyaan'); // Berbentuk Array
+
+    $db = \Config\Database::connect();
+    $builder = $db->table('angket_pertanyaan'); 
+
+    // 3. Simpan setiap baris pertanyaan dinamis menggunakan perulangan (looping)
+    if (!empty($pertanyaan)) {
+        for ($i = 0; $i < count($pertanyaan); $i++) {
+            $dataSimpan = [
+                'judul_angket' => $judulAngket,          // <-- Masukkan judul angket di sini
+                'id_kelas'     => $idKelas,
+                'kategori'     => $kategori[$i] ?? null,
+                'pertanyaan'   => $pertanyaan[$i],
+                'created_at'   => date('Y-m-d H:i:s')
+            ];
+
+            // Masukkan ke database
+            $builder->insert($dataSimpan);
+        }
+    }
+
+    // 4. Arahkan kembali ke halaman daftar angket dengan pesan sukses
+    return redirect()->to(base_url('admin/angket'))->with('success', 'Konfigurasi angket berhasil disimpan!');
+}
+    public function getAngket()
+{
+    return $this->db->table('angket_pertanyaan')
+        ->select('angket_pertanyaan.*, kelas.id_kelas, kelas.nama_kelas, mentor.id_mentor, mentor.nama_mentor')
+        ->join('kelas', 'kelas.id_kelas = angket_pertanyaan.id_kelas', 'left')
+        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+        ->get()
+        ->getResultArray();
+}
+
+public function edit($id)
+{
+    $db = \Config\Database::connect();
+    
+    // 1. Ambil data angket utama berdasarkan ID yang diklik
+    $angketUtama = $db->table('angket_pertanyaan')
+                      ->where('id_angket_pertanyaan', $id)
+                      ->get()
+                      ->getRowArray();
+
+    if (empty($angketUtama)) {
+        return redirect()->to('admin/angket')->with('error', 'Data angket tidak ditemukan.');
+    }
+
+    $judulTarget = $angketUtama['judul_angket'];
+
+    // 2. Ambil SEMUA baris pertanyaan yang memiliki judul_angket yang sama
+    $data['semua_pertanyaan'] = $db->table('angket_pertanyaan')
+                                   ->where('judul_angket', $judulTarget)
+                                   ->get()
+                                   ->getResultArray();
+
+    $data['angket'] = $angketUtama;
+    $data['title']  = 'Edit Angket Evaluasi';
+    $data['id']     = $id; // <--- TAMBAHKAN BARIS INI AGAR $id DIKENALI DI VIEW
+    
+    // 3. Ambil data kelas dan mentor untuk pilihan dropdown
+    $data['kelas']  = $db->table('kelas')->get()->getResultArray();
+    $data['mentor'] = $db->table('mentor')->get()->getResultArray();
+
+    return view('admin/angket/edit', $data);
+}
+
+public function update($id)
+{
+    $db = \Config\Database::connect();
+    
+    // Ambil judul lama untuk acuan data yang mau di-update
+    $angketLama = $db->table('angket_pertanyaan')->where('id_angket_pertanyaan', $id)->get()->getRowArray();
+    $judulLama  = $angketLama['judul_angket'] ?? '';
+
+    // Tangkap data dari form edit
+    Yoga: // (lewati label, fokus ke kode bawah)
+    $judulBaru  = $this->request->getPost('judul_angket');
+    $idKelas    = $this->request->getPost('id_kelas');
+    $kategori   = $this->request->getPost('kategori');   // Array
+    $pertanyaan = $this->request->getPost('pertanyaan'); // Array
+
+    // Hapus dulu data lama yang memiliki judul tersebut agar bisa diganti dengan yang baru dikirim
+    if (!empty($judulLama)) {
+        $db->table('angket_pertanyaan')->where('judul_angket', $judulLama)->delete();
+    } else {
+        $db->table('angket_pertanyaan')->where('id_angket_pertanyaan', $id)->delete();
+    }
+
+    // Masukkan kembali data yang sudah diperbarui melalui looping
+    if (!empty($pertanyaan)) {
+        for ($i = 0; $i < count($pertanyaan); $i++) {
+            $dataSimpan = [
+                'judul_angket' => $judulBaru,
+                'id_kelas'     => $idKelas,
+                'kategori'     => $kategori[$i] ?? 'Umum',
+                'pertanyaan'   => $pertanyaan[$i],
+                'created_at'   => date('Y-m-d H:i:s')
+            ];
+            $db->table('angket_pertanyaan')->insert($dataSimpan);
+        }
+    }
+
+    return redirect()->to('admin/angket')->with('success', 'Data angket berhasil diperbarui.');
+}
+
+    public function detailAngket($id)
+{
+    $db = \Config\Database::connect();
+
+    // 1. Ambil data utama berdasarkan ID baris yang diklik, lengkap dengan join ke kelas dan mentor
+    $data['angket'] = $db->table('angket_pertanyaan')
+                         ->select('angket_pertanyaan.*, kelas.nama_kelas, mentor.nama_mentor')
+                         ->join('kelas', 'kelas.id_kelas = angket_pertanyaan.id_kelas', 'left')
+                         ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+                         ->where('angket_pertanyaan.id_angket_pertanyaan', $id)
+                         ->get()
+                         ->getRowArray();
+
+    if (empty($data['angket'])) {
+        return redirect()->to('admin/angket')->with('error', 'Data angket tidak ditemukan.');
+    }
+
+    $judulTarget = $data['angket']['judul_angket'];
+
+    // 2. Ambil SEMUA daftar pertanyaan yang memiliki judul_angket yang sama (untuk ditampilkan di tabel bawah)
+    $data['semua_pertanyaan'] = $db->table('angket_pertanyaan')
+                                   ->where('judul_angket', $judulTarget)
+                                   ->get()
+                                   ->getResultArray();
+
+    $data['title'] = 'Detail Angket';
+    return view('admin/angket/detail', $data);
+}
+public function delete($id)
+{
+    $db = \Config\Database::connect();
+    
+    // Hapus langsung menggunakan query builder berdasarkan primary key
+    $db->table('angket_pertanyaan')->where('id_angket_pertanyaan', $id)->delete();
+    
+    return redirect()->to('admin/angket')->with('success', 'Data angket berhasil dihapus.');
+}
+
+public function hasilAngket()
+{
+    $db = \Config\Database::connect();
+    
+    // Menggunakan tabel 'peserta' dan menyesuaikan kolom relasinya
+    $data['hasil'] = $db->table('jawaban_angket')
+                        ->select('jawaban_angket.*, angket_pertanyaan.judul_angket, peserta.nama_peserta as nama_siswa')
+                        ->join('angket_pertanyaan', 'angket_pertanyaan.id_angket_pertanyaan = jawaban_angket.id_pertanyaan', 'left')
+                        ->join('peserta', 'peserta.id_peserta = jawaban_angket.id_siswa', 'left')
+                        ->get()
+                        ->getResultArray();
+    
+    $data['title'] = 'Hasil Angket Siswa';
+    return view('admin/angket/hasil', $data);
+}
+
+// --- SERTIFIKAT ---
     
     public function sertifikat()
     {
@@ -174,11 +536,13 @@ class Admin extends BaseController
     {
         $pesertaModel = new PesertaModel();
         $kelasModel   = new KelasModel();
+        
         $data = [
             'title'   => 'Upload Sertifikat',
             'peserta' => $pesertaModel->findAll(),
             'kelas'   => $kelasModel->findAll()
         ];
+        
         return view('admin/sertifikat/upload', $data);
     }
 
@@ -188,6 +552,7 @@ class Admin extends BaseController
         if ($fileSertifikat && $fileSertifikat->isValid() && !$fileSertifikat->hasMoved()) {
             $namaFile = $fileSertifikat->getRandomName();
             $fileSertifikat->move('uploads/sertifikat', $namaFile);
+            
             $sertifikatModel = new SertifikatModel();
             $sertifikatModel->save([
                 'nomor_sertifikat' => $this->request->getPost('nomor_sertifikat'),
@@ -196,8 +561,10 @@ class Admin extends BaseController
                 'tanggal_terbit'   => $this->request->getPost('tanggal_terbit'),
                 'file_sertifikat'  => $namaFile
             ]);
+            
             return redirect()->to(base_url('admin/sertifikat'))->with('success', 'Sertifikat berhasil diunggah!');
         }
+        
         return redirect()->back()->with('error', 'Gagal mengunggah file sertifikat.');
     }
 
@@ -205,13 +572,16 @@ class Admin extends BaseController
     {
         $sertifikatModel = new SertifikatModel();
         $sertifikat = $sertifikatModel->find($id);
+        
         if ($sertifikat) {
             $path = 'uploads/sertifikat/' . $sertifikat['file_sertifikat'];
             return $this->response->download($path, null);
         }
+        
         return redirect()->to(base_url('admin/sertifikat'))->with('error', 'Sertifikat tidak ditemukan.');
     }
 
+    // --- LAPORAN & PENGATURAN ---
     public function laporan()
     {
         $pesertaModel = new PesertaModel();
@@ -229,14 +599,14 @@ class Admin extends BaseController
     public function pengaturan()
     {
         $session = session();
-        $userId = $session->get('id_users'); // Ambil ID user dari session login
+        $userId = $session->get('id_users');
 
         $db = \Config\Database::connect();
         $user = $db->table('users')->where('id_users', $userId)->get()->getRowArray();
 
         $data = [
             'title' => 'Pengaturan Akun - Panel Admin',
-            'user'  => $user // Pastikan baris ini ada agar $user terbaca di view
+            'user'  => $user 
         ];
 
         return view('admin/pengaturan/index', $data);
@@ -245,9 +615,8 @@ class Admin extends BaseController
     public function updatePengaturan()
     {
         $session = session();
-        $userId = $session->get('id_users'); // Gunakan ID agar aman
+        $userId = $session->get('id_users');
 
-        // Tangkap data dari form
         $namaAdmin    = $this->request->getPost('nama_admin');
         $emailAdmin   = $this->request->getPost('email_admin');
         $passwordBaru = $this->request->getPost('password_baru');
@@ -257,7 +626,6 @@ class Admin extends BaseController
             'email' => $emailAdmin
         ];
 
-        // Upload foto profil baru jika ada
         $fileFoto = $this->request->getFile('foto_profil');
         if ($fileFoto && $fileFoto->isValid() && !$fileFoto->hasMoved()) {
             $namaFile = $fileFoto->getRandomName();
@@ -267,18 +635,15 @@ class Admin extends BaseController
             $session->set('foto_profil', $namaFile);
         }
 
-        // Perubahan password jika diisi
         if (!empty($passwordBaru)) {
             $dataUpdate['password'] = password_hash($passwordBaru, PASSWORD_DEFAULT);
         }
 
-        // Simpan ke database berdasarkan id_users
         $db = \Config\Database::connect();
         $db->table('users')
            ->where('id_users', $userId) 
            ->update($dataUpdate);
 
-        // Perbarui data session agar langsung berubah di navbar/tampilan
         $session->set('nama', $namaAdmin);
         $session->set('email', $emailAdmin);
 
@@ -287,10 +652,7 @@ class Admin extends BaseController
 
     public function logout()
     {
-        // Menghapus session
         session()->destroy();
-
-        // Redirect ke halaman login (atau root '/')
         return redirect()->to('/')->with('success', 'Berhasil logout.');
     }
 }

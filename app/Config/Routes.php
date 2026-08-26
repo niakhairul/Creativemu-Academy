@@ -9,7 +9,7 @@ $routes->get('/', 'Pelatihan::login');
 $routes->get('pelatihan/login', 'Pelatihan::login');
 $routes->get('pelatihan/register', 'Pelatihan::register');
 
-$routes->post('register/save', 'Auth::saveRegister');
+$routes->match(['get', 'post'], 'register/save', 'Auth::save');
 $routes->match(['get', 'post'], 'login/process', 'Auth::loginProcess');
 $routes->match(['get', 'post'], 'pelatihan/login/process', 'Auth::loginProcess');
 
@@ -31,6 +31,7 @@ $routes->get('pelatihan/profil', 'Pelatihan::profil');
 $routes->get('pelatihan/edit-profil', 'Pelatihan::editProfil');
 $routes->post('pelatihan/update-profil', 'Pelatihan::updateProfil');
 $routes->get('pelatihan/daftar-kelas', 'Pelatihan::daftarKelas');
+$routes->get('pelatihan/daftar_kelas', 'Pelatihan::daftarKelas'); // Ditambahkan untuk mengatasi error garis bawah
 $routes->get('pelatihan/kbm', 'Pelatihan::kbm');
 $routes->get('pelatihan/ujian', 'Pelatihan::ujian');
 $routes->get('pelatihan/ujian/mulai', 'Pelatihan::kerjakanUjian');
@@ -42,7 +43,13 @@ $routes->get('pelatihan/sertifikat', 'Pelatihan::sertifikat');
 $routes->get('pelatihan/pengaturan', 'Pelatihan::pengaturan');
 $routes->get('pelatihan/ubah-password', 'Pelatihan::ubahPassword');
 $routes->post('pelatihan/update-password', 'Pelatihan::updatePassword');
+
+// Perbaikan untuk rute daftar (mendukung GET agar tidak error saat di-refresh, dan POST untuk simpan)
+$routes->get('pelatihan/daftar', function() {
+    return redirect()->to('pelatihan/pendaftaran');
+});
 $routes->post('pelatihan/daftar', 'Pelatihan::simpanPendaftaran');
+
 $routes->get('pelatihan/kelas', 'Pelatihan::kelas');
 $routes->get('pelatihan/absensi', 'pelatihan::absensi');
 $routes->post('pelatihan/absensi/simpan', 'pelatihan::simpanAbsensi');
@@ -53,26 +60,49 @@ $routes->group('admin', function($routes) {
     $routes->get('dashboard', 'Admin::dashboard');
     $routes->get('pendaftaran', 'Admin::pendaftaran');
     $routes->get('master-kelas', 'Admin::masterKelas');
+    $routes->match(['get', 'post'], 'master-kelas/tambah', 'Admin::simpanKelas');
     $routes->get('master-kelas/edit/(:num)', 'Admin::editKelas/$1');
+    
+    $routes->match(['get', 'post'], 'master-kelas/update/(:num)', 'Admin::updateKelas/$1');
+    
     $routes->match(['get', 'post'], 'master-kelas/store', 'Admin::simpanKelas');
     $routes->match(['get', 'post'], 'master-kelas/simpan', 'Admin::simpanKelas');
 
     // ===== RUTE MENTOR ADMIN =====
     $routes->get('mentor', 'Admin::mentor');
-    $routes->match(['get', 'post'], 'mentor/store', 'Admin::simpanMentor');
-    $routes->match(['get', 'post'], 'mentor/simpan', 'Admin::simpanMentor');
+    $routes->match(['get', 'post'], 'mentor/store', 'Admin::simpan');
+    $routes->match(['get', 'post'], 'mentor/simpan', 'Admin::simpan');
     
     $routes->get('mentor/detail/(:num)', 'Admin::detailMentor/$1');
     
-    // TAMBAHKAN BARIS INI UNTUK RUTE EDIT:
     $routes->match(['get', 'post'], 'mentor/edit/(:num)', 'Admin::editMentor/$1');
-    
     $routes->match(['get', 'post'], 'mentor/update/(:num)', 'Admin::updateMentor/$1');
     $routes->match(['get', 'post'], 'mentor/delete/(:num)', 'Admin::deleteMentor/$1');
 
     $routes->get('data-peserta', 'Admin::dataPeserta');
+    
+    // Rute Validasi Pendaftaran Admin
     $routes->get('validasi', 'Admin::validasi');
-    $routes->get('validasi/update/(:num)/(:alphanum)', 'Admin::updateValidasi/$1/$2');
+    $routes->get('validasi/update/(:num)/(:alphanum)', 'Admin::updateValidasi/$1/$2'); // Ditambahkan untuk tombol Setuju/Validasi
+
+    // ===== RUTE MONITORING & TAMBAH ANGKET ADMIN =====
+    $routes->get('angket', 'Admin::angket');
+    $routes->get('angket/tambah_angket', 'Admin::tambahAngket');
+    
+    // Rute Detail Angket
+    $routes->get('angket/detail/(:num)', 'Admin::detailAngket/$1');
+    
+    // Rute Edit & Update Angket
+    $routes->get('angket/edit/(:num)', 'Admin::edit/$1');
+    $routes->post('angket/update/(:num)', 'Admin::update/$1');
+    
+    // Rute Delete Angket
+    $routes->get('angket/delete/(:num)', 'Admin::delete/$1');
+    
+    $routes->match(['get', 'post'], 'angket/simpan', 'Admin::simpanAngket');
+    
+    // Rute Hasil Angket
+    $routes->get('hasil_angket', 'Admin::hasilAngket');
 
     $routes->get('sertifikat', 'Admin::sertifikat');
     $routes->get('sertifikat/upload', 'Admin::uploadSertifikat');
@@ -85,6 +115,15 @@ $routes->group('admin', function($routes) {
     // ===== RUTE PENGATURAN ADMIN =====
     $routes->get('pengaturan', 'Admin::pengaturan');
     $routes->match(['get', 'post'], 'pengaturan/update', 'Admin::updatePengaturan');
+});
 
-    // (Baris logout di dalam grup admin sudah dihapus agar tidak bentrok)
+// ===== MENU MENTOR =====
+$routes->group('mentor', function($routes) {
+    $routes->get('dashboard', 'Mentor::dashboard');
+    $routes->get('kelas', 'Mentor::kelas');
+    $routes->get('kelas/(:num)', 'Mentor::detail/$1');
+    $routes->get('kelas/(:num)/kbm', 'Mentor::kbm/$1');
+    $routes->post('kelas/(:num)/kbm/jadwal', 'Mentor::simpanJadwal/$1');
+    $routes->post('kelas/(:num)/kbm/nilai', 'Mentor::simpanNilai/$1');
+    $routes->get('profil', 'Mentor::profil');
 });

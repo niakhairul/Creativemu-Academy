@@ -33,22 +33,22 @@
 
                         <p>
                             <strong>Mentor :</strong><br>
-                            <?= esc($kelas['mentor']) ?>
+                            <?= esc($kelas['nama_mentor'] ?? '-') ?>
                         </p>
 
                         <p>
                             <strong>Metode :</strong><br>
-                            <?= esc($kelas['metode']) ?>
+                            <?= esc($kelas['metode_pembelajaran'] ?? $kelas['tipe_kelas'] ?? '-') ?>
                         </p>
 
                         <p>
                             <strong>Jadwal :</strong><br>
-                            <?= esc($kelas['jadwal']) ?>
+                            <?= esc($kelas['tanggal_mulai_kelas'] ?? '-') ?>
                         </p>
 
                         <p>
-                            <strong>Jam :</strong><br>
-                            <?= esc($kelas['jam']) ?>
+                            <strong>Ruangan / Media :</strong><br>
+                            <?= esc($kelas['lokasi_media'] ?? '-') ?>
                         </p>
 
                     </div>

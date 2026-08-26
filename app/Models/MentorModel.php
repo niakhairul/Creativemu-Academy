@@ -2,14 +2,20 @@
 
 namespace App\Models;
 
-use CodeIgniter\Model; // <-- Cukup ini saja yang di-use
+use CodeIgniter\Model;
 
 class MentorModel extends Model
 {
-    protected $table              = 'mentor';
-    protected $primaryKey         = 'id_mentor';
-    protected $allowedFields      = [
-        'id_user', 
+    protected $table            = 'mentor';
+    protected $primaryKey       = 'id_mentor';
+    protected $useAutoIncrement = true;
+    
+    // TAMBAHKAN BARIS INI:
+    protected $protectFields    = false; 
+
+    protected $allowedFields    = [
+        'id_user',
+        'id_users',
         'nama_mentor', 
         'email', 
         'telepon', 
@@ -19,5 +25,5 @@ class MentorModel extends Model
         'cv', 
         'bio'
     ];
-    protected $useTimestamps      = true;
+    protected $useTimestamps    = true;
 }

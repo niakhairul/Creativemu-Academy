@@ -2,1042 +2,712 @@
 
 namespace App\Controllers;
 
-use App\Models\UserModel;
-use App\Models\KelasModel;
-use App\Models\PendaftaranModel;
-use App\Models\PengumpulanTugasModel;
-use App\Models\JadwalKelasModel;
 use App\Models\AbsensiModel;
 use App\Models\AngketModel;
 use App\Models\HasilUjianModel;
+use App\Models\JadwalKelasModel;
+use App\Models\KelasModel;
+use App\Models\PendaftaranModel;
+use App\Models\PengumpulanTugasModel;
+use App\Models\UserModel;
 
 class Pelatihan extends BaseController
 {
-    // ==========================
-    // LOGIN
-    // ==========================
+    public function store()
+{
+    // 1. Ambil file upload bukti pembayaran
+    $fileBukti = $this->request->getFile('bukti_pembayaran');
+    $namaFile = null;
+
+    if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
+        $namaFile = $fileBukti->getRandomName();
+        // Pastikan folder public/uploads/bukti_pembayaran sudah ada
+        $fileBukti->move('uploads/bukti_pembayaran', $namaFile);
+    }
+
+    // 2. Siapkan data yang dikirim dari form
+    $data = [
+        'id_users'            => session()->get('id_users'), // Pastikan session login aktif
+        'id_kelas'            => $this->request->getPost('id_kelas'),
+        'jenis_kelas'         => $this->request->getPost('jenis_kelas'),
+        'tanggal_daftar'      => date('Y-m-d'),
+        'bukti_pembayaran'    => $namaFile,
+        'metode_pembayaran'   => $this->request->getPost('metode_pembayaran'),
+        'metode_pembelajaran' => $this->request->getPost('metode_pembelajaran'),
+        'jenis_kelamin'       => $this->request->getPost('jenis_kelamin'),
+        'pendidikan_terakhir' => $this->request->getPost('pendidikan_terakhir'),
+        'status_pembayaran'   => 'pending', // Default awal pending
+    ];
+
+    // 3. Simpan ke database
+    $pendaftaranModel = new \App\Models\PendaftaranModel();
+    $pendaftaranModel->insert($data);
+
+    return redirect()->to('/user/pendaftaran/sukses')->with('pesan', 'Pendaftaran berhasil dikirim!');
+}
+
     public function login()
     {
         return view('auth/login');
     }
 
-    // ==========================
-    // REGISTER
-    // ==========================
     public function register()
     {
         return view('auth/register');
     }
 
-   // ==========================
-// FORM PENDAFTARAN
-// ==========================
-public function pendaftaran()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
-    }
-
-    $userModel = new UserModel();
-    $kelasModel = new KelasModel();
-
-    // Data user yang login
-    $user = $userModel->find(session()->get('id'));
-
-    // Ambil id kelas dari URL
-    $id = $this->request->getGet('id');
-
-    // Ambil satu data kelas
-    $kelas = $kelasModel->find($id);
-
-    if (!$kelas) {
-        return redirect()->to(base_url('pelatihan/daftar-kelas'))
-                         ->with('error', 'Kelas tidak ditemukan.');
-    }
-
-    return view('peserta/pendaftaran', [
-        'user'  => $user,
-        'kelas' => $kelas
-    ]);
-}
-    // ==========================
-    // STATUS PENDAFTARAN
-    // ==========================
-    public function status()
+    private function requireLogin()
     {
-        return view('peserta/status_pendaftaran');
+        if (! session()->get('logged_in')) {
+            return redirect()->to(base_url('pelatihan/login'));
+        }
+
+        return null;
     }
 
-    // ==========================
-    // KELAS SAYA
-    // ==========================
-    public function kelas()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
-    }
-
-    $pendaftaranModel = new PendaftaranModel();
-
-    $kelas = $pendaftaranModel
-        ->select('pendaftaran.*, kelas.nama_kelas, kelas.mentor, kelas.metode, kelas.jadwal, kelas.jam')
-        ->join('kelas', 'kelas.id = pendaftaran.kelas_id')
-       ->where('user_id', session()->get('id'))
-        ->first();
-
-    return view('peserta/kelas', [
-        'kelas' => $kelas
-    ]);
-}
-    // ==========================
-    // DETAIL KELAS
-    // ==========================
-    public function detailKelas()
+    private function userId(): ?int
     {
-        return view('peserta/detail_kelas');
+        return session()->get('id_users') ?? session()->get('id');
     }
 
-    // ==========================
-// DAFTAR MATERI
-// ==========================
-public function daftarMateri()
+    private function approvedEnrollment()
+    {
+        return (new PendaftaranModel())
+            ->select('pendaftaran.*, kelas.nama_kelas, kelas.deskripsi, kelas.tipe_kelas, kelas.lokasi_media, kelas.tanggal_mulai_kelas, kelas.jumlah_pertemuan, kelas.ringkasan, kelas.thumbnail, mentor.nama_mentor')
+            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+            ->where('pendaftaran.id_users', $this->userId())
+            ->where('pendaftaran.status_pendaftaran', 'Disetujui')
+            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+            ->first();
+    }
+
+    public function index()
 {
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
-    }
+    $pendaftaranModel = new \App\Models\PendaftaranModel();
+    $userId = session()->get('id_users');
 
-    return view('peserta/daftar_materi');
-}
-
-    // ==========================
-    // MATERI
-    // ==========================
-    public function materi()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
-    }
-
-    $pendaftaranModel = new PendaftaranModel();
-    $kelasModel = new KelasModel();
-
-    $pendaftaran = $pendaftaranModel
-        ->where('pendaftaran.user_id', session()->get('id'))
-        ->where('status_pendaftaran', 'Disetujui')
+    // Contoh jika menggunakan JOIN ke tabel kelas
+    $data['pendaftaran'] = $pendaftaranModel
+        ->select('pendaftaran.*, kelas.nama_kelas, kelas.mentor, kelas.jadwal')
+        ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+        ->where('pendaftaran.id_users', $userId)
         ->first();
 
-    if (!$pendaftaran) {
-        return redirect()->to(base_url('pelatihan/kelas'));
-    }
-
-    $kelas = $kelasModel->find($pendaftaran['kelas_id']);
-
-    return view('peserta/materi', [
-        'kelas' => $kelas
-    ]);
+    return view('peserta/dashboard', $data);
 }
 
-   
-// ==========================
-// TUGAS
-// ==========================
-public function tugas()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
-    }
-
-    $pendaftaranModel = new PendaftaranModel();
-    $kelasModel = new KelasModel();
-    $pengumpulanModel = new PengumpulanTugasModel();
-
-    $userId = session()->get('id');
-
-    $pendaftaran = $pendaftaranModel
-        ->where('id_users', $userId)
-        ->where('status_pendaftaran', 'Disetujui')
-        ->first();
-
-    if (!$pendaftaran) {
-        return redirect()->to(base_url('pelatihan/kelas'));
-    }
-
-    $kelas = $kelasModel->find($pendaftaran['kelas_id']);
-
-    // Cek apakah peserta sudah mengumpulkan tugas
-    $pengumpulan = $pengumpulanModel
-        ->where('id_users', $userId)
-        ->where('tugas_id', 1)
-        ->first();
-
-    return view('peserta/tugas', [
-        'kelas' => $kelas,
-        'pengumpulan' => $pengumpulan
-    ]);
-}
-// ==========================
-// UPLOAD TUGAS
-// ==========================
-
-
-    // ==========================
-    // DASHBOARD PESERTA
-    // ==========================
     public function dashboard()
     {
-        if (!session()->get('logged_in')) {
-            return redirect()->to(base_url('pelatihan/login'));
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
         }
 
-        $userModel = new UserModel();
-        $kelasModel = new KelasModel();
-        $pendaftaranModel = new PendaftaranModel();
+        $userId = $this->userId();
+        $user = (new UserModel())->find($userId);
+        $kelas = (new KelasModel())->where('status', 'aktif')->findAll();
+        
+        // Mengambil data dengan join ke tabel kelas dan tabel mentor
+        $pendaftaran = (new PendaftaranModel())
+            ->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas as jadwal, mentor.nama_mentor as mentor')
+            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+            ->where('pendaftaran.id_users', $userId)
+            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+            ->first();
 
-        // Data user login
-        $user = $userModel->find(session()->get('id'));
-
-        // Semua kelas aktif
-        $kelas = $kelasModel
-                    ->where('status', 'Aktif')
-                    ->findAll();
-
-        // Status pendaftaran user
-        // Status pendaftaran user
-$pendaftaran = $pendaftaranModel
-                    ->where('user_id', session()->get('id'))
-                    ->first();
-        $data = [
-            'user'         => $user,
-            'kelas'        => $kelas,
-            'pendaftaran'  => $pendaftaran
-        ];
-
-        return view('peserta/dashboard', $data);
+        return view('peserta/dashboard', [
+            'user' => $user,
+            'kelas' => $kelas,
+            'pendaftaran' => $pendaftaran,
+        ]);
     }
 
-    
-
-    // ==========================
-    // PROFIL
-    // ==========================
     public function profil()
     {
-        if (!session()->get('logged_in')) {
-            return redirect()->to(base_url('pelatihan/login'));
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
         }
 
-        $userModel = new UserModel();
-
-        $user = $userModel->find(session()->get('id'));
+        $pendaftaran = (new PendaftaranModel())
+            ->select('pendaftaran.*, kelas.nama_kelas')
+            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+            ->where('pendaftaran.id_users', $this->userId())
+            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+            ->first();
 
         return view('peserta/profil', [
-            'user' => $user
+            'user' => (new UserModel())->find($this->userId()),
+            'pendaftaran' => $pendaftaran,
         ]);
     }
 
     public function editProfil()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
-    }
-
-    $userModel = new UserModel();
-
-    $user = $userModel->find(session()->get('id'));
-
-    return view('peserta/edit_profil', [
-        'user' => $user
-    ]);
-}
-
-public function updateProfil()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
-    }
-
-    $userModel = new UserModel();
-
-    $id = session()->get('id');
-
-    // Data profil
-    $data = [
-        'nama'          => $this->request->getPost('nama'),
-        'email'         => $this->request->getPost('email'),
-        'no_hp'         => $this->request->getPost('no_hp'),
-        'asal_sekolah'  => $this->request->getPost('asal_sekolah'),
-    ];
-
-    // Ambil file foto
-    $foto = $this->request->getFile('foto');
-
-    // Kalau peserta memilih foto
-    if ($foto && $foto->isValid() && !$foto->hasMoved()) {
-
-        // Validasi ukuran maksimal 2 MB
-        if ($foto->getSize() > 2 * 1024 * 1024) {
-            return redirect()->back()
-                ->with('error', 'Ukuran foto maksimal 2 MB.');
-        }
-
-        // Validasi ekstensi
-        $ext = strtolower($foto->getClientExtension());
-
-        if (!in_array($ext, ['jpg', 'jpeg', 'png'])) {
-            return redirect()->back()
-                ->with('error', 'Format foto harus JPG, JPEG, atau PNG.');
-        }
-
-        // Folder penyimpanan foto
-        $folder = FCPATH . 'uploads/profil';
-
-        // Buat folder jika belum ada
-        if (!is_dir($folder)) {
-            mkdir($folder, 0777, true);
-        }
-
-        // Nama file acak
-        $namaFoto = $foto->getRandomName();
-
-        // Pindahkan foto
-        $foto->move($folder, $namaFoto);
-
-        // Simpan nama foto ke database
-        $data['foto'] = $namaFoto;
-    }
-
-    // Update data user
-    $userModel->update($id, $data);
-
-    // Update session
-session()->set([
-    'nama'          => $data['nama'],
-    'email'         => $data['email'],
-    'no_hp'         => $data['no_hp'],
-    'asal_sekolah'  => $data['asal_sekolah'],
-    'foto'          => $data['foto'] ?? null,
-]);
-
-    return redirect()->to(base_url('pelatihan/profil'))
-        ->with('success', 'Profil berhasil diperbarui.');
-}
-    // ==========================
-    // DAFTAR KELAS
-    // ==========================
-    public function daftarKelas()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
-    }
-
-    $kelasModel = new KelasModel();
-    $pendaftaranModel = new PendaftaranModel();
-
-    $kelas = $kelasModel
-                ->where('status','Aktif')
-                ->findAll();
-
-    foreach($kelas as &$k){
-
-        $terdaftar = $pendaftaranModel
-                ->where('kelas_id', $k['id'])
-                ->where('status_pendaftaran !=', 'Ditolak')
-                ->countAllResults();
-
-        $k['terdaftar'] = $terdaftar;
-        $k['sisa'] = $k['kuota'] - $terdaftar;
-    }
-
-    return view('peserta/daftar_kelas',[
-        'kelas'=>$kelas
-    ]);
-}
-// ==========================
-// KBM
-// ==========================
-public function kbm()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
-    }
-
-    $pendaftaranModel = new PendaftaranModel();
-    $kelasModel = new KelasModel();
-
-    // Ambil pendaftaran peserta
-    $pendaftaran = $pendaftaranModel
-        ->where('id_users', session()->get('id'))
-        ->where('status_pendaftaran', 'Disetujui')
-        ->first();
-
-    // Kalau belum disetujui, tidak boleh masuk KBM
-    if (!$pendaftaran) {
-        return redirect()->to(base_url('pelatihan/kelas'))
-            ->with('error', 'Kelas Anda belum disetujui admin.');
-    }
-
-    // Ambil data kelas
-    $kelas = $kelasModel->find($pendaftaran['kelas_id']);
-
-    return view('peserta/kbm', [
-        'kelas' => $kelas
-    ]);
-}
-
-
-// ==========================
-// UJIAN PESERTA
-// ==========================
-public function ujian()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
-    }
-
-    $data = [
-        'title' => 'Ujian Peserta',
-        'ujian_selesai' => session()->get('ujian_selesai')
-    ];
-
-    return view('peserta/ujian', $data);
-}
-
-public function angket()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
-    }
-
-    $userId = session()->get('id');
-
-    // Ambil data pendaftaran peserta
-    $pendaftaranModel = new \App\Models\PendaftaranModel();
-
-    $pendaftaran = $pendaftaranModel
-        ->where('user_id', $userId)
-        ->first();
-
-    if (!$pendaftaran) {
-        return redirect()->to(base_url('pelatihan/dashboard'))
-            ->with('error', 'Data pendaftaran kelas tidak ditemukan.');
-    }
-
-    // Cek apakah peserta sudah mengisi angket
-    $angketModel = new \App\Models\AngketModel();
-
-    $sudahIsi = $angketModel
-        ->where('user_id', $userId)
-        ->where('kelas_id', $pendaftaran['kelas_id'])
-        ->first();
-
-    return view('peserta/angket', [
-        'pendaftaran' => $pendaftaran,
-        'sudahIsi'    => $sudahIsi
-    ]);
-}
-
-public function sertifikat()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
-    }
-
-    $userId = session()->get('id');
-
-    // Model
-    $pendaftaranModel = new PendaftaranModel();
-    $hasilUjianModel = new HasilUjianModel();
-    $angketModel = new AngketModel();
-
-    // Ambil kelas peserta yang sudah disetujui
-    $pendaftaran = $pendaftaranModel
-        ->where('user_id', $userId)
-        ->where('status_pendaftaran', 'Disetujui')
-        ->first();
-
-    // Default status
-    $statusLulus = false;
-    $statusAngket = false;
-    $sertifikatAcademy = false;
-
-    if ($pendaftaran) {
-
-        $kelasId = $pendaftaran['kelas_id'];
-
-        // Ambil hasil ujian peserta
-        $hasilUjian = $hasilUjianModel
-            ->where('id_user', $userId)
-            ->where('id_kelas', $kelasId)
-            ->first();
-
-        // Cek apakah peserta sudah dinyatakan lulus
-        if (
-            $hasilUjian &&
-            $hasilUjian['status_kelulusan'] === 'lulus'
-        ) {
-            $statusLulus = true;
-        }
-
-        // Cek apakah peserta sudah mengisi angket
-        $angket = $angketModel
-            ->where('user_id', $userId)
-            ->where('kelas_id', $kelasId)
-            ->first();
-
-        if ($angket) {
-            $statusAngket = true;
-        }
-
-        // Sertifikat Academy hanya tersedia jika:
-        // 1. Lulus
-        // 2. Sudah mengisi angket
-        if ($statusLulus && $statusAngket) {
-            $sertifikatAcademy = true;
-        }
-    }
-
-    return view('peserta/sertifikat', [
-        'statusLulus' => $statusLulus,
-        'statusAngket' => $statusAngket,
-        'sertifikatAcademy' => $sertifikatAcademy
-    ]);
-}
-public function simpanAngket()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
-    }
-
-    $model = new \App\Models\AngketModel();
-
-    $model->save([
-        'user_id'     => session()->get('id'),
-        'kelas_id'    => $this->request->getPost('kelas_id'),
-        'materi'      => $this->request->getPost('materi'),
-        'mentor'      => $this->request->getPost('mentor'),
-        'penyampaian' => $this->request->getPost('penyampaian'),
-        'manfaat'     => $this->request->getPost('manfaat'),
-        'saran'       => $this->request->getPost('saran')
-    ]);
-
-    return redirect()->to(base_url('pelatihan/angket'))
-        ->with('success', 'Angket berhasil dikirim. Terima kasih sudah memberikan penilaian dan masukan.');
-}
-// ==========================
-// KERJAKAN UJIAN PESERTA
-// ==========================
-public function kerjakanUjian()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
-    }
-
-    // Contoh soal sementara
-    // Nanti soal ini akan diambil dari database yang dibuat oleh mentor
-    $soal = [
-        [
-            'id' => 1,
-            'pertanyaan' => 'Apa yang dimaksud dengan Digital Marketing?',
-            'pilihan_a' => 'Pemasaran menggunakan media digital',
-            'pilihan_b' => 'Pemasaran menggunakan koran saja',
-            'pilihan_c' => 'Pemasaran secara langsung',
-            'pilihan_d' => 'Pemasaran tanpa internet',
-        ],
-        [
-            'id' => 2,
-            'pertanyaan' => 'Manakah yang termasuk media sosial untuk pemasaran?',
-            'pilihan_a' => 'Instagram',
-            'pilihan_b' => 'Kalkulator',
-            'pilihan_c' => 'Notepad',
-            'pilihan_d' => 'File Explorer',
-        ],
-        [
-            'id' => 3,
-            'pertanyaan' => 'Apa tujuan utama promosi melalui media sosial?',
-            'pilihan_a' => 'Mengurangi pelanggan',
-            'pilihan_b' => 'Meningkatkan jangkauan pemasaran',
-            'pilihan_c' => 'Menghapus produk',
-            'pilihan_d' => 'Mengurangi informasi produk',
-        ],
-    ];
-
-    return view('peserta/kerjakan_ujian', [
-        'soal' => $soal
-    ]);
-}
-
-public function submitUjian()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
-    }
-
-    // Jawaban peserta
-    $jawaban = $this->request->getPost('jawaban');
-
-    // Kunci jawaban sementara
-    $kunci = [
-        1 => 'A',
-        2 => 'A',
-        3 => 'B'
-    ];
-
-    $benar = 0;
-
-    if (is_array($jawaban)) {
-        foreach ($kunci as $nomor => $jawabanBenar) {
-
-            if (
-                isset($jawaban[$nomor]) &&
-                $jawaban[$nomor] === $jawabanBenar
-            ) {
-                $benar++;
-            }
-        }
-    }
-
-    // Hitung nilai
-    $jumlahSoal = count($kunci);
-    $nilai = ($benar / $jumlahSoal) * 100;
-
-    // Ambil user yang sedang login
-    $userId = session()->get('id');
-
-    // Cari kelas peserta yang sudah disetujui
-    $pendaftaranModel = new PendaftaranModel();
-
-    $pendaftaran = $pendaftaranModel
-        ->where('user_id', $userId)
-        ->where('status_pendaftaran', 'Disetujui')
-        ->first();
-
-    if (!$pendaftaran) {
-        return redirect()->back()
-            ->with('error', 'Data kelas peserta tidak ditemukan.');
-    }
-
-    // Ambil ID kelas
-    $idKelas = $pendaftaran['kelas_id'];
-
-    // Model hasil ujian
-    $hasilUjianModel = new HasilUjianModel();
-
-    // Cek apakah peserta sudah pernah mengumpulkan ujian
-    $hasilSebelumnya = $hasilUjianModel
-        ->where('id_user', $userId)
-        ->where('id_kelas', $idKelas)
-        ->first();
-
-    if ($hasilSebelumnya) {
-        return redirect()->to(base_url('pelatihan/hasil-ujian'))
-            ->with('error', 'Anda sudah mengumpulkan ujian.');
-    }
-
-    // Simpan hasil ujian ke database
-    $hasilUjianModel->insert([
-        'id_user'           => $userId,
-        'id_kelas'          => $idKelas,
-        'benar'             => $benar,
-        'jumlah_soal'       => $jumlahSoal,
-        'nilai'             => $nilai,
-        'status_penilaian'  => 'menunggu',
-        'status_kelulusan'  => 'menunggu',
-        'catatan_mentor'    => null
-    ]);
-
-    // Simpan juga ke session untuk menampilkan hasil
-    session()->set([
-        'ujian_selesai'      => true,
-        'ujian_benar'        => $benar,
-        'ujian_jumlah_soal'  => $jumlahSoal,
-        'ujian_nilai'        => $nilai
-    ]);
-
-    return view('peserta/hasil_ujian', [
-        'benar'      => $benar,
-        'jumlahSoal' => $jumlahSoal,
-        'nilai'      => $nilai
-    ]);
-}
-// ==========================
-// HASIL UJIAN PESERTA
-// ==========================
-public function hasilUjian()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
-    }
-
-    return view('peserta/hasil_ujian', [
-        'benar' => session()->get('ujian_benar') ?? 0,
-        'jumlahSoal' => session()->get('ujian_jumlah_soal') ?? 0,
-        'nilai' => session()->get('ujian_nilai') ?? 0
-    ]);
-}
-// ==========================
-// ABSENSI PESERTA
-// ==========================
-public function absensi()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
-    }
-
-    $pendaftaranModel = new PendaftaranModel();
-    $jadwalModel = new JadwalKelasModel();
-    $absensiModel = new AbsensiModel();
-
-    // Cek peserta sudah memiliki kelas yang disetujui
-    $pendaftaran = $pendaftaranModel
-        ->where('id_users', session()->get('id'))
-        ->where('status_pendaftaran', 'Disetujui')
-        ->first();
-
-    if (!$pendaftaran) {
-        return redirect()->to(base_url('pelatihan/kelas'))
-            ->with('error', 'Anda belum memiliki kelas yang disetujui.');
-    }
-
-    // Ambil jadwal berdasarkan kelas peserta
-    $jadwal = $jadwalModel
-        ->where('id_kelas', $pendaftaran['kelas_id'])
-        ->orderBy('pertemuan_ke', 'ASC')
-        ->findAll();
-
-    // Ambil absensi peserta yang sedang login
-    $userId = session()->get('id');
-
-    foreach ($jadwal as &$j) {
-
-        $j['absensi'] = $absensiModel
-            ->where('id_jadwal_kelas', $j['id_jadwal_kelas'])
-            ->where('id_user', $userId)
-            ->first();
-    }
-
-    return view('peserta/absensi', [
-        'jadwal' => $jadwal
-    ]);
-}
-
-// ==========================
-// SIMPAN ABSENSI PESERTA
-// ==========================
-public function simpanAbsensi()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
-    }
-
-    $jadwalModel = new JadwalKelasModel();
-    $absensiModel = new AbsensiModel();
-
-    $userId = session()->get('id');
-
-    // Ambil ID jadwal dari form
-    $idJadwal = $this->request->getPost('id_jadwal_kelas');
-
-    // Cari jadwal
-    $jadwal = $jadwalModel->find($idJadwal);
-
-    if (!$jadwal) {
-        return redirect()->back()
-            ->with('error', 'Jadwal tidak ditemukan.');
-    }
-
-    // Waktu sekarang
-    $sekarang = time();
-
-    // Waktu mulai
-    $waktuMulai = strtotime($jadwal['tanggal_kbm']);
-
-    // Waktu selesai
-    $waktuSelesai = strtotime(
-        date('Y-m-d', $waktuMulai) . ' ' . $jadwal['jam_selesai']
-    );
-
-    // Pastikan peserta hanya bisa absen sesuai jadwal
-    if ($sekarang < $waktuMulai) {
-        return redirect()->back()
-            ->with('error', 'Absensi belum dibuka.');
-    }
-
-    if ($sekarang > $waktuSelesai) {
-        return redirect()->back()
-            ->with('error', 'Waktu absensi sudah ditutup.');
-    }
-
-    // Cek apakah peserta sudah pernah absen
-    $sudahAbsen = $absensiModel
-        ->where('id_jadwal_kelas', $idJadwal)
-        ->where('id_user', $userId)
-        ->first();
-
-    if ($sudahAbsen) {
-        return redirect()->back()
-            ->with('error', 'Anda sudah melakukan absensi pada pertemuan ini.');
-    }
-
-    // Simpan absensi
-    $absensiModel->insert([
-        'id_jadwal_kelas' => $idJadwal,
-        'id_user'         => $userId,
-        'status'          => 'hadir',
-        'waktu_absen'     => date('Y-m-d H:i:s')
-    ]);
-
-    return redirect()->to(base_url('pelatihan/absensi'))
-        ->with('success', 'Absensi berhasil. Anda tercatat hadir.');
-}
-
-// ==========================
-// RIWAYAT ABSENSI PESERTA
-// ==========================
-public function riwayatAbsensi()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
-    }
-
-    $pendaftaranModel = new PendaftaranModel();
-    $jadwalModel = new JadwalKelasModel();
-    $absensiModel = new AbsensiModel();
-
-    $userId = session()->get('id');
-
-    // Cek kelas peserta
-    $pendaftaran = $pendaftaranModel
-        ->where('id_users', $userId)
-        ->where('status_pendaftaran', 'Disetujui')
-        ->first();
-
-    if (!$pendaftaran) {
-        return redirect()->to(base_url('pelatihan/kelas'))
-            ->with('error', 'Anda belum memiliki kelas yang disetujui.');
-    }
-
-    // Ambil semua jadwal kelas peserta
-    $jadwal = $jadwalModel
-        ->where('id_kelas', $pendaftaran['kelas_id'])
-        ->orderBy('pertemuan_ke', 'ASC')
-        ->findAll();
-
-    // Variabel rekap
-    $totalPertemuan = count($jadwal);
-    $jumlahHadir = 0;
-    $jumlahIzin = 0;
-    $jumlahAlpa = 0;
-
-    // Ambil status absensi masing-masing pertemuan
-    foreach ($jadwal as &$j) {
-
-        $j['absensi'] = $absensiModel
-            ->where('id_jadwal_kelas', $j['id_jadwal_kelas'])
-            ->where('id_user', $userId)
-            ->first();
-
-        // Hitung status absensi
-        if (!empty($j['absensi'])) {
-
-            if ($j['absensi']['status'] === 'hadir') {
-                $jumlahHadir++;
-            } elseif ($j['absensi']['status'] === 'izin') {
-                $jumlahIzin++;
-            } elseif ($j['absensi']['status'] === 'alpa') {
-                $jumlahAlpa++;
-            }
-        }
-    }
-
-    // Hitung persentase kehadiran
-    $persentaseKehadiran = $totalPertemuan > 0
-        ? round(($jumlahHadir / $totalPertemuan) * 100)
-        : 0;
-
-    return view('peserta/riwayat_absensi', [
-        'jadwal' => $jadwal,
-        'totalPertemuan' => $totalPertemuan,
-        'jumlahHadir' => $jumlahHadir,
-        'jumlahIzin' => $jumlahIzin,
-        'jumlahAlpa' => $jumlahAlpa,
-        'persentaseKehadiran' => $persentaseKehadiran
-    ]);
-}
-    // ==========================
-    // PENGATURAN AKUN
-    // ==========================
-    public function pengaturan()
     {
-        if (!session()->get('logged_in')) {
-            return redirect()->to(base_url('pelatihan/login'));
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
         }
 
-        $userModel = new UserModel();
+        return view('peserta/edit_profil', ['user' => (new UserModel())->find($this->userId())]);
+    }
 
-        $user = $userModel->find(session()->get('id'));
+    public function updateProfil()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
 
-        return view('peserta/pengaturan', [
-            'user' => $user
+        $data = [
+            'nama' => $this->request->getPost('nama'),
+            'email' => $this->request->getPost('email'),
+            'no_hp' => $this->request->getPost('no_hp'),
+            'asal_sekolah' => $this->request->getPost('asal_sekolah'),
+        ];
+
+        $foto = $this->request->getFile('foto');
+        if ($foto && $foto->isValid() && ! $foto->hasMoved()) {
+            if ($foto->getSize() > 2 * 1024 * 1024) {
+                return redirect()->back()->with('error', 'Ukuran foto maksimal 2 MB.');
+            }
+
+            $ext = strtolower($foto->getClientExtension());
+            if (! in_array($ext, ['jpg', 'jpeg', 'png'], true)) {
+                return redirect()->back()->with('error', 'Format foto harus JPG, JPEG, atau PNG.');
+            }
+
+            $folder = FCPATH . 'uploads/profil';
+            if (! is_dir($folder)) {
+                mkdir($folder, 0777, true);
+            }
+
+            $data['foto'] = $foto->getRandomName();
+            $foto->move($folder, $data['foto']);
+        }
+
+        (new UserModel())->update($this->userId(), $data);
+        session()->set(array_filter($data, static fn ($value) => $value !== null));
+
+        return redirect()->to(base_url('pelatihan/profil'))->with('success', 'Profil berhasil diperbarui.');
+    }
+
+    public function daftar()
+{
+    // 1. Ambil data dari form
+    $kelasId = $this->request->getPost('kelas_id');
+    
+    // Data yang akan disimpan ke tabel pendaftaran/transaksi
+    $dataPendaftaran = [
+        'kelas_id'          => $kelasId,
+        'nama'              => $this->request->getPost('nama'),
+        'email'             => $this->request->getPost('email'),
+        'no_hp'             => $this->request->getPost('no_hp'),
+        'jenis_kelamin'     => $this->request->getPost('jenis_kelamin'),
+        'pendidikan_terakhir' => $this->request->getPost('pendidikan_terakhir'),
+        'jenis_pendaftaran' => $this->request->getPost('jenis_pendaftaran'),
+        'pembayaran'        => $this->request->getPost('pembayaran'),
+        'status'            => 'Pending' // atau status awal pendaftaran
+    ];
+
+    // Handle upload bukti jika ada
+    $fileBukti = $this->request->getFile('bukti');
+    if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
+        $namaFile = $fileBukti->getRandomName();
+        $fileBukti->move('uploads/bukti/', $namaFile);
+        $dataPendaftaran['bukti'] = $namaFile;
+    }
+
+    // 2. Simpan ke tabel pendaftaran
+    // (Sesuaikan Model pendaftaran dengan project kamu, misal: $this->pendaftaranModel->insert(...))
+    $simpan = $this->db->table('pendaftaran')->insert($dataPendaftaran);
+
+    if ($simpan) {
+        // --- 3. LOGIKA UNTUK MENGURANGI KUOTA KELAS ---
+        // Asumsikan di tabel kelas ada kolom 'kuota' atau 'sisa_kuota'
+        
+        // Ambil data kelas saat ini terlebih dahulu
+        $kelas = $this->db->table('kelas')->where('id_kelas', $kelasId)->get()->getRowArray();
+        
+        if ($kelas && isset($kelas['kuota']) && $kelas['kuota'] > 0) {
+            $kuotaBaru = $kelas['kuota'] - 1; // Kurangi 1
+            
+            // Update kuota di database
+            $this->db->table('kelas')->where('id_kelas', $kelasId)->update(['kuota' => $kuotaBaru]);
+        }
+        // ---------------------------------------------
+
+        // Redirect dengan pesan sukses
+        return redirect()->to(base_url('pelatihan/sukses'))->with('success', 'Pendaftaran berhasil dikirim!');
+    } else {
+        // Jika gagal
+        return redirect()->back()->with('error', 'Gagal memproses pendaftaran.');
+    }
+}
+
+    public function pendaftaran()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
+
+        $idKelas = $this->request->getGet('id');
+        $kelas = (new KelasModel())
+            ->select('kelas.*, mentor.nama_mentor')
+            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+            ->where('kelas.id_kelas', $idKelas)
+            ->first();
+
+        if (! $kelas) {
+            return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('error', 'Kelas tidak ditemukan.');
+        }
+
+        return view('peserta/pendaftaran', [
+            'kelas' => $kelas,
+            'user' => (new UserModel())->find($this->userId()),
         ]);
     }
 
-    public function ubahPassword()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
+    public function simpanPendaftaran()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
+
+        $userId = $this->userId();
+        $kelasId = $this->request->getPost('kelas_id');
+        $metodePembayaran = $this->request->getPost('pembayaran');
+
+        $pendaftaranModel = new PendaftaranModel();
+        $cek = $pendaftaranModel
+            ->where('id_users', $userId)
+            ->where('id_kelas', $kelasId)
+            ->where('status_pendaftaran !=', 'Ditolak')
+            ->first();
+
+        if ($cek) {
+            return redirect()->to(base_url('peserta/dashboard'))->with('error', 'Anda sudah memiliki pendaftaran untuk kelas ini.');
+        }
+
+        $namaFile = null;
+        $file = $this->request->getFile('bukti');
+        if ($file && $file->isValid() && ! $file->hasMoved()) {
+            if ($file->getSize() > 2 * 1024 * 1024) {
+                return redirect()->back()->with('error', 'Ukuran bukti pembayaran maksimal 2 MB.');
+            }
+
+            $folder = FCPATH . 'uploads/bukti_pembayaran';
+            if (! is_dir($folder)) {
+                mkdir($folder, 0777, true);
+            }
+
+            $namaFile = $file->getRandomName();
+            $file->move($folder, $namaFile);
+        }
+
+        // TAMBAHKAN PENANGKAPAN DATA DI SINI:
+        $pendaftaranModel->insert([
+            'id_users'             => $userId,
+            'id_kelas'             => $kelasId,
+            'jenis_kelas'          => $this->request->getPost('jenis_kelas'),          // <-- Ditambahkan
+            'metode_pembelajaran'  => $this->request->getPost('metode'),
+            'metode_pembayaran'    => $metodePembayaran,
+            'jenis_kelamin'        => $this->request->getPost('jenis_kelamin'),        // <-- Ditambahkan
+            'pendidikan_terakhir'  => $this->request->getPost('pendidikan_terakhir'),  // <-- Ditambahkan
+            'tanggal_daftar'       => date('Y-m-d H:i:s'),                              // <-- Pastikan tanggal terisi jika ada kolomnya
+            'bukti_pembayaran'     => $namaFile,
+            'status_pendaftaran'   => 'Menunggu',
+            'status_pembayaran'    => $namaFile ? 'Belum Diverifikasi' : 'Menunggu Bukti',
+        ]);
+
+        return redirect()->to(base_url('peserta/dashboard'))->with('success', 'Pendaftaran berhasil dikirim. Silakan menunggu validasi admin.');
     }
 
-    return view('peserta/ubah_password');
-}
+    public function status()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
 
-public function updatePassword()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
+        $pendaftaran = (new PendaftaranModel())
+            ->select('pendaftaran.*, kelas.nama_kelas')
+            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+            ->where('pendaftaran.id_users', $this->userId())
+            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+            ->first();
+
+        return view('peserta/status_pendaftaran', ['pendaftaran' => $pendaftaran]);
     }
 
-    $userModel = new UserModel();
+    public function kelas()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
 
-    $id = session()->get('id');
+        $kelas = (new PendaftaranModel())
+            ->select('pendaftaran.*, kelas.*, mentor.nama_mentor')
+            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+            ->where('pendaftaran.id_users', $this->userId())
+            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+            ->first();
 
-    $user = $userModel->find($id);
-
-    $passwordLama = $this->request->getPost('password_lama');
-    $passwordBaru = $this->request->getPost('password_baru');
-    $konfirmasi = $this->request->getPost('konfirmasi_password');
-
-    // Cek password lama
-    if (!password_verify($passwordLama, $user['password'])) {
-        return redirect()->back()->with('error', 'Password lama salah.');
+        return view('peserta/kelas', ['kelas' => $kelas]);
     }
 
-    // Cek konfirmasi password
-    if ($passwordBaru !== $konfirmasi) {
-        return redirect()->back()->with('error', 'Konfirmasi password tidak cocok.');
+    public function detailKelas()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
+
+        $idKelas = $this->request->getGet('id');
+        $kelas = (new KelasModel())
+            ->select('kelas.*, mentor.nama_mentor')
+            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+            ->where('kelas.id_kelas', $idKelas)
+            ->first();
+
+        return view('peserta/detail_kelas', ['kelas' => $kelas]);
     }
 
-    // Update password
-    $userModel->update($id, [
-        'password' => password_hash($passwordBaru, PASSWORD_DEFAULT)
-    ]);
+    public function kbm()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
 
-    return redirect()->to(base_url('pelatihan/pengaturan'))
-        ->with('success', 'Password berhasil diubah.');
-}
-   
-// ==========================
-// UPLOAD TUGAS
-// ==========================
-public function uploadTugas()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
+        $kelas = $this->approvedEnrollment();
+        if (! $kelas) {
+            return redirect()->to(base_url('pelatihan/kelas'))->with('error', 'Kelas Anda belum disetujui admin.');
+        }
+
+        return view('peserta/kbm', ['kelas' => $kelas]);
     }
 
-    $file = $this->request->getFile('tugas');
+    public function daftarMateri()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
 
-    // Cek file
-    if (!$file || !$file->isValid()) {
-        return redirect()->back()
-            ->with('error', 'File tidak valid.');
+        return view('peserta/daftar_materi', ['kelas' => $this->approvedEnrollment()]);
     }
 
-    // Folder upload
-    $folder = FCPATH . 'uploads/tugas';
+    public function materi()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
 
-    // Buat folder jika belum ada
-    if (!is_dir($folder)) {
-        mkdir($folder, 0777, true);
+        return view('peserta/materi', ['kelas' => $this->approvedEnrollment()]);
     }
 
-    // Buat nama file acak
-    $namaFile = $file->getRandomName();
+    public function tugas()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
 
-    // Pindahkan file
-    $file->move($folder, $namaFile);
+        $kelas = $this->approvedEnrollment();
+        if (! $kelas) {
+            return redirect()->to(base_url('pelatihan/kelas'))->with('error', 'Kelas Anda belum disetujui admin.');
+        }
 
-    // Simpan ke database
-    $model = new PengumpulanTugasModel();
+        $pengumpulan = (new PengumpulanTugasModel())
+            ->where('id_users', $this->userId())
+            ->first();
 
-    $model->save([
-        'tugas_id'   => 1,
-        'id_users'    => session()->get('id'),
-        'file_tugas' => $namaFile,
-        'status'     => 'Belum Dinilai'
-    ]);
-
-    // Kembali ke halaman tugas
-    return redirect()->to(base_url('pelatihan/tugas'))
-        ->with('success', 'Tugas berhasil diupload.');
-}
-
-    // ==========================
-// SIMPAN PENDAFTARAN
-// ==========================
-public function simpanPendaftaran()
-{
-    if (!session()->get('logged_in')) {
-        return redirect()->to(base_url('pelatihan/login'));
+        return view('peserta/tugas', ['kelas' => $kelas, 'pengumpulan' => $pengumpulan]);
     }
 
-    $pendaftaranModel = new PendaftaranModel();
+    public function uploadTugas()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
 
-    $userId = session()->get('id');
-    $kelasId = $this->request->getPost('kelas_id');
+        $file = $this->request->getFile('tugas');
+        if (! $file || ! $file->isValid()) {
+            return redirect()->back()->with('error', 'File tidak valid.');
+        }
 
-    // Cek apakah peserta sudah mendaftar kelas tersebut
-    $cek = $pendaftaranModel
-        ->where('user_id', $userId)
-        ->where('kelas_id', $kelasId)
-        ->first();
-
-    if ($cek) {
-        return redirect()->back()
-            ->with('error', 'Anda sudah mendaftar kelas ini.');
-    }
-
-    // Upload bukti pembayaran
-    $namaFile = null;
-
-    $file = $this->request->getFile('bukti');
-
-    if ($file && $file->isValid() && !$file->hasMoved()) {
-
-        $namaFile = $file->getRandomName();
-
-        $folder = FCPATH . 'uploads/bukti_pembayaran';
-
-        if (!is_dir($folder)) {
+        $folder = FCPATH . 'uploads/tugas';
+        if (! is_dir($folder)) {
             mkdir($folder, 0777, true);
         }
 
+        $namaFile = $file->getRandomName();
         $file->move($folder, $namaFile);
+
+        (new PengumpulanTugasModel())->save([
+            'id_tugas' => 1,
+            'id_users' => $this->userId(),
+            'file_tugas' => $namaFile,
+            'status' => 'Belum Dinilai',
+        ]);
+
+        return redirect()->to(base_url('pelatihan/tugas'))->with('success', 'Tugas berhasil diupload.');
     }
 
-    // Ambil metode pembayaran
-    $pembayaran = $this->request->getPost('pembayaran');
+    public function ujian()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
 
-    if ($pembayaran == 'Transfer') {
-        $statusPembayaran = 'Belum Diverifikasi';
-    } else {
-        $statusPembayaran = 'Lunas';
+        return view('peserta/ujian', ['title' => 'Ujian Peserta', 'ujian_selesai' => session()->get('ujian_selesai')]);
     }
 
-    // Simpan pendaftaran
-    $pendaftaranModel->insert([
-        'user_id'              => $userId,
-        'kelas_id'             => $kelasId,
-        'metode_pembelajaran'  => $this->request->getPost('metode'),
-        'metode_pembayaran'    => $pembayaran,
-        'bukti_pembayaran'     => $namaFile,
-        'status_pendaftaran'   => 'Menunggu',
-        'status_pembayaran'    => $statusPembayaran
-    ]);
+    public function kerjakanUjian()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
 
-    return redirect()->to(base_url('peserta/dashboard'))
-        ->with(
-            'success',
-            'Pendaftaran berhasil, silakan menunggu validasi admin.'
-        );
-}
+        $soal = [
+            ['id' => 1, 'pertanyaan' => 'Apa yang dimaksud dengan Digital Marketing?', 'pilihan_a' => 'Pemasaran menggunakan media digital', 'pilihan_b' => 'Pemasaran menggunakan koran saja', 'pilihan_c' => 'Pemasaran secara langsung', 'pilihan_d' => 'Pemasaran tanpa internet'],
+            ['id' => 2, 'pertanyaan' => 'Manakah yang termasuk media sosial untuk pemasaran?', 'pilihan_a' => 'Instagram', 'pilihan_b' => 'Kalkulator', 'pilihan_c' => 'Notepad', 'pilihan_d' => 'File Explorer'],
+            ['id' => 3, 'pertanyaan' => 'Apa tujuan utama promosi melalui media sosial?', 'pilihan_a' => 'Mengurangi pelanggan', 'pilihan_b' => 'Meningkatkan jangkauan pemasaran', 'pilihan_c' => 'Menghapus produk', 'pilihan_d' => 'Mengurangi informasi produk'],
+        ];
+
+        return view('peserta/kerjakan_ujian', ['soal' => $soal]);
+    }
+
+    public function submitUjian()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
+
+        $jawaban = $this->request->getPost('jawaban');
+        $kunci = [1 => 'A', 2 => 'A', 3 => 'B'];
+        $benar = 0;
+
+        if (is_array($jawaban)) {
+            foreach ($kunci as $nomor => $jawabanBenar) {
+                if (($jawaban[$nomor] ?? null) === $jawabanBenar) {
+                    $benar++;
+                }
+            }
+        }
+
+        $jumlahSoal = count($kunci);
+        $nilai = ($benar / $jumlahSoal) * 100;
+        $kelas = $this->approvedEnrollment();
+
+        if ($kelas) {
+            (new HasilUjianModel())->insert([
+                'id_user' => $this->userId(),
+                'id_users' => $this->userId(),
+                'id_kelas' => $kelas['id_kelas'],
+                'benar' => $benar,
+                'jumlah_soal' => $jumlahSoal,
+                'nilai' => $nilai,
+                'status_penilaian' => 'menunggu',
+                'status_kelulusan' => $nilai >= 70 ? 'lulus' : 'belum_lulus',
+            ]);
+        }
+
+        session()->set(['ujian_selesai' => true, 'ujian_benar' => $benar, 'ujian_jumlah_soal' => $jumlahSoal, 'ujian_nilai' => $nilai]);
+
+        return view('peserta/hasil_ujian', ['benar' => $benar, 'jumlahSoal' => $jumlahSoal, 'nilai' => $nilai]);
+    }
+
+    public function hasilUjian()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
+
+        return view('peserta/hasil_ujian', [
+            'benar' => session()->get('ujian_benar') ?? 0,
+            'jumlahSoal' => session()->get('ujian_jumlah_soal') ?? 0,
+            'nilai' => session()->get('ujian_nilai') ?? 0,
+        ]);
+    }
+
+    public function angket()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
+
+        $pendaftaran = $this->approvedEnrollment();
+        if (! $pendaftaran) {
+            return redirect()->to(base_url('peserta/dashboard'))->with('error', 'Kelas Anda belum divalidasi.');
+        }
+
+        $sudahIsi = (new AngketModel())
+            ->where('id_users', $this->userId())
+            ->where('id_kelas', $pendaftaran['id_kelas'])
+            ->first();
+
+        return view('peserta/angket', ['pendaftaran' => $pendaftaran, 'sudahIsi' => $sudahIsi]);
+    }
+
+    public function simpanAngket()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
+
+        (new AngketModel())->save([
+            'id_users' => $this->userId(),
+            'id_kelas' => $this->request->getPost('kelas_id'),
+            'materi' => $this->request->getPost('materi'),
+            'mentor' => $this->request->getPost('mentor'),
+            'penyampaian' => $this->request->getPost('penyampaian'),
+            'manfaat' => $this->request->getPost('manfaat'),
+            'saran' => $this->request->getPost('saran'),
+        ]);
+
+        return redirect()->to(base_url('pelatihan/angket'))->with('success', 'Angket berhasil dikirim.');
+    }
+
+    public function sertifikat()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
+
+        $pendaftaran = $this->approvedEnrollment();
+        $hasilUjian = null;
+        if ($pendaftaran) {
+            $hasilUjian = (new HasilUjianModel())
+                ->where('id_kelas', $pendaftaran['id_kelas'])
+                ->groupStart()
+                    ->where('id_user', $this->userId())
+                    ->orWhere('id_users', $this->userId())
+                ->groupEnd()
+                ->orderBy('id_hasil_ujian', 'DESC')
+                ->first();
+        }
+
+        $statusLulus = (bool) ($hasilUjian && $hasilUjian['status_kelulusan'] === 'lulus');
+        $statusAngket = (bool) ($pendaftaran && (new AngketModel())->where('id_users', $this->userId())->where('id_kelas', $pendaftaran['id_kelas'])->first());
+
+        return view('peserta/sertifikat', [
+            'statusLulus' => $statusLulus,
+            'statusAngket' => $statusAngket,
+            'sertifikatAcademy' => $statusLulus && $statusAngket,
+        ]);
+    }
+
+    public function absensi()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
+
+        $pendaftaran = $this->approvedEnrollment();
+        if (! $pendaftaran) {
+            return redirect()->to(base_url('pelatihan/kelas'))->with('error', 'Anda belum memiliki kelas yang disetujui.');
+        }
+
+        $jadwal = (new JadwalKelasModel())->where('id_kelas', $pendaftaran['id_kelas'])->orderBy('pertemuan_ke', 'ASC')->findAll();
+        $absensiModel = new AbsensiModel();
+        foreach ($jadwal as &$item) {
+            $item['absensi'] = $absensiModel->where('id_jadwal_kelas', $item['id_jadwal_kelas'])->where('id_user', $this->userId())->first();
+        }
+
+        return view('peserta/absensi', ['jadwal' => $jadwal]);
+    }
+
+    public function simpanAbsensi()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
+
+        $idJadwal = $this->request->getPost('id_jadwal_kelas');
+        $sudahAbsen = (new AbsensiModel())->where('id_jadwal_kelas', $idJadwal)->where('id_user', $this->userId())->first();
+        if ($sudahAbsen) {
+            return redirect()->back()->with('error', 'Anda sudah melakukan absensi pada pertemuan ini.');
+        }
+
+        (new AbsensiModel())->insert([
+            'id_jadwal_kelas' => $idJadwal,
+            'id_user' => $this->userId(),
+            'status' => 'hadir',
+            'waktu_absen' => date('Y-m-d H:i:s'),
+        ]);
+
+        return redirect()->to(base_url('pelatihan/absensi'))->with('success', 'Absensi berhasil.');
+    }
+
+    public function riwayatAbsensi()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
+
+        $pendaftaran = $this->approvedEnrollment();
+        $jadwal = [];
+        if ($pendaftaran) {
+            $jadwal = (new JadwalKelasModel())->where('id_kelas', $pendaftaran['id_kelas'])->orderBy('pertemuan_ke', 'ASC')->findAll();
+        }
+
+        $absensiModel = new AbsensiModel();
+        $jumlahHadir = $jumlahIzin = $jumlahAlpa = 0;
+        foreach ($jadwal as &$item) {
+            $item['absensi'] = $absensiModel->where('id_jadwal_kelas', $item['id_jadwal_kelas'])->where('id_user', $this->userId())->first();
+            $status = $item['absensi']['status'] ?? null;
+            if ($status === 'hadir') $jumlahHadir++;
+            if ($status === 'izin') $jumlahIzin++;
+            if ($status === 'alpa') $jumlahAlpa++;
+        }
+
+        $totalPertemuan = count($jadwal);
+        return view('peserta/riwayat_absensi', [
+            'jadwal' => $jadwal,
+            'totalPertemuan' => $totalPertemuan,
+            'jumlahHadir' => $jumlahHadir,
+            'jumlahIzin' => $jumlahIzin,
+            'jumlahAlpa' => $jumlahAlpa,
+            'persentaseKehadiran' => $totalPertemuan > 0 ? round(($jumlahHadir / $totalPertemuan) * 100) : 0,
+        ]);
+    }
+
+    public function pengaturan()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
+
+        return view('peserta/pengaturan', ['user' => (new UserModel())->find($this->userId())]);
+    }
+
+    public function ubahPassword()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
+
+        return view('peserta/ubah_password');
+    }
+
+    public function updatePassword()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
+
+        $userModel = new UserModel();
+        $user = $userModel->find($this->userId());
+        $passwordLama = $this->request->getPost('password_lama');
+        $passwordBaru = $this->request->getPost('password_baru');
+        $konfirmasi = $this->request->getPost('konfirmasi_password');
+
+        if (! password_verify($passwordLama, $user['password'])) {
+            return redirect()->back()->with('error', 'Password lama salah.');
+        }
+
+        if ($passwordBaru !== $konfirmasi) {
+            return redirect()->back()->with('error', 'Konfirmasi password tidak cocok.');
+        }
+
+        $userModel->update($this->userId(), ['password' => password_hash($passwordBaru, PASSWORD_DEFAULT)]);
+
+        return redirect()->to(base_url('pelatihan/pengaturan'))->with('success', 'Password berhasil diubah.');
+    }
 }

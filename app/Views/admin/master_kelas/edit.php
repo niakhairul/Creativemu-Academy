@@ -151,16 +151,17 @@
             box-shadow: 0 4px 12px rgba(121, 75, 196, 0.2);
         }
 
-        .admin-info h6 {
-            margin: 0;
+        .admin-info {
             font-weight: 700;
             color: var(--dark-purple);
             font-size: 0.98rem;
         }
 
         .admin-info small {
+            display: block;
             color: #8c83a5;
             font-size: 0.78rem;
+            font-weight: normal;
         }
 
         /* --- Content Cards --- */
@@ -185,6 +186,64 @@
 
         .card-title-custom i {
             color: var(--primary-purple);
+        }
+
+        /* --- Grid Class Card Styling --- */
+        .class-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid rgba(121, 75, 196, 0.08);
+            box-shadow: 0 6px 20px rgba(121, 75, 196, 0.04);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .class-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(121, 75, 196, 0.12);
+            border-color: rgba(121, 75, 196, 0.3);
+        }
+
+        .class-card-img-wrapper {
+            position: relative;
+            height: 160px;
+            overflow: hidden;
+        }
+
+        .class-card-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .class-card:hover .class-card-img-wrapper img {
+            transform: scale(1.05);
+        }
+
+        .class-badge-overlay {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .class-status-overlay {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+        }
+
+        .class-card-body {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         /* --- Modal Customization --- */
@@ -254,35 +313,6 @@
             color: #ffffff;
         }
 
-        /* --- Table Styling --- */
-        .table-custom {
-            vertical-align: middle;
-            font-size: 0.9rem;
-        }
-
-        .table-custom th {
-            background-color: var(--light-purple);
-            color: var(--dark-purple);
-            font-weight: 700;
-            padding: 15px;
-            border: none;
-        }
-
-        .table-custom td {
-            padding: 15px;
-            border-bottom: 1px solid #f0edf6;
-            color: #4a4259;
-        }
-
-        .table-hover tbody tr {
-            transition: all 0.2s ease;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: var(--light-purple);
-            transform: scale(1.005);
-        }
-
         @keyframes mainFadeIn {
             from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
@@ -303,12 +333,12 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link">
+                <a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link active">
                     <i class="fas fa-book"></i> <span>Master Kelas</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="<?= base_url('admin/mentor'); ?>" class="nav-link active">
+                <a href="<?= base_url('admin/mentor'); ?>" class="nav-link">
                     <i class="fas fa-chalkboard-user"></i> <span>Mentor</span>
                 </a>
             </li>
@@ -364,101 +394,153 @@
                     Memuat tanggal...
                 </div>
                 <div class="admin-profile">
-    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
-    <div class="admin-info">
-        <?= esc(session()->get('nama')); ?>
-        <small>Administrator</small>
-    </div>
-</div>
+                    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
+                    <div class="admin-info">
+                        <?= esc(session()->get('nama')); ?>
+                        <small>Administrator</small>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <?php if (session()->getFlashdata('error')): ?>
-            <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm" role="alert">
-                <i class="fas fa-circle-exclamation me-2"></i> <?= session()->getFlashdata('error'); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endif; ?>
+<body class="bg-light">
 
-        <div class="content-card">
-            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
-                <div class="card-title-custom d-flex align-items-center">
-                    <div class="rounded-circle p-2 bg-light text-primary me-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                        <i class="fas fa-pen-to-square text-purple" style="color: var(--primary-purple);"></i>
-                    </div>
-                    <span>Formulir Perubahan Data Mentor</span>
-                </div>
-                <a href="<?= base_url('admin/mentor'); ?>" class="btn btn-light-custom text-decoration-none">
-                    <i class="fas fa-arrow-left me-2"></i> Kembali
-                </a>
-            </div>
+    <div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold mb-4">Edit Data Kelas</h4>
+                    
+                    <form action="<?= base_url('admin/master-kelas/update/' . $kelas['id_kelas']); ?>" method="POST" enctype="multipart/form-data">
+                        <?= csrf_field(); ?>
 
-            <form action="<?= base_url('admin/mentor/update/' . $mentor['id_mentor']); ?>" method="POST" enctype="multipart/form-data">
-                <?= csrf_field(); ?>
-                
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <label class="form-label">Nama Lengkap & Gelar</label>
-                        <input type="text" name="nama_mentor" class="form-control" value="<?= esc($mentor['nama_mentor']); ?>" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Alamat Email Aktif</label>
-                        <input type="email" name="email" class="form-control" value="<?= esc($mentor['email']); ?>" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">No. Telepon / WhatsApp</label>
-                        <input type="text" name="telepon" class="form-control" value="<?= esc($mentor['telepon']); ?>" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Keahlian Utama / Bidang Pengajaran</label>
-                        <input type="text" name="keahlian" class="form-control" value="<?= esc($mentor['keahlian']); ?>" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Pengalaman Kerja (Tahun)</label>
-                        <input type="number" name="pengalaman" class="form-control" value="<?= esc($mentor['pengalaman']); ?>" min="0" required>
-                    </div>
-                    <div class="col-12">
-    <label class="form-label">Bio / Biografi Singkat</label>
-    <textarea name="bio" class="form-control" rows="3" placeholder="Masukkan bio singkat mentor..."><?= isset($mentor['bio']) ? esc($mentor['bio']) : ''; ?></textarea>
-</div>
-                    <div class="col-md-6">
-                        <label class="form-label">Status Keaktifan</label>
-                        <select name="status" class="form-select" required>
-                            <option value="Aktif" <?= ($mentor['status'] == 'Aktif') ? 'selected' : ''; ?>>Aktif Mengajar</option>
-                            <option value="Non-Aktif" <?= ($mentor['status'] == 'Non-Aktif') ? 'selected' : ''; ?>>Cuti / Non-Aktif</option>
-                        </select>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">Unggah Dokumen CV Baru (Opsional)</label>
-                        <input type="file" name="cv" class="form-control" accept=".pdf,.doc,.docx">
-                        <div class="form-text mt-2">
-                            <i class="fas fa-file-pdf text-danger me-1"></i> CV Saat Ini: 
-                            <?php if (!empty($mentor['cv'])): ?>
-                                <a href="<?= base_url('uploads/cv/' . $mentor['cv']); ?>" target="_blank" class="text-decoration-underline fw-semibold" style="color: var(--primary-purple);"><?= esc($mentor['cv']); ?></a>
-                            <?php else: ?>
-                                <span class="text-muted italic">Tidak ada file CV yang terunggah sebelumnya.</span>
-                            <?php endif; ?>
+                        <!-- Nama Kelas -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nama Kelas</label>
+                            <input type="text" name="nama_kelas" class="form-control" value="<?= esc($kelas['nama_kelas'] ?? ''); ?>" required>
                         </div>
-                    </div>
-                </div>
 
-                <div class="mt-5 pt-4 border-top d-flex justify-content-end gap-3">
-                    <a href="<?= base_url('admin/mentor'); ?>" class="btn btn-light-custom px-4">Batal</a>
-                    <button type="submit" class="btn btn-purple px-4">
-                        <i class="fas fa-save me-2"></i> Simpan Perubahan
-                    </button>
+                        <!-- Mentor Pengampu -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Mentor Pengampu</label>
+                            <select name="id_mentor" class="form-select" required>
+                                <option value="">-- Pilih Mentor Pengajar --</option>
+                                <?php if (!empty($mentor)) : ?>
+                                    <?php foreach ($mentor as $m) : ?>
+                                        <option value="<?= $m['id_mentor']; ?>" <?= (isset($kelas['id_mentor']) && $kelas['id_mentor'] == $m['id_mentor']) ? 'selected' : ''; ?>>
+                                            <?= esc($m['nama_mentor']); ?> <?= !empty($m['keahlian']) ? '- ' . esc($m['keahlian']) : ''; ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                        </div>
+
+                        <!-- Kategori Kelas -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Kategori Kelas</label>
+                            <input type="text" name="kategori" class="form-control" value="<?= esc($kelas['kategori'] ?? ''); ?>" required>
+                        </div>
+
+                        <!-- Tipe Kelas -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Tipe Kelas</label>
+                            <?php 
+                                $tipeAktif = $kelas['jenis_kelas'] ?? ($kelas['tipe_kelas'] ?? ''); 
+                            ?>
+                            <select name="tipe_kelas" class="form-select" required>
+                                <option value="">-- Pilih Tipe --</option>
+                                <option value="Online" <?= ($tipeAktif == 'Online') ? 'selected' : ''; ?>>Online</option>
+                                <option value="Offline" <?= ($tipeAktif == 'Offline') ? 'selected' : ''; ?>>Offline</option>
+                                <option value="Hybrid" <?= ($tipeAktif == 'Hybrid') ? 'selected' : ''; ?>>Hybrid</option>
+                            </select>
+                        </div>
+
+                        <!-- Input Jumlah Pertemuan -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Jumlah Pertemuan</label>
+                            <input type="number" name="jumlah_pertemuan" class="form-control" min="1" value="<?= esc($kelas['jumlah_pertemuan'] ?? ''); ?>" required>
+                        </div>
+
+                        <!-- Input Harga Reguler & Privat -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Harga Kelas Reguler (Rp)</label>
+                                <input type="number" name="harga_reguler" value="<?= $kelas['harga_reguler']; ?>" class="form-control" required>
+                                <div class="form-text">Harga untuk kelas kelompok/reguler.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Harga Kelas Privat (Rp)</label>
+                                <input type="number" name="harga_privat" value="<?= $kelas['harga_privat']; ?>" class="form-control" required>
+                                <div class="form-text">Harga untuk kelas eksklusif 1-on-1.</div>
+                            </div>
+                        </div>
+
+                        <!-- Kapasitas Peserta -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Kapasitas Peserta</label>
+                            <input type="number" name="kapasitas" class="form-control" value="<?= esc($kelas['kapasitas'] ?? ''); ?>" min="1" required>
+                        </div>
+
+                        <!-- Tanggal Pelaksanaan -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Tanggal Pelaksanaan</label>
+                            <input type="date" name="tanggal_mulai_kelas" class="form-control" value="<?= esc($kelas['tanggal_mulai_kelas'] ?? ''); ?>" required>
+                        </div>
+
+                        <!-- Ringkasan (Ditambahkan) -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Ringkasan Singkat</label>
+                            <textarea name="ringkasan" class="form-control" rows="2" placeholder="Tuliskan ringkasan singkat tentang kelas..." required><?= esc($kelas['ringkasan'] ?? ''); ?></textarea>
+                        </div>
+
+                        <!-- Deskripsi Lengkap (Ditambahkan) -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Deskripsi Lengkap</label>
+                            <textarea name="deskripsi" class="form-control" rows="4" placeholder="Tuliskan deskripsi lengkap kelas..." required><?= esc($kelas['deskripsi'] ?? ''); ?></textarea>
+                        </div>
+
+                        <!-- Banner / Foto Kelas -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Banner / Foto Kelas</label>
+                            <?php if (!empty($kelas['thumbnail'])) : ?>
+                                <div class="mb-2">
+                                    <img src="<?= base_url('uploads/kelas/' . $kelas['thumbnail']); ?>" alt="Banner Kelas" class="img-thumbnail rounded-3" style="max-height: 120px;">
+                                </div>
+                            <?php endif; ?>
+                            <input type="file" name="foto" class="form-control" accept="image/*">
+                            <div class="form-text text-muted">Biarkan kosong jika tidak ingin mengubah banner.</div>
+                        </div>
+
+                        <!-- Status Kelas -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Status Kelas</label>
+                            <select name="status" class="form-select" required>
+                                <option value="aktif" <?= (isset($kelas['status']) && strtolower($kelas['status']) == 'aktif') ? 'selected' : ''; ?>>Aktif</option>
+                                <option value="nonaktif" <?= (isset($kelas['status']) && strtolower($kelas['status']) == 'nonaktif') ? 'selected' : ''; ?>>Non Aktif</option>
+                                <option value="draft" <?= (isset($kelas['status']) && strtolower($kelas['status']) == 'draft') ? 'selected' : ''; ?>>Draft</option>
+                            </select>
+                        </div>
+
+                        <!-- Tombol Aksi -->
+                        <div class="d-flex justify-content-between pt-2">
+                            <a href="<?= base_url('admin/master-kelas'); ?>" class="btn btn-secondary rounded-pill px-4">Kembali</a>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4">Simpan Perubahan</button>
+                        </div>
+                    </form>
+
                 </div>
-            </form>
+            </div>
         </div>
-
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
 
     <script>
+        // Script Tanggal Dinamis Bahasa Indonesia
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         const today = new Date();
         document.getElementById('current-date').innerText = today.toLocaleDateString('id-ID', options);
     </script>
+
 </body>
 </html>

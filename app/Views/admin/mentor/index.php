@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= esc($title); ?> - Creativemu Academy</title>
+    
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
@@ -322,6 +323,11 @@
                     <i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span>
                 </a>
             </li>
+             <li class="nav-item">
+                <a href="<?= base_url('admin/angket'); ?>" class="nav-link">
+                    <i class="fas fa-award"></i> <span>Angket</span>
+                </a>
+            </li>
             <li class="nav-item">
                 <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link">
                     <i class="fas fa-award"></i> <span>Sertifikat</span>
@@ -357,14 +363,14 @@
             <div class="d-flex align-items-center gap-4">
                 <div class="text-muted d-none d-md-block px-3 py-2 rounded-pill bg-light" id="current-date" style="font-size: 0.82rem; font-weight: 600; color: #794bc4 !important;">
                     Memuat tanggal...
-              </div>
+                </div>
                 <div class="admin-profile">
-    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
-    <div class="admin-info">
-        <?= esc(session()->get('nama')); ?>
-        <small>Administrator</small>
-    </div>
-</div>
+                    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
+                    <div class="admin-info">
+                        <h6><?= esc(session()->get('nama')); ?></h6>
+                        <small>Administrator</small>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -382,7 +388,7 @@
                 </div>
                 <div class="d-flex align-items-center gap-3">
                     <span class="badge px-3 py-2 rounded-pill fw-semibold" style="background-color: var(--light-purple); color: var(--primary-purple) !important;">
-                        Total: <?= isset($mentor) ? count($mentor) : 0; ?> Mentor Aktif
+                        Total: <?= isset($total_aktif) ? $total_aktif : 0; ?> Mentor Aktif
                     </span>
                     <button type="button" class="btn btn-purple rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalTambahMentor">
                         <i class="fas fa-plus me-2"></i> Tambah Mentor
@@ -457,6 +463,7 @@
 
     </div>
 
+    <!-- === MODAL TAMBAH MENTOR === -->
     <div class="modal fade" id="modalTambahMentor" tabindex="-1" aria-labelledby="modalTambahMentorLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
@@ -466,9 +473,9 @@
                     </h5>
                     <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                
+
                 <form action="<?= base_url('admin/mentor/simpan'); ?>" method="POST" enctype="multipart/form-data">
-                    <?= csrf_field(); ?>
+    <?= csrf_field(); ?>
                     <div class="modal-body">
                         <div class="row g-3">
                             <div class="col-md-6">
@@ -499,6 +506,10 @@
                                 </select>
                             </div>
                             <div class="col-12">
+                                <label class="form-label">Bio / Biografi Singkat</label>
+                                <textarea name="bio" class="form-control" rows="3" placeholder="Masukkan bio singkat mentor..."><?= isset($mentor['bio']) ? esc($mentor['bio']) : ''; ?></textarea>
+                            </div>
+                            <div class="col-12">
                                 <label class="form-label">Unggah Dokumen CV (Format PDF / DOCX)</label>
                                 <input type="file" name="cv" class="form-control" accept=".pdf,.doc,.docx">
                                 <small class="text-muted">Maksimal ukuran file menyesuaikan konfigurasi server.</small>
@@ -517,6 +528,7 @@
         </div>
     </div>
 
+    <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>

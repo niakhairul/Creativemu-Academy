@@ -1,9 +1,13 @@
+<?= $this->extend('admin/layout/template'); ?>
+<?= $this->section('content'); ?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= esc($title); ?> - Creativemu Academy</title>
+    
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
@@ -173,47 +177,6 @@
             border: 1px solid rgba(121, 75, 196, 0.05);
         }
 
-        .card-title-custom {
-            font-weight: 800;
-            color: var(--dark-purple);
-            margin-bottom: 0;
-            font-size: 1.15rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .card-title-custom i {
-            color: var(--primary-purple);
-        }
-
-        /* --- Modal Customization --- */
-        .modal-content {
-            border-radius: 20px;
-            border: none;
-            box-shadow: 0 20px 50px rgba(30, 15, 51, 0.2);
-        }
-
-        .modal-header {
-            background-color: var(--light-purple);
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-            padding: 20px 25px;
-            border-bottom: 1px solid rgba(121, 75, 196, 0.08);
-        }
-
-        .modal-body {
-            padding: 25px;
-        }
-
-        .modal-footer {
-            background-color: #fcfbfe;
-            border-bottom-left-radius: 20px;
-            border-bottom-right-radius: 20px;
-            padding: 15px 25px;
-            border-top: 1px solid rgba(121, 75, 196, 0.08);
-        }
-
         /* --- Form Styling --- */
         .form-label {
             font-weight: 600;
@@ -254,35 +217,6 @@
             color: #ffffff;
         }
 
-        /* --- Table Styling --- */
-        .table-custom {
-            vertical-align: middle;
-            font-size: 0.9rem;
-        }
-
-        .table-custom th {
-            background-color: var(--light-purple);
-            color: var(--dark-purple);
-            font-weight: 700;
-            padding: 15px;
-            border: none;
-        }
-
-        .table-custom td {
-            padding: 15px;
-            border-bottom: 1px solid #f0edf6;
-            color: #4a4259;
-        }
-
-        .table-hover tbody tr {
-            transition: all 0.2s ease;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: var(--light-purple);
-            transform: scale(1.005);
-        }
-
         @keyframes mainFadeIn {
             from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
@@ -303,12 +237,12 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link">
+                <a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link active">
                     <i class="fas fa-book"></i> <span>Master Kelas</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="<?= base_url('admin/mentor'); ?>" class="nav-link active">
+                <a href="<?= base_url('admin/mentor'); ?>" class="nav-link">
                     <i class="fas fa-chalkboard-user"></i> <span>Mentor</span>
                 </a>
             </li>
@@ -320,11 +254,6 @@
             <li class="nav-item">
                 <a href="<?= base_url('admin/validasi'); ?>" class="nav-link">
                     <i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span>
-                </a>
-            </li>
-             <li class="nav-item">
-                <a href="<?= base_url('admin/angket'); ?>" class="nav-link">
-                    <i class="fas fa-award"></i> <span>Angket</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -356,109 +285,153 @@
         <!-- === TOP NAVBAR === -->
         <div class="top-navbar">
             <div class="dash-header">
-                <h3>Master Kelas</h3>
-                <p>Kelola data pelatihan, tambah kelas baru, dan atur jadwal dengan mudah.</p>
+                <h3>Tambah Master Kelas</h3>
+                <p>Formulir penambahan data pelatihan baru ke sistem.</p>
             </div>
             <div class="d-flex align-items-center gap-4">
-                <div class="text-muted d-none d-md-block px-3 py-2 rounded-pill bg-light" id="current-date" style="font-size: 0.82rem; font-weight: 600; color: #794bc4 !important;">
-                    Memuat tanggal...
-                </div>
                 <div class="admin-profile">
-    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
-    <div class="admin-info">
-        <?= esc(session()->get('nama')); ?>
-        <small>Administrator</small>
-    </div>
-</div>
+                    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
+                    <div class="admin-info">
+                        <h6><?= esc(session()->get('nama')); ?></h6>
+                        <small>Administrator</small>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <?php if (session()->getFlashdata('error')): ?>
-            <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm" role="alert">
-                <i class="fas fa-circle-exclamation me-2"></i> <?= session()->getFlashdata('error'); ?>
+        <?php if (session()->getFlashdata('success')): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <?= session()->getFlashdata('success'); ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
 
-        <div class="content-card">
-            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
-                <div class="card-title-custom d-flex align-items-center">
-                    <div class="rounded-circle p-2 bg-light text-primary me-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                        <i class="fas fa-pen-to-square text-purple" style="color: var(--primary-purple);"></i>
-                    </div>
-                    <span>Formulir Perubahan Data Mentor</span>
+        <!-- === FORM KELAS CONTAINER === -->
+        <div class="container-fluid px-0">
+            <div class="card content-card mb-4">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h5 class="fw-bold text-dark"><i class="fas fa-plus-circle me-2 text-purple"></i> Form Tambah Kelas</h5>
                 </div>
-                <a href="<?= base_url('admin/mentor'); ?>" class="btn btn-light-custom text-decoration-none">
-                    <i class="fas fa-arrow-left me-2"></i> Kembali
-                </a>
-            </div>
+                <div class="card-body">
+                    
+                    <!-- FORM UTAMA -->
+                    <form action="<?= base_url('admin/kelas/store'); ?>" method="POST" enctype="multipart/form-data">
+                        <?= csrf_field(); ?>
 
-            <form action="<?= base_url('admin/mentor/update/' . $mentor['id_mentor']); ?>" method="POST" enctype="multipart/form-data">
-                <?= csrf_field(); ?>
-                
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <label class="form-label">Nama Lengkap & Gelar</label>
-                        <input type="text" name="nama_mentor" class="form-control" value="<?= esc($mentor['nama_mentor']); ?>" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Alamat Email Aktif</label>
-                        <input type="email" name="email" class="form-control" value="<?= esc($mentor['email']); ?>" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">No. Telepon / WhatsApp</label>
-                        <input type="text" name="telepon" class="form-control" value="<?= esc($mentor['telepon']); ?>" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Keahlian Utama / Bidang Pengajaran</label>
-                        <input type="text" name="keahlian" class="form-control" value="<?= esc($mentor['keahlian']); ?>" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Pengalaman Kerja (Tahun)</label>
-                        <input type="number" name="pengalaman" class="form-control" value="<?= esc($mentor['pengalaman']); ?>" min="0" required>
-                    </div>
-                    <div class="col-12">
-    <label class="form-label">Bio / Biografi Singkat</label>
-    <textarea name="bio" class="form-control" rows="3" placeholder="Masukkan bio singkat mentor..."><?= isset($mentor['bio']) ? esc($mentor['bio']) : ''; ?></textarea>
-</div>
-                    <div class="col-md-6">
-                        <label class="form-label">Status Keaktifan</label>
-                        <select name="status" class="form-select" required>
-                            <option value="Aktif" <?= ($mentor['status'] == 'Aktif') ? 'selected' : ''; ?>>Aktif Mengajar</option>
-                            <option value="Non-Aktif" <?= ($mentor['status'] == 'Non-Aktif') ? 'selected' : ''; ?>>Cuti / Non-Aktif</option>
-                        </select>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">Unggah Dokumen CV Baru (Opsional)</label>
-                        <input type="file" name="cv" class="form-control" accept=".pdf,.doc,.docx">
-                        <div class="form-text mt-2">
-                            <i class="fas fa-file-pdf text-danger me-1"></i> CV Saat Ini: 
-                            <?php if (!empty($mentor['cv'])): ?>
-                                <a href="<?= base_url('uploads/cv/' . $mentor['cv']); ?>" target="_blank" class="text-decoration-underline fw-semibold" style="color: var(--primary-purple);"><?= esc($mentor['cv']); ?></a>
-                            <?php else: ?>
-                                <span class="text-muted italic">Tidak ada file CV yang terunggah sebelumnya.</span>
-                            <?php endif; ?>
+                        <!-- Nama Kelas -->
+                        <div class="mb-3">
+                            <label class="form-label">Nama Kelas</label>
+                            <input type="text" class="form-control" name="nama_kelas" required placeholder="Contoh: Fullstack Web Development">
                         </div>
-                    </div>
-                </div>
 
-                <div class="mt-5 pt-4 border-top d-flex justify-content-end gap-3">
-                    <a href="<?= base_url('admin/mentor'); ?>" class="btn btn-light-custom px-4">Batal</a>
-                    <button type="submit" class="btn btn-purple px-4">
-                        <i class="fas fa-save me-2"></i> Simpan Perubahan
-                    </button>
+                        <!-- Kategori -->
+                        <div class="mb-3">
+                            <label class="form-label">Kategori Kelas</label>
+                            <input type="text" class="form-control" name="kategori" required placeholder="Contoh: Pemrograman, Desain, atau Bisnis">
+                        </div>
+
+                        <!-- Pilihan Jenis Kelas (Online / Offline) -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Jenis Pelatihan</label>
+                                <select class="form-select" id="jenis_kelas" name="jenis_kelas" required onchange="toggleJenisKelas()">
+                                    <option value="Online">Online</option>
+                                    <option value="Offline">Offline</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3" id="wrapper-lokasi-media">
+                                <label class="form-label" id="label-lokasi-media">Link Zoom / Platform Online</label>
+                                <input type="text" class="form-control" name="lokasi_media" id="input-lokasi-media" placeholder="Contoh: https://zoom.us/j/xxxxxx">
+                            </div>
+                        </div>
+
+                        <!-- Thumbnail / Foto Kelas -->
+                        <div class="mb-3">
+                            <label class="form-label">Foto / Thumbnail Kelas</label>
+                            <input type="file" class="form-control" name="thumbnail" accept="image/*" required>
+                        </div>
+
+                        <!-- Jadwal Pertemuan Dinamis -->
+                        <div class="mb-3">
+                            <label class="form-label">Daftar Jadwal Sesi Pertemuan</label>
+                            <div id="container-jadwal">
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text">Pertemuan 1</span>
+                                    <input type="datetime-local" class="form-control" name="tanggal_pertemuan[]">
+                                    <button type="button" class="btn btn-outline-danger" onclick="hapusBaris(this)" disabled>
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-purple mt-2" id="btn-tambah-pertemuan">
+                                <i class="fas fa-plus me-1"></i> Tambah Sesi Pertemuan
+                            </button>
+                            <small class="text-muted d-block mt-1">*(Tanggal bisa dikosongkan jika belum pasti, dan bisa diisi menyusul)*</small>
+                        </div>
+
+                        <!-- Kapasitas & Status -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Kapasitas Peserta</label>
+                                <input type="number" class="form-control" name="kapasitas" required placeholder="Contoh: 25">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Status Kelas</label>
+                                <select class="form-select" name="status">
+                                    <option value="Aktif">Aktif</option>
+                                    <option value="Selesai">Non Aktif</option>
+                                    <option value="Aktif">Draft</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-purple mt-3">Simpan Kelas</button>
+                    </form>
+
                 </div>
-            </form>
+            </div>
         </div>
 
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+    <!-- JavaScript untuk Dinamis Form (Jenis Kelas & Tambah Pertemuan) -->
     <script>
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const today = new Date();
-        document.getElementById('current-date').innerText = today.toLocaleDateString('id-ID', options);
+        function toggleJenisKelas() {
+            const jenis = document.getElementById('jenis_kelas').value;
+            const label = document.getElementById('label-lokasi-media');
+            const input = document.getElementById('input-lokasi-media');
+
+            if (jenis === 'Online') {
+                label.innerText = 'Link Zoom / Google Meet';
+                input.placeholder = 'Contoh: https://zoom.us/j/xxxxxx';
+            } else {
+                label.innerText = 'Lokasi / Ruangan (Offline)';
+                input.placeholder = 'Contoh: Lab Komputer Lt. 2 / Gedung A';
+            }
+        }
+
+        let jumlahPertemuan = 1;
+        document.getElementById('btn-tambah-pertemuan').addEventListener('click', function() {
+            jumlahPertemuan++;
+            const container = document.getElementById('container-jadwal');
+            
+            const div = document.createElement('div');
+            div.className = 'input-group mb-2';
+            div.innerHTML = `
+                <span class="input-group-text">Pertemuan ${jumlahPertemuan}</span>
+                <input type="datetime-local" class="form-control" name="tanggal_pertemuan[]">
+                <button type="button" class="btn btn-outline-danger" onclick="hapusBaris(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        });
+
+        function hapusBaris(button) {
+            button.closest('.input-group').remove();
+        }
     </script>
 </body>
 </html>
+
+<?= $this->endSection(); ?>
