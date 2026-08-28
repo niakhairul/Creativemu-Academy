@@ -5,15 +5,13 @@ use CodeIgniter\Model;
 
 class KelasModel extends Model
 {
-    protected $table            = 'kelas';
-    protected $primaryKey       = 'id_kelas';
+    protected $table              = 'kelas';
+    protected $primaryKey         = 'id_kelas';
     
-    // Mengaktifkan fitur otomatis created_at dan updated_at
     protected $useTimestamps    = true;
     protected $createdField     = 'created_at';
     protected $updatedField     = 'updated_at';
 
-    // Kolom yang diizinkan untuk diisi (Mass Assignment) sesuai struktur database Anda
     protected $allowedFields    = [
         'id_mentor',
         'kategori',
@@ -21,13 +19,21 @@ class KelasModel extends Model
         'jumlah_pertemuan',
         'deskripsi',
         'kapasitas',
-        'tanggal_mulai_kelas', // Menyimpan array jadwal pertemuan berformat JSON
+        'tanggal_mulai_kelas', 
         'ringkasan',
         'harga_reguler',       
         'harga_privat',      
-        'status',        // 'Aktif' atau 'Selesai'
-        'tipe_kelas',   // Tambahan: 'Online' atau 'Offline'
-        'lokasi_media',  // Tambahan: Link Zoom / Alamat Ruangan
-        'thumbnail'      // Tambahan: Nama file foto/gambar kelas
+        'status',      
+        'tipe_kelas',   
+        'lokasi_media',
+        'thumbnail'    
     ];
+
+    // TAMBAHKAN FUNGSI INI UNTUK MENGAMBIL DATA BESERTA NAMA MENTOR
+    public function getKelasWithMentor()
+    {
+        return $this->select('kelas.*, mentor.nama_mentor') // Sesuaikan nama tabel mentor jika berbeda (misal: 'tb_mentor')
+                    ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+                    ->findAll();
+    }
 }

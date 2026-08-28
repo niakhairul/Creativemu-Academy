@@ -33,6 +33,10 @@ class Session extends BaseConfig
      */
     public string $cookieName = 'ci_session';
 
+    public bool $cookieSecure   = false;
+    public bool $cookieHTTPOnly = true;
+    public ?string $cookieSameSite = 'Lax';
+
     /**
      * --------------------------------------------------------------------------
      * Session Expiration

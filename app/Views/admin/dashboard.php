@@ -470,60 +470,101 @@
         </div>
 
         <!-- === TAMBAHAN DI BAWAH DIAGRAM (AKTIVITAS & STATISTIK CEPAT) === -->
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <div class="extra-section">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="fw-bold mb-0" style="color: var(--dark-purple);">Pendaftaran Siswa Terbaru</h6>
-                        <a href="<?= base_url('admin/validasi'); ?>" class="text-decoration-none fw-bold" style="font-size: 0.85rem; color: var(--primary-purple);">Kelola Semua &rarr;</a>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
-                            <thead class="table-light text-uppercase fs-7 text-muted">
-                                <tr>
-                                    <th>Nama Peserta</th>
-                                    <th>Pilihan Kelas</th>
-                                    <th>Tanggal Daftar</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="fw-semibold">Ahmad Fauzi</td>
-                                    <td>Fullstack Web Development</td>
-                                    <td>12 Agu 2026</td>
-                                    <td><span class="badge bg-warning text-dark px-2 py-1 rounded-pill">Pending</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-semibold">Siti Aminah</td>
-                                    <td>UI/UX Design Masterclass</td>
-                                    <td>11 Agu 2026</td>
-                                    <td><span class="badge bg-success px-2 py-1 rounded-pill">Diterima</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-semibold">Budi Santoso</td>
-                                    <td>Flutter Mobile App</td>
-                                    <td>10 Agu 2026</td>
-                                    <td><span class="badge bg-success px-2 py-1 rounded-pill">Diterima</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="extra-section text-center py-4 d-flex flex-column justify-content-center align-items-center h-100">
-                    <div class="mb-3 p-3 rounded-circle" style="background: var(--light-purple); color: var(--primary-purple); width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-shield-halved fa-2x"></i>
-                    </div>
-                    <h6 class="fw-bold" style="color: var(--dark-purple);">Sistem Status & Keamanan</h6>
-                    <p class="text-muted small px-3 mb-3">Database MySQL terhubung dengan aman menggunakan CodeIgniter 4 ORM/Query Builder.</p>
-                    <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-semibold" style="font-size: 0.8rem;">
-                        <i class="fas fa-circle fa-2xs me-1 text-success animate-pulse"></i> Server Normal & Stabil
-                    </span>
-                </div>
-            </div>
+        <div class="content-card h-100 p-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="fw-bold mb-0 text-dark">
+            <i class="fas fa-bolt text-primary me-2"></i> Pintasan Admin
+        </h5>
+    </div>
+    <p class="text-muted small mb-4">Akses cepat menu pengelolaan Creativemu Academy.</p>
+
+    <div class="row g-3">
+        <!-- Tombol Validasi -->
+        <div class="col-6">
+            <a href="<?= base_url('admin/validasi'); ?>" class="p-3 bg-light rounded-4 text-decoration-none d-block text-center border border-light transition-hover">
+                <i class="fas fa-clipboard-check text-warning fs-3 mb-2"></i>
+                <h6 class="fw-bold text-dark mb-1 small">Validasi</h6>
+                <small class="text-muted" style="font-size: 0.7rem;">Konfirmasi Peserta</small>
+            </a>
         </div>
+        <!-- Tombol Master Kelas -->
+        <div class="col-6">
+            <a href="<?= base_url('admin/master-kelas'); ?>" class="p-3 bg-light rounded-4 text-decoration-none d-block text-center border border-light transition-hover">
+                <i class="fas fa-book text-primary fs-3 mb-2"></i>
+                <h6 class="fw-bold text-dark mb-1 small">Master Kelas</h6>
+                <small class="text-muted" style="font-size: 0.7rem;">Kelola Pelatihan</small>
+            </a>
+        </div>
+        <!-- Tombol Data Mentor -->
+        <div class="col-6">
+            <a href="<?= base_url('admin/mentor'); ?>" class="p-3 bg-light rounded-4 text-decoration-none d-block text-center border border-light transition-hover">
+                <i class="fas fa-chalkboard-user text-success fs-3 mb-2"></i>
+                <h6 class="fw-bold text-dark mb-1 small">Mentor</h6>
+                <small class="text-muted" style="font-size: 0.7rem;">Daftar Pengajar</small>
+            </a>
+        </div>
+        <!-- Tombol Laporan -->
+        <div class="col-6">
+            <a href="<?= base_url('admin/laporan'); ?>" class="p-3 bg-light rounded-4 text-decoration-none d-block text-center border border-light transition-hover">
+                <i class="fas fa-file-lines text-danger fs-3 mb-2"></i>
+                <h6 class="fw-bold text-dark mb-1 small">Laporan</h6>
+                <small class="text-muted" style="font-size: 0.7rem;">Unduh Rekap</small>
+            </a>
+        </div>
+    </div>
+</div>
+<div class="content-card mb-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0 text-dark">Antrean Validasi Pendaftaran</h5>
+        <a href="<?= base_url('admin/validasi'); ?>" class="text-decoration-none small fw-semibold text-primary">Kelola Semua →</a>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover table-custom mb-0">
+            <thead>
+                <tr>
+                    <th>NAMA PESERTA</th>
+                    <th>PILIHAN KELAS</th>
+                    <th>TANGGAL</th>
+                    <th class="text-center">AKSI CEPAT</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if(empty($pendaftaran_pending)): ?>
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-muted">
+                            <i class="bi bi-check-circle fs-3 text-success d-mb-2"></i>
+                            <p class="mb-0 small">Tidak ada antrean pendaftaran baru yang tertunda.</p>
+                        </td>
+                    </tr>
+                <?php else: ?>
+                    <?php foreach(($pendaftaran_pending ?? []) as $row): ?>
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-dark"><?= esc($row['nama']); ?></div>
+                                <small class="text-muted"><?= esc($row['email']); ?></small>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-primary border border-primary-subtle px-2 py-1">
+                                    <?= esc($row['nama_kelas']); ?>
+                                </span>
+                            </td>
+                            <td><small class="text-muted"><?= date('d M Y', strtotime($row['created_at'] ?? 'now')); ?></small></td>
+                            <td class="text-center">
+                                <a href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm me-1" title="Setujui">
+                                    <i class="bi bi-check-lg"></i>
+                                </a>
+                                <a href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm" title="Tolak">
+                                    <i class="bi bi-x-lg"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
 
     </div>
 

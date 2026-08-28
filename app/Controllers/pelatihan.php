@@ -13,38 +13,66 @@ use App\Models\UserModel;
 
 class Pelatihan extends BaseController
 {
-    public function store()
-{
-    // 1. Ambil file upload bukti pembayaran
-    $fileBukti = $this->request->getFile('bukti_pembayaran');
-    $namaFile = null;
+    protected $db;
 
-    if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
-        $namaFile = $fileBukti->getRandomName();
-        // Pastikan folder public/uploads/bukti_pembayaran sudah ada
-        $fileBukti->move('uploads/bukti_pembayaran', $namaFile);
+    // TAMBAHKAN KODE INI SUPAYA $this->db OTOMATIS AKTIF DI SEMUA FUNGSI
+    public function initController(\CodeIgniter\HTTP\RequestInterface $request, \CodeIgniter\HTTP\ResponseInterface $response, \Psr\Log\LoggerInterface $logger)
+    {
+        parent::initController($request, $response, $logger);
+        $this->db = \Config\Database::connect();
+    }    
+
+    public function store()
+    {
+        $pendaftaranModel = new PendaftaranModel();
+
+        // 1. Tangkap file Pas Foto
+        $fileFoto = $this->request->getFile('pas_foto');
+        $namaFoto = null;
+        if ($fileFoto && $fileFoto->isValid() && !$fileFoto->hasMoved()) {
+            $namaFoto = $fileFoto->getRandomName();
+            $fileFoto->move('uploads/foto/', $namaFoto);
+        }
+
+        // 2. Tangkap file Bukti Pembayaran (jika metode pembayarannya transfer)
+        $fileBukti = $this->request->getFile('bukti_pembayaran');
+        $namaBukti = null;
+        if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
+            $namaBukti = $fileBukti->getRandomName();
+            $fileBukti->move('uploads/bukti/', $namaBukti);
+        }
+
+        // 3. Simpan data ke database
+        $pendaftaranModel->save([
+            'nama'                 => $this->request->getPost('nama'),
+            'email'                => $this->request->getPost('email'),
+            'no_hp'                => $this->request->getPost('no_hp'),
+            'alamat'               => $this->request->getPost('alamat'),
+            'ttl'                  => $this->request->getPost('ttl'),
+            'jenis_kelamin'        => $this->request->getPost('jenis_kelamin'),
+            'pendidikan_terakhir'  => $this->request->getPost('pendidikan_terakhir'),
+            'pas_foto'             => $namaFoto,
+            'pilihan_status'       => $this->request->getPost('pilihan_status'),
+            'pilihan_lokasi'       => $this->request->getPost('pilihan_lokasi'),
+            'pilihan_pelatihan'    => $this->request->getPost('pilihan_pelatihan'),
+            'jenis_kelas'          => $this->request->getPost('jenis_kelas'),
+            'metode_pembelajaran'  => $this->request->getPost('metode_pembelajaran'),
+            'pilihan_kelas'        => $this->request->getPost('pilihan_kelas'),
+            'kategori_kelas'       => $this->request->getPost('kategori_kelas'),
+            'tanggal_mulai_kelas'  => $this->request->getPost('tanggal_mulai_kelas'),
+            'metode_pembayaran'    => $this->request->getPost('metode_pembayaran'),
+            'bukti_pembayaran'     => $namaBukti,
+            'status_pembayaran'    => 'pending',
+            'persetujuan_syarat'   => $this->request->getPost('persetujuan_syarat') ? 1 : 0
+        ]);
+
+        return redirect()->to('/pendaftaran/sukses')->with('success', 'Pendaftaran berhasil dikirim! Menunggu validasi admin.');
     }
 
-    // 2. Siapkan data yang dikirim dari form
-    $data = [
-        'id_users'            => session()->get('id_users'), // Pastikan session login aktif
-        'id_kelas'            => $this->request->getPost('id_kelas'),
-        'jenis_kelas'         => $this->request->getPost('jenis_kelas'),
-        'tanggal_daftar'      => date('Y-m-d'),
-        'bukti_pembayaran'    => $namaFile,
-        'metode_pembayaran'   => $this->request->getPost('metode_pembayaran'),
-        'metode_pembelajaran' => $this->request->getPost('metode_pembelajaran'),
-        'jenis_kelamin'       => $this->request->getPost('jenis_kelamin'),
-        'pendidikan_terakhir' => $this->request->getPost('pendidikan_terakhir'),
-        'status_pembayaran'   => 'pending', // Default awal pending
-    ];
-
-    // 3. Simpan ke database
-    $pendaftaranModel = new \App\Models\PendaftaranModel();
-    $pendaftaranModel->insert($data);
-
-    return redirect()->to('/user/pendaftaran/sukses')->with('pesan', 'Pendaftaran berhasil dikirim!');
-}
+    public function sukses()
+    {
+        return view('pendaftaran_sukses');
+    }
 
     public function login()
     {
@@ -56,19 +84,19 @@ class Pelatihan extends BaseController
         return view('auth/register');
     }
 
-    private function requireLogin()
-    {
-        if (! session()->get('logged_in')) {
-            return redirect()->to(base_url('pelatihan/login'));
-        }
-
-        return null;
+    protected function requireLogin()
+{
+    // Pastikan session 'logged_in' atau 'id_user' sesuai dengan saat proses login berhasil
+    if (!session()->get('logged_in')) {
+        return redirect()->to(base_url('pelatihan/login'))->with('error', 'Sesi habis, silakan login kembali.');
     }
+}
 
-    private function userId(): ?int
-    {
-        return session()->get('id_users') ?? session()->get('id');
-    }
+protected function userId()
+{
+    // Sesuaikan dengan nama session saat user login (misal: 'id' atau 'id_user')
+    return session()->get('id_users') ?? session()->get('id');
+}
 
     private function approvedEnrollment()
     {
@@ -84,17 +112,18 @@ class Pelatihan extends BaseController
 
     public function index()
 {
-    $pendaftaranModel = new \App\Models\PendaftaranModel();
-    $userId = session()->get('id_users');
+    $kelasModel = new \App\Models\KelasModel();
+    
+    // Ambil data dengan join mentor
+    $data['kelas'] = $kelasModel->getKelasWithMentor();
 
-    // Contoh jika menggunakan JOIN ke tabel kelas
-    $data['pendaftaran'] = $pendaftaranModel
-        ->select('pendaftaran.*, kelas.nama_kelas, kelas.mentor, kelas.jadwal')
-        ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-        ->where('pendaftaran.id_users', $userId)
-        ->first();
+    // DEBUG: Cek isi datanya di layar (hapus/komentar jika sudah selesai dicek)
+    echo "<pre>";
+    print_r($data['kelas']);
+    echo "</pre>";
+    exit();
 
-    return view('peserta/dashboard', $data);
+    return view('nama_view_kamu', $data);
 }
 
     public function dashboard()
@@ -190,152 +219,240 @@ class Pelatihan extends BaseController
         return redirect()->to(base_url('pelatihan/profil'))->with('success', 'Profil berhasil diperbarui.');
     }
 
-    public function daftar()
+    public function daftar($id_kelas = null)
 {
-    // 1. Ambil data dari form
-    $kelasId = $this->request->getPost('kelas_id');
-    
-    // Data yang akan disimpan ke tabel pendaftaran/transaksi
-    $dataPendaftaran = [
-        'kelas_id'          => $kelasId,
-        'nama'              => $this->request->getPost('nama'),
-        'email'             => $this->request->getPost('email'),
-        'no_hp'             => $this->request->getPost('no_hp'),
-        'jenis_kelamin'     => $this->request->getPost('jenis_kelamin'),
-        'pendidikan_terakhir' => $this->request->getPost('pendidikan_terakhir'),
-        'jenis_pendaftaran' => $this->request->getPost('jenis_pendaftaran'),
-        'pembayaran'        => $this->request->getPost('pembayaran'),
-        'status'            => 'Pending' // atau status awal pendaftaran
-    ];
-
-    // Handle upload bukti jika ada
-    $fileBukti = $this->request->getFile('bukti');
-    if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
-        $namaFile = $fileBukti->getRandomName();
-        $fileBukti->move('uploads/bukti/', $namaFile);
-        $dataPendaftaran['bukti'] = $namaFile;
+    // Pastikan ID kelas ada
+    if (!$id_kelas) {
+        return redirect()->back()->with('error', 'ID Kelas tidak ditemukan.');
     }
 
-    // 2. Simpan ke tabel pendaftaran
-    // (Sesuaikan Model pendaftaran dengan project kamu, misal: $this->pendaftaranModel->insert(...))
-    $simpan = $this->db->table('pendaftaran')->insert($dataPendaftaran);
+    $modelKelas = new \App\Models\KelasModel();
+    $data['kelas'] = $modelKelas->find($id_kelas);
 
-    if ($simpan) {
-        // --- 3. LOGIKA UNTUK MENGURANGI KUOTA KELAS ---
-        // Asumsikan di tabel kelas ada kolom 'kuota' atau 'sisa_kuota'
-        
-        // Ambil data kelas saat ini terlebih dahulu
-        $kelas = $this->db->table('kelas')->where('id_kelas', $kelasId)->get()->getRowArray();
-        
-        if ($kelas && isset($kelas['kuota']) && $kelas['kuota'] > 0) {
-            $kuotaBaru = $kelas['kuota'] - 1; // Kurangi 1
-            
-            // Update kuota di database
-            $this->db->table('kelas')->where('id_kelas', $kelasId)->update(['kuota' => $kuotaBaru]);
+    // Jika data kelas di database tidak ada
+    if (!$data['kelas']) {
+        throw new \CodeIgniter\Exceptions\PageNotFoundException('Kelas tidak ditemukan');
+    }
+
+    // Ambil data user yang sedang login (jika ada)
+    $userId = session()->get('id_user'); // Sesuaikan dengan session Anda
+    $modelUser = new \App\Models\UserModel();
+    $data['user'] = $modelUser->find($userId);
+
+    return view('pelatihan/form_daftar', $data);
+}
+    public function pendaftaran($id_kelas = null)
+{
+    if ($id_kelas === null) {
+        return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('error', 'Pilih kelas terlebih dahulu.');
+    }
+
+    $db = \Config\Database::connect();
+
+    // Ambil data kelas dan mentor
+    $kelas = $db->table('kelas')
+        ->select('kelas.*, mentor.*') 
+        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+        ->where('kelas.id_kelas', $id_kelas)
+        ->get()
+        ->getRowArray();
+
+    if (!$kelas) {
+        return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('error', 'Kelas tidak ditemukan.');
+    }
+
+    // Normalisasi nama mentor
+    $kelas['nama_mentor'] = $kelas['nama_mentor'] 
+        ?? $kelas['nama'] 
+        ?? $kelas['nama_lengkap'] 
+        ?? $kelas['username'] 
+        ?? 'Mentor';
+
+    $data['kelas'] = $kelas;
+
+    // Ambil data user yang sedang login
+    $userId = method_exists($this, 'userId') ? $this->userId() : session()->get('id_users');
+    
+    $data['user'] = [];
+    if ($userId) {
+        $data['user'] = $db->table('users')->where('id_users', $userId)->get()->getRowArray();
+    }
+
+    return view('peserta/pendaftaran', $data);
+}
+
+    public function simpanPendaftaran()
+{
+    $db = \Config\Database::connect();
+    
+    // Proses upload file Pas Foto (3x4)
+    $namaFoto = null;
+    $fileFoto = $this->request->getFile('pas_foto'); 
+    if ($fileFoto && $fileFoto->isValid() && ! $fileFoto->hasMoved()) {
+        if ($fileFoto->getSize() > 2 * 1024 * 1024) {
+            return redirect()->back()->withInput()->with('error', 'Ukuran pas foto maksimal 2 MB.');
         }
-        // ---------------------------------------------
 
-        // Redirect dengan pesan sukses
-        return redirect()->to(base_url('pelatihan/sukses'))->with('success', 'Pendaftaran berhasil dikirim!');
-    } else {
-        // Jika gagal
-        return redirect()->back()->with('error', 'Gagal memproses pendaftaran.');
+        $folderFoto = 'uploads/foto/';
+        if (! is_dir(FCPATH . $folderFoto)) {
+            mkdir(FCPATH . $folderFoto, 0777, true);
+        }
+
+        $namaFoto = $fileFoto->getRandomName();
+        $fileFoto->move(FCPATH . $folderFoto, $namaFoto);
+    }
+
+    // Proses upload file bukti pembayaran
+    $namaBukti = null;
+    $fileBukti = $this->request->getFile('bukti_pembayaran'); 
+    if ($fileBukti && $fileBukti->isValid() && ! $fileBukti->hasMoved()) {
+        if ($fileBukti->getSize() > 2 * 1024 * 1024) {
+            return redirect()->back()->withInput()->with('error', 'Ukuran file bukti pembayaran maksimal 2 MB.');
+        }
+
+        $folderBukti = 'uploads/bukti/';
+        if (! is_dir(FCPATH . $folderBukti)) {
+            mkdir(FCPATH . $folderBukti, 0777, true);
+        }
+
+        $namaBukti = $fileBukti->getRandomName();
+        $fileBukti->move(FCPATH . $folderBukti, $namaBukti);
+    }
+
+    // Siapkan array data disesuaikan dengan nama input form & struktur database
+    $dataPendaftaran = [
+        'id_kelas'            => $this->request->getPost('id_kelas'),
+        'id_users'            => $this->request->getPost('id_users') ?: (session()->get('id_users') ?? null),
+        'nama'                => $this->request->getPost('nama'),
+        'email'               => $this->request->getPost('email'),
+        'no_hp'               => $this->request->getPost('no_hp'),
+        'alamat'              => $this->request->getPost('alamat'),
+        'ttl'                 => $this->request->getPost('ttl'),
+        'jenis_kelamin'       => $this->request->getPost('jenis_kelamin'),
+        'pendidikan_terakhir' => $this->request->getPost('pendidikan_terakhir'),
+        'pas_foto'            => $namaFoto,
+        'status'              => $this->request->getPost('pilihan_status'),
+        'lokasi_pelatihan'    => $this->request->getPost('pilihan_lokasi'),
+        'pilihan_pelatihan'   => $this->request->getPost('pilihan_pelatihan'),
+        'jenis_kelas'         => $this->request->getPost('jenis_kelas'),
+        'metode_pembelajaran' => strtolower($this->request->getPost('metode_pembelajaran')), // Dipaksa huruf kecil agar sesuai ENUM database ('online'/'offline')
+        'pilihan_kelas'       => $this->request->getPost('pilihan_kelas'),
+        'kategori_kelas'      => $this->request->getPost('kategori_kelas'),
+        'tanggal_mulai_kelas' => $this->request->getPost('tanggal_mulai_kelas'),
+        'metode_pembayaran'   => $this->request->getPost('metode_pembayaran'),
+        'bukti_pembayaran'    => $namaBukti,
+        'status_pembayaran'   => 'pending',
+        'alasan_penolakan'    => null,
+        'persetujuan_syarat'  => $this->request->getPost('persetujuan_syarat') ? 1 : 0,
+    ];
+
+    $pendaftaranModel = new \App\Models\PendaftaranModel();
+
+    try {
+        if ($pendaftaranModel->insert($dataPendaftaran)) {
+            return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('success', 'Pendaftaran berhasil dikirim! Silakan menunggu validasi admin.');
+        } else {
+            $errors = $pendaftaranModel->errors();
+            return redirect()->back()->withInput()->with('error', 'Gagal validasi database: ' . json_encode($errors));
+        }
+    } catch (\Exception $e) {
+        return redirect()->back()->withInput()->with('error', 'Database Exception: ' . $e->getMessage());
     }
 }
 
-    public function pendaftaran()
-    {
-        if ($redirect = $this->requireLogin()) {
-            return $redirect;
-        }
-
-        $idKelas = $this->request->getGet('id');
-        $kelas = (new KelasModel())
-            ->select('kelas.*, mentor.nama_mentor')
-            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-            ->where('kelas.id_kelas', $idKelas)
-            ->first();
-
-        if (! $kelas) {
-            return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('error', 'Kelas tidak ditemukan.');
-        }
-
-        return view('peserta/pendaftaran', [
-            'kelas' => $kelas,
-            'user' => (new UserModel())->find($this->userId()),
-        ]);
-    }
-
-    public function simpanPendaftaran()
-    {
-        if ($redirect = $this->requireLogin()) {
-            return $redirect;
-        }
-
-        $userId = $this->userId();
-        $kelasId = $this->request->getPost('kelas_id');
-        $metodePembayaran = $this->request->getPost('pembayaran');
-
-        $pendaftaranModel = new PendaftaranModel();
-        $cek = $pendaftaranModel
-            ->where('id_users', $userId)
-            ->where('id_kelas', $kelasId)
-            ->where('status_pendaftaran !=', 'Ditolak')
-            ->first();
-
-        if ($cek) {
-            return redirect()->to(base_url('peserta/dashboard'))->with('error', 'Anda sudah memiliki pendaftaran untuk kelas ini.');
-        }
-
-        $namaFile = null;
-        $file = $this->request->getFile('bukti');
-        if ($file && $file->isValid() && ! $file->hasMoved()) {
-            if ($file->getSize() > 2 * 1024 * 1024) {
-                return redirect()->back()->with('error', 'Ukuran bukti pembayaran maksimal 2 MB.');
-            }
-
-            $folder = FCPATH . 'uploads/bukti_pembayaran';
-            if (! is_dir($folder)) {
-                mkdir($folder, 0777, true);
-            }
-
-            $namaFile = $file->getRandomName();
-            $file->move($folder, $namaFile);
-        }
-
-        // TAMBAHKAN PENANGKAPAN DATA DI SINI:
-        $pendaftaranModel->insert([
-            'id_users'             => $userId,
-            'id_kelas'             => $kelasId,
-            'jenis_kelas'          => $this->request->getPost('jenis_kelas'),          // <-- Ditambahkan
-            'metode_pembelajaran'  => $this->request->getPost('metode'),
-            'metode_pembayaran'    => $metodePembayaran,
-            'jenis_kelamin'        => $this->request->getPost('jenis_kelamin'),        // <-- Ditambahkan
-            'pendidikan_terakhir'  => $this->request->getPost('pendidikan_terakhir'),  // <-- Ditambahkan
-            'tanggal_daftar'       => date('Y-m-d H:i:s'),                              // <-- Pastikan tanggal terisi jika ada kolomnya
-            'bukti_pembayaran'     => $namaFile,
-            'status_pendaftaran'   => 'Menunggu',
-            'status_pembayaran'    => $namaFile ? 'Belum Diverifikasi' : 'Menunggu Bukti',
-        ]);
-
-        return redirect()->to(base_url('peserta/dashboard'))->with('success', 'Pendaftaran berhasil dikirim. Silakan menunggu validasi admin.');
-    }
-
     public function status()
-    {
-        if ($redirect = $this->requireLogin()) {
-            return $redirect;
-        }
+{
+    $keyword = $this->request->getGet('keyword') ?? $this->request->getPost('keyword');
+    $pendaftaran = [];
 
-        $pendaftaran = (new PendaftaranModel())
+    if ($keyword) {
+        $pendaftaran = (new \App\Models\PendaftaranModel())
             ->select('pendaftaran.*, kelas.nama_kelas')
             ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-            ->where('pendaftaran.id_users', $this->userId())
+            ->groupStart()
+                ->where('pendaftaran.email', $keyword)
+                ->orWhere('pendaftaran.no_hp', $keyword)
+            ->groupEnd()
             ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
-            ->first();
-
-        return view('peserta/status_pendaftaran', ['pendaftaran' => $pendaftaran]);
+            ->findAll();
     }
+
+    return view('peserta/status_pendaftaran', [
+        'pendaftaran' => $pendaftaran,
+        'keyword'     => $keyword
+    ]);
+}
+
+    public function updateBukti($id)
+{
+    // Ambil data pendaftaran berdasarkan ID
+    $pendaftaranModel = new \App\Models\PendaftaranModel();
+    $pendaftaran = $pendaftaranModel->find($id);
+
+    if (!$pendaftaran) {
+        return redirect()->back()->with('error', 'Data pendaftaran tidak ditemukan.');
+    }
+
+    // Ambil file bukti pembayaran yang baru diunggah
+    $fileBukti = $this->request->getFile('bukti_pembayaran');
+
+    if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
+        // Hapus file bukti lama jika ada
+        if (!empty($pendaftaran['bukti_pembayaran']) && file_exists(FCPATH . 'uploads/pembayaran/' . $pendaftaran['bukti_pembayaran'])) {
+            unlink(FCPATH . 'uploads/pembayaran/' . $pendaftaran['bukti_pembayaran']);
+        }
+
+        // PERBAIKAN DI SINI: Menambahkan tanda dolar ($) pada namaBaru
+        $namaBaru = $fileBukti->getRandomName();
+        $fileBukti->move(FCPATH . 'uploads/pembayaran', $namaBaru);
+
+        // Update data di database: masukkan file baru, ubah status jadi 'pending' / 'menunggu verifikasi', dan kosongkan alasan penolakan sebelumnya
+        $pendaftaranModel->update($id, [
+            'bukti_pembayaran' => $namaBaru,
+            'status' => 'pending', 
+            'alasan_penolakan' => null
+        ]);
+
+        return redirect()->to(base_url('pelatihan/status?keyword=' . $pendaftaran['email']))
+                         ->with('success', 'Bukti pembayaran berhasil dikirim ulang! Silakan tunggu verifikasi admin.');
+    }
+
+    return redirect()->back()->with('error', 'Gagal mengunggah file. Pastikan format dan ukuran file sudah sesuai.');
+}
+
+    public function ajax_cek_status()
+{
+    $keyword = $this->request->getGet('keyword');
+    
+    // Pastikan model terpanggil dengan benar
+    $pendaftaranModel = new \App\Models\PendaftaranModel(); 
+    
+    // Cari data berdasarkan email atau no_hp
+    $pendaftaran = $pendaftaranModel->groupStart()
+                                    ->like('email', $keyword)
+                                    ->orLike('no_hp', $keyword)
+                                    ->groupEnd()
+                                    ->first();
+
+    // Set header agar browser tahu ini adalah format JSON
+    header('Content-Type: application/json');
+
+    if ($pendaftaran) {
+        // Jika data ditemukan
+        echo json_encode([
+            'status' => 'success',
+            'data' => $pendaftaran
+        ]);
+        exit;
+    } else {
+        // Jika data tidak ditemukan
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Data pendaftaran dengan email atau nomor HP tersebut tidak ditemukan.'
+        ]);
+        exit;
+    }
+}
 
     public function kelas()
     {
@@ -354,21 +471,34 @@ class Pelatihan extends BaseController
         return view('peserta/kelas', ['kelas' => $kelas]);
     }
 
-    public function detailKelas()
-    {
-        if ($redirect = $this->requireLogin()) {
-            return $redirect;
-        }
+    public function daftarKelas()
+{
+    $kelasModel = new \App\Models\KelasModel();
 
-        $idKelas = $this->request->getGet('id');
-        $kelas = (new KelasModel())
-            ->select('kelas.*, mentor.nama_mentor')
-            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-            ->where('kelas.id_kelas', $idKelas)
-            ->first();
+    // Harus mengambil banyak data (array multidimensi)
+    $data['kelas'] = $kelasModel->getKelasWithMentor(); 
 
-        return view('peserta/detail_kelas', ['kelas' => $kelas]);
+    return view('peserta/daftar_kelas', $data);
+}
+
+    public function detail($id)
+{
+    $kelasModel = new \App\Models\KelasModel();
+    
+    // Mengambil data kelas berdasarkan ID beserta data mentornya
+    // Pastikan nama tabel mentor di database kamu sesuai (misal: 'mentor' atau 'tb_mentor')
+    $data['kelas'] = $kelasModel->select('kelas.*, mentor.nama_mentor')
+                                ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+                                ->find($id);
+
+    // Jika data kelas tidak ditemukan
+    if (empty($data['kelas'])) {
+        throw new \CodeIgniter\Exceptions\PageNotFoundException("Kelas dengan ID $id tidak ditemukan.");
     }
+
+    // Tampilkan ke view detail (sesuaikan dengan nama file view detail kamu, misal: 'pelatihan/detail')
+    return view('peserta/detail_kelas', $data);
+}
 
     public function kbm()
     {
@@ -576,7 +706,7 @@ class Pelatihan extends BaseController
             $hasilUjian = (new HasilUjianModel())
                 ->where('id_kelas', $pendaftaran['id_kelas'])
                 ->groupStart()
-                    ->where('id_user', $this->userId())
+                    ->where('id_users', $this->userId())
                     ->orWhere('id_users', $this->userId())
                 ->groupEnd()
                 ->orderBy('id_hasil_ujian', 'DESC')
@@ -607,7 +737,7 @@ class Pelatihan extends BaseController
         $jadwal = (new JadwalKelasModel())->where('id_kelas', $pendaftaran['id_kelas'])->orderBy('pertemuan_ke', 'ASC')->findAll();
         $absensiModel = new AbsensiModel();
         foreach ($jadwal as &$item) {
-            $item['absensi'] = $absensiModel->where('id_jadwal_kelas', $item['id_jadwal_kelas'])->where('id_user', $this->userId())->first();
+            $item['absensi'] = $absensiModel->where('id_jadwal_kelas', $item['id_jadwal_kelas'])->where('id_users', $this->userId())->first();
         }
 
         return view('peserta/absensi', ['jadwal' => $jadwal]);
@@ -627,7 +757,7 @@ class Pelatihan extends BaseController
 
         (new AbsensiModel())->insert([
             'id_jadwal_kelas' => $idJadwal,
-            'id_user' => $this->userId(),
+            'id_users' => $this->userId(),
             'status' => 'hadir',
             'waktu_absen' => date('Y-m-d H:i:s'),
         ]);
@@ -650,7 +780,7 @@ class Pelatihan extends BaseController
         $absensiModel = new AbsensiModel();
         $jumlahHadir = $jumlahIzin = $jumlahAlpa = 0;
         foreach ($jadwal as &$item) {
-            $item['absensi'] = $absensiModel->where('id_jadwal_kelas', $item['id_jadwal_kelas'])->where('id_user', $this->userId())->first();
+            $item['absensi'] = $absensiModel->where('id_jadwal_kelas', $item['id_jadwal_kelas'])->where('id_users', $this->userId())->first();
             $status = $item['absensi']['status'] ?? null;
             if ($status === 'hadir') $jumlahHadir++;
             if ($status === 'izin') $jumlahIzin++;

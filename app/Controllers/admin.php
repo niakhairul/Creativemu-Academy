@@ -12,6 +12,20 @@ use App\Models\PendaftaranModel;
 class Admin extends BaseController
 {
     
+    public function initController(\CodeIgniter\HTTP\RequestInterface $request, \CodeIgniter\HTTP\ResponseInterface $response, \Psr\Log\LoggerInterface $logger)
+{
+    // Do Not Edit This Line
+    parent::initController($request, $response, $logger);
+
+    // Cek apakah session session 'logged_in' ada DAN rolenya adalah 'admin'
+    $session = session();
+    if (!$session->get('logged_in') || $session->get('role') != 'admin') {
+        // Jika belum login / bukan admin, arahkan ke halaman login
+        header('Location: ' . base_url('pelatihan/login'));
+        exit();
+    }
+}
+
     public function index()
 {
     // 1. Panggil model mentor (sesuaikan nama modelnya jika berbeda)
@@ -292,33 +306,41 @@ public function masterKelas()
     }
 
     public function validasi()
-    {
-        $pendaftaranModel = new PendaftaranModel();
-
-        $data = [
-            'title' => 'Validasi Pendaftaran - Panel Admin',
-            'pendaftaran' => $pendaftaranModel
-                ->select('pendaftaran.*, users.nama, users.email, users.no_hp, kelas.nama_kelas')
-                ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
-                ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-                ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
-                ->findAll()
-        ];
-
-        return view('admin/validasi/index', $data);
-    }
-
-    // Fungsi untuk menyetujui validasi pembayaran pendaftaran
-    public function updateValidasi($id_pendaftaran)
 {
     $pendaftaranModel = new \App\Models\PendaftaranModel();
 
-    // Pastikan nilai yang dikirim adalah 'terkonfirmasi'
-    $pendaftaranModel->update($id_pendaftaran, [
-        'status_pembayaran' => 'terkonfirmasi'
-    ]);
+    $data = [
+        'title' => 'Validasi Pendaftaran - Panel Admin',
+        'pendaftaran' => $pendaftaranModel
+            ->select('pendaftaran.*, kelas.nama_kelas')
+            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+            ->findAll()
+    ];
 
-    return redirect()->to(base_url('admin/validasi'))->with('pesan', 'Pendaftaran berhasil disetujui!');
+    return view('admin/validasi/index', $data);
+}
+
+     public function updateValidasi($id_pendaftaran, $aksi)
+{
+    // Tentukan status baru
+    $statusBaru = ($aksi == 'setuju') ? 'terkonfirmasi' : 'ditolak';
+
+    // Update langsung menggunakan Database Connection (Query Builder Builder)
+    $db = \Config\Database::connect();
+    $builder = $db->table('pendaftaran');
+    $builder->where('id_pendaftaran', $id_pendaftaran);
+    $update = $builder->update(['status_pembayaran' => $statusBaru]);
+
+    // Cek apakah query berhasil dijalankan oleh database
+    if (!$update) {
+        $error = $db->error();
+        dd("Gagal update database:", $error);
+    }
+
+    $pesan = ($aksi == 'setuju') ? 'Pendaftaran berhasil disetujui!' : 'Pendaftaran berhasil ditolak.';
+
+    return redirect()->to(base_url('admin/validasi'))->with('pesan', $pesan);
 }
 
    public function angket()
@@ -435,7 +457,7 @@ public function update($id)
     $judulLama  = $angketLama['judul_angket'] ?? '';
 
     // Tangkap data dari form edit
-    Yoga: // (lewati label, fokus ke kode bawah)
+   
     $judulBaru  = $this->request->getPost('judul_angket');
     $idKelas    = $this->request->getPost('id_kelas');
     $kategori   = $this->request->getPost('kategori');   // Array

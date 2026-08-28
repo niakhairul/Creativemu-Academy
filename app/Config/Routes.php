@@ -4,106 +4,124 @@ use CodeIgniter\Router\RouteCollection;
 
 /** @var RouteCollection $routes */
 
-$routes->get('/', 'Pelatihan::login');
-
+// ===== ROUTE UTAMA & AUTENTIKASI =====
+$routes->get('/', 'Pelatihan::daftarKelas');
 $routes->get('pelatihan/login', 'Pelatihan::login');
 $routes->get('pelatihan/register', 'Pelatihan::register');
+
+// Tambahkan baris ini untuk menjembatani link yang mengarah ke 'auth/...'
+$routes->get('auth/login', 'Pelatihan::login');
+$routes->get('auth/register', 'Pelatihan::register');
 
 $routes->match(['get', 'post'], 'register/save', 'Auth::save');
 $routes->match(['get', 'post'], 'login/process', 'Auth::loginProcess');
 $routes->match(['get', 'post'], 'pelatihan/login/process', 'Auth::loginProcess');
 
-// Pindahkan rute logout ke luar grup admin agar bisa diakses langsung via base_url('logout')
+// Logout
 $routes->get('logout', 'Admin::logout');
 
+// ===== MENU PESERTA & PELATIHAN =====
+$routes->get('pelatihan/pendaftaran/(:num)', 'Pelatihan::pendaftaran/$1');
 $routes->get('pelatihan/pendaftaran', 'Pelatihan::pendaftaran');
+$routes->post('pendaftaran/store', 'PendaftaranController::store');
+$routes->get('pendaftaran/sukses', 'PendaftaranController::sukses');
+
+// Rute Daftar & Simpan Pendaftaran
+$routes->get('pelatihan/daftar', 'Pelatihan::daftar');
+$routes->match(['get', 'post'], 'pelatihan/simpan-pendaftaran', 'Pelatihan::simpanPendaftaran');
+$routes->match(['get', 'post'], 'pelatihan/simpanPendaftaran', 'Pelatihan::simpanPendaftaran');
+
+// Rute Cek Status Pendaftaran
+$routes->get('pelatihan/status', 'Pelatihan::status');
+$routes->post('pelatihan/status', 'Pelatihan::status');
+$routes->post('pelatihan/status/cek', 'Pelatihan::cekStatus');
+
+$routes->get('pelatihan/ajax_cek_status', 'Pelatihan::ajax_cek_status');// (Opsional) Jika nanti Anda juga butuh rute untuk upload ulang pembayaran yang ada di script sebelumnya:
+$routes->post('pelatihan/update-bukti/(:num)', 'Pelatihan::updateBukti/$1');
+
+// Controller alternatif register
+$routes->post('pelatihan/register', 'PelatihanController::register');
+
 $routes->get('pelatihan/status', 'Pelatihan::status');
 $routes->get('pelatihan/detail-kelas', 'Pelatihan::detailKelas');
-
 $routes->get('pelatihan/materi', 'Pelatihan::materi');
 $routes->get('pelatihan/daftar-materi', 'Pelatihan::daftarMateri');
 $routes->get('pelatihan/tugas', 'Pelatihan::tugas');
 $routes->post('pelatihan/upload-tugas', 'Pelatihan::uploadTugas');
 $routes->get('peserta/dashboard', 'Pelatihan::dashboard');
 
-// ===== MENU BARU PESERTA =====
+// ===== MENU PROFIL PESERTA =====
 $routes->get('pelatihan/profil', 'Pelatihan::profil');
 $routes->get('pelatihan/edit-profil', 'Pelatihan::editProfil');
 $routes->post('pelatihan/update-profil', 'Pelatihan::updateProfil');
-$routes->get('pelatihan/daftar-kelas', 'Pelatihan::daftarKelas');
-$routes->get('pelatihan/daftar_kelas', 'Pelatihan::daftarKelas'); // Ditambahkan untuk mengatasi error garis bawah
+
+// ===== MENU KELAS & KBM PESERTA =====
+$routes->get('pelatihan/daftar-kelas', 'Pelatihan::daftarKelas'); 
+$routes->get('pelatihan/detail/(:num)', 'Pelatihan::detail/$1'); 
 $routes->get('pelatihan/kbm', 'Pelatihan::kbm');
+$routes->get('pelatihan/kelas', 'Pelatihan::kelas');
+
+// ===== MENU UJIAN PESERTA =====
 $routes->get('pelatihan/ujian', 'Pelatihan::ujian');
 $routes->get('pelatihan/ujian/mulai', 'Pelatihan::kerjakanUjian');
 $routes->post('pelatihan/ujian/kumpulkan', 'Pelatihan::submitUjian');
 $routes->get('pelatihan/ujian/hasil', 'Pelatihan::hasilUjian');
+
+// ===== MENU ANGKET & SERTIFIKAT PESERTA =====
 $routes->get('pelatihan/angket', 'Pelatihan::angket');
 $routes->post('pelatihan/angket/simpan', 'Pelatihan::simpanAngket');
 $routes->get('pelatihan/sertifikat', 'Pelatihan::sertifikat');
+
+// ===== MENU PENGATURAN AKUN PESERTA =====
 $routes->get('pelatihan/pengaturan', 'Pelatihan::pengaturan');
 $routes->get('pelatihan/ubah-password', 'Pelatihan::ubahPassword');
 $routes->post('pelatihan/update-password', 'Pelatihan::updatePassword');
 
-// Perbaikan untuk rute daftar (mendukung GET agar tidak error saat di-refresh, dan POST untuk simpan)
-$routes->get('pelatihan/daftar', function() {
-    return redirect()->to('pelatihan/pendaftaran');
-});
-$routes->post('pelatihan/daftar', 'Pelatihan::simpanPendaftaran');
-
-$routes->get('pelatihan/kelas', 'Pelatihan::kelas');
-$routes->get('pelatihan/absensi', 'pelatihan::absensi');
-$routes->post('pelatihan/absensi/simpan', 'pelatihan::simpanAbsensi');
+// ===== MENU ABSENSI PESERTA =====
+$routes->get('pelatihan/absensi', 'Pelatihan::absensi');
+$routes->post('pelatihan/absensi/simpan', 'Pelatihan::simpanAbsensi');
 $routes->get('pelatihan/riwayat-absensi', 'Pelatihan::riwayatAbsensi');
 
 // ===== MENU ADMIN =====
 $routes->group('admin', function($routes) {
     $routes->get('dashboard', 'Admin::dashboard');
     $routes->get('pendaftaran', 'Admin::pendaftaran');
+    
+    // Master Kelas
     $routes->get('master-kelas', 'Admin::masterKelas');
-    $routes->match(['get', 'post'], 'master-kelas/tambah', 'Admin::simpanKelas');
     $routes->get('master-kelas/edit/(:num)', 'Admin::editKelas/$1');
-    
+    $routes->match(['get', 'post'], 'master-kelas/tambah', 'Admin::simpanKelas');
     $routes->match(['get', 'post'], 'master-kelas/update/(:num)', 'Admin::updateKelas/$1');
-    
     $routes->match(['get', 'post'], 'master-kelas/store', 'Admin::simpanKelas');
     $routes->match(['get', 'post'], 'master-kelas/simpan', 'Admin::simpanKelas');
 
-    // ===== RUTE MENTOR ADMIN =====
+    // Mentor Admin
     $routes->get('mentor', 'Admin::mentor');
+    $routes->get('mentor/detail/(:num)', 'Admin::detailMentor/$1');
     $routes->match(['get', 'post'], 'mentor/store', 'Admin::simpan');
     $routes->match(['get', 'post'], 'mentor/simpan', 'Admin::simpan');
-    
-    $routes->get('mentor/detail/(:num)', 'Admin::detailMentor/$1');
-    
     $routes->match(['get', 'post'], 'mentor/edit/(:num)', 'Admin::editMentor/$1');
     $routes->match(['get', 'post'], 'mentor/update/(:num)', 'Admin::updateMentor/$1');
     $routes->match(['get', 'post'], 'mentor/delete/(:num)', 'Admin::deleteMentor/$1');
 
     $routes->get('data-peserta', 'Admin::dataPeserta');
     
-    // Rute Validasi Pendaftaran Admin
+    // Validasi Pendaftaran Admin
+   // Validasi Pendaftaran Admin
     $routes->get('validasi', 'Admin::validasi');
-    $routes->get('validasi/update/(:num)/(:alphanum)', 'Admin::updateValidasi/$1/$2'); // Ditambahkan untuk tombol Setuju/Validasi
+    $routes->get('validasi/update/(:num)/(:segment)', 'Admin::updateValidasi/$1/$2');
 
-    // ===== RUTE MONITORING & TAMBAH ANGKET ADMIN =====
+    // Angket Admin
     $routes->get('angket', 'Admin::angket');
     $routes->get('angket/tambah_angket', 'Admin::tambahAngket');
-    
-    // Rute Detail Angket
     $routes->get('angket/detail/(:num)', 'Admin::detailAngket/$1');
-    
-    // Rute Edit & Update Angket
     $routes->get('angket/edit/(:num)', 'Admin::edit/$1');
     $routes->post('angket/update/(:num)', 'Admin::update/$1');
-    
-    // Rute Delete Angket
     $routes->get('angket/delete/(:num)', 'Admin::delete/$1');
-    
     $routes->match(['get', 'post'], 'angket/simpan', 'Admin::simpanAngket');
-    
-    // Rute Hasil Angket
     $routes->get('hasil_angket', 'Admin::hasilAngket');
 
+    // Sertifikat Admin
     $routes->get('sertifikat', 'Admin::sertifikat');
     $routes->get('sertifikat/upload', 'Admin::uploadSertifikat');
     $routes->post('sertifikat/store', 'Admin::storeSertifikat');
@@ -112,7 +130,7 @@ $routes->group('admin', function($routes) {
 
     $routes->get('laporan', 'Admin::laporan');
 
-    // ===== RUTE PENGATURAN ADMIN =====
+    // Pengaturan Admin
     $routes->get('pengaturan', 'Admin::pengaturan');
     $routes->match(['get', 'post'], 'pengaturan/update', 'Admin::updatePengaturan');
 });

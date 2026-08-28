@@ -12,6 +12,20 @@ use App\Models\UserModel;
 
 class Mentor extends BaseController
 {
+    
+    public function initController(\CodeIgniter\HTTP\RequestInterface $request, \CodeIgniter\HTTP\ResponseInterface $response, \Psr\Log\LoggerInterface $logger)
+{
+    // Do Not Edit This Line
+    parent::initController($request, $response, $logger);
+
+    // Cek apakah session session 'logged_in' ada DAN rolenya adalah 'mentor'
+    $session = session();
+    if (!$session->get('logged_in') || $session->get('role') != 'mentor') {
+        // Jika belum login / bukan mentor, arahkan ke halaman login
+        header('Location: ' . base_url('pelatihan/login'));
+        exit();
+    }
+}
     private function requireMentor()
     {
         if (! session()->get('logged_in')) {
