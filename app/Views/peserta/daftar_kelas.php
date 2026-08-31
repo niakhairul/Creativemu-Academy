@@ -335,61 +335,24 @@
             box-shadow: 0 6px 20px rgba(124, 58, 237, 0.45);
             transform: translateY(-1px);
         }
-
-        .konsultasi-box {
-            background: linear-gradient(135deg, #ffffff 0%, #f5f3ff 100%);
-            border: 1px solid rgba(221, 214, 254, 0.9);
-            border-radius: 24px;
-            padding: 35px 40px;
-            box-shadow: 0 20px 40px rgba(124, 58, 237, 0.08);
-            margin-top: 60px;
-            margin-bottom: 60px;
-            position: relative;
-            overflow: hidden;
-        }
-        .konsultasi-box::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 6px; height: 100%;
-            background: linear-gradient(to bottom, #8b5cf6, #4c1d95);
-        }
-        .btn-konsultasi {
-            border: 1.5px solid #c4b5fd;
-            background: #ffffff;
-            color: #7c3aed;
-            border-radius: 14px;
-            padding: 12px 24px;
-            font-weight: 700;
-            font-size: 0.92rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.08);
-        }
-        .btn-konsultasi:hover {
-            background: #7c3aed;
-            border-color: #7c3aed;
-            color: #ffffff;
-            box-shadow: 0 8px 22px rgba(124, 58, 237, 0.35);
-            transform: translateY(-2px);
-        }
     </style>
 </head>
 <body>
 
-<?php if (session()->getFlashdata('success')): ?>
-    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-        <i class="fas fa-check-circle me-2"></i>
-        <?= session()->getFlashdata('success') ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-<?php endif; ?>
+<!-- NOTIFIKASI FLASH MESSAGE (SUKSES / ERROR) -->
+<div class="container mt-3">
+    <?php if (session()->getFlashdata('success')): ?>
+        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; font-weight: 500;">
+            <i class="bi bi-check-circle-fill me-2"></i> <?= session()->getFlashdata('success') ?>
+        </div>
+    <?php endif; ?>
 
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-        <i class="fas fa-exclamation-circle me-2"></i>
-        <?= session()->getFlashdata('error') ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-<?php endif; ?>
+    <?php if (session()->getFlashdata('error')): ?>
+        <div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; font-weight: 500;">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <?= session()->getFlashdata('error') ?>
+        </div>
+    <?php endif; ?>
+</div>
 
 <!-- Navbar Atas -->
 <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
@@ -405,15 +368,12 @@
 
         <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
             <ul class="navbar-nav gap-4">
-                <li class="nav-item"><a class="nav-link" href="<?= base_url('/') ?>">Beranda</a></li>
                 <li class="nav-item"><a class="nav-link" href="<?= base_url('pelatihan/daftar-kelas') ?>">Program</a></li>
                 <li class="nav-item">
                     <a class="nav-link fw-semibold" data-bs-toggle="modal" data-bs-target="#modalCekStatus" style="cursor: pointer;">
                         <i class="bi bi-search me-1"></i> Cek Status Pendaftaran
                     </a>
                 </li>
-                <li class="nav-item"><a class="nav-link" href="#tentang-section">Tentang Kami</a></li>
-                <li class="nav-item"><a class="nav-link" href="#kontak-section">Kontak</a></li>
             </ul>
         </div>
 
@@ -423,31 +383,6 @@
         </div>
     </div>
 </nav>
-
-<!-- Hero / Header Halaman -->
-<div class="hero-section">
-    <div class="container px-lg-4 position-relative" style="z-index: 1;">
-        <div class="row align-items-center">
-            <div class="col-lg-7 animate-fade-in">
-                <nav aria-label="breadcrumb" class="mb-3">
-                    <ol class="breadcrumb mb-0 small text-muted fw-semibold">
-                        <li class="breadcrumb-item"><a href="<?= base_url('/') ?>" class="text-decoration-none text-muted">Beranda</a></li>
-                        <li class="breadcrumb-item active" aria-current="page" style="color: #5b21b6;">Program Pelatihan</li>
-                    </ol>
-                </nav>
-                <h1 class="page-title mb-3">Wujudkan Masa Depan Kreatif dan Profesional Bersama Kami</h1>
-                <p class="text-muted mb-0 fs-6" style="line-height: 1.8; text-align: justify;">
-                    Selamat datang di pusat pengembangan skill digital masa kini. Creativemu Academy hadir untuk menjembatani bakat Anda dengan standar industri teknologi modern. Jelajahi berbagai pilihan kurikulum kelas interaktif yang dirancang khusus secara komprehensif, dibimbing langsung oleh para pakar berpengalaman, serta didukung metode pembelajaran fleksibel yang siap mengantar Anda meraih karier impian dan portofolio profesional terbaik.
-                </p>
-            </div>
-            <div class="col-lg-5 d-none d-lg-block text-end animate-fade-in floating-icon" style="animation-delay: 0.2s;">
-                <div style="font-size: 7.5rem; line-height: 1; filter: drop-shadow(0 20px 30px rgba(91, 33, 182, 0.25)); color: #5b21b6;">
-                    <i class="bi bi-stack"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Main Content / Daftar Kelas -->
 <div class="container px-lg-4 py-2">
@@ -472,34 +407,6 @@
             </div>
         </form>
     </div>
-
-    <!-- BAGIAN HASIL PENCARIAN STATUS (Jika variabel $pendaftaran dikirim dari Controller setelah user mencari) -->
-    <?php if (isset($pendaftaran) && !empty($pendaftaran)) : ?>
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white mt-4 animate-fade-in">
-            <h4 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle text-primary me-2" style="color: #5b21b6;"></i>Hasil Pelacakan Pendaftaran</h4>
-            <div class="row">
-                <div class="col-md-6 mb-2"><strong>Nama Lengkap:</strong> <?= esc($pendaftaran['nama_lengkap']) ?></div>
-                <div class="col-md-6 mb-2"><strong>Email / HP:</strong> <?= esc($pendaftaran['email']) ?> / <?= esc($pendaftaran['no_hp']) ?></div>
-                <div class="col-md-6 mb-2"><strong>Kelas Pilihan:</strong> <?= esc($pendaftaran['nama_kelas']) ?></div>
-                <div class="col-md-6 mb-2"><strong>Status:</strong> 
-                    <span class="badge <?= strtolower($pendaftaran['status']) == 'disetujui' ? 'bg-success' : (strtolower($pendaftaran['status']) == 'ditolak' ? 'bg-danger' : 'bg-warning text-dark') ?>">
-                        <?= ucfirst($pendaftaran['status']) ?>
-                    </span>
-                </div>
-            </div>
-
-            <!-- Jika Pendaftaran Ditolak, Tampilkan Alasan & Tombol Upload Ulang -->
-            <?php if (strtolower($pendaftaran['status']) == 'ditolak') : ?>
-                <div class="alert alert-danger mt-3 mb-2">
-                    <strong>Pendaftaran Ditolak!</strong> Alasan: <?= esc($pendaftaran['alasan_penolakan'] ?? 'Bukti pembayaran tidak valid atau kurang jelas.') ?>
-                </div>
-
-                <button type="button" class="btn btn-warning fw-bold text-dark w-100 mt-2" data-bs-toggle="modal" data-bs-target="#modalUploadUlang">
-                    <i class="bi bi-upload me-1"></i> Upload Ulang Bukti Pembayaran
-                </button>
-            <?php endif; ?>
-        </div>
-    <?php endif; ?>
 
     <!-- Daftar Kelas Grid -->
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mt-4">
@@ -588,42 +495,8 @@
             <?php $delay += 0.1; endforeach; ?>
         <?php endif; ?>
     </div>
-
-    <!-- SECTION TENTANG KAMI -->
-    <div id="tentang-section" class="row my-5 py-4 align-items-center">
-        <div class="col-lg-6 mb-4 mb-lg-0">
-            <h2 class="fw-bold mb-3 text-dark">Tentang Creativemu Academy</h2>
-            <p class="text-muted" style="line-height: 1.8;">
-                Creativemu Academy adalah lembaga pelatihan berbasis digital yang berfokus pada peningkatan kompetensi generasi muda di bidang teknologi, pemrograman, desain, dan keahlian digital modern lainnya.
-            </p>
-        </div>
-        <div class="col-lg-6 text-center">
-            <div class="p-5 rounded-4 bg-white shadow-sm border">
-                <i class="bi bi-building-fill-check display-1" style="color: #5b21b6;"></i>
-                <h4 class="fw-bold mt-3 text-dark">Membangun Talenta Digital Unggul</h4>
-            </div>
-        </div>
-    </div>
-
-    <!-- Footer Konsultasi Banner -->
-    <div id="kontak-section" class="konsultasi-box d-flex justify-content-between align-items-center flex-wrap gap-4">
-        <div class="d-flex align-items-center gap-3">
-            <div class="p-3 rounded-4 fs-3 d-flex align-items-center justify-content-center floating-icon" style="width: 60px; height: 60px; background-color: rgba(91, 33, 182, 0.12); color: #5b21b6;">
-                <i class="bi bi-headset"></i>
-            </div>
-            <div>
-                <h4 class="fw-bold mb-1 text-dark">Butuh rekomendasi kelas yang pas untuk kariermu?</h4>
-                <p class="text-muted mb-0 small">Konsultasikan kebutuhan belajarmu secara gratis bersama konselor profesional kami.</p>
-            </div>
-        </div>
-        <div>
-            <a href="#" class="btn btn-konsultasi">Mulai Konsultasi <i class="bi bi-chat-dots-fill ms-2"></i></a>
-        </div>
-    </div>
-
 </div>
 
-<!-- MODAL POPUP CEK STATUS (Hanya untuk input pencarian awal) -->
 <!-- MODAL POPUP CEK STATUS -->
 <div class="modal fade" id="modalCekStatus" tabindex="-1" aria-labelledby="modalCekStatusLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -648,9 +521,7 @@
                 </form>
 
                 <!-- Area untuk Menampilkan Hasil Cek Status secara Dinamis -->
-                <div id="hasilPencarianModal" class="mt-4">
-                    <!-- Hasil AJAX akan muncul di sini secara otomatis -->
-                </div>
+                <div id="hasilPencarianModal" class="mt-4"></div>
 
                 <div class="alert alert-light border text-muted small rounded-3 mb-0 mt-3">
                     <i class="bi bi-info-circle me-1" style="color: #5b21b6;"></i> <strong>Tips:</strong> Pastikan data email atau nomor handphone yang diinput sama persis.
@@ -660,29 +531,31 @@
     </div>
 </div>
 
-<!-- Script AJAX untuk Cek Status -->
+<!-- Script AJAX untuk Cek Status & Auto Open Modal -->
+<!-- Script AJAX untuk Cek Status & Auto Open Modal -->
 <script>
 document.getElementById('formCekStatus').addEventListener('submit', function(e) {
     e.preventDefault();
-    
+    lakukanCekStatus();
+});
+
+function lakukanCekStatus() {
     const keyword = document.getElementById('keywordStatus').value;
+    if (!keyword) return;
+
     const hasilDiv = document.getElementById('hasilPencarianModal');
     const btnCek = document.getElementById('btnCek');
 
     btnCek.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Mencari...';
     btnCek.disabled = true;
-
-    // Bersihkan dulu area hasil
     hasilDiv.innerHTML = '';
 
     fetch('<?= base_url("pelatihan/ajax_cek_status") ?>?keyword=' + encodeURIComponent(keyword))
         .then(response => {
-            // Cek apakah server merespons dengan JSON atau error HTML
             const contentType = response.headers.get("content-type");
             if (contentType && contentType.indexOf("application/json") !== -1) {
                 return response.json();
             } else {
-                // Jika server mengembalikan HTML (biasanya halaman error CodeIgniter)
                 return response.text().then(text => { throw new Error(text); });
             }
         })
@@ -691,21 +564,44 @@ document.getElementById('formCekStatus').addEventListener('submit', function(e) 
             btnCek.disabled = false;
 
             if (data.status === 'success') {
-                let statusVal = data.data.status_pendaftaran ? data.data.status_pendaftaran.toLowerCase() : 'pending';
-                
-                let badgeClass = 'bg-warning text-dark';
-                if (statusVal === 'disetujui') badgeClass = 'bg-success';
-                if (statusVal === 'ditolak') badgeClass = 'bg-danger';
+                let statusVal = data.data.status_pembayaran ? data.data.status_pembayaran.toLowerCase() : 'pending';
 
-                let htmlDitolak = '';
-                if (statusVal === 'ditolak') {
-                    htmlDitolak = `
-                        <div class="alert alert-danger mt-3 mb-2 small">
-                            <strong>Pendaftaran Ditolak!</strong> Alasan: ${data.data.alasan_penolakan || 'Tidak valid'}
+                let badgeClass = 'bg-warning text-dark';
+                let statusTeks = 'Pending (Menunggu Validasi)';
+                
+                if (statusVal === 'valid' || statusVal === 'diterima') {
+                    badgeClass = 'bg-success';
+                    statusTeks = 'Diterima / Valid';
+                } else if (statusVal === 'rejected' || statusVal === 'ditolak') {
+                    badgeClass = 'bg-danger';
+                    statusTeks = 'Ditolak';
+                }
+
+                let htmlInfoTambahan = '';
+                if (statusVal === 'valid' || statusVal === 'diterima') {
+                    htmlInfoTambahan = `
+                        <div class="alert alert-success mt-3 mb-2 small">
+                            <strong>Pendaftaran Anda telah disetujui!</strong> Silakan membuat akun terlebih dahulu untuk mengakses dashboard peserta.
                         </div>
-                        <a href="<?= base_url('pelatihan/upload-ulang/') ?>${data.data.id_pendaftaran}" class="btn btn-warning fw-bold text-dark w-100 mt-2 btn-sm">
-                            <i class="bi bi-upload me-1"></i> Upload Ulang Bukti Pembayaran
+                        <a href="<?= base_url('auth/register') ?>" class="btn btn-custom-daftar w-100 mt-2 btn-sm">
+                            <i class="bi bi-person-plus-fill me-1"></i> Buat Akun Sekarang
                         </a>
+                    `;
+                } else if (statusVal === 'rejected' || statusVal === 'ditolak') {
+                    htmlInfoTambahan = `
+                        <div class="alert alert-danger mt-3 mb-2 small">
+                            <strong>Pendaftaran Ditolak!</strong> Alasan: ${data.data.alasan_penolakan || 'Tidak valid'}. Silakan perbarui data diri dan unggah ulang bukti pembayaran Anda.
+                        </div>
+                        <!-- Tombol ini mengarahkan ke halaman form lengkap upload ulang -->
+                        <a href="<?= base_url('pelatihan/upload_ulang/') ?>${data.data.id_pendaftaran}" class="btn btn-warning fw-bold text-dark w-100 mt-2 btn-sm">
+                            <i class="bi bi-pencil-square me-1"></i> Buka Menu Edit & Upload Ulang Data
+                        </a>
+                    `;
+                } else {
+                    htmlInfoTambahan = `
+                        <div class="alert alert-info mt-3 mb-2 small">
+                            Bukti pembayaran Anda sedang dalam antrean pengecekan oleh Admin. Mohon menunggu.
+                        </div>
                     `;
                 }
 
@@ -716,8 +612,8 @@ document.getElementById('formCekStatus').addEventListener('submit', function(e) 
                             <div class="col-6"><strong>Nama:</strong> ${data.data.nama}</div>
                             <div class="col-6"><strong>No HP:</strong> ${data.data.no_hp}</div>
                         </div>
-                        <div class="small mb-2"><strong>Status:</strong> <span class="badge ${badgeClass}">${statusVal.toUpperCase()}</span></div>
-                        ${htmlDitolak}
+                        <div class="small mb-2"><strong>Status:</strong> <span class="badge ${badgeClass}">${statusTeks}</span></div>
+                        ${htmlInfoTambahan}
                     </div>
                 `;
             } else {
@@ -731,58 +627,14 @@ document.getElementById('formCekStatus').addEventListener('submit', function(e) 
         .catch(error => {
             btnCek.innerHTML = 'Cek Sekarang';
             btnCek.disabled = false;
-            
-            // INI AKAN MENAMPILKAN ERROR ASLI DARI SERVER DI DALAM MODAL
-            console.error(error);
             hasilDiv.innerHTML = `
-                <div class="alert alert-danger small mb-0" style="max-height: 200px; overflow-y: auto;">
-                    <strong>Terjadi Error Sistem:</strong><br>
-                    ${error.message}
+                <div class="alert alert-danger small mb-0">
+                    <strong>Terjadi Kesalahan Sistem:</strong><br>${error.message}
                 </div>
             `;
         });
-});
+}
 </script>
-
-<!-- MODAL FORM UPLOAD ULANG (Diletakkan DI LUAR modal cek status agar tidak bentrok) -->
-<?php if (isset($pendaftaran) && !empty($pendaftaran) && strtolower($pendaftaran['status']) == 'ditolak') : ?>
-<div class="modal fade" id="modalUploadUlang" tabindex="-1" aria-labelledby="modalUploadUlangLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 rounded-4 shadow-lg p-3">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold text-dark" id="modalUploadUlangLabel">
-                    <i class="bi bi-file-earmark-arrow-up text-primary me-2" style="color: #5b21b6 !important;"></i>Perbarui Bukti Pembayaran
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            
-            <form action="<?= base_url('pelatihan/update-bukti/' . $pendaftaran['id']) ?>" method="post" enctype="multipart/form-data">
-                <?= csrf_field() ?>
-                <div class="modal-body py-3">
-                    <p class="text-muted small mb-3">Data diri Anda sudah tersimpan. Silakan unggah foto bukti pembayaran yang baru dan benar di bawah ini.</p>
-
-                    <div class="bg-light p-3 rounded-3 mb-3 small text-muted border">
-                        <div><strong>Nama:</strong> <?= esc($pendaftaran['nama_lengkap']) ?></div>
-                        <div><strong>Email / HP:</strong> <?= esc($pendaftaran['email']) ?> / <?= esc($pendaftaran['no_hp']) ?></div>
-                        <div><strong>Kelas Pilihan:</strong> <?= esc($pendaftaran['nama_kelas']) ?></div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="bukti_pembayaran" class="form-label fw-semibold small text-dark">File Bukti Pembayaran Baru (JPG/PNG/PDF)</label>
-                        <input type="file" name="bukti_pembayaran" id="bukti_pembayaran" class="form-control" required>
-                        <div class="form-text small">Maksimal ukuran file 2MB. Pastikan nominal dan tujuan transfer terlihat jelas.</div>
-                    </div>
-                </div>
-                
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-custom-daftar rounded-pill px-4">Kirim Bukti Baru</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<?php endif; ?>
 
 <!-- Bootstrap 5 JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

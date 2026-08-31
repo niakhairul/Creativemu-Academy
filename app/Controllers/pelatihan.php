@@ -22,52 +22,47 @@ class Pelatihan extends BaseController
         $this->db = \Config\Database::connect();
     }    
 
-    public function store()
-    {
-        $pendaftaranModel = new PendaftaranModel();
+    public function store() // atau nama fungsi submit pendaftaran kamu
+{
+    $pendaftaranModel = new \App\Models\PendaftaranModel();
 
-        // 1. Tangkap file Pas Foto
-        $fileFoto = $this->request->getFile('pas_foto');
-        $namaFoto = null;
-        if ($fileFoto && $fileFoto->isValid() && !$fileFoto->hasMoved()) {
-            $namaFoto = $fileFoto->getRandomName();
-            $fileFoto->move('uploads/foto/', $namaFoto);
-        }
+    // 1. Ambil tanggal hari ini dalam format YYYYMMDD (Contoh: 20260831)
+    $tanggalHariIni = date('Ymd');
 
-        // 2. Tangkap file Bukti Pembayaran (jika metode pembayarannya transfer)
-        $fileBukti = $this->request->getFile('bukti_pembayaran');
-        $namaBukti = null;
-        if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
-            $namaBukti = $fileBukti->getRandomName();
-            $fileBukti->move('uploads/bukti/', $namaBukti);
-        }
+    // 2. Cari pendaftaran terakhir pada hari yang sama untuk menentukan nomor urut
+    $pendaftaranTerakhir = $pendaftaranModel
+        ->like('nis', $tanggalHariIni, 'after') // Mencari NIS berawalan tanggal hari ini
+        ->orderBy('id_pendaftaran', 'DESC')
+        ->first();
 
-        // 3. Simpan data ke database
-        $pendaftaranModel->save([
-            'nama'                 => $this->request->getPost('nama'),
-            'email'                => $this->request->getPost('email'),
-            'no_hp'                => $this->request->getPost('no_hp'),
-            'alamat'               => $this->request->getPost('alamat'),
-            'ttl'                  => $this->request->getPost('ttl'),
-            'jenis_kelamin'        => $this->request->getPost('jenis_kelamin'),
-            'pendidikan_terakhir'  => $this->request->getPost('pendidikan_terakhir'),
-            'pas_foto'             => $namaFoto,
-            'pilihan_status'       => $this->request->getPost('pilihan_status'),
-            'pilihan_lokasi'       => $this->request->getPost('pilihan_lokasi'),
-            'pilihan_pelatihan'    => $this->request->getPost('pilihan_pelatihan'),
-            'jenis_kelas'          => $this->request->getPost('jenis_kelas'),
-            'metode_pembelajaran'  => $this->request->getPost('metode_pembelajaran'),
-            'pilihan_kelas'        => $this->request->getPost('pilihan_kelas'),
-            'kategori_kelas'       => $this->request->getPost('kategori_kelas'),
-            'tanggal_mulai_kelas'  => $this->request->getPost('tanggal_mulai_kelas'),
-            'metode_pembayaran'    => $this->request->getPost('metode_pembayaran'),
-            'bukti_pembayaran'     => $namaBukti,
-            'status_pembayaran'    => 'pending',
-            'persetujuan_syarat'   => $this->request->getPost('persetujuan_syarat') ? 1 : 0
-        ]);
-
-        return redirect()->to('/pendaftaran/sukses')->with('success', 'Pendaftaran berhasil dikirim! Menunggu validasi admin.');
+    if ($pendaftaranTerakhir && !empty($pendaftaranTerakhir['nis'])) {
+        // Ambil 3 digit terakhir dari NIS sebelumnya, lalu ubah ke integer dan tambahkan 1
+        $urutanTerakhir = (int) substr($pendaftaranTerakhir['nis'], -3);
+        $urutanBaru = $urutanTerakhir + 1;
+    } else {
+        // Jika belum ada pendaftaran di hari ini, mulai dari 1
+        $urutanBaru = 1;
     }
+
+    // 3. Gabungkan menjadi format: TahunBulanTanggal + 3 digit nomor urut (contoh: 20260831001)
+    $nisBaru = $tanggalHariIni . str_pad($urutanBaru, 3, '0', STR_PAD_LEFT);
+
+    // 4. Masukkan data ke database termasuk NIS baru
+    $dataSimpan = [
+        'id_kelas'          => $this->request->getPost('id_kelas'),
+        'nama'              => $this->request->getPost('nama'),
+        'email'             => $this->request->getPost('email'),
+        'no_hp'             => $this->request->getPost('no_hp'),
+        'nis'               => $nisBaru, // <--- NIS otomatis masuk di sini
+        'status_pembayaran' => 'pending',
+        // Sesuaikan input form lainnya di bawah ini...
+    ];
+    
+
+    $pendaftaranModel->insert($dataSimpan);
+
+    return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('success', 'Pendaftaran berhasil! NIS Anda: ' . $nisBaru);
+}
 
     public function sukses()
     {
@@ -284,8 +279,9 @@ protected function userId()
     public function simpanPendaftaran()
 {
     $db = \Config\Database::connect();
+    $pendaftaranModel = new \App\Models\PendaftaranModel();
     
-    // Proses upload file Pas Foto (3x4)
+    // --- 1. UPLOAD FILE PAS FOTO ---
     $namaFoto = null;
     $fileFoto = $this->request->getFile('pas_foto'); 
     if ($fileFoto && $fileFoto->isValid() && ! $fileFoto->hasMoved()) {
@@ -302,7 +298,7 @@ protected function userId()
         $fileFoto->move(FCPATH . $folderFoto, $namaFoto);
     }
 
-    // Proses upload file bukti pembayaran
+    // --- 2. UPLOAD FILE BUKTI PEMBAYARAN ---
     $namaBukti = null;
     $fileBukti = $this->request->getFile('bukti_pembayaran'); 
     if ($fileBukti && $fileBukti->isValid() && ! $fileBukti->hasMoved()) {
@@ -319,8 +315,9 @@ protected function userId()
         $fileBukti->move(FCPATH . $folderBukti, $namaBukti);
     }
 
-    // Siapkan array data disesuaikan dengan nama input form & struktur database
+    // --- 3. SIAPKAN DATA (NIS DIKOSONGKAN KARENA BELUM DIVALIDASI ADMIN) ---
     $dataPendaftaran = [
+        'nis'                 => null, // NIS kosong saat baru mendaftar
         'id_kelas'            => $this->request->getPost('id_kelas'),
         'id_users'            => $this->request->getPost('id_users') ?: (session()->get('id_users') ?? null),
         'nama'                => $this->request->getPost('nama'),
@@ -335,22 +332,21 @@ protected function userId()
         'lokasi_pelatihan'    => $this->request->getPost('pilihan_lokasi'),
         'pilihan_pelatihan'   => $this->request->getPost('pilihan_pelatihan'),
         'jenis_kelas'         => $this->request->getPost('jenis_kelas'),
-        'metode_pembelajaran' => strtolower($this->request->getPost('metode_pembelajaran')), // Dipaksa huruf kecil agar sesuai ENUM database ('online'/'offline')
+        'metode_pembelajaran' => strtolower($this->request->getPost('metode_pembelajaran')),
         'pilihan_kelas'       => $this->request->getPost('pilihan_kelas'),
         'kategori_kelas'      => $this->request->getPost('kategori_kelas'),
         'tanggal_mulai_kelas' => $this->request->getPost('tanggal_mulai_kelas'),
         'metode_pembayaran'   => $this->request->getPost('metode_pembayaran'),
         'bukti_pembayaran'    => $namaBukti,
         'status_pembayaran'   => 'pending',
+        'status_pendaftaran'  => 'Pending', // Menyesuaikan dengan standar pengecekan sistem
         'alasan_penolakan'    => null,
         'persetujuan_syarat'  => $this->request->getPost('persetujuan_syarat') ? 1 : 0,
     ];
 
-    $pendaftaranModel = new \App\Models\PendaftaranModel();
-
     try {
         if ($pendaftaranModel->insert($dataPendaftaran)) {
-            return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('success', 'Pendaftaran berhasil dikirim! Silakan menunggu validasi admin.');
+            return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('success', 'Pendaftaran berhasil dikirim! Silakan menunggu validasi dan penertiban NIS dari admin.');
         } else {
             $errors = $pendaftaranModel->errors();
             return redirect()->back()->withInput()->with('error', 'Gagal validasi database: ' . json_encode($errors));
@@ -360,21 +356,64 @@ protected function userId()
     }
 }
 
+// Contoh di Controller Admin saat admin menyetujui pendaftaran
+public function setujuiPendaftaran($id_pendaftaran)
+{
+    $pendaftaranModel = new \App\Models\PendaftaranModel();
+    
+    $pendaftaran = $pendaftaranModel->find($id_pendaftaran);
+
+    if ($pendaftaran) {
+        if (empty($pendaftaran['nis'])) {
+            $tanggalHariIni = date('Ymd');
+
+            $pendaftaranTerakhir = $pendaftaranModel
+                ->like('nis', $tanggalHariIni, 'after')
+                ->orderBy('id_pendaftaran', 'DESC')
+                ->first();
+
+            if ($pendaftaranTerakhir && !empty($pendaftaranTerakhir['nis'])) {
+                $urutanTerakhir = (int) substr($pendaftaranTerakhir['nis'], -3);
+                $urutanBaru = $urutanTerakhir + 1;
+            } else {
+                $urutanBaru = 1;
+            }
+
+            $nisBaru = $tanggalHariIni . str_pad($urutanBaru, 3, '0', STR_PAD_LEFT);
+        } else {
+            $nisBaru = $pendaftaran['nis'];
+        }
+
+        // --- TAMBAHKAN DEBUG INI ---
+        dd($id_pendaftaran, $nisBaru, $pendaftaran);
+
+        $pendaftaranModel->update($id_pendaftaran, [
+            'status_pembayaran'   => 'valid',
+            'status_pendaftaran'  => 'Disetujui',
+            'nis'                 => $nisBaru
+        ]);
+
+        return redirect()->back()->with('success', 'Pendaftaran disetujui dan NIS berhasil dibuat: ' . $nisBaru);
+    }
+
+    return redirect()->back()->with('error', 'Data pendaftaran tidak ditemukan.');
+}
+
     public function status()
 {
     $keyword = $this->request->getGet('keyword') ?? $this->request->getPost('keyword');
-    $pendaftaran = [];
+    $pendaftaran = null;
 
     if ($keyword) {
         $pendaftaran = (new \App\Models\PendaftaranModel())
-            ->select('pendaftaran.*, kelas.nama_kelas')
+            ->select('pendaftaran.*, kelas.nama_kelas') // pendaftaran.* memastikan kolom nis ikut terpanggil
             ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
             ->groupStart()
                 ->where('pendaftaran.email', $keyword)
                 ->orWhere('pendaftaran.no_hp', $keyword)
             ->groupEnd()
             ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
-            ->findAll();
+            ->first();
     }
 
     return view('peserta/status_pendaftaran', [
@@ -408,10 +447,10 @@ protected function userId()
 
         // Update data di database: masukkan file baru, ubah status jadi 'pending' / 'menunggu verifikasi', dan kosongkan alasan penolakan sebelumnya
         $pendaftaranModel->update($id, [
-            'bukti_pembayaran' => $namaBaru,
-            'status' => 'pending', 
-            'alasan_penolakan' => null
-        ]);
+    'bukti_pembayaran' => $namaBaru,
+    'status_pembayaran' => 'pending', // Perbaiki ke status_pembayaran
+    'alasan_penolakan' => null
+]);
 
         return redirect()->to(base_url('pelatihan/status?keyword=' . $pendaftaran['email']))
                          ->with('success', 'Bukti pembayaran berhasil dikirim ulang! Silakan tunggu verifikasi admin.');
@@ -424,34 +463,78 @@ protected function userId()
 {
     $keyword = $this->request->getGet('keyword');
     
-    // Pastikan model terpanggil dengan benar
     $pendaftaranModel = new \App\Models\PendaftaranModel(); 
     
-    // Cari data berdasarkan email atau no_hp
-    $pendaftaran = $pendaftaranModel->groupStart()
+    $pendaftaran = $pendaftaranModel->select('pendaftaran.*, kelas.nama_kelas') // Pastikan pendaftaran.* ada di sini
+                                    ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+                                    ->groupStart()
                                     ->like('email', $keyword)
                                     ->orLike('no_hp', $keyword)
                                     ->groupEnd()
+                                    ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
                                     ->first();
 
-    // Set header agar browser tahu ini adalah format JSON
     header('Content-Type: application/json');
 
     if ($pendaftaran) {
-        // Jika data ditemukan
         echo json_encode([
             'status' => 'success',
             'data' => $pendaftaran
         ]);
         exit;
     } else {
-        // Jika data tidak ditemukan
         echo json_encode([
             'status' => 'error',
             'message' => 'Data pendaftaran dengan email atau nomor HP tersebut tidak ditemukan.'
         ]);
         exit;
     }
+}
+
+    public function uploadUlang($id_pendaftaran)
+    {
+        $pendaftaranModel = new \App\Models\PendaftaranModel();
+        $data['pendaftaran'] = $pendaftaranModel->find($id_pendaftaran);
+
+        if (!$data['pendaftaran']) {
+            return redirect()->to('/pelatihan/daftar-kelas')->with('error', 'Data pendaftaran tidak ditemukan.');
+        }
+
+        // Ubah dari 'pelatihan/upload_ulang' menjadi 'upload_ulang' saja
+        return view('peserta/upload_ulang', $data);
+    }
+
+    public function prosesUploadUlang($id_pendaftaran)
+{
+    $pendaftaranModel = new \App\Models\PendaftaranModel();
+    
+    // Ambil file bukti pembayaran baru
+    $fileBukti = $this->request->getFile('bukti_pembayaran');
+    $namaFileBaru = '';
+
+    // Cek apakah ada file baru yang diunggah
+    if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
+        $namaFileBaru = $fileBukti->getRandomName();
+        $fileBukti->move('uploads/bukti/', $namaFileBaru); // Sesuaikan direktori penyimpanan Anda
+    }
+
+    // Data yang akan di-update
+    $dataUpdate = [
+        'nama' => $this->request->getPost('nama'),
+        'no_hp' => $this->request->getPost('no_hp'),
+        'status_pembayaran' => 'pending', // Kembalikan status ke pending agar dicek ulang admin
+        'alasan_penolakan' => null // Kosongkan kembali alasan penolakannya
+    ];
+
+    // Jika file baru diunggah, masukkan ke array update
+    if ($namaFileBaru) {
+        $dataUpdate['bukti_pembayaran'] = $namaFileBaru;
+    }
+
+    // Lakukan update ke database
+    $pendaftaranModel->update($id_pendaftaran, $dataUpdate);
+
+    return redirect()->to('/pelatihan/daftar-kelas')->with('success', 'Data dan bukti pembayaran berhasil diperbarui. Silakan tunggu validasi ulang dari admin.');
 }
 
     public function kelas()

@@ -306,42 +306,125 @@ public function masterKelas()
     }
 
     public function validasi()
-{
-    $pendaftaranModel = new \App\Models\PendaftaranModel();
+    {
+        $pendaftaranModel = new \App\Models\PendaftaranModel();
 
-    $data = [
-        'title' => 'Validasi Pendaftaran - Panel Admin',
-        'pendaftaran' => $pendaftaranModel
-            ->select('pendaftaran.*, kelas.nama_kelas')
-            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
-            ->findAll()
-    ];
+        $data = [
+            'title' => 'Validasi Pendaftaran - Panel Admin',
+            'pendaftaran' => $pendaftaranModel
+                ->select('pendaftaran.*, kelas.nama_kelas')
+                ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+                ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+                ->findAll()
+        ];
 
-    return view('admin/validasi/index', $data);
-}
-
-     public function updateValidasi($id_pendaftaran, $aksi)
-{
-    // Tentukan status baru
-    $statusBaru = ($aksi == 'setuju') ? 'terkonfirmasi' : 'ditolak';
-
-    // Update langsung menggunakan Database Connection (Query Builder Builder)
-    $db = \Config\Database::connect();
-    $builder = $db->table('pendaftaran');
-    $builder->where('id_pendaftaran', $id_pendaftaran);
-    $update = $builder->update(['status_pembayaran' => $statusBaru]);
-
-    // Cek apakah query berhasil dijalankan oleh database
-    if (!$update) {
-        $error = $db->error();
-        dd("Gagal update database:", $error);
+        return view('admin/validasi/index', $data);
     }
 
-    $pesan = ($aksi == 'setuju') ? 'Pendaftaran berhasil disetujui!' : 'Pendaftaran berhasil ditolak.';
+    public function updateValidasi($id_pendaftaran, $aksi)
+    {
+        $pendaftaranModel = new \App\Models\PendaftaranModel();
 
-    return redirect()->to(base_url('admin/validasi'))->with('pesan', $pesan);
-}
+        // Pastikan aksi benar
+        if ($aksi === 'setuju') {
+            $statusBaru = 'valid';
+            $statusPendaftaranBaru = 'Disetujui';
+        } elseif ($aksi === 'tolak') {
+            $statusBaru = 'rejected';
+            $statusPendaftaranBaru = 'Ditolak';
+        } else {
+            return redirect()->to(base_url('admin/validasi'))
+                ->with('error', 'Aksi tidak valid: ' . $aksi);
+        }
+
+        // Ambil data pendaftaran untuk pengecekan NIS
+        $pendaftaran = $pendaftaranModel->find($id_pendaftaran);
+
+        if (!$pendaftaran) {
+            return redirect()->to(base_url('admin/validasi'))
+                ->with('error', 'Data pendaftaran tidak ditemukan.');
+        }
+
+        $nisBaru = $pendaftaran['nis'];
+
+        // Jika disetujui dan peserta belum punya NIS, generate NIS baru
+        if ($aksi === 'setuju' && empty($nisBaru)) {
+            $tanggalHariIni = date('Ymd');
+
+            $pendaftaranTerakhir = $pendaftaranModel
+                ->like('nis', $tanggalHariIni, 'after')
+                ->orderBy('id_pendaftaran', 'DESC')
+                ->first();
+
+            if ($pendaftaranTerakhir && !empty($pendaftaranTerakhir['nis'])) {
+                $urutanTerakhir = (int) substr($pendaftaranTerakhir['nis'], -3);
+                $urutanBaru = $urutanTerakhir + 1;
+            } else {
+                $urutanBaru = 1;
+            }
+
+            $nisBaru = $tanggalHariIni . str_pad($urutanBaru, 3, '0', STR_PAD_LEFT);
+        }
+
+        // Siapkan data yang akan di-update
+        $dataUpdate = [
+            'status_pembayaran'   => $statusBaru,
+            'status_pendaftaran'  => $statusPendaftaranBaru,
+        ];
+
+        // Masukkan NIS jika aksinya disetujui
+        if ($aksi === 'setuju') {
+            $dataUpdate['nis'] = $nisBaru;
+        }
+
+        // Update database menggunakan model
+        $hasil = $pendaftaranModel->update($id_pendaftaran, $dataUpdate);
+
+        if (!$hasil) {
+            return redirect()->to(base_url('admin/validasi'))
+                ->with('error', 'Database gagal diperbarui.');
+        }
+
+        $pesanSukses = ($aksi === 'setuju') 
+            ? 'Pendaftaran berhasil disetujui! NIS peserta: ' . $nisBaru 
+            : 'Pendaftaran berhasil ditolak!';
+
+        return redirect()->to(base_url('admin/validasi'))
+            ->with('pesan', $pesanSukses);
+    }
+
+    public function proses_validasi($id_pendaftaran)
+    {
+        $status = $this->request->getPost('status_pembayaran'); 
+        $alasan = $this->request->getPost('alasan_penolakan');
+
+        $dataUpdate = [
+            'status_pembayaran' => $status,
+        ];
+
+        if ($status === 'rejected') {
+            $dataUpdate['alasan_penolakan'] = $alasan;
+        } else {
+            $dataUpdate['alasan_penolakan'] = null; 
+        }
+
+        // Tangkap file bukti pembayaran baru jika diunggah bersamaan
+        $fileBukti = $this->request->getFile('bukti_pembayaran');
+        if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
+            $newName = $fileBukti->getRandomName();
+            $fileBukti->move('uploads/bukti_pembayaran', $newName);
+            $dataUpdate['bukti_pembayaran'] = $newName;
+        }
+
+        // Inisialisasi model pendaftaran
+        $pendaftaranModel = new \App\Models\PendaftaranModel(); 
+        $pendaftaranModel->update($id_pendaftaran, $dataUpdate);
+
+        // Arahkan kembali ke halaman cek status dengan flashdata sukses
+        return redirect()->to(base_url('pelatihan/cek-status'))
+                         ->with('success', 'Bukti pembayaran berhasil diperbarui! Mohon tunggu verifikasi admin.');
+    }
+    
 
    public function angket()
 {

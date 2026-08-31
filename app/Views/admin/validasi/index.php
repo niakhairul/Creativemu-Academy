@@ -321,16 +321,16 @@
                             </tr>
                         <?php endif; ?>
 
-                        <?php foreach(($pendaftaran ?? []) as $i =>$item): ?>
+                        <?php foreach(($pendaftaran ?? []) as $i => $item): ?>
                             <tr>
                                 <td class="text-center fw-semibold text-muted"><?= $i + 1 ?></td>
                                 <td>
                                     <!-- Bagian Nama, Email, dan No HP -->
-<div class="fw-bold text-dark mb-1"><?= esc($item['nama']) ?></div>
-<div class="text-muted small">
-    <i class="bi bi-envelope me-1"></i><?= esc($item['email']) ?> <br>
-    <i class="bi bi-telephone me-1"></i><?= esc($item['no_hp']) ?>
-</div>
+                                    <div class="fw-bold text-dark mb-1"><?= esc($item['nama']) ?></div>
+                                    <div class="text-muted small">
+                                        <i class="bi bi-envelope me-1"></i><?= esc($item['email']) ?> <br>
+                                        <i class="bi bi-telephone me-1"></i><?= esc($item['no_hp']) ?>
+                                    </div>
                                 </td>
                                 <td>
                                     <span class="badge bg-light text-primary border border-primary-subtle px-3 py-2 rounded-pill">
@@ -344,8 +344,8 @@
                                 <td class="text-center">
                                     <?php if(!empty($item['bukti_pembayaran'])): ?>
                                        <a href="<?= base_url('uploads/bukti_pembayaran/' . $item['bukti_pembayaran']) ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm">
-    <i class="bi bi-image me-1"></i> Lihat
-</a>
+                                            <i class="bi bi-image me-1"></i> Lihat
+                                        </a>
                                     <?php else: ?>
                                         <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3">Belum Upload</span>
                                     <?php endif; ?>
@@ -353,40 +353,72 @@
                                 
                                 <!-- LOGIKA STATUS DINAMIS -->
                                 <td class="text-center">
-    <?php 
-        $status = strtolower(trim($item['status_pembayaran'] ?? ''));
-    ?>
+                                    <?php 
+                                        $statusBayar = strtolower(trim($item['status_pembayaran'] ?? 'pending'));
+                                    ?>
 
-    <?php if ($status == 'terkonfirmasi' || $status == 'disetujui' || $status == 'approved'): ?>
-        <!-- Jika sudah disetujui -->
-        <span class="badge bg-success rounded-pill px-3 py-2 shadow-sm">
-            <i class="bi bi-check-circle-fill me-1"></i> Disetujui
-        </span>
+                                    <?php if ($statusBayar == 'valid'): ?>
+                                        <span class="badge bg-success rounded-pill px-3 py-2 shadow-sm">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Disetujui
+                                        </span>
 
-    <?php elseif ($status == 'ditolak' || $status == 'batal'): ?>
-        <!-- Jika ditolak -->
-        <span class="badge bg-danger rounded-pill px-3 py-2 shadow-sm">
-            <i class="bi bi-x-circle-fill me-1"></i> Ditolak
-        </span>
+                                    <?php elseif ($statusBayar == 'rejected'): ?>
+                                        <span class="badge bg-danger rounded-pill px-3 py-2 shadow-sm" title="<?= esc($item['alasan_penolakan'] ?? '') ?>">
+                                            <i class="bi bi-x-circle-fill me-1"></i> Ditolak
+                                        </span>
 
-    <?php else: ?>
-        <!-- Jika masih pending / kosong -->
-        <span class="badge bg-warning text-dark rounded-pill px-3 py-2 shadow-sm">
-            <i class="bi bi-clock-history me-1"></i> Menunggu (<?= $status ?: 'kosong' ?>)
-        </span>
-    <?php endif; ?>
-</td>
-                                <!-- TOMBOL AKSI -->
+                                    <?php else: ?>
+                                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2 shadow-sm">
+                                            <i class="bi bi-clock-history me-1"></i> Menunggu
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
+
+                                <!-- TOMBOL AKSI & MODAL -->
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-2">
-                                        <a href="<?= base_url('admin/validasi/update/' . $item['id_pendaftaran'] . '/setuju') ?>" 
-                                           class="btn btn-sm btn-success rounded-pill px-3 shadow-sm" title="Setujui">
-                                            <i class="bi bi-check-lg"></i>
-                                        </a>
-                                        <a href="<?= base_url('admin/validasi/update/' . $item['id_pendaftaran'] . '/tolak') ?>" 
-                                           class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm" title="Tolak">
-                                            <i class="bi bi-x-lg"></i>
-                                        </a>
+                                        <!-- Tombol Pemicu Modal Validasi -->
+                                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalValidasi<?= $item['id_pendaftaran'] ?>" title="Validasi">
+                                            <i class="bi bi-gear-fill me-1"></i> Validasi
+                                        </button>
+                                    </div>
+
+                                    <!-- Modal Validasi Admin di dalam baris iterasi -->
+                                    <div class="modal fade text-start" id="modalValidasi<?= $item['id_pendaftaran'] ?>" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content rounded-4 border-0 shadow">
+                                                <form action="<?= base_url('admin/pendaftaran/proses_validasi/' . $item['id_pendaftaran']) ?>" method="post">
+                                                    <?= csrf_field() ?>
+                                                    <div class="modal-header border-0">
+                                                        <h5 class="fw-bold fs-6">Validasi Pendaftaran: <?= esc($item['nama']) ?></h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        
+                                                        <!-- Pilihan Status -->
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-semibold">Ubah Status</label>
+                                                            <select name="status_pembayaran" class="form-select status-select" data-id="<?= $item['id_pendaftaran'] ?>" required>
+                                                                <option value="valid" <?= ($statusBayar == 'valid') ? 'selected' : '' ?>>Terima / Valid</option>
+                                                                <option value="rejected" <?= ($statusBayar == 'rejected') ? 'selected' : '' ?>>Tolak (Rejected)</option>
+                                                            </select>
+                                                        </div>
+
+                                                        <!-- Input Alasan Penolakan -->
+                                                        <div class="mb-3 alasan-wrapper" id="wrapperAlasan<?= $item['id_pendaftaran'] ?>" style="display: <?= ($statusBayar == 'rejected') ? 'block' : 'none' ?>;">
+                                                            <label class="form-label fw-semibold text-danger">Alasan Penolakan <span class="text-danger">*</span></label>
+                                                            <textarea name="alasan_penolakan" class="form-control" rows="3" placeholder="Contoh: Bukti transfer tidak jelas, nominal kurang, atau salah rekening tujuan."><?= esc($item['alasan_penolakan'] ?? '') ?></textarea>
+                                                            <div class="form-text small">Alasan ini akan dibaca oleh peserta saat mereka mengecek status pendaftarannya.</div>
+                                                        </div>
+
+                                                    </div>
+                                                    <div class="modal-footer border-0">
+                                                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                                                        <button type="submit" class="btn btn-primary rounded-pill px-4">Simpan Perubahan</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -397,6 +429,35 @@
         </div>
 
     </div>
+
+<!-- Script JavaScript untuk memunculkan textarea alasan saat opsi 'rejected' dipilih -->
+<script>
+document.querySelectorAll('.status-select').forEach(function(select) {
+    // Jalankan pengecekan awal saat modal dimuat jika statusnya sudah rejected
+    let id = select.getAttribute('data-id');
+    let wrapper = document.getElementById('wrapperAlasan' + id);
+    let textarea = wrapper ? wrapper.querySelector('textarea') : null;
+
+    if (select.value === 'rejected') {
+        if(wrapper) wrapper.style.display = 'block';
+        if(textarea) textarea.setAttribute('required', 'required');
+    }
+
+    select.addEventListener('change', function() {
+        let currentId = this.getAttribute('data-id');
+        let currentWrapper = document.getElementById('wrapperAlasan' + currentId);
+        let currentTextarea = currentWrapper ? currentWrapper.querySelector('textarea') : null;
+        
+        if (this.value === 'rejected') {
+            if(currentWrapper) currentWrapper.style.display = 'block';
+            if(currentTextarea) currentTextarea.setAttribute('required', 'required');
+        } else {
+            if(currentWrapper) currentWrapper.style.display = 'none';
+            if(currentTextarea) currentTextarea.removeAttribute('required');
+        }
+    });
+});
+</script>
 
 <!-- Bootstrap JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

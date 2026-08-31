@@ -36,13 +36,17 @@ $routes->get('pelatihan/status', 'Pelatihan::status');
 $routes->post('pelatihan/status', 'Pelatihan::status');
 $routes->post('pelatihan/status/cek', 'Pelatihan::cekStatus');
 
-$routes->get('pelatihan/ajax_cek_status', 'Pelatihan::ajax_cek_status');// (Opsional) Jika nanti Anda juga butuh rute untuk upload ulang pembayaran yang ada di script sebelumnya:
+$routes->get('pelatihan/ajax_cek_status', 'Pelatihan::ajax_cek_status');
 $routes->post('pelatihan/update-bukti/(:num)', 'Pelatihan::updateBukti/$1');
+$routes->match(['get', 'post'], 'pelatihan/proses_upload_ulang/(:num)', 'Pelatihan::prosesUploadUlang/$1');
+$routes->match(['get', 'post'], 'pelatihan/proses-upload-ulang/(:num)', 'Pelatihan::prosesUploadUlang/$1');
+
+// Mendukung penggunaan garis bawah (_) maupun dash (-) agar tidak error
+$routes->match(['get', 'post'], 'pelatihan/upload[-_]ulang/(:num)', 'Pelatihan::uploadUlang/$1');
 
 // Controller alternatif register
 $routes->post('pelatihan/register', 'PelatihanController::register');
 
-$routes->get('pelatihan/status', 'Pelatihan::status');
 $routes->get('pelatihan/detail-kelas', 'Pelatihan::detailKelas');
 $routes->get('pelatihan/materi', 'Pelatihan::materi');
 $routes->get('pelatihan/daftar-materi', 'Pelatihan::daftarMateri');
@@ -86,6 +90,7 @@ $routes->get('pelatihan/riwayat-absensi', 'Pelatihan::riwayatAbsensi');
 $routes->group('admin', function($routes) {
     $routes->get('dashboard', 'Admin::dashboard');
     $routes->get('pendaftaran', 'Admin::pendaftaran');
+    $routes->match(['get', 'post'], 'pendaftaran/proses_validasi/(:num)', 'Admin::proses_validasi/$1');
     
     // Master Kelas
     $routes->get('master-kelas', 'Admin::masterKelas');
@@ -107,7 +112,8 @@ $routes->group('admin', function($routes) {
     $routes->get('data-peserta', 'Admin::dataPeserta');
     
     // Validasi Pendaftaran Admin
-   // Validasi Pendaftaran Admin
+    $routes->get('admin/validasi', 'Admin::validasi');
+    $routes->get('admin/validasi/update/(:num)/(:any)', 'Admin::updateValidasi/$1/$2');
     $routes->get('validasi', 'Admin::validasi');
     $routes->get('validasi/update/(:num)/(:segment)', 'Admin::updateValidasi/$1/$2');
 

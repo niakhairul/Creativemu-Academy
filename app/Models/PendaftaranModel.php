@@ -20,6 +20,7 @@ class PendaftaranModel extends Model
         'nama',
         'email',
         'no_hp',
+        'nis',
         'alamat',
         'ttl',
         'jenis_kelamin',
