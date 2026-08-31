@@ -100,6 +100,22 @@
             transform: translateY(-1px);
             box-shadow: 0 6px 15px rgba(124, 58, 237, 0.4);
         }
+
+        .ketentuan-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 10px;
+    text-align: center;
+    overflow: hidden;
+}
+
+.ketentuan-card img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
     </style>
 </head>
 <body>
@@ -219,6 +235,34 @@
                 <!-- KOLOM KANAN: FORM DATA & PEMBAYARAN -->
                 <div class="col-lg-7">
                     <div class="main-card p-4 p-md-5">
+
+  <!-- Ketentuan Pendaftaran -->
+<div class="mb-4">
+    <div class="d-flex align-items-center mb-3">
+        <div class="section-icon me-3">
+            <i class="fas fa-file-alt fa-lg"></i>
+        </div>
+        <div>
+            <h5 class="fw-bold text-dark mb-0">Ketentuan Pendaftaran</h5>
+            <p class="text-muted small mb-0">
+                Silakan baca ketentuan sebelum melanjutkan pendaftaran.
+            </p>
+        </div>
+    </div>
+
+    <div class="ketentuan-card">
+        <img src="<?= base_url('uploads/syarat_dan_persetujuan/syarat_dan_persetujuan.jpeg') ?>"
+             alt="Syarat dan Ketentuan Pendaftaran"
+             class="img-fluid">
+    </div>
+</div>
+<!-- Persetujuan Syarat & Ketentuan -->
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" value="1" id="persetujuan_syarat" name="persetujuan_syarat" checked required>
+                            <label class="form-check-label small text-muted" for="persetujuan_syarat">
+                                Saya menyetujui seluruh <a href="<?= base_url('uploads/syarat_dan_persetujuan/syarat_dan_persetujuan.jpeg') ?>" target="_blank" class="text-decoration-underline" style="color: #7c3aed;">syarat dan ketentuan</a> serta <a href="<?= base_url('kebijakan-privasi') ?>" target="_blank" class="text-decoration-underline" style="color: #7c3aed;">kebijakan privasi</a> yang berlaku di Creativemu Academy.
+                            </label>
+                        </div>
                         
                         <!-- Bagian 1: Data Diri -->
                         <div class="d-flex align-items-center mb-4">
@@ -346,7 +390,7 @@
                                 <i class="fas fa-layer-group fa-lg"></i>
                             </div>
                             <div>
-                                <h5 class="fw-bold text-dark mb-0">Tipe Pendaftaran Kelas</h5>
+                                <h5 class="fw-bold text-dark mb-0">Pilih Kategori Kelas</h5>
                                 <p class="text-muted small mb-0">Pilih skema belajar yang Anda inginkan.</p>
                             </div>
                         </div>
@@ -457,13 +501,6 @@
                             <div class="form-text text-muted" style="font-size: 0.75rem;">Format yang didukung: JPG, PNG, JPEG (Maks. 2MB).</div>
                         </div>
 
-                       <!-- Persetujuan Syarat & Ketentuan -->
-                        <div class="form-check mb-4">
-                            <input class="form-check-input" type="checkbox" value="1" id="persetujuan_syarat" name="persetujuan_syarat" checked required>
-                            <label class="form-check-label small text-muted" for="persetujuan_syarat">
-                                Saya menyetujui seluruh <a href="<?= base_url('uploads/syarat_dan_persetujuan/syarat_dan_persetujuan.jpeg') ?>" target="_blank" class="text-decoration-underline" style="color: #7c3aed;">syarat dan ketentuan</a> serta <a href="<?= base_url('kebijakan-privasi') ?>" target="_blank" class="text-decoration-underline" style="color: #7c3aed;">kebijakan privasi</a> yang berlaku di Creativemu Academy.
-                            </label>
-                        </div>
 
                         <!-- Tombol Submit -->
                         <button type="submit" class="btn btn-submit text-white w-100 mt-2">
