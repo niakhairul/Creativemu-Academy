@@ -33,6 +33,7 @@ $routes->match(['get', 'post'], 'pelatihan/simpanPendaftaran', 'Pelatihan::simpa
 
 // Rute Cek Status Pendaftaran
 $routes->get('pelatihan/status', 'Pelatihan::status');
+$routes->get('pelatihan/cek-status', 'Pelatihan::status');
 $routes->post('pelatihan/status', 'Pelatihan::status');
 $routes->post('pelatihan/status/cek', 'Pelatihan::cekStatus');
 
@@ -47,6 +48,7 @@ $routes->match(['get', 'post'], 'pelatihan/upload[-_]ulang/(:num)', 'Pelatihan::
 // Controller alternatif register
 $routes->post('pelatihan/register', 'PelatihanController::register');
 
+$routes->get('pelatihan/daftar-kelas-peserta', 'Pelatihan::daftarKelasPeserta');
 $routes->get('pelatihan/detail-kelas', 'Pelatihan::detailKelas');
 $routes->get('pelatihan/materi', 'Pelatihan::materi');
 $routes->get('pelatihan/daftar-materi', 'Pelatihan::daftarMateri');

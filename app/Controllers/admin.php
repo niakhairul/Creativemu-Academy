@@ -394,36 +394,65 @@ public function masterKelas()
     }
 
     public function proses_validasi($id_pendaftaran)
-    {
-        $status = $this->request->getPost('status_pembayaran'); 
-        $alasan = $this->request->getPost('alasan_penolakan');
+{
+    $status = $this->request->getPost('status_pembayaran'); 
+    $alasan = $this->request->getPost('alasan_penolakan');
 
-        $dataUpdate = [
-            'status_pembayaran' => $status,
-        ];
+    $dataUpdate = [
+        'status_pembayaran' => $status,
+        'status_pendaftaran' => ($status === 'valid' || $status === 'Disetujui' || $status === 'approved') ? 'Disetujui' : 'Pending'
+    ];
 
-        if ($status === 'rejected') {
-            $dataUpdate['alasan_penolakan'] = $alasan;
-        } else {
-            $dataUpdate['alasan_penolakan'] = null; 
-        }
-
-        // Tangkap file bukti pembayaran baru jika diunggah bersamaan
-        $fileBukti = $this->request->getFile('bukti_pembayaran');
-        if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
-            $newName = $fileBukti->getRandomName();
-            $fileBukti->move('uploads/bukti_pembayaran', $newName);
-            $dataUpdate['bukti_pembayaran'] = $newName;
-        }
-
-        // Inisialisasi model pendaftaran
-        $pendaftaranModel = new \App\Models\PendaftaranModel(); 
-        $pendaftaranModel->update($id_pendaftaran, $dataUpdate);
-
-        // Arahkan kembali ke halaman cek status dengan flashdata sukses
-        return redirect()->to(base_url('pelatihan/cek-status'))
-                         ->with('success', 'Bukti pembayaran berhasil diperbarui! Mohon tunggu verifikasi admin.');
+    if ($status === 'rejected' || $status === 'Ditolak') {
+        $dataUpdate['alasan_penolakan'] = $alasan;
+    } else {
+        $dataUpdate['alasan_penolakan'] = null; 
     }
+
+    // --- TAMBAHAN: Generate NIS jika disetujui dan NIS masih kosong ---
+    $pendaftaranModel = new \App\Models\PendaftaranModel(); 
+    $pendaftaranLama = $pendaftaranModel->find($id_pendaftaran);
+
+    if (($status === 'valid' || $status === 'Disetujui' || $status === 'approved') && empty($pendaftaranLama['nis'])) {
+        $tanggalHariIni = date('Ymd');
+        $pendaftaranTerakhir = $pendaftaranModel
+            ->like('nis', $tanggalHariIni, 'after')
+            ->orderBy('id_pendaftaran', 'DESC')
+            ->first();
+
+        $urutanBaru = ($pendaftaranTerakhir && !empty($pendaftaranTerakhir['nis'])) 
+            ? (int) substr($pendaftaranTerakhir['nis'], -3) + 1 
+            : 1;
+
+        $dataUpdate['nis'] = $tanggalHariIni . str_pad($urutanBaru, 3, '0', STR_PAD_LEFT);
+    }
+
+    // Tangkap file bukti pembayaran baru jika diunggah bersamaan
+    $fileBukti = $this->request->getFile('bukti_pembayaran');
+    if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
+        $newName = $fileBukti->getRandomName();
+        $folderTujuan = FCPATH . 'uploads/bukti/';
+        if (!is_dir($folderTujuan)) {
+            mkdir($folderTujuan, 0777, true);
+        }
+        $fileBukti->move($folderTujuan, $newName);
+        $dataUpdate['bukti_pembayaran'] = $newName;
+    }
+
+    // Update ke database
+    $pendaftaranModel->update($id_pendaftaran, $dataUpdate);
+
+    // Tentukan pesan berdasarkan status yang dipilih
+    if ($status === 'rejected' || $status === 'Ditolak') {
+        $pesan = 'Pendaftaran berhasil ditolak.';
+    } else {
+        $pesan = 'Pendaftaran berhasil disetujui dan NIS berhasil diterbitkan.';
+    }
+
+    // Arahkan kembali ke halaman validasi admin dengan flashdata yang sesuai
+    return redirect()->to(base_url('admin/validasi'))
+                     ->with('success', $pesan);
+}
     
 
    public function angket()

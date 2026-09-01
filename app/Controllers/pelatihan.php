@@ -121,38 +121,46 @@ protected function userId()
     return view('nama_view_kamu', $data);
 }
 
-    
     public function dashboard()
-    {
-        if ($redirect = $this->requireLogin()) {
-            return $redirect;
-        }
-
-        $userId = $this->userId();
-        $user = (new UserModel())->find($userId);
-        $kelas = (new KelasModel())->where('status', 'aktif')->findAll();
-        
-        $pendaftaran = (new PendaftaranModel())
-            ->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas as jadwal, mentor.nama_mentor as mentor')
-            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-            ->where('pendaftaran.id_users', $userId)
-            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
-            ->first();
-
-        // Masukkan NIS ke dalam array $user jika pendaftarannya ada
-        if ($pendaftaran && !empty($pendaftaran['nis'])) {
-            $user['nis'] = $pendaftaran['nis'];
-        } else {
-            $user['nis'] = '-';
-        }
-
-        return view('peserta/dashboard', [
-            'user' => $user,
-            'kelas' => $kelas,
-            'pendaftaran' => $pendaftaran,
-        ]);
+{
+    $userId = session()->get('id_users');
+    if (!$userId) {
+        return redirect()->to(base_url('pelatihan/login'));
     }
+
+    $db = \Config\Database::connect();
+    
+    // Ambil data user yang sedang login
+    $user = $db->table('users')->where('id_users', $userId)->get()->getRowArray();
+
+    $pendaftaranModel = new \App\Models\PendaftaranModel();
+    
+    // Ambil data pendaftaran peserta terbaru beserta data kelas dan mentor
+    $pendaftaran = $pendaftaranModel
+        ->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas as jadwal, mentor.nama_mentor as mentor')
+        ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+        ->where('pendaftaran.id_users', $userId)
+        ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+        ->first();
+
+    // Masukkan NIS ke array user (prioritaskan dari pendaftaran terbaru yang memiliki NIS)
+    if ($pendaftaran && !empty($pendaftaran['nis'])) {
+        $user['nis'] = $pendaftaran['nis'];
+    } else {
+        $user['nis'] = '-';
+    }
+
+    $data = [
+        'title'       => 'Dashboard Peserta',
+        'user'        => $user,
+        'pendaftaran' => $pendaftaran,
+    ];
+
+    return view('peserta/dashboard', $data);
+}
+    
+
     public function profil()
     {
         if ($redirect = $this->requireLogin()) {
@@ -282,8 +290,14 @@ protected function userId()
     return view('peserta/pendaftaran', $data);
 }
 
-    public function simpanPendaftaran()
+   public function simpanPendaftaran()
 {
+    // --- 0. AMBIL ID USER DARI SESI LOGIN ---
+    $userId = session()->get('id_users');
+    if (!$userId) {
+        return redirect()->to(base_url('pelatihan/login'))->with('error', 'Silakan login terlebih dahulu untuk mendaftar.');
+    }
+
     $db = \Config\Database::connect();
     $pendaftaranModel = new \App\Models\PendaftaranModel();
     
@@ -324,8 +338,8 @@ protected function userId()
     // --- 3. SIAPKAN DATA (NIS DIKOSONGKAN KARENA BELUM DIVALIDASI ADMIN) ---
     $dataPendaftaran = [
         'nis'                 => null, // NIS kosong saat baru mendaftar
+        'id_users'            => $userId, // <-- Sudah aman karena $userId sudah didefinisikan di atas
         'id_kelas'            => $this->request->getPost('id_kelas'),
-        'id_users'            => $this->request->getPost('id_users') ?: (session()->get('id_users') ?? null),
         'nama'                => $this->request->getPost('nama'),
         'email'               => $this->request->getPost('email'),
         'no_hp'               => $this->request->getPost('no_hp'),
@@ -345,7 +359,7 @@ protected function userId()
         'metode_pembayaran'   => $this->request->getPost('metode_pembayaran'),
         'bukti_pembayaran'    => $namaBukti,
         'status_pembayaran'   => 'pending',
-        'status_pendaftaran'  => 'Pending', // Menyesuaikan dengan standar pengecekan sistem
+        'status_pendaftaran'  => 'Pending',
         'alasan_penolakan'    => null,
         'persetujuan_syarat'  => $this->request->getPost('persetujuan_syarat') ? 1 : 0,
     ];
@@ -422,13 +436,9 @@ public function setujuiPendaftaran($id_pendaftaran)
             ->first();
     }
 
-    // TAMBAHKAN INI SEMENTARA UNTUK MELIHAT ISI DATANYA
-    dd($pendaftaran);
 
-    return view('peserta/status_pendaftaran', [
-        'pendaftaran' => $pendaftaran,
-        'keyword'    => $keyword
-    ]);
+
+   return redirect()->to(base_url('admin/validasi'))->with('success', 'Pendaftaran berhasil disetujui!');
 }
 
     public function updateBukti($id)
@@ -573,6 +583,29 @@ public function setujuiPendaftaran($id_pendaftaran)
 
         return view('peserta/kelas', ['kelas' => $kelas]);
     }
+
+    public function daftarKelasPeserta()
+{
+    if ($redirect = $this->requireLogin()) {
+        return $redirect;
+    }
+
+    $pendaftaranModel = new \App\Models\PendaftaranModel();
+
+    // Ambil data kelas yang diambil oleh peserta berdasarkan id_users yang sedang login
+    $kelasSaya = $pendaftaranModel
+        ->select('pendaftaran.*, kelas.*, mentor.nama_mentor')
+        ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+        ->where('pendaftaran.id_users', $this->userId())
+        ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+        ->findAll();
+
+    $data['kelas'] = $kelasSaya;
+
+    // UBAH BAGIAN INI: sesuaikan dengan nama file view Anda (daftar_kelas_peserta)
+    return view('peserta/daftar_kelas_peserta', $data);
+}
 
     public function daftarKelas()
 {

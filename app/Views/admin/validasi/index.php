@@ -341,15 +341,15 @@
                                     <div class="fw-semibold text-dark"><?= esc($item['metode_pembayaran'] ?? '-') ?></div>
                                     <small class="text-muted text-capitalize"><?= esc($item['status_pembayaran'] ?? 'pending') ?></small>
                                 </td>
-                                <td class="text-center">
-                                    <?php if(!empty($item['bukti_pembayaran'])): ?>
-                                       <a href="<?= base_url('uploads/bukti_pembayaran/' . $item['bukti_pembayaran']) ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm">
-                                            <i class="bi bi-image me-1"></i> Lihat
-                                        </a>
-                                    <?php else: ?>
-                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3">Belum Upload</span>
-                                    <?php endif; ?>
-                                </td>
+                                <<td class="text-center">
+    <?php if(!empty($item['bukti_pembayaran'])): ?>
+       <a href="<?= base_url('uploads/bukti/' . $item['bukti_pembayaran']) ?>" target="_blank">
+    <img src="<?= base_url('uploads/bukti/' . $item['bukti_pembayaran']) ?>" alt="Bukti Pembayaran" width="100">
+</a>
+    <?php else: ?>
+        <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3">Belum Upload</span>
+    <?php endif; ?>
+</td>
                                 
                                 <!-- LOGIKA STATUS DINAMIS -->
                                 <td class="text-center">

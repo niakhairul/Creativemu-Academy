@@ -130,7 +130,7 @@ echo "<pre>"; print_r($user); echo "</pre>";
                     </div>
 
                     <table class="table table-borderless align-middle mb-0">
-                        <tr>
+                           <tr>
                             <td width="130" class="text-muted fw-semibold">NIS</td>
                             <td class="fw-bold text-primary">: <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1"><?= esc($user['nis'] ?? $pendaftaran['nis'] ?? '-') ?></span></td>
                         </tr>

@@ -60,10 +60,12 @@
         </a>
     </li>
 
+    
+        <!-- Ubah bagian ini di sidebar: -->
     <li>
-        <a href="<?= base_url('pelatihan/daftar-kelas') ?>">
+        <a href="<?= base_url('pelatihan/daftar-kelas-peserta') ?>">
             <i class="bi bi-grid-fill"></i>
-            Daftar Kelas
+            Daftar Kelas Saya
         </a>
     </li>
 

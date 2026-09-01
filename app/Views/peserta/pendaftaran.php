@@ -427,12 +427,12 @@
 
 
                         <div class="mb-4">
-                            <label for="kategori_kelas" class="form-label fw-semibold small text-secondary">kategori kelas</label>
-                            <select class="form-select rounded-3" id="metode_pembelajaran" name="metode_pembelajaran" required>
-                                <option value="Basic Pelatihan" <?= (isset($kelas['metode']) && $kelas['metode'] == 'Basic Pelatihan') ? 'selected' : '' ?>>Basic Pelatihan</option>
-                                <option value="Pelatihan Sertifikasi" <?= (isset($kelas['metode']) && $kelas['metode'] == 'Pelatihan Sertifikasi') ? 'selected' : '' ?>>Pelatihan Sertifikasi</option>
-                            </select>
-                        </div>
+    <label for="kategori_kelas" class="form-label fw-semibold small text-secondary">Kategori Kelas</label>
+    <select class="form-select rounded-3" id="kategori_kelas" name="kategori_kelas" required>
+        <option value="Basic Pelatihan" <?= (isset($kelas['kategori_kelas']) && $kelas['kategori_kelas'] == 'Basic Pelatihan') ? 'selected' : '' ?>>Basic Pelatihan</option>
+        <option value="Pelatihan Sertifikasi" <?= (isset($kelas['kategori_kelas']) && $kelas['kategori_kelas'] == 'Pelatihan Sertifikasi') ? 'selected' : '' ?>>Pelatihan Sertifikasi</option>
+    </select>
+</div>
 
                         <hr class="text-muted opacity-25 my-4">
 
