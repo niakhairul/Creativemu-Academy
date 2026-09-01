@@ -121,6 +121,7 @@ protected function userId()
     return view('nama_view_kamu', $data);
 }
 
+    
     public function dashboard()
     {
         if ($redirect = $this->requireLogin()) {
@@ -131,7 +132,6 @@ protected function userId()
         $user = (new UserModel())->find($userId);
         $kelas = (new KelasModel())->where('status', 'aktif')->findAll();
         
-        // Mengambil data dengan join ke tabel kelas dan tabel mentor
         $pendaftaran = (new PendaftaranModel())
             ->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas as jadwal, mentor.nama_mentor as mentor')
             ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
@@ -140,13 +140,19 @@ protected function userId()
             ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
             ->first();
 
+        // Masukkan NIS ke dalam array $user jika pendaftarannya ada
+        if ($pendaftaran && !empty($pendaftaran['nis'])) {
+            $user['nis'] = $pendaftaran['nis'];
+        } else {
+            $user['nis'] = '-';
+        }
+
         return view('peserta/dashboard', [
             'user' => $user,
             'kelas' => $kelas,
             'pendaftaran' => $pendaftaran,
         ]);
     }
-
     public function profil()
     {
         if ($redirect = $this->requireLogin()) {
@@ -356,7 +362,7 @@ protected function userId()
     }
 }
 
-// Contoh di Controller Admin saat admin menyetujui pendaftaran
+
 public function setujuiPendaftaran($id_pendaftaran)
 {
     $pendaftaranModel = new \App\Models\PendaftaranModel();
@@ -406,7 +412,7 @@ public function setujuiPendaftaran($id_pendaftaran)
 
     if ($keyword) {
         $pendaftaran = (new \App\Models\PendaftaranModel())
-            ->select('pendaftaran.*, kelas.nama_kelas') // pendaftaran.* memastikan kolom nis ikut terpanggil
+            ->select('pendaftaran.*, kelas.nama_kelas')
             ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
             ->groupStart()
                 ->where('pendaftaran.email', $keyword)
@@ -416,9 +422,12 @@ public function setujuiPendaftaran($id_pendaftaran)
             ->first();
     }
 
+    // TAMBAHKAN INI SEMENTARA UNTUK MELIHAT ISI DATANYA
+    dd($pendaftaran);
+
     return view('peserta/status_pendaftaran', [
         'pendaftaran' => $pendaftaran,
-        'keyword'     => $keyword
+        'keyword'    => $keyword
     ]);
 }
 
@@ -512,29 +521,40 @@ public function setujuiPendaftaran($id_pendaftaran)
     $fileBukti = $this->request->getFile('bukti_pembayaran');
     $namaFileBaru = '';
 
-    // Cek apakah ada file baru yang diunggah
     if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
-        $namaFileBaru = $fileBukti->getRandomName();
-        $fileBukti->move('uploads/bukti/', $namaFileBaru); // Sesuaikan direktori penyimpanan Anda
-    }
+    $namaFileBaru = $fileBukti->getRandomName();
+    $fileBukti->move('uploads/bukti/', $namaFileBaru);
+}
 
-    // Data yang akan di-update
+    // Data yang akan di-update (Hanya status, alasan penolakan, dan file bukti)
     $dataUpdate = [
-        'nama' => $this->request->getPost('nama'),
-        'no_hp' => $this->request->getPost('no_hp'),
-        'status_pembayaran' => 'pending', // Kembalikan status ke pending agar dicek ulang admin
-        'alasan_penolakan' => null // Kosongkan kembali alasan penolakannya
+        'status_pembayaran' => 'pending', 
+        'alasan_penolakan' => null 
     ];
 
-    // Jika file baru diunggah, masukkan ke array update
     if ($namaFileBaru) {
         $dataUpdate['bukti_pembayaran'] = $namaFileBaru;
     }
 
-    // Lakukan update ke database
+    // Lakukan update ke database (nama dan no_hp aman tidak berubah)
     $pendaftaranModel->update($id_pendaftaran, $dataUpdate);
 
-    return redirect()->to('/pelatihan/daftar-kelas')->with('success', 'Data dan bukti pembayaran berhasil diperbarui. Silakan tunggu validasi ulang dari admin.');
+    return redirect()->to('/pelatihan/daftar-kelas')->with('success', 'Bukti pembayaran berhasil diperbarui. Silakan tunggu validasi ulang dari admin.');
+}
+
+    private function generateNIS()
+{
+    $db = \Config\Database::connect();
+    $tanggalHariIni = date('Ymd'); // Format: 20260901
+
+    // Ambil jumlah pendaftar atau siswa yang terdaftar pada hari yang sama
+    // Atau hitung total seluruh siswa untuk nomor urut global (misal 3 digit: 001, 002, dst)
+    $builder = $db->table('peserta'); // Sesuaikan nama tabel siswa/peserta Anda
+    $jumlahSiswa = $builder->countAllResults();
+    
+    $nomorUrut = str_pad($jumlahSiswa + 1, 3, '0', STR_PAD_LEFT); // Menghasilkan '001', '002', dst.
+
+    return $tanggalHariIni . $nomorUrut; // Hasil akhir: 20260901001
 }
 
     public function kelas()

@@ -1,3 +1,6 @@
+<?php 
+echo "<pre>"; print_r($user); echo "</pre>"; 
+?>
 <?= $this->extend('layouts/dashboard_template') ?>
 
 <?= $this->section('content') ?>
@@ -128,7 +131,11 @@
 
                     <table class="table table-borderless align-middle mb-0">
                         <tr>
-                            <td width="120" class="text-muted fw-semibold">Nama</td>
+                            <td width="130" class="text-muted fw-semibold">NIS</td>
+                            <td class="fw-bold text-primary">: <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1"><?= esc($user['nis'] ?? $pendaftaran['nis'] ?? '-') ?></span></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted fw-semibold">Nama</td>
                             <td class="fw-bold text-dark">: <?= esc($user['nama']) ?></td>
                         </tr>
                         <tr>
@@ -175,11 +182,11 @@
                                 $statusBayar  = $pendaftaran['status_pembayaran'] ?? '';
                             ?>
 
-                            <?php if ($statusBayar == 'terkonfirmasi' || strtolower($statusDaftar) == 'disetujui'): ?>
+                            <?php if ($statusBayar == 'terkonfirmasi' || strtolower($statusDaftar) == 'disetujui' || $statusBayar == 'valid'): ?>
                                 <span class="badge bg-success fs-6 px-3 py-2 rounded-pill shadow-sm">
                                     <i class="bi bi-check-circle me-1"></i> Sudah Divalidasi / Disetujui
                                 </span>
-                            <?php elseif ($statusBayar == 'batal' || strtolower($statusDaftar) == 'ditolak'): ?>
+                            <?php elseif ($statusBayar == 'batal' || strtolower($statusDaftar) == 'ditolak' || $statusBayar == 'rejected'): ?>
                                 <span class="badge bg-danger fs-6 px-3 py-2 rounded-pill shadow-sm">
                                     <i class="bi bi-x-circle me-1"></i> Ditolak
                                 </span>

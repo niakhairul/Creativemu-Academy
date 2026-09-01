@@ -365,14 +365,7 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    <select class="form-select rounded-3" id="kategori_kelas" name="kategori_kelas" required>
-                                        <option value="" disabled selected>Pilih Kategori Kelas</option>
-                                        <option value="Pemrograman & IT" <?= (isset($kelas['kategori']) && $kelas['kategori'] == 'Privat') ? 'selected' : '' ?>>Privat</option>
-                                        <option value="Administrasi Perkantoran" <?= (isset($kelas['kategori']) && $kelas['kategori'] == 'Kelaas Reguler') ? 'selected' : '' ?>>Kelas Reguler</option>
-                                    </select>
-                                    <label for="kategori_kelas">Jenis Kelas</label>
-                                </div>
+                               
                             </div>
                         </div>
 

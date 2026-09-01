@@ -13,7 +13,6 @@
     
     <style>
         :root {
-            /* Warna ungu ditingkatkan menjadi lebih pekat, terang, dan bertenaga */
             --purple-primary: #7c3aed;    
             --purple-hover: #6d28d9;
             --purple-light: #f5f3ff;      
@@ -46,18 +45,8 @@
             }
         }
 
-        @keyframes floatEffect {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
-            100% { transform: translateY(0px); }
-        }
-
         .animate-fade-in {
             animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .floating-icon {
-            animation: floatEffect 4s ease-in-out infinite;
         }
 
         .navbar-custom {
@@ -69,7 +58,6 @@
             border-bottom: 1px solid rgba(221, 214, 254, 0.8);
         }
 
-        /* UKURAN LOGO DIPERBESAR DI SINI */
         .navbar-logo {
             width: 46px;
             height: 46px;
@@ -129,32 +117,21 @@
             transform: translateY(-1px);
         }
 
+        /* HERO SECTION DIPERBAIKI AGAR TIDAK TUMPANG TINDIH */
         .hero-section {
             background: linear-gradient(135deg, rgba(245, 243, 255, 0.95) 0%, rgba(237, 233, 254, 0.9) 100%);
-            padding: 55px 0 75px 0;
+            padding: 40px 0 60px 0;
             border-bottom: 1px solid rgba(221, 214, 254, 0.8);
             position: relative;
             overflow: hidden;
-        }
-
-        .hero-section::after {
-            content: '';
-            position: absolute;
-            width: 350px;
-            height: 350px;
-            background: rgba(124, 58, 237, 0.18);
-            filter: blur(90px);
-            top: -60px;
-            right: -60px;
-            border-radius: 50%;
-            z-index: 0;
+            margin-bottom: -30px; /* Memberikan ruang transisi yang pas untuk filter box */
         }
 
         .page-title {
             font-weight: 800;
             color: #1e1b4b;
             letter-spacing: -0.8px;
-            font-size: 2.5rem;
+            font-size: 2.2rem;
         }
 
         .filter-container {
@@ -163,9 +140,9 @@
             padding: 20px;
             box-shadow: 0 20px 40px rgba(124, 58, 237, 0.08);
             border: 1px solid rgba(221, 214, 254, 0.9);
-            margin-top: -55px;
             position: relative;
             z-index: 10;
+            margin-bottom: 2rem;
             animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
@@ -339,21 +316,6 @@
 </head>
 <body>
 
-<!-- NOTIFIKASI FLASH MESSAGE (SUKSES / ERROR) -->
-<div class="container mt-3">
-    <?php if (session()->getFlashdata('success')): ?>
-        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; font-weight: 500;">
-            <i class="bi bi-check-circle-fill me-2"></i> <?= session()->getFlashdata('success') ?>
-        </div>
-    <?php endif; ?>
-
-    <?php if (session()->getFlashdata('error')): ?>
-        <div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; font-weight: 500;">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> <?= session()->getFlashdata('error') ?>
-        </div>
-    <?php endif; ?>
-</div>
-
 <!-- Navbar Atas -->
 <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
     <div class="container px-lg-4">
@@ -368,7 +330,7 @@
 
         <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
             <ul class="navbar-nav gap-4">
-                <li class="nav-item"><a class="nav-link" href="<?= base_url('pelatihan/daftar-kelas') ?>">Program</a></li>
+                <li class="nav-item"><a class="nav-link active" href="<?= base_url('pelatihan/daftar-kelas') ?>">Program</a></li>
                 <li class="nav-item">
                     <a class="nav-link fw-semibold" data-bs-toggle="modal" data-bs-target="#modalCekStatus" style="cursor: pointer;">
                         <i class="bi bi-search me-1"></i> Cek Status Pendaftaran
@@ -384,9 +346,35 @@
     </div>
 </nav>
 
-<!-- Main Content / Daftar Kelas -->
-<div class="container px-lg-4 py-2">
+<!-- HERO SECTION (DITAMBAHKAN KEMBALI AGAR JUDUL & SEARCH TIDAK TUMPANG TINDIH) -->
+<div class="hero-section">
+    <div class="container px-lg-4">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="page-title mb-2">Daftar Program Pelatihan</h1>
+                <p class="text-muted mb-0">Temukan kelas pengembangan skill profesional terbaik yang sesuai dengan kebutuhan kariermu.</p>
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- Main Content / Daftar Kelas -->
+<div class="container px-lg-4 py-3">
+
+    <!-- NOTIFIKASI FLASH MESSAGE (SUKSES / ERROR) -->
+    <?php if (session()->getFlashdata('success')): ?>
+        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; font-weight: 500;">
+            <i class="bi bi-check-circle-fill me-2"></i> <?= session()->getFlashdata('success') ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if (session()->getFlashdata('error')): ?>
+        <div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; font-weight: 500;">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <?= session()->getFlashdata('error') ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- Kotak Filter Pencarian -->
     <div class="filter-container">
         <form action="" method="get" class="row g-3 align-items-center">
             <div class="col-lg-7">
@@ -409,7 +397,7 @@
     </div>
 
     <!-- Daftar Kelas Grid -->
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mt-4">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mt-2">
         <?php if (empty($kelas)) : ?>
             <div class="col-12 text-center py-5">
                 <div class="card border-0 shadow-sm p-5 rounded-4 bg-white mx-auto animate-fade-in" style="max-width: 500px;">
@@ -510,7 +498,6 @@
             <div class="modal-body py-4">
                 <p class="text-muted small mb-4">Masukkan Email atau Nomor HP yang Anda gunakan saat mendaftar untuk melacak status validasi pendaftaran Anda.</p>
 
-                <!-- Form AJAX (Tidak pakai action submit biasa) -->
                 <form id="formCekStatus">
                     <div class="input-group input-group-lg mb-3">
                         <input type="text" id="keywordStatus" name="keyword" class="form-control rounded-start-pill border py-3 px-4" placeholder="Contoh: email@anda.com atau 0812345..." required>
@@ -520,7 +507,6 @@
                     </div>
                 </form>
 
-                <!-- Area untuk Menampilkan Hasil Cek Status secara Dinamis -->
                 <div id="hasilPencarianModal" class="mt-4"></div>
 
                 <div class="alert alert-light border text-muted small rounded-3 mb-0 mt-3">
@@ -531,8 +517,7 @@
     </div>
 </div>
 
-<!-- Script AJAX untuk Cek Status & Auto Open Modal -->
-<!-- Script AJAX untuk Cek Status & Auto Open Modal -->
+<!-- Script AJAX untuk Cek Status -->
 <script>
 document.getElementById('formCekStatus').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -592,7 +577,6 @@ function lakukanCekStatus() {
                         <div class="alert alert-danger mt-3 mb-2 small">
                             <strong>Pendaftaran Ditolak!</strong> Alasan: ${data.data.alasan_penolakan || 'Tidak valid'}. Silakan perbarui data diri dan unggah ulang bukti pembayaran Anda.
                         </div>
-                        <!-- Tombol ini mengarahkan ke halaman form lengkap upload ulang -->
                         <a href="<?= base_url('pelatihan/upload_ulang/') ?>${data.data.id_pendaftaran}" class="btn btn-warning fw-bold text-dark w-100 mt-2 btn-sm">
                             <i class="bi bi-pencil-square me-1"></i> Buka Menu Edit & Upload Ulang Data
                         </a>
