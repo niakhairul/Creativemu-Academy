@@ -51,76 +51,70 @@
             z-index: 1;
         }
 
-        /* Sidebar: Gradasi Ungu yang Sedikit Lebih Gelap */
+        /* Sidebar: Gradasi Ungu yang Disamakan dengan Dashboard */
         .sidebar {
-            width: 280px;
-            background: linear-gradient(160deg, #6d28d9 0%, #5b21b6 100%);
-            color: #ffffff;
+            width: 260px;
+            background: linear-gradient(180deg, #581c87 0%, #7c3aed 100%);
+            color: white;
             position: fixed;
             top: 0;
             bottom: 0;
             left: 0;
             z-index: 100;
-            padding: 2.5rem 1.5rem;
-            box-shadow: 10px 0 30px rgba(93, 33, 182, 0.2);
+            padding: 20px;
+            box-shadow: 4px 0 20px rgba(124, 58, 237, 0.1);
             overflow-y: auto;
         }
 
-        .sidebar .profile-section img {
-            border: 3px solid rgba(255, 255, 255, 0.85);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-            object-fit: cover;
-        }
-
-        .sidebar ul {
-            list-style: none;
-            padding: 0;
-            margin-top: 2rem;
-        }
-
-        .sidebar ul li {
-            margin-bottom: 0.6rem;
-        }
-
-        .sidebar ul li a {
+        .sidebar-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
             display: flex;
             align-items: center;
-            padding: 12px 18px;
-            color: rgba(255, 255, 255, 0.85);
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            margin-bottom: 20px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 8px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.8);
             text-decoration: none;
-            border-radius: 14px;
+            padding: 12px 16px;
+            border-radius: 12px;
             font-weight: 500;
             transition: all 0.3s ease;
         }
 
-        .sidebar ul li a i {
-            font-size: 1.2rem;
-            margin-right: 14px;
-            color: #d8b4fe;
-        }
-
-        .sidebar ul li a:hover {
+        .sidebar-menu a:hover, .sidebar-menu a.active {
             background: rgba(255, 255, 255, 0.15);
-            color: #ffffff;
-            transform: translateX(6px);
+            color: white;
+            transform: translateX(4px);
         }
 
-        .sidebar ul li.active a {
-            background: #ffffff;
-            color: #6d28d9;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-            transform: translateX(6px);
-        }
-
-        .sidebar ul li.active a i {
-            color: #6d28d9;
+        .sidebar-menu a i {
+            font-size: 1.2rem;
+            margin-right: 12px;
         }
 
         /* Main Content */
         .main-content {
-            margin-left: 280px;
+            margin-left: 260px;
             flex: 1;
-            padding: 3rem;
+            padding: 30px;
             position: relative;
             z-index: 1;
         }
@@ -220,43 +214,34 @@
 
 <div class="dashboard-container">
     <!-- SIDEBAR -->
-    <div class="sidebar">
-        <div class="profile-section text-center">
-            <?php if (!empty(session('foto'))): ?>
-                <img src="<?= base_url('uploads/profil/' . session('foto')) ?>" class="rounded-circle shadow" width="80" height="80">
-            <?php else: ?>
-                <img src="<?= base_url('assets/img/logo creativemu academy.jpg') ?>" class="rounded-circle shadow" width="80" height="80">
-            <?php endif; ?>
-            <h5 class="mt-3 mb-1 fw-bold text-white"><?= esc(ucwords(session('nama') ?? 'Peserta')) ?></h5>
-            <span class="badge bg-white bg-opacity-25 text-white px-3 py-1 rounded-pill small fw-semibold">Peserta</span>
-            <hr class="text-white-50 opacity-25 mt-3">
-        </div>
-
-        <ul>
+    <nav class="sidebar">
+        <a href="#" class="sidebar-brand">
+            <i class="bi bi-mortarboard-fill me-2 fs-4"></i> Creativemu
+        </a>
+        <ul class="sidebar-menu">
             <li>
-                <a href="<?= base_url('peserta/dashboard') ?>"><i class="bi bi-house-door-fill"></i> Dashboard</a>
+                <a href="<?= base_url('peserta/dashboard') ?>"><i class="bi bi-grid-fill"></i> Dashboard</a>
             </li>
             <li>
-                <a href="<?= base_url('pelatihan/profil') ?>"><i class="bi bi-person-circle"></i> Profil</a>
-            </li>
-            <!-- Aktif di menu Daftar Kelas Saya -->
-            <li class="active">
-                <a href="<?= base_url('pelatihan/daftar-kelas-peserta') ?>"><i class="bi bi-grid-fill"></i> Daftar Kelas Saya</a>
+                <a href="<?= base_url('pelatihan/daftar-kelas') ?>"><i class="bi bi-journals"></i> Daftar Kelas</a>
             </li>
             <li>
-                <a href="<?= base_url('pelatihan/kelas') ?>"><i class="bi bi-book-fill"></i> Kelas Saya</a>
+                <a href="#"><i class="bi bi-calendar-check"></i> Absensi</a>
             </li>
             <li>
-                <a href="<?= base_url('pelatihan/kbm') ?>"><i class="bi bi-mortarboard-fill"></i> KBM</a>
+                <a href="#"><i class="bi bi-journal-text"></i> Tugas</a>
             </li>
             <li>
-                <a href="<?= base_url('pelatihan/absensi') ?>"><i class="bi bi-calendar-check-fill"></i> Absensi</a>
+                <a href="#"><i class="bi bi-award"></i> Sertifikat</a>
             </li>
             <li>
-                <a href="<?= base_url('pelatihan/logout') ?>"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                <a href="#"><i class="bi bi-person-badge"></i> Profil Saya</a>
+            </li>
+            <li class="mt-5">
+                <a href="<?= base_url('auth/logout') ?>" class="text-danger-subtle bg-danger bg-opacity-10"><i class="bi bi-box-arrow-left"></i> Keluar</a>
             </li>
         </ul>
-    </div>
+    </nav>
 
     <!-- MAIN CONTENT -->
     <div class="main-content">

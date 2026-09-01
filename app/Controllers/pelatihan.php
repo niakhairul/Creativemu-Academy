@@ -100,7 +100,7 @@ protected function userId()
             ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
             ->where('pendaftaran.id_users', $this->userId())
-            ->where('pendaftaran.status_pendaftaran', 'Disetujui')
+            ->where('pendaftaran.status', 'Disetujui')
             ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
             ->first();
     }
@@ -359,7 +359,6 @@ protected function userId()
         'metode_pembayaran'   => $this->request->getPost('metode_pembayaran'),
         'bukti_pembayaran'    => $namaBukti,
         'status_pembayaran'   => 'pending',
-        'status_pendaftaran'  => 'Pending',
         'alasan_penolakan'    => null,
         'persetujuan_syarat'  => $this->request->getPost('persetujuan_syarat') ? 1 : 0,
     ];
@@ -405,11 +404,11 @@ public function setujuiPendaftaran($id_pendaftaran)
         }
 
         // --- TAMBAHKAN DEBUG INI ---
-        dd($id_pendaftaran, $nisBaru, $pendaftaran);
+        // dd($id_pendaftaran, $nisBaru, $pendaftaran);
 
         $pendaftaranModel->update($id_pendaftaran, [
             'status_pembayaran'   => 'valid',
-            'status_pendaftaran'  => 'Disetujui',
+            'status'              => 'Disetujui',
             'nis'                 => $nisBaru
         ]);
 
@@ -567,12 +566,14 @@ public function setujuiPendaftaran($id_pendaftaran)
     return $tanggalHariIni . $nomorUrut; // Hasil akhir: 20260901001
 }
 
+    
     public function kelas()
     {
         if ($redirect = $this->requireLogin()) {
             return $redirect;
         }
 
+        // Ambil data kelas & mentor
         $kelas = (new PendaftaranModel())
             ->select('pendaftaran.*, kelas.*, mentor.nama_mentor')
             ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
@@ -581,7 +582,45 @@ public function setujuiPendaftaran($id_pendaftaran)
             ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
             ->first();
 
-        return view('peserta/kelas', ['kelas' => $kelas]);
+        // Ambil data jadwal & absensi
+        $jadwal = [];
+        if ($kelas) {
+            $jadwal = (new JadwalKelasModel())->where('id_kelas', $kelas['id_kelas'])->orderBy('pertemuan_ke', 'ASC')->findAll();
+        }
+
+        $db = \Config\Database::connect();
+        $jumlahHadir = 0;
+        
+        foreach ($jadwal as &$item) {
+            $absensi = $db->table('absensi')
+                        ->where('id_jadwal_kelas', $item['id_jadwal_kelas'])
+                        ->where('id_users', $this->userId())
+                        ->get()
+                        ->row_array();
+
+            $item['absensi'] = $absensi;
+            if (($absensi['status'] ?? null) === 'hadir') {
+                $jumlahHadir++;
+            }
+        }
+
+        $totalPertemuan = count($jadwal);
+        $persentaseKehadiran = $totalPertemuan > 0 ? round(($jumlahHadir / $totalPertemuan) * 100) : 0;
+
+        // Status angket dan sertifikat diatur default dulu (ubah jika tabelnya sudah ada)
+        $sudahIsiAngket = false;
+        $sertifikatAcademy = false; 
+
+        // Kirim semua variabel ke view peserta/kelas
+        return view('peserta/kelas', [
+            'kelas'               => $kelas,
+            'jadwal'              => $jadwal,
+            'totalPertemuan'      => $totalPertemuan,
+            'jumlahHadir'         => $jumlahHadir,
+            'persentaseKehadiran' => $persentaseKehadiran,
+            'sudahIsiAngket'      => $sudahIsiAngket,
+            'sertifikatAcademy'   => $sertifikatAcademy,
+        ]);
     }
 
     public function daftarKelasPeserta()
@@ -966,10 +1005,6 @@ public function setujuiPendaftaran($id_pendaftaran)
 
         if (! password_verify($passwordLama, $user['password'])) {
             return redirect()->back()->with('error', 'Password lama salah.');
-        }
-
-        if ($passwordBaru !== $konfirmasi) {
-            return redirect()->back()->with('error', 'Konfirmasi password tidak cocok.');
         }
 
         $userModel->update($this->userId(), ['password' => password_hash($passwordBaru, PASSWORD_DEFAULT)]);
