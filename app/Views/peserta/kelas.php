@@ -116,7 +116,7 @@
                 <a href="<?= base_url('pelatihan/kbm') ?>"><i class="bi bi-mortarboard-fill"></i> KBM</a>
             </li>
             <li>
-                <a href="<?= base_url('pelatihan/profil') ?>"><i class="bi bi-person-badge"></i> Profil Saya</a>
+                <a href="<?= base_url('pelatihan/pengaturan') ?>"><i class="bi bi-journals"></i> Pengaturan</a>
             </li>
             <li class="mt-5">
                 <a href="<?= base_url('auth/logout') ?>" class="text-danger-subtle bg-danger bg-opacity-10"><i class="bi bi-box-arrow-left"></i> Keluar</a>

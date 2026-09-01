@@ -935,35 +935,69 @@ public function setujuiPendaftaran($id_pendaftaran)
         ]);
     }
 
-    public function pengaturan()
-{
-    if ($redirect = $this->requireLogin()) {
-        return $redirect;
+    
+public function pengaturan()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
+
+        $db = \Config\Database::connect();
+        $userId = $this->userId();
+
+        // Ambil data akun
+        $user = $db->table('users')
+            ->where('id_users', $userId)
+            ->get()
+            ->getRowArray();
+
+        // Ambil data kelas & mentor
+        $kelas = (new PendaftaranModel())
+            ->select('pendaftaran.*, kelas.*, mentor.nama_mentor')
+            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+            ->where('pendaftaran.id_users', $userId)
+            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+            ->first();
+
+        // Ambil data jadwal & absensi
+        $jadwal = [];
+        if ($kelas) {
+            $jadwal = (new JadwalKelasModel())->where('id_kelas', $kelas['id_kelas'])->orderBy('pertemuan_ke', 'ASC')->findAll();
+        }
+
+        $jumlahHadir = 0;
+        foreach ($jadwal as &$item) {
+            $absensi = $db->table('absensi')
+                        ->where('id_jadwal_kelas', $item['id_jadwal_kelas'])
+                        ->where('id_users', $userId)
+                        ->get()
+                        ->row_array();
+
+            $item['absensi'] = $absensi;
+            if (($absensi['status'] ?? null) === 'hadir') {
+                $jumlahHadir++;
+            }
+        }
+
+        $totalPertemuan = count($jadwal);
+        $persentaseKehadiran = $totalPertemuan > 0 ? round(($jumlahHadir / $totalPertemuan) * 100) : 0;
+
+        $sudahIsiAngket = false;
+        $sertifikatAcademy = false; 
+
+        return view('peserta/pengaturan', [
+            'user'                => $user,
+            'pendaftaran'         => $kelas,
+            'kelas'               => $kelas,
+            'jadwal'              => $jadwal,
+            'totalPertemuan'      => $totalPertemuan,
+            'jumlahHadir'         => $jumlahHadir,
+            'persentaseKehadiran' => $persentaseKehadiran,
+            'sudahIsiAngket'      => $sudahIsiAngket,
+            'sertifikatAcademy'   => $sertifikatAcademy,
+        ]);
     }
-
-    $db = \Config\Database::connect();
-
-    $userId = $this->userId();
-
-    // Ambil data akun
-    $user = $db->table('users')
-        ->where('id_users', $userId)
-        ->get()
-        ->getRowArray();
-
-    // Ambil data pendaftaran peserta
-    $pendaftaran = $db->table('pendaftaran')
-        ->where('id_users', $userId)
-        ->orderBy('id_pendaftaran', 'DESC')
-        ->get()
-        ->getRowArray();
-
-    return view('peserta/pengaturan', [
-        'user' => $user,
-        'pendaftaran' => $pendaftaran
-    ]);
-}
-
 public function updateProfil()
 {
     if ($redirect = $this->requireLogin()) {

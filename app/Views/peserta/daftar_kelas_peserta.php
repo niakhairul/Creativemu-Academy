@@ -220,29 +220,22 @@
         </a>
         <ul class="sidebar-menu">
             <li>
-                <a href="<?= base_url('peserta/dashboard') ?>"><i class="bi bi-grid-fill"></i> Dashboard</a>
+                <a href="<?= base_url('peserta/dashboard') ?>" class="active"><i class="bi bi-grid-fill"></i> Dashboard</a>
             </li>
             <li>
-                <a href="<?= base_url('pelatihan/daftar-kelas') ?>"><i class="bi bi-journals"></i> Daftar Kelas</a>
+                <a href="<?= base_url('pelatihan/daftar-kelas-peserta') ?>"><i class="bi bi-journals"></i> Daftar Kelas Saya</a>
             </li>
             <li>
-                <a href="#"><i class="bi bi-calendar-check"></i> Absensi</a>
+                <a href="<?= base_url('pelatihan/kbm') ?>"><i class="bi bi-mortarboard-fill"></i> KBM</a>
             </li>
             <li>
-                <a href="#"><i class="bi bi-journal-text"></i> Tugas</a>
-            </li>
-            <li>
-                <a href="#"><i class="bi bi-award"></i> Sertifikat</a>
-            </li>
-            <li>
-                <a href="#"><i class="bi bi-person-badge"></i> Profil Saya</a>
+                <a href="<?= base_url('pelatihan/pengaturan') ?>"><i class="bi bi-journals"></i> Pengaturan</a>
             </li>
             <li class="mt-5">
                 <a href="<?= base_url('auth/logout') ?>" class="text-danger-subtle bg-danger bg-opacity-10"><i class="bi bi-box-arrow-left"></i> Keluar</a>
             </li>
         </ul>
     </nav>
-
     <!-- MAIN CONTENT -->
     <div class="main-content">
         <div class="container-fluid">
