@@ -11,6 +11,7 @@ use App\Models\PendaftaranModel;
 use App\Models\PengumpulanTugasModel;
 use App\Models\UserModel;
 
+
 class Pelatihan extends BaseController
 {
     protected $db;
@@ -24,7 +25,7 @@ class Pelatihan extends BaseController
 
     public function store() // atau nama fungsi submit pendaftaran kamu
 {
-    $pendaftaranModel = new \App\Models\PendaftaranModel();
+    $pendaftaranModel = new PendaftaranModel();
 
     // 1. Ambil tanggal hari ini dalam format YYYYMMDD (Contoh: 20260831)
     $tanggalHariIni = date('Ymd');
@@ -133,7 +134,7 @@ protected function userId()
     // Ambil data user yang sedang login
     $user = $db->table('users')->where('id_users', $userId)->get()->getRowArray();
 
-    $pendaftaranModel = new \App\Models\PendaftaranModel();
+    $pendaftaranModel = new PendaftaranModel();
     
     // Ambil data pendaftaran peserta terbaru beserta data kelas dan mentor
     $pendaftaran = $pendaftaranModel
@@ -189,46 +190,7 @@ protected function userId()
         return view('peserta/edit_profil', ['user' => (new UserModel())->find($this->userId())]);
     }
 
-    public function updateProfil()
-    {
-        if ($redirect = $this->requireLogin()) {
-            return $redirect;
-        }
-
-        $data = [
-            'nama' => $this->request->getPost('nama'),
-            'email' => $this->request->getPost('email'),
-            'no_hp' => $this->request->getPost('no_hp'),
-            'asal_sekolah' => $this->request->getPost('asal_sekolah'),
-        ];
-
-        $foto = $this->request->getFile('foto');
-        if ($foto && $foto->isValid() && ! $foto->hasMoved()) {
-            if ($foto->getSize() > 2 * 1024 * 1024) {
-                return redirect()->back()->with('error', 'Ukuran foto maksimal 2 MB.');
-            }
-
-            $ext = strtolower($foto->getClientExtension());
-            if (! in_array($ext, ['jpg', 'jpeg', 'png'], true)) {
-                return redirect()->back()->with('error', 'Format foto harus JPG, JPEG, atau PNG.');
-            }
-
-            $folder = FCPATH . 'uploads/profil';
-            if (! is_dir($folder)) {
-                mkdir($folder, 0777, true);
-            }
-
-            $data['foto'] = $foto->getRandomName();
-            $foto->move($folder, $data['foto']);
-        }
-
-        (new UserModel())->update($this->userId(), $data);
-        session()->set(array_filter($data, static fn ($value) => $value !== null));
-
-        return redirect()->to(base_url('pelatihan/profil'))->with('success', 'Profil berhasil diperbarui.');
-    }
-
-    public function daftar($id_kelas = null)
+        public function daftar($id_kelas = null)
 {
     // Pastikan ID kelas ada
     if (!$id_kelas) {
@@ -444,7 +406,7 @@ public function setujuiPendaftaran($id_pendaftaran)
     public function updateBukti($id)
 {
     // Ambil data pendaftaran berdasarkan ID
-    $pendaftaranModel = new \App\Models\PendaftaranModel();
+    $pendaftaranModel = new PendaftaranModel();
     $pendaftaran = $pendaftaranModel->find($id);
 
     if (!$pendaftaran) {
@@ -481,8 +443,8 @@ public function setujuiPendaftaran($id_pendaftaran)
     public function ajax_cek_status()
 {
     $keyword = $this->request->getGet('keyword');
-    
-    $pendaftaranModel = new \App\Models\PendaftaranModel(); 
+
+    $pendaftaranModel = new PendaftaranModel(); 
     
     $pendaftaran = $pendaftaranModel->select('pendaftaran.*, kelas.nama_kelas') // Pastikan pendaftaran.* ada di sini
                                     ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
@@ -512,7 +474,7 @@ public function setujuiPendaftaran($id_pendaftaran)
 
     public function uploadUlang($id_pendaftaran)
     {
-        $pendaftaranModel = new \App\Models\PendaftaranModel();
+        $pendaftaranModel = new PendaftaranModel();
         $data['pendaftaran'] = $pendaftaranModel->find($id_pendaftaran);
 
         if (!$data['pendaftaran']) {
@@ -525,7 +487,7 @@ public function setujuiPendaftaran($id_pendaftaran)
 
     public function prosesUploadUlang($id_pendaftaran)
 {
-    $pendaftaranModel = new \App\Models\PendaftaranModel();
+    $pendaftaranModel = new PendaftaranModel();
     
     // Ambil file bukti pembayaran baru
     $fileBukti = $this->request->getFile('bukti_pembayaran');
@@ -590,7 +552,7 @@ public function setujuiPendaftaran($id_pendaftaran)
         return $redirect;
     }
 
-    $pendaftaranModel = new \App\Models\PendaftaranModel();
+    $pendaftaranModel = new PendaftaranModel();
 
     // Ambil data kelas yang diambil oleh peserta berdasarkan id_users yang sedang login
     $kelasSaya = $pendaftaranModel
@@ -935,13 +897,105 @@ public function setujuiPendaftaran($id_pendaftaran)
     }
 
     public function pengaturan()
-    {
-        if ($redirect = $this->requireLogin()) {
-            return $redirect;
+{
+    if ($redirect = $this->requireLogin()) {
+        return $redirect;
+    }
+
+    $db = \Config\Database::connect();
+
+    $userId = $this->userId();
+
+    // Ambil data akun
+    $user = $db->table('users')
+        ->where('id_users', $userId)
+        ->get()
+        ->getRowArray();
+
+    // Ambil data pendaftaran peserta
+    $pendaftaran = $db->table('pendaftaran')
+        ->where('id_users', $userId)
+        ->orderBy('id_pendaftaran', 'DESC')
+        ->get()
+        ->getRowArray();
+
+    return view('peserta/pengaturan', [
+        'user' => $user,
+        'pendaftaran' => $pendaftaran
+    ]);
+}
+
+public function updateProfil()
+{
+    if ($redirect = $this->requireLogin()) {
+        return $redirect;
+    }
+
+    $userId = $this->userId();
+
+    $userModel = new \App\Models\UserModel();
+
+    // Ambil data user saat ini
+    $user = $userModel->find($userId);
+
+    if (!$user) {
+        return redirect()->to(base_url('pelatihan/pengaturan'))
+            ->with('error', 'Data pengguna tidak ditemukan.');
+    }
+
+    // Data yang akan diperbarui
+    $data = [
+        'nama'          => $this->request->getPost('nama'),
+        'email'         => $this->request->getPost('email'),
+        'no_hp'         => $this->request->getPost('no_hp'),
+        'jenis_kelamin' => $this->request->getPost('jenis_kelamin'),
+    ];
+
+    // Upload foto profil
+    $fileFoto = $this->request->getFile('foto');
+
+    if ($fileFoto && $fileFoto->isValid() && !$fileFoto->hasMoved()) {
+
+        // Maksimal 2 MB
+        if ($fileFoto->getSize() > 2 * 1024 * 1024) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Ukuran foto maksimal 2 MB.');
         }
 
-        return view('peserta/pengaturan', ['user' => (new UserModel())->find($this->userId())]);
+        $folderFoto = 'uploads/profil/';
+
+        if (!is_dir(FCPATH . $folderFoto)) {
+            mkdir(FCPATH . $folderFoto, 0777, true);
+        }
+
+        $namaFoto = $fileFoto->getRandomName();
+
+        $fileFoto->move(FCPATH . $folderFoto, $namaFoto);
+
+        $data['foto_profil'] = $namaFoto;
     }
+
+    // Simpan perubahan
+    if ($userModel->update($userId, $data)) {
+
+        // Perbarui session agar foto dan nama di sidebar langsung berubah
+        session()->set([
+            'nama' => $data['nama'],
+        ]);
+
+        if (!empty($data['foto_profil'])) {
+            session()->set('foto', $data['foto_profil']);
+        }
+
+        return redirect()->to(base_url('pelatihan/pengaturan'))
+            ->with('success', 'Profil berhasil diperbarui.');
+    }
+
+    return redirect()->back()
+        ->withInput()
+        ->with('error', 'Gagal memperbarui profil.');
+}
 
     public function ubahPassword()
     {
