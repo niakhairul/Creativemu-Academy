@@ -52,6 +52,7 @@ $routes->post('pelatihan/register', 'PelatihanController::register');
 $routes->get('pelatihan/daftar-kelas-peserta', 'Pelatihan::daftarKelasPeserta');
 $routes->get('pelatihan/detail-kelas', 'Pelatihan::detailKelas');
 $routes->get('pelatihan/materi', 'Pelatihan::materi');
+$routes->get('pelatihan/materi/(:num)', 'Pelatihan::materi/$1');
 $routes->get('pelatihan/daftar-materi', 'Pelatihan::daftarMateri');
 $routes->get('pelatihan/tugas', 'Pelatihan::tugas');
 $routes->post('pelatihan/upload-tugas', 'Pelatihan::uploadTugas');
@@ -70,6 +71,7 @@ $routes->get('pelatihan/kelas', 'Pelatihan::kelas');
 
 // ===== MENU UJIAN PESERTA =====
 $routes->get('pelatihan/ujian', 'Pelatihan::ujian');
+$routes->post('pelatihan/ujian/simpan-jawaban', 'Pelatihan::simpanJawabanUjian');
 $routes->get('pelatihan/ujian/mulai', 'Pelatihan::kerjakanUjian');
 $routes->post('pelatihan/ujian/kumpulkan', 'Pelatihan::submitUjian');
 $routes->get('pelatihan/ujian/hasil', 'Pelatihan::hasilUjian');

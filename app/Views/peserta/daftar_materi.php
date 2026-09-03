@@ -5,147 +5,83 @@
 <div class="card shadow border-0 rounded-4">
 
     <div class="mb-4">
+        <h2 class="fw-bold">
+            Daftar Materi
+        </h2>
 
-    <h2 class="fw-bold">
-        Daftar Materi
-    </h2>
+        <p class="text-muted mb-0">
+            Pilih materi pembelajaran yang ingin Anda pelajari.
+        </p>
+    </div>
 
-    <p class="text-muted mb-0">
-        Pilih materi pembelajaran yang ingin Anda pelajari.
-    </p>
+    <?php if (empty($materi)): ?>
 
-</div>
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            Belum ada materi yang diunggah oleh mentor.
+        </div>
 
+    <?php else: ?>
 
-<div class="row g-4">
+        <div class="row g-4">
 
-    <!-- Pertemuan 1 -->
-    <div class="col-lg-4 col-md-6">
+            <?php foreach ($materi as $item): ?>
 
-        <div class="materi-card h-100">
+                <div class="col-lg-4 col-md-6">
 
-            <div class="materi-icon">
-                📚
-            </div>
+                    <div class="materi-card h-100">
 
-            <span class="materi-badge">
-                Pertemuan 1
-            </span>
+                        <div class="materi-icon">
+                            📚
+                        </div>
 
-            <h4 class="fw-bold mt-3">
-                Pengenalan Digital Marketing
-            </h4>
+                        <span class="materi-badge">
+                            Materi Pembelajaran
+                        </span>
 
-            <p class="text-muted">
-                Mengenal dasar-dasar digital marketing dan konsep
-                pemasaran di era digital.
-            </p>
+                        <h4 class="fw-bold mt-3">
+                            <?= esc($item['judul_materi']) ?>
+                        </h4>
 
-            <div class="materi-footer">
+                        <p class="text-muted">
+                            <?= esc($item['deskripsi']) ?>
+                        </p>
 
-                <span class="status-materi">
-                    ✓ Materi tersedia
-                </span>
+                        <div class="materi-footer">
 
-                <a href="<?= base_url('pelatihan/materi?id=1') ?>"
-                   class="btn btn-primary">
+                            <?php if (!empty($item['file_materi'])): ?>
 
-                    Pelajari
-                    <i class="bi bi-arrow-right"></i>
+                                <span class="status-materi">
+                                    ✓ Materi tersedia
+                                </span>
 
-                </a>
+                            <?php else: ?>
 
-            </div>
+                                <span class="status-materi text-muted">
+                                    File belum tersedia
+                                </span>
+
+                            <?php endif; ?>
+
+                            <a href="<?= base_url('pelatihan/materi?id=' . $item['id_materi_kelas']) ?>"
+                               class="btn btn-primary">
+
+                                Pelajari
+                                <i class="bi bi-arrow-right"></i>
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            <?php endforeach; ?>
 
         </div>
 
-    </div>
-
-
-    <!-- Pertemuan 2 -->
-    <div class="col-lg-4 col-md-6">
-
-        <div class="materi-card h-100">
-
-            <div class="materi-icon">
-                📱
-            </div>
-
-            <span class="materi-badge">
-                Pertemuan 2
-            </span>
-
-            <h4 class="fw-bold mt-3">
-                Social Media Marketing
-            </h4>
-
-            <p class="text-muted">
-                Mempelajari strategi pemasaran melalui berbagai
-                platform media sosial.
-            </p>
-
-            <div class="materi-footer">
-
-                <span class="status-materi">
-                    ✓ Materi tersedia
-                </span>
-
-                <a href="<?= base_url('pelatihan/materi?id=2') ?>"
-                   class="btn btn-primary">
-
-                    Pelajari
-                    <i class="bi bi-arrow-right"></i>
-
-                </a>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- Pertemuan 3 -->
-    <div class="col-lg-4 col-md-6">
-
-        <div class="materi-card h-100">
-
-            <div class="materi-icon">
-                📊
-            </div>
-
-            <span class="materi-badge">
-                Pertemuan 3
-            </span>
-
-            <h4 class="fw-bold mt-3">
-                Facebook Ads
-            </h4>
-
-            <p class="text-muted">
-                Mengenal dasar penggunaan Facebook Ads untuk
-                meningkatkan jangkauan pemasaran.
-            </p>
-
-            <div class="materi-footer">
-
-                <span class="status-materi">
-                    ✓ Materi tersedia
-                </span>
-
-                <a href="<?= base_url('pelatihan/materi?id=3') ?>"
-                   class="btn btn-primary">
-
-                    Pelajari
-                    <i class="bi bi-arrow-right"></i>
-
-                </a>
-
-            </div>
-
-        </div>
-
-    </div>
+    <?php endif; ?>
 
 </div>
 
@@ -171,7 +107,6 @@
     border-color: #8b5cf6;
 }
 
-
 .materi-icon {
     width: 58px;
     height: 58px;
@@ -186,7 +121,6 @@
 
     font-size: 28px;
 }
-
 
 .materi-badge {
     display: inline-block;
@@ -206,18 +140,15 @@
     font-weight: 600;
 }
 
-
 .materi-card h4 {
     font-size: 20px;
     line-height: 1.4;
 }
 
-
 .materi-card p {
     font-size: 14px;
     line-height: 1.6;
 }
-
 
 .materi-footer {
     margin-top: auto;
@@ -233,14 +164,12 @@
     gap: 10px;
 }
 
-
 .status-materi {
     font-size: 12px;
     font-weight: 600;
 
     color: #198754;
 }
-
 
 .materi-footer .btn {
     border-radius: 9px;
@@ -251,4 +180,5 @@
 }
 
 </style>
+
 <?= $this->endSection() ?>
