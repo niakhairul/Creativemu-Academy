@@ -14,6 +14,7 @@ class PendaftaranModel extends Model
     
     protected $allowedFields    = [
         'id_kelas',
+        'id_users',
         'pilihan_pelatihan',
         'pilihan_kelas',
         'tanggal_mulai_kelas',

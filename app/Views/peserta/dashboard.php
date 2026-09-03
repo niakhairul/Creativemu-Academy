@@ -321,15 +321,16 @@
                                 </div>
 
                                 <!-- Kotak Informasi Kelas yang Dipilih -->
-                                <div class="p-3 border border-purple border-opacity-25 rounded-4 bg-light shadow-sm">
-                                    <h6 class="fw-bold mb-2" style="color: #2e1065;"><?= esc($pendaftaran['nama_kelas'] ?? 'Kelas Pelatihan') ?></h6>
-                                    <p class="text-muted small mb-1">
-                                        <i class="bi bi-person-badge me-1"></i> Mentor: <strong class="text-dark"><?= esc($pendaftaran['mentor'] ?? '-') ?></strong>
-                                    </p>
-                                    <p class="text-muted small mb-0">
-                                        <i class="bi bi-calendar-event me-1"></i> Jadwal: <strong class="text-dark"><?= esc($k['jadwal'] ?? $pendaftaran['jadwal'] ?? '-') ?></strong>
-                                    </p>
-                                </div>
+                                <!-- Kotak Informasi Kelas yang Dipilih -->
+<div class="p-3 border border-purple border-opacity-25 rounded-4 bg-light shadow-sm">
+    <h6 class="fw-bold mb-2" style="color: #2e1065;"><?= esc($pendaftaran['nama_kelas'] ?? 'Kelas Pelatihan') ?></h6>
+    <p class="text-muted small mb-1">
+        <i class="bi bi-person-badge me-1"></i> Mentor: <strong class="text-dark"><?= esc($pendaftaran['nama_mentor'] ?? '-') ?></strong>
+    </p>
+    <p class="text-muted small mb-0">
+        <i class="bi bi-calendar-event me-1"></i> Jadwal: <strong class="text-dark"><?= esc($pendaftaran['jadwal'] ?? '-') ?></strong>
+    </p>
+</div>
                             <?php endif; ?>
 
                         </div>

@@ -53,6 +53,7 @@ class Pelatihan extends BaseController
         'id_kelas'          => $this->request->getPost('id_kelas'),
         'nama'              => $this->request->getPost('nama'),
         'email'             => $this->request->getPost('email'),
+        'lokasi_pelatihan' => $this->request->getPost('lokasi_pelatihan'), // Pastikan ini ad
         'no_hp'             => $this->request->getPost('no_hp'),
         'nis'               => $nisBaru, // <--- NIS otomatis masuk di sini
         'status_pembayaran' => 'pending',
@@ -122,45 +123,61 @@ protected function userId()
     return view('nama_view_kamu', $data);
 }
 
-    public function dashboard()
+   public function dashboard()
 {
-    $userId = session()->get('id_users');
-    if (!$userId) {
-        return redirect()->to(base_url('pelatihan/login'));
+    $session = session();
+    $userId = $session->get('id_users');
+    $userEmail = $session->get('email'); 
+
+    $pendaftaranModel = new \App\Models\PendaftaranModel();
+    $userModel = new \App\Models\UserModel(); 
+
+    // 1. Cari data pendaftaran berdasarkan id_users ATAU email, sekaligus JOIN ke tabel kelas & mentor
+    $pendaftaran = null;
+    if ($userId) {
+        $pendaftaran = $pendaftaranModel->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas as jadwal_kelas, mentor.nama_mentor')
+            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+            ->where('pendaftaran.id_users', $userId)
+            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+            ->first();
+    }
+    
+    if (!$pendaftaran && $userEmail) {
+        $pendaftaran = $pendaftaranModel->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas as jadwal_kelas, mentor.nama_mentor')
+            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+            ->where('pendaftaran.email', $userEmail)
+            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+            ->first();
+        
+        if ($pendaftaran && empty($pendaftaran['id_users']) && $userId) {
+            $pendaftaranModel->update($pendaftaran['id_pendaftaran'], ['id_users' => $userId]);
+            $pendaftaran['id_users'] = $userId;
+        }
     }
 
-    $db = \Config\Database::connect();
-    
-    // Ambil data user yang sedang login
-    $user = $db->table('users')->where('id_users', $userId)->get()->getRowArray();
+    if ($pendaftaran) {
+        // Mapping jadwal dari tanggal mulai kelas atau pendaftaran
+        $pendaftaran['jadwal'] = $pendaftaran['jadwal_kelas'] ?? $pendaftaran['tanggal_mulai_kelas'] ?? '-';
+        // Pastikan nama mentor ada fallback-nya jika belum di-set di relasi kelas
+        $pendaftaran['nama_mentor'] = $pendaftaran['nama_mentor'] ?? 'Mentor Belum Ditentukan';
+    }
 
-    $pendaftaranModel = new PendaftaranModel();
-    
-    // Ambil data pendaftaran peserta terbaru beserta data kelas dan mentor
-    $pendaftaran = $pendaftaranModel
-        ->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas as jadwal, mentor.nama_mentor as mentor')
-        ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-        ->where('pendaftaran.id_users', $userId)
-        ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
-        ->first();
-
-    // Masukkan NIS ke array user (prioritaskan dari pendaftaran terbaru yang memiliki NIS)
-    if ($pendaftaran && !empty($pendaftaran['nis'])) {
-        $user['nis'] = $pendaftaran['nis'];
-    } else {
-        $user['nis'] = '-';
+    // 2. Ambil data user yang sedang login
+    $userData = $userModel->find($userId);
+    if (!$userData && $userEmail) {
+        $userData = $userModel->where('email', $userEmail)->first();
     }
 
     $data = [
         'title'       => 'Dashboard Peserta',
-        'user'        => $user,
         'pendaftaran' => $pendaftaran,
+        'user'        => $userData ?? ['nama' => session()->get('nama') ?? 'Peserta'],
     ];
 
     return view('peserta/dashboard', $data);
 }
-    
 
     public function profil()
     {
@@ -254,12 +271,6 @@ protected function userId()
 
    public function simpanPendaftaran()
 {
-    // --- 0. AMBIL ID USER DARI SESI LOGIN ---
-    $userId = session()->get('id_users');
-    if (!$userId) {
-        return redirect()->to(base_url('pelatihan/login'))->with('error', 'Silakan login terlebih dahulu untuk mendaftar.');
-    }
-
     $db = \Config\Database::connect();
     $pendaftaranModel = new \App\Models\PendaftaranModel();
     
@@ -297,10 +308,10 @@ protected function userId()
         $fileBukti->move(FCPATH . $folderBukti, $namaBukti);
     }
 
-    // --- 3. SIAPKAN DATA (NIS DIKOSONGKAN KARENA BELUM DIVALIDASI ADMIN) ---
+    // --- 3. SIAPKAN DATA (id_users dikosongkan dulu karena belum punya akun) ---
     $dataPendaftaran = [
-        'nis'                 => null, // NIS kosong saat baru mendaftar
-        'id_users'            => $userId, // <-- Sudah aman karena $userId sudah didefinisikan di atas
+        'nis'                 => null, 
+        'id_users'            => null, // Belum ada akun sebelum disetujui admin
         'id_kelas'            => $this->request->getPost('id_kelas'),
         'nama'                => $this->request->getPost('nama'),
         'email'               => $this->request->getPost('email'),
@@ -310,7 +321,7 @@ protected function userId()
         'jenis_kelamin'       => $this->request->getPost('jenis_kelamin'),
         'pendidikan_terakhir' => $this->request->getPost('pendidikan_terakhir'),
         'pas_foto'            => $namaFoto,
-        'status'              => $this->request->getPost('pilihan_status'),
+        'status'              => 'Pending', // Status awal pendaftaran
         'lokasi_pelatihan'    => $this->request->getPost('pilihan_lokasi'),
         'pilihan_pelatihan'   => $this->request->getPost('pilihan_pelatihan'),
         'jenis_kelas'         => $this->request->getPost('jenis_kelas'),
@@ -327,7 +338,7 @@ protected function userId()
 
     try {
         if ($pendaftaranModel->insert($dataPendaftaran)) {
-            return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('success', 'Pendaftaran berhasil dikirim! Silakan menunggu validasi dan penertiban NIS dari admin.');
+            return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('success', 'Pendaftaran berhasil dikirim! Silakan menunggu validasi dan pembuatan akun dari admin.');
         } else {
             $errors = $pendaftaranModel->errors();
             return redirect()->back()->withInput()->with('error', 'Gagal validasi database: ' . json_encode($errors));
@@ -337,14 +348,35 @@ protected function userId()
     }
 }
 
-
 public function setujuiPendaftaran($id_pendaftaran)
 {
     $pendaftaranModel = new \App\Models\PendaftaranModel();
+    $db = \Config\Database::connect();
     
     $pendaftaran = $pendaftaranModel->find($id_pendaftaran);
 
     if ($pendaftaran) {
+        // 1. Cek apakah peserta sudah punya akun users berdasarkan emailnya
+        $existingUser = $db->table('users')->where('email', $pendaftaran['email'])->get()->getRowArray();
+        
+        if ($existingUser) {
+            $userId = $existingUser['id_users'];
+        } else {
+            // Jika belum punya akun, buatkan akun baru secara otomatis
+            // Password default diset '123456' (peserta bisa mengganti nanti melalui menu pengaturan)
+            $userData = [
+                'nama'          => $pendaftaran['nama'],
+                'email'         => $pendaftaran['email'],
+                'no_hp'         => $pendaftaran['no_hp'],
+                'jenis_kelamin' => $pendaftaran['jenis_kelamin'],
+                'password'      => password_hash('123456', PASSWORD_DEFAULT), 
+            ];
+            
+            $db->table('users')->insert($userData);
+            $userId = $db->insertID(); // Ambil ID user yang baru saja dibuat
+        }
+
+        // 2. Generate NIS jika belum ada
         if (empty($pendaftaran['nis'])) {
             $tanggalHariIni = date('Ymd');
 
@@ -365,16 +397,15 @@ public function setujuiPendaftaran($id_pendaftaran)
             $nisBaru = $pendaftaran['nis'];
         }
 
-        // --- TAMBAHKAN DEBUG INI ---
-        // dd($id_pendaftaran, $nisBaru, $pendaftaran);
-
+        // 3. Update data pendaftaran: masukkan id_users yang baru terhubung, ubah status jadi disetujui & simpan NIS
         $pendaftaranModel->update($id_pendaftaran, [
+            'id_users'            => $userId,
             'status_pembayaran'   => 'valid',
             'status'              => 'Disetujui',
             'nis'                 => $nisBaru
         ]);
 
-        return redirect()->back()->with('success', 'Pendaftaran disetujui dan NIS berhasil dibuat: ' . $nisBaru);
+        return redirect()->back()->with('success', 'Pendaftaran disetujui, Akun peserta aktif, dan NIS berhasil dibuat: ' . $nisBaru);
     }
 
     return redirect()->back()->with('error', 'Data pendaftaran tidak ditemukan.');
@@ -513,19 +544,33 @@ public function setujuiPendaftaran($id_pendaftaran)
     return redirect()->to('/pelatihan/daftar-kelas')->with('success', 'Bukti pembayaran berhasil diperbarui. Silakan tunggu validasi ulang dari admin.');
 }
 
-    private function generateNIS()
+    public function generateNIS()
 {
-    $db = \Config\Database::connect();
-    $tanggalHariIni = date('Ymd'); // Format: 20260901
-
-    // Ambil jumlah pendaftar atau siswa yang terdaftar pada hari yang sama
-    // Atau hitung total seluruh siswa untuk nomor urut global (misal 3 digit: 001, 002, dst)
-    $builder = $db->table('peserta'); // Sesuaikan nama tabel siswa/peserta Anda
-    $jumlahSiswa = $builder->countAllResults();
+    $tahunBulanTanggal = date('Ymd'); // Contoh: 20260902
     
-    $nomorUrut = str_pad($jumlahSiswa + 1, 3, '0', STR_PAD_LEFT); // Menghasilkan '001', '002', dst.
+    // Cari data terakhir hari ini berdasarkan awalan NIS (misal: 20260902...)
+    $builder = $this->db->table('tabel_siswa'); // Ganti dengan nama tabel Anda
+    $builder->select('nis');
+    $builder->like('nis', $tahunBulanTanggal, 'after');
+    $builder->orderBy('nis', 'DESC');
+    $builder->limit(1);
+    $query = $builder->get()->getRow();
 
-    return $tanggalHariIni . $nomorUrut; // Hasil akhir: 20260901001
+    if ($query) {
+        // Jika hari ini sudah ada pendaftaran, ambil 3 digit terakhir lalu +1
+        $nisTerakhir = $query->nis;
+        $noUrut = (int) substr($nisTerakhir, -3); 
+        $noUrut++;
+    } else {
+        // Jika hari ini belum ada pendaftaran sama sekali, mulai dari 1
+        $noUrut = 1;
+    }
+
+    // Format nomor urut menjadi 3 digit (contoh: 001, 002, 003)
+    $formattedUrut = str_pad($noUrut, 3, '0', STR_PAD_LEFT);
+
+    // Gabungkan menjadi NIS akhir: YYYYMMDD + 003
+    return $tahunBulanTanggal . $formattedUrut;
 }
 
     
@@ -1098,5 +1143,14 @@ public function updateProfil()
         $userModel->update($this->userId(), ['password' => password_hash($passwordBaru, PASSWORD_DEFAULT)]);
 
         return redirect()->to(base_url('pelatihan/pengaturan'))->with('success', 'Password berhasil diubah.');
+    }
+
+    public function logout()
+    {
+        // Menghapus semua data session yang aktif
+        session()->destroy();
+
+        // Arahkan kembali ke halaman login dengan pesan sukses
+        return redirect()->to(base_url('pelatihan/login'))->with('success', 'Anda telah berhasil keluar.');
     }
 }

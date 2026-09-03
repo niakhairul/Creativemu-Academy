@@ -12,12 +12,13 @@ $routes->get('pelatihan/register', 'Pelatihan::register');
 // Tambahkan baris ini untuk menjembatani link yang mengarah ke 'auth/...'
 $routes->get('auth/login', 'Pelatihan::login');
 $routes->get('auth/register', 'Pelatihan::register');
+$routes->get('auth/logout', 'Pelatihan::logout'); // <-- Rute logout baru ditambahkan di sini
 
 $routes->match(['get', 'post'], 'register/save', 'Auth::save');
 $routes->match(['get', 'post'], 'login/process', 'Auth::loginProcess');
 $routes->match(['get', 'post'], 'pelatihan/login/process', 'Auth::loginProcess');
 
-// Logout
+// Logout (Alternatif admin lama)
 $routes->get('logout', 'Admin::logout');
 
 // ===== MENU PESERTA & PELATIHAN =====

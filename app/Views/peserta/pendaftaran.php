@@ -338,13 +338,13 @@
                                 <div class="form-floating">
                                     <select class="form-select rounded-3" id="pilihan_status" name="pilihan_status" required>
                                         <option value="" disabled selected>Pilih Status</option>
-                                        <option value="Pelajar" <?= (isset($user['pilihan_status']) && $user['pilihan_status'] == 'Pelajar') ? 'selected' : '' ?>>Pelajar SMP</option>
-                                        <option value="Pelajar" <?= (isset($user['pilihan_status']) && $user['pilihan_status'] == 'Pelajar SMA/SMK') ? 'selected' : '' ?>>Pelajar SMA/SMK</option>
+                                        <option value="Pelajar SMP" <?= (isset($user['pilihan_status']) && $user['pilihan_status'] == 'Pelajar') ? 'selected' : '' ?>>Pelajar SMP</option>
+                                        <option value="Pelajar SMA/SMK" <?= (isset($user['pilihan_status']) && $user['pilihan_status'] == 'Pelajar SMA/SMK') ? 'selected' : '' ?>>Pelajar SMA/SMK</option>
                                         <option value="Mahasiswa" <?= (isset($user['pilihan_status']) && $user['pilihan_status'] == 'Mahasiswa') ? 'selected' : '' ?>>Mahasiswa</option>
-                                        <option value="Umum" <?= (isset($user['pilihan_status']) && $user['pilihan_status'] == 'Guru/Dosen') ? 'selected' : '' ?>>Guru/Dosen</option>
+                                        <option value="Guru/Dosen" <?= (isset($user['pilihan_status']) && $user['pilihan_status'] == 'Guru/Dosen') ? 'selected' : '' ?>>Guru/Dosen</option>
                                         <option value="Karyawan" <?= (isset($user['pilihan_status']) && $user['pilihan_status'] == 'Karyawan Swasta') ? 'selected' : '' ?>>Karyawan Swasta</option>
-                                        <option value="Freelance" <?= (isset($user['pilihan_status']) && $user['pilihan_status'] == 'ASN/TNI/POLRI') ? 'selected' : '' ?>>ASN/TNI/POLRI</option>
-                                        <option value="Pelajar" <?= (isset($user['pilihan_status']) && $user['pilihan_status'] == 'Lainnya') ? 'selected' : '' ?>>Lainnya</option>
+                                        <option value="Pegawainegri" <?= (isset($user['pilihan_status']) && $user['pilihan_status'] == 'ASN/TNI/POLRI') ? 'selected' : '' ?>>ASN/TNI/POLRI</option>
+                                        <option value="Lainnya" <?= (isset($user['pilihan_status']) && $user['pilihan_status'] == 'Lainnya') ? 'selected' : '' ?>>Lainnya</option>
                                     </select>
                                     <label for="pilihan_status">Status Peserta</label>
                                 </div>
@@ -357,9 +357,9 @@
                                 <div class="form-floating">
                                     <select class="form-select rounded-3" id="pilihan_lokasi" name="pilihan_lokasi" required>
                                         <option value="" disabled selected>Pilih Lokasi Pelatihan</option>
-                                        <option value="Online / Daring" <?= (isset($kelas['lokasi']) && $kelas['lokasi'] == 'Kantor pusat - Jl. Gn. Bulu No 89, RT.34, Bandut Lor,Argorejo,Sedayu, Bantul, Yogyakarta') ? 'selected' : '' ?>>Kantor pusat - Jl. Gn. Bulu No 89, RT.34, Bandut Lor,Argorejo,Sedayu, Bantul, Yogyakarta</option>
-                                        <option value="Kampus Utama Creativemu" <?= (isset($kelas['lokasi']) && $kelas['lokasi'] == 'Kantor Cabang - Jl. Glagahsari No.46C, Warungboto, Kec.umbulharjo, Kota Yogyakarta, Daerah Istimewa Yogyakarta') ? 'selected' : '' ?>>Kantor Cabang - Jl. Glagahsari No.46C, Warungboto, Kec.umbulharjo, Kota Yogyakarta, Daerah Istimewa Yogyakarta</option>
-                                        <option value="Cabang Regional" <?= (isset($kelas['lokasi']) && $kelas['lokasi'] == 'Kantor Perwakilan - Jl . Soekarno Hatta, Sawitan, Kabupaten Magelang, Jawa Tengah') ? 'selected' : '' ?>>Kantor Perwakilan - Jl . Soekarno Hatta, Sawitan, Kabupaten Magelang, Jawa Tengah</option>
+                                        <option value="Kantor pusat - Jl. Gn. Bulu No 89, RT.34, Bandut Lor,Argorejo,Sedayu, Bantul, Yogyakarta" <?= (isset($kelas['lokasi']) && $kelas['lokasi'] == 'Kantor pusat - Jl. Gn. Bulu No 89, RT.34, Bandut Lor,Argorejo,Sedayu, Bantul, Yogyakarta') ? 'selected' : '' ?>>Kantor pusat - Jl. Gn. Bulu No 89, RT.34, Bandut Lor,Argorejo,Sedayu, Bantul, Yogyakarta</option>
+                                        <option value="Kantor Cabang - Jl. Glagahsari No.46C, Warungboto, Kec.umbulharjo, Kota Yogyakarta, Daerah Istimewa Yogyakarta" <?= (isset($kelas['lokasi']) && $kelas['lokasi'] == 'Kantor Cabang - Jl. Glagahsari No.46C, Warungboto, Kec.umbulharjo, Kota Yogyakarta, Daerah Istimewa Yogyakarta') ? 'selected' : '' ?>>Kantor Cabang - Jl. Glagahsari No.46C, Warungboto, Kec.umbulharjo, Kota Yogyakarta, Daerah Istimewa Yogyakarta</option>
+                                        <option value="Kantor Perwakilan - Jl . Soekarno Hatta, Sawitan, Kabupaten Magelang, Jawa Tengah') ? 'selected' : '' ?>>Kantor Perwakilan - Jl . Soekarno Hatta, Sawitan, Kabupaten Magelang, Jawa Tengah" <?= (isset($kelas['lokasi']) && $kelas['lokasi'] == 'Kantor Perwakilan - Jl . Soekarno Hatta, Sawitan, Kabupaten Magelang, Jawa Tengah') ? 'selected' : '' ?>>Kantor Perwakilan - Jl . Soekarno Hatta, Sawitan, Kabupaten Magelang, Jawa Tengah</option>
                                     </select>
                                     <label for="pilihan_lokasi">Lokasi Pelatihan</label>
                                 </div>
