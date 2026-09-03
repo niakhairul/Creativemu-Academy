@@ -337,7 +337,7 @@ public function masterKelas()
                 ->with('error', 'Aksi tidak valid: ' . $aksi);
         }
 
-        // Ambil data pendaftaran untuk pengecekan NIS
+        // Ambil data pendaftaran untuk pengecekan NIS dan Email peserta
         $pendaftaran = $pendaftaranModel->find($id_pendaftaran);
 
         if (!$pendaftaran) {
@@ -385,12 +385,47 @@ public function masterKelas()
                 ->with('error', 'Database gagal diperbarui.');
         }
 
-        $pesanSukses = ($aksi === 'setuju') 
-            ? 'Pendaftaran berhasil disetujui! NIS peserta: ' . $nisBaru 
-            : 'Pendaftaran berhasil ditolak!';
+        // =======================================================
+        // LETAKKAN KODE PENGIRIMAN EMAIL DI SINI
+        // =======================================================
+        $email = \Config\Services::email();
+        $email->setTo($pendaftaran['email']);
+        $email->setFrom('email_anda@gmail.com', 'Creativemu Academy');
+
+        if ($aksi === 'setuju') {
+            $email->setSubject('Selamat! Pendaftaran Kelas Anda di Creativemu Academy Telah Diterima');
+            $email->setMessage('
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background-color: #faf5ff; border-radius: 10px;">
+                    <h2 style="color: #7c3aed;">Halo, ' . esc($pendaftaran['nama'] ?? 'Peserta') . '</h2>
+                    <p>Kabar gembira! Pendaftaran Anda untuk mengikuti pelatihan di <strong>Creativemu Academy</strong> telah <strong>DISETUJUI</strong>.</p>
+                    <p>NIS Anda adalah: <strong>' . $nisBaru . '</strong></p>
+                    <p>Silakan lanjutkan proses registrasi atau login akun Anda melalui tautan di bawah ini:</p>
+                    <div style="margin: 30px 0;">
+                        <a href="' . base_url('pelatihan/login') . '" style="background-color: #7c3aed; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Login ke Akun</a>
+                    </div>
+                    <p>Salam hangat,<br><strong>Tim Akademik Creativemu</strong></p>
+                </div>
+            ');
+        } else {
+            $email->setSubject('Informasi Status Pendaftaran Kelas Creativemu Academy');
+            $email->setMessage('
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background-color: #fff1f2; border-radius: 10px;">
+                    <h2 style="color: #e11d48;">Halo, ' . esc($pendaftaran['nama'] ?? 'Peserta') . '</h2>
+                    <p>Mohon maaf, pendaftaran Anda di <strong>Creativemu Academy</strong> belum dapat kami setujui saat ini.</p>
+                    <p>Salam hangat,<br><strong>Tim Akademik Creativemu</strong></p>
+                </div>
+            ');
+        }
+
+        $email->send(); // Ganti bagian ini atau bungkus dengan if di bawah:
+
+        if (!$email->send()) {
+            print_r($email->printDebugger(['headers', 'subject', 'body']));
+            exit;
 
         return redirect()->to(base_url('admin/validasi'))
             ->with('pesan', $pesanSukses);
+        }
     }
 
     public function proses_validasi($id_pendaftaran)
@@ -409,11 +444,12 @@ public function masterKelas()
         $dataUpdate['alasan_penolakan'] = null; 
     }
 
-    // --- TAMBAHAN: Generate NIS jika disetujui dan NIS masih kosong ---
     $pendaftaranModel = new \App\Models\PendaftaranModel(); 
     $pendaftaranLama = $pendaftaranModel->find($id_pendaftaran);
 
-    if (($status === 'valid' || $status === 'Disetujui' || $status === 'approved') && empty($pendaftaranLama['nis'])) {
+    $nisBaru = $pendaftaranLama['nis'] ?? null;
+
+    if (($status === 'valid' || $status === 'Disetujui' || $status === 'approved') && empty($nisBaru)) {
         $tanggalHariIni = date('Ymd');
         $pendaftaranTerakhir = $pendaftaranModel
             ->like('nis', $tanggalHariIni, 'after')
@@ -424,10 +460,10 @@ public function masterKelas()
             ? (int) substr($pendaftaranTerakhir['nis'], -3) + 1 
             : 1;
 
-        $dataUpdate['nis'] = $tanggalHariIni . str_pad($urutanBaru, 3, '0', STR_PAD_LEFT);
+        $nisBaru = $tanggalHariIni . str_pad($urutanBaru, 3, '0', STR_PAD_LEFT);
+        $dataUpdate['nis'] = $nisBaru;
     }
 
-    // Tangkap file bukti pembayaran baru jika diunggah bersamaan
     $fileBukti = $this->request->getFile('bukti_pembayaran');
     if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
         $newName = $fileBukti->getRandomName();
@@ -442,14 +478,106 @@ public function masterKelas()
     // Update ke database
     $pendaftaranModel->update($id_pendaftaran, $dataUpdate);
 
-    // Tentukan pesan berdasarkan status yang dipilih
+    // =======================================================
+    // KIRIM EMAIL NOTIFIKASI
+    // =======================================================
+    if ($pendaftaranLama && !empty($pendaftaranLama['email'])) {
+        $email = \Config\Services::email();
+        $email->setTo($pendaftaranLama['email']);
+        $email->setFrom('email_anda@gmail.com', 'Creativemu Academy'); // Ganti dengan email Anda
+
+        $isDisetujui = ($status === 'valid' || $status === 'Disetujui' || $status === 'approved');
+
+        if ($isDisetujui) {
+            $email->setSubject('Selamat! Pendaftaran Kelas Anda di Creativemu Academy Telah Diterima');
+            $email->setMessage('
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; color: #333; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+                    <h2 style="color: #7c3aed; margin-top: 0;">Halo, ' . esc($pendaftaranLama['nama'] ?? 'Peserta') . '</h2>
+                    <p>Kabar gembira! Pendaftaran Anda untuk mengikuti pelatihan di <strong>Creativemu Academy</strong> telah resmi <strong>DISETUJUI</strong>.</p>
+                    
+                    <p>Berikut adalah detail informasi pendaftaran Anda:</p>
+                    <table style="width: 100%; border-collapse: collapse; background-color: #faf5ff; border-radius: 6px; overflow: hidden; margin: 15px 0;">
+                        <tr>
+                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff; font-weight: bold; width: 40%;">Nama Lengkap</td>
+                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff;">' . esc($pendaftaranLama['nama'] ?? '-') . '</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff; font-weight: bold;">No HP / WhatsApp</td>
+                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff;">' . esc($pendaftaranLama['no_hp'] ?? '-') . '</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff; font-weight: bold;">Kelas yang Diambil</td>
+                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff;">' . esc($pendaftaranLama['pilihan_pelatihan'] ?? '-') . '</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff; font-weight: bold;">Tempat Pelatihan</td>
+                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff;">' . esc($pendaftaranLama['lokasi_pelatihan'] ?? '-') . '</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff; font-weight: bold;">Jenis Kelas</td>
+                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff;">' . esc($pendaftaranLama['jenis_kelas'] ?? '-') . '</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff; font-weight: bold;">Metode Pelatihan</td>
+                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff;">' . esc($pendaftaranLama['metode_pembelajaran'] ?? '-') . '</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff; font-weight: bold;">Kategori Kelas</td>
+                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff;">' . esc($pendaftaranLama['kategori_kelas'] ?? '-') . '</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 15px; font-weight: bold;">Tanggal Mulai</td>
+                            <td style="padding: 10px 15px;">' . esc($pendaftaranLama['tanggal_mulai_kelas'] ?? '-') . '</td>
+                        </tr>
+                    </table>
+
+                    <p>Langkah selanjutnya, silakan melakukan registrasi akun peserta Anda melalui tautan di bawah ini:</p>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="' . base_url('pelatihan/register') . '" style="background-color: #7c3aed; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Registrasi Akun Sekarang</a>
+                    </div>
+                    
+                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                    <p style="font-size: 13px; color: #94a3b8; margin-bottom: 0;">Salam hangat,<br><strong>Tim Akademik Creativemu Academy</strong></p>
+                </div>
+            ');
+        } else {
+            $email->setSubject('Informasi Penting: Status Pendaftaran Creativemu Academy');
+            $email->setMessage('
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; color: #333; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+                    <h2 style="color: #e11d48; margin-top: 0;">Halo, ' . esc($pendaftaranLama['nama'] ?? 'Peserta') . '</h2>
+                    <p>Terima kasih telah mendaftar di <strong>Creativemu Academy</strong>. Mohon maaf, pendaftaran Anda saat ini <strong>belum dapat kami setujui</strong>.</p>
+                    
+                    <div style="background-color: #fff1f2; border-left: 4px solid #e11d48; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                        <p style="margin: 0 0 5px 0; font-weight: bold; color: #9f1239;">Catatan / Alasan Penolakan:</p>
+                        <p style="margin: 0; color: #881337;">' . esc($alasan ?? 'Tidak ada catatan khusus.') . '</p>
+                    </div>
+
+                    <p>Anda dapat memperbarui data atau mengunggah ulang bukti pembayaran melalui halaman cek status:</p>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="' . base_url('pelatihan/cek-status') . '" style="background-color: #e11d48; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Cek Status & Upload Ulang</a>
+                    </div>
+
+                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                    <p style="font-size: 13px; color: #94a3b8; margin-bottom: 0;">Salam hangat,<br><strong>Tim Akademik Creativemu Academy</strong></p>
+                </div>
+            ');
+        }
+
+        if (!$email->send()) {
+            print_r($email->printDebugger(['headers', 'subject', 'body']));
+            exit;
+        }
+    }
+    // =======================================================
+
     if ($status === 'rejected' || $status === 'Ditolak') {
         $pesan = 'Pendaftaran berhasil ditolak.';
     } else {
-        $pesan = 'Pendaftaran berhasil disetujui dan NIS berhasil diterbitkan.';
+        $pesan = 'Pendaftaran berhasil disetujui.';
     }
 
-    // Arahkan kembali ke halaman validasi admin dengan flashdata yang sesuai
     return redirect()->to(base_url('admin/validasi'))
                      ->with('success', $pesan);
 }

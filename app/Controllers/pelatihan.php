@@ -701,9 +701,9 @@ if ($kelas) {
 
     $pendaftaranModel = new PendaftaranModel();
 
-    // Ambil data kelas yang diambil oleh peserta berdasarkan id_users yang sedang login
+    // Ambil data kelas yang diambil oleh peserta berdasarkan id_users yang sedang login dengan JOIN lengkap
     $kelasSaya = $pendaftaranModel
-        ->select('pendaftaran.*, kelas.*, mentor.nama_mentor')
+        ->select('pendaftaran.*, kelas.nama_kelas, kelas.thumbnail, mentor.nama_mentor')
         ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
         ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
         ->where('pendaftaran.id_users', $this->userId())
@@ -712,7 +712,6 @@ if ($kelas) {
 
     $data['kelas'] = $kelasSaya;
 
-    // UBAH BAGIAN INI: sesuaikan dengan nama file view Anda (daftar_kelas_peserta)
     return view('peserta/daftar_kelas_peserta', $data);
 }
 

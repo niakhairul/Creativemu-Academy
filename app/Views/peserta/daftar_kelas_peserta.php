@@ -6,369 +6,357 @@
     <title>Daftar Kelas Saya - Creativemu Academy</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Latar Belakang Utama: Ungu Pastel Sangat Muda & Cerah */
-            --bg-main: #f4f0ff;
             --primary-purple: #7c3aed;
-            --text-main: #2e1065;
-            --text-muted: #6b7280;
+            --dark-purple: #581c87;
+            --deep-purple: #2e1065;
+            --light-purple: #f3e8ff;
+            --bg-body: #faf5ff;
         }
 
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            overflow-x: hidden;
-            position: relative;
-            min-height: 100vh;
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--bg-body); 
+            color: #334155;
         }
 
-        /* Pola Titik-Titik (Polka Dot / Dotted Pattern) di Latar Belakang */
-        body::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: radial-gradient(#d8b4fe 1.5px, transparent 1.5px);
-            background-size: 24px 24px;
-            opacity: 0.6;
-            z-index: 0;
-            pointer-events: none;
+        .app-wrapper { 
+            display: flex; 
+            min-height: 100vh; 
         }
 
-        .dashboard-container {
-            display: flex;
-            min-height: 100vh;
-            position: relative;
-            z-index: 1;
+        /* Sidebar Styling */
+        .sidebar { 
+            width: 270px; 
+            background: linear-gradient(180deg, var(--dark-purple) 0%, var(--primary-purple) 100%); 
+            color: white; 
+            position: fixed; 
+            top: 0; 
+            bottom: 0; 
+            left: 0; 
+            padding: 24px; 
+            z-index: 100; 
+            box-shadow: 4px 0 25px rgba(124, 58, 237, 0.1);
         }
 
-        /* Sidebar: Gradasi Ungu yang Disamakan dengan Dashboard */
-        .sidebar {
-            width: 260px;
-            background: linear-gradient(180deg, #581c87 0%, #7c3aed 100%);
-            color: white;
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            padding: 20px;
-            box-shadow: 4px 0 20px rgba(124, 58, 237, 0.1);
-            overflow-y: auto;
+        .sidebar-brand { 
+            font-size: 1.35rem; 
+            font-weight: 800; 
+            color: white; 
+            text-decoration: none; 
+            display: flex; 
+            align-items: center; 
+            padding-bottom: 20px; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15); 
+            margin-bottom: 24px; 
+            letter-spacing: -0.5px;
         }
 
-        .sidebar-brand {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: white;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            margin-bottom: 20px;
+        .sidebar-menu { 
+            list-style: none; 
+            padding: 0; 
+            margin: 0; 
         }
 
-        .sidebar-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
+        .sidebar-menu li { 
+            margin-bottom: 10px; 
         }
 
-        .sidebar-menu li {
-            margin-bottom: 8px;
+        .sidebar-menu a { 
+            display: flex; 
+            align-items: center; 
+            color: rgba(255, 255, 255, 0.8); 
+            text-decoration: none; 
+            padding: 12px 16px; 
+            border-radius: 14px; 
+            font-weight: 600; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
         }
 
-        .sidebar-menu a {
-            display: flex;
-            align-items: center;
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-weight: 500;
-            transition: all 0.3s ease;
+        .sidebar-menu a:hover, .sidebar-menu a.active { 
+            background: rgba(255, 255, 255, 0.15); 
+            color: white; 
+            transform: translateX(6px); 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        .sidebar-menu a:hover, .sidebar-menu a.active {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            transform: translateX(4px);
+        .sidebar-menu a i { 
+            font-size: 1.25rem; 
+            margin-right: 14px; 
         }
 
-        .sidebar-menu a i {
-            font-size: 1.2rem;
-            margin-right: 12px;
+        /* Main Content Styling */
+        .main-content { 
+            flex: 1; 
+            margin-left: 270px; 
+            padding: 40px; 
         }
 
-        /* Main Content */
-        .main-content {
-            margin-left: 260px;
-            flex: 1;
-            padding: 30px;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Header Kotak Konten */
-        .page-header-box {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(216, 180, 254, 0.4);
+        /* Hero Header Card */
+        .header-banner {
+            background: linear-gradient(135deg, var(--dark-purple) 0%, var(--primary-purple) 100%);
             border-radius: 24px;
-            padding: 2rem 2.5rem;
-            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.04);
-        }
-
-        /* Kartu Kelas Putih Bersih dengan Aksen Ungu */
-        .custom-card {
-            background: #ffffff;
-            border: 1px solid rgba(216, 180, 254, 0.5);
-            border-radius: 24px;
-            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.06);
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            color: white;
+            padding: 35px 40px;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.2);
         }
 
-        .custom-card::before {
+        .header-banner::after {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, #c084fc, #7c3aed);
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            right: -30px;
+            bottom: -50px;
+            width: 250px;
+            height: 250px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
         }
 
-        .custom-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(124, 58, 237, 0.15);
-            border-color: #a855f7;
-        }
-
-        .custom-card:hover::before {
-            opacity: 1;
-        }
-
-        /* Thumbnail Gambar Kelas di Kartu */
-        .card-img-top-wrapper {
-            position: relative;
-            height: 160px;
+        /* Course Card Modern Styling */
+        .course-card {
+            border: none;
+            border-radius: 20px;
+            background: #ffffff;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.05);
             overflow: hidden;
-            background-color: #f3e8ff;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            border: 1px solid rgba(124, 58, 237, 0.08);
         }
 
-        .card-img-top-wrapper img {
+        .course-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(124, 58, 237, 0.15);
+            border-color: rgba(124, 58, 237, 0.3);
+        }
+
+        .card-img-wrapper {
+            position: relative;
+            overflow: hidden;
+            height: 200px;
+        }
+
+        .card-img-top {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.4s ease;
+            transition: transform 0.5s ease;
         }
 
-        .custom-card:hover .card-img-top-wrapper img {
+        .course-card:hover .card-img-top {
             transform: scale(1.05);
         }
 
-        /* Badge Kategori */
+        .card-img-overlay-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .custom-badge {
+            background: rgba(46, 16, 101, 0.85);
+            backdrop-filter: blur(4px);
+            color: white;
+            font-weight: 600;
+            font-size: 0.75rem;
+            padding: 6px 12px;
+            border-radius: 30px;
+            letter-spacing: 0.3px;
+        }
+
         .badge-category {
-            background-color: #f3e8ff;
-            color: #7c3aed;
-            font-weight: 600;
-            padding: 6px 14px;
-            border-radius: 50px;
+            background: var(--light-purple);
+            color: var(--primary-purple);
+            font-weight: 700;
         }
 
-        /* Tombol Utama Ungu */
-        .btn-custom-primary {
-            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-            color: #fff;
-            border-radius: 50px;
-            padding: 12px 24px;
-            font-weight: 600;
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            font-size: 0.875rem;
+        }
+
+        .info-item i {
+            font-size: 1rem;
+            margin-right: 10px;
+            margin-top: 1px;
+            flex-shrink: 0;
+            color: var(--primary-purple);
+        }
+
+        /* Button Styling */
+        .btn-kbm {
+            background: linear-gradient(135deg, var(--primary-purple) 0%, var(--dark-purple) 100%);
+            color: white;
             border: none;
-            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.3);
+            border-radius: 14px;
+            padding: 12px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
         }
 
-        .btn-custom-primary:hover {
-            background: linear-gradient(135deg, #7c3aed, #6d28d9);
-            color: #fff;
-            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.5);
+        .btn-kbm:hover {
+            background: linear-gradient(135deg, var(--dark-purple) 0%, var(--deep-purple) 100%);
+            color: white;
             transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(124, 58, 237, 0.35);
+        }
+
+        /* Empty State */
+        .empty-state-card {
+            background: white;
+            border-radius: 24px;
+            border: 2px dashed rgba(124, 58, 237, 0.2);
+            padding: 60px 20px;
         }
     </style>
 </head>
 <body>
 
-<div class="dashboard-container">
-    <!-- SIDEBAR -->
+<div class="app-wrapper">
+    <!-- Sidebar -->
     <nav class="sidebar">
         <a href="#" class="sidebar-brand">
-            <i class="bi bi-mortarboard-fill me-2 fs-4"></i> Creativemu
+            <i class="bi bi-mortarboard-fill me-2 fs-4 text-purple-light"></i> Creativemu
         </a>
         <ul class="sidebar-menu">
-            <li>
-                <a href="<?= base_url('peserta/dashboard') ?>" class="active"><i class="bi bi-grid-fill"></i> Dashboard</a>
-            </li>
-            <li>
-                <a href="<?= base_url('pelatihan/daftar-kelas-peserta') ?>"><i class="bi bi-journals"></i> Daftar Kelas Saya</a>
-            </li>
-            <li>
-                <a href="<?= base_url('pelatihan/kbm') ?>"><i class="bi bi-mortarboard-fill"></i> KBM</a>
-            </li>
-            <li>
-                <a href="<?= base_url('pelatihan/pengaturan') ?>"><i class="bi bi-journals"></i> Pengaturan</a>
-            </li>
-            <li class="mt-5">
-                <a href="<?= base_url('auth/logout') ?>" class="text-danger-subtle bg-danger bg-opacity-10"><i class="bi bi-box-arrow-left"></i> Keluar</a>
-            </li>
+            <li><a href="<?= base_url('peserta/dashboard') ?>"><i class="bi bi-grid-fill"></i> Dashboard</a></li>
+            <li><a href="<?= base_url('pelatihan/daftar-kelas-peserta') ?>" class="active"><i class="bi bi-journals"></i> Daftar Kelas Saya</a></li>
+            <li><a href="<?= base_url('pelatihan/kbm') ?>"><i class="bi bi-mortarboard-fill"></i> KBM</a></li>
+            <li><a href="<?= base_url('pelatihan/pengaturan') ?>"><i class="bi bi-gear-fill"></i> Pengaturan</a></li>
+            <li class="mt-5"><a href="<?= base_url('auth/logout') ?>" class="text-danger bg-danger bg-opacity-10"><i class="bi bi-box-arrow-left"></i> Keluar</a></li>
         </ul>
     </nav>
-    <!-- MAIN CONTENT -->
+
+    <!-- Main Content -->
     <div class="main-content">
-        <div class="container-fluid">
-            <!-- Header Halaman -->
-            <div class="page-header-box mb-5 d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-                <div class="mb-3 mb-md-0">
-                    <h2 class="fw-bold mb-1" style="color: #2e1065;">Daftar Kelas Saya</h2>
-                    <p class="text-muted mb-0">Pantau status pendaftaran serta akses ruang belajar pelatihan Anda dengan mudah.</p>
-                </div>
-                <div>
-                    <span class="badge badge-category fs-6 py-2 px-4 shadow-sm border border-purple border-opacity-10">
-                        <i class="bi bi-journal-bookmark-fill me-1"></i> Total Diikuti: <?= count($kelas ?? []) ?> Kelas
-                    </span>
+        <div class="container-fluid px-0">
+            
+            <!-- Hero Header Banner -->
+            <div class="header-banner mb-5">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <span class="badge bg-white bg-opacity-25 text-white px-3 py-1 rounded-pill mb-2 fw-semibold" style="font-size: 0.8rem;">
+                            <i class="bi bi-journal-check me-1"></i> Area Pembelajaran Aktif
+                        </span>
+                        <h1 class="fw-extrabold mb-2" style="font-size: 2.2rem; font-weight: 800; color: #ffffff;">Daftar Kelas Saya</h1>
+                        <p class="mb-0 text-white-50" style="font-size: 1.05rem;">Kelola, pantau, dan akses kelas pelatihan interaktif yang sedang Anda ikuti di Creativemu Academy.</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Notifikasi Flash -->
-            <?php if (session()->has('success')): ?>
-                <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-4 mb-4 text-success bg-white" role="alert" style="border-left: 5px solid #10b981 !important;">
-                    <i class="bi bi-check-circle-fill me-2"></i> <?= session('success') ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            <?php endif; ?>
-
-            <!-- Grid Kartu Kelas -->
-            <div class="row">
-                <?php if (empty($kelas)): ?>
-                    <div class="col-12">
-                        <div class="custom-card text-center py-5">
-                            <div class="card-body py-5">
-                                <span class="p-4 rounded-circle d-inline-block mb-3 shadow-sm" style="background: #f3e8ff;">
-                                    <i class="bi bi-journal-x fs-1" style="color: #8b5cf6;"></i>
-                                </span>
-                                <h4 class="fw-bold" style="color: #2e1065;">Belum Ada Kelas Aktif</h4>
-                                <p class="text-muted mb-4">Anda belum terdaftar ke dalam kelas pelatihan manapun saat ini.</p>
-                                <a href="<?= base_url('pelatihan/daftar-kelas') ?>" class="btn btn-custom-primary shadow-sm">
-                                    <i class="bi bi-search me-2"></i> Jelajahi Katalog Kelas
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                <?php else: ?>
-                    <?php foreach ($kelas as $row): ?>
-                        <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="custom-card h-100 d-flex flex-column justify-content-between">
-                                <!-- Thumbnail Gambar Kelas (Mendukung berbagai nama field database) -->
-                                <div class="card-img-top-wrapper">
+            <!-- List Card Kelas -->
+            <div class="row g-4">
+                <?php if (!empty($kelas) && is_array($kelas)): ?>
+                    <?php foreach ($kelas as $k): ?>
+                        <div class="col-xl-4 col-md-6">
+                            <div class="course-card">
+                                
+                                <!-- Foto / Thumbnail Kelas dengan Efek & Badge Overlay -->
+                                <div class="card-img-wrapper">
                                     <?php 
-                                        $imgFile = $row['gambar'] ?? $row['foto_kelas'] ?? $row['banner'] ?? '';
+                                        $fotoPelatihan = !empty($k['thumbnail']) && file_exists(FCPATH . 'uploads/kelas/' . $k['thumbnail']) 
+                                            ? base_url('uploads/kelas/' . $k['thumbnail']) 
+                                            : (!empty($k['pas_foto']) ? base_url('uploads/foto/' . $k['pas_foto']) : 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop'); 
                                     ?>
-                                    <?php if (!empty($imgFile)): ?>
-                                        <img src="<?= base_url('uploads/kelas/' . $imgFile) ?>" alt="<?= esc($row['nama_kelas']) ?>">
-                                    <?php else: ?>
-                                        <img src="<?= base_url('assets/img/default-kelas.jpg') ?>" alt="Default Kelas">
-                                    <?php endif; ?>
+                                    <img src="<?= $fotoPelatihan ?>" class="card-img-top" alt="Thumbnail Kelas">
+                                    
+                                    <div class="card-img-overlay-badge">
+                                        <span class="custom-badge badge-category">
+                                            <i class="bi bi-tag-fill me-1"></i> <?= esc($k['kategori_kelas'] ?? 'Umum') ?>
+                                        </span>
+                                        <span class="custom-badge">
+                                            <?= esc($k['jenis_kelas'] ?? 'Reguler') ?>
+                                        </span>
+                                    </div>
                                 </div>
 
-                                <div class="p-4 d-flex flex-column flex-grow-1 justify-content-between">
-                                    <div>
-                                        <!-- Header Badge Kategori & NIS / Status -->
-                                        <div class="d-flex justify-content-between align-items-center mb-3">
-                                            <span class="badge badge-category small">
-                                                <?= esc($row['kategori_kelas'] ?? $row['kategori'] ?? 'Pelatihan') ?>
-                                            </span>
-                                            
-                                            <?php if (!empty($row['nis'])): ?>
-                                                <span class="badge bg-success bg-opacity-10 text-success px-3 py-1 rounded-pill small fw-bold">
-                                                    NIS: <?= esc($row['nis']) ?>
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-1 rounded-pill small fw-bold">
-                                                    Menunggu NIS
-                                                </span>
-                                            <?php endif; ?>
+                                <!-- Card Body Content -->
+                                <div class="card-body p-4 d-flex flex-column">
+                                    <h4 class="fw-bold mb-3" style="color: var(--deep-purple); font-size: 1.25rem; line-height: 1.4;">
+                                        <?= esc($k['nama_kelas'] ?? $k['pilihan_pelatihan']) ?>
+                                    </h4>
+
+                                    <div class="mb-4 flex-grow-1">
+                                        <!-- Mentor -->
+                                        <div class="info-item">
+                                            <i class="bi bi-person-badge-fill"></i>
+                                            <div>
+                                                <span class="text-muted d-block" style="font-size: 0.75rem;">Mentor Pengampu</span>
+                                                <strong class="text-dark"><?= esc($k['nama_mentor'] ?? 'Belum Ditentukan') ?></strong>
+                                            </div>
                                         </div>
 
-                                        <!-- Nama Kelas -->
-                                        <h4 class="fw-bold mb-2" style="color: #2e1065;"><?= esc($row['nama_kelas']) ?></h4>
-                                        <p class="text-muted small mb-4">
-                                            <?php 
-                                                $deskripsi = strip_tags($row['deskripsi'] ?? 'Tidak ada deskripsi singkat.');
-                                                echo (strlen($deskripsi) > 75) ? substr($deskripsi, 0, 75) . '...' : $deskripsi;
-                                            ?>
-                                        </p>
+                                        <!-- Lokasi -->
+                                        <div class="info-item">
+                                            <i class="bi bi-geo-alt-fill"></i>
+                                            <div>
+                                                <span class="text-muted d-block" style="font-size: 0.75rem;">Tempat / Lokasi Pelatihan</span>
+                                                <strong class="text-dark"><?= esc($k['lokasi_pelatihan'] ?? '-') ?></strong>
+                                            </div>
+                                        </div>
 
-                                        <hr class="text-muted opacity-25">
+                                        <!-- Metode -->
+                                        <div class="info-item">
+                                            <i class="bi bi-laptop-fill"></i>
+                                            <div>
+                                                <span class="text-muted d-block" style="font-size: 0.75rem;">Metode Pembelajaran</span>
+                                                <strong class="text-dark text-capitalize"><?= esc($k['metode_pembelajaran'] ?? '-') ?></strong>
+                                            </div>
+                                        </div>
 
-                                        <!-- Informasi Detail (Mentor, Tempat, Metode, Mulai, Status Validasi) -->
-                                        <ul class="list-unstyled small text-muted mb-4">
-                                            <li class="mb-2">
-                                                <i class="bi bi-person-badge me-2 fs-6" style="color: #8b5cf6;"></i> Mentor: 
-                                                <strong style="color: #2e1065;"><?= esc($row['nama_mentor'] ?? 'Belum ditentukan') ?></strong>
-                                            </li>
-                                            <li class="mb-2">
-                                                <i class="bi bi-laptop me-2 fs-6" style="color: #8b5cf6;"></i> Metode: 
-                                                <strong style="color: #2e1065;"><?= esc($row['metode'] ?? 'Disesuaikan') ?></strong>
-                                            </li>
-                                            <li class="mb-2">
-                                                <i class="bi bi-geo-alt-fill me-2 fs-6" style="color: #8b5cf6;"></i> Tempat: 
-                                                <strong style="color: #2e1065;"><?= esc($row['tempat'] ?? 'Online / Disesuaikan') ?></strong>
-                                            </li>
-                                            <li class="mb-2">
-                                                <i class="bi bi-calendar-event me-2 fs-6" style="color: #8b5cf6;"></i> Mulai Kelas: 
-                                                <strong style="color: #2e1065;"><?= esc($row['tanggal_mulai_kelas'] ?? '-') ?></strong>
-                                            </li>
-                                            <li>
-                                                <i class="bi bi-shield-check me-2 fs-6" style="color: #8b5cf6;"></i> Status: 
-                                                <strong class="text-<?= ((($row['status'] ?? 'Pending') == 'Disetujui')) ? 'success' : 'warning' ?>">
-                                                    <?= esc($row['status'] ?? 'Pending') ?>
-                                                </strong>
-                                            </li>
-                                        </ul>
+                                        <!-- Tanggal Mulai -->
+                                        <div class="info-item mb-0">
+                                            <i class="bi bi-calendar-check-fill"></i>
+                                            <div>
+                                                <span class="text-muted d-block" style="font-size: 0.75rem;">Mulai Pelatihan</span>
+                                                <strong class="text-dark"><?= esc($k['tanggal_mulai_kelas'] ?? '-') ?></strong>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <!-- Tombol Aksi (Tombol Masuk / Validasi Admin) -->
-                                    <div class="d-grid gap-2">
-                                        <?php if (strtolower($row['status'] ?? '') == 'disetujui'): ?>
-                                            <a href="<?= base_url('pelatihan/kbm') ?>" class="btn btn-custom-primary shadow-sm">
-                                                <i class="bi bi-play-circle-fill me-1"></i> Masuk Ruang Belajar
-                                            </a>
-                                        <?php else: ?>
-            
-                                        <?php endif; ?>
-                                        <a href="<?= base_url('pelatihan/detail/' . $row['id_kelas']) ?>" class="btn btn-outline-secondary btn-sm rounded-pill border-0 text-muted py-2">
-                                            Lihat Detail Kurikulum
+                                    <!-- Action Button -->
+                                    <div class="mt-auto pt-2">
+                                        <a href="<?= base_url('pelatihan/kbm') ?>" class="btn btn-kbm w-100 d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-mortarboard-fill me-2 fs-5"></i> Masuk Ruang KBM
                                         </a>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     <?php endforeach; ?>
+                <?php else: ?>
+                    <!-- Empty State Modern -->
+                    <div class="col-12">
+                        <div class="empty-state-card text-center">
+                            <div class="mb-3">
+                                <span class="p-4 rounded-circle bg-light d-inline-block text-purple" style="color: var(--primary-purple);">
+                                    <i class="bi bi-journal-x fs-1"></i>
+                                </span>
+                            </div>
+                            <h4 class="fw-bold" style="color: var(--deep-purple);">Belum Ada Kelas yang Diambil</h4>
+                            <p class="text-muted mb-4 mx-auto" style="max-width: 400px;">Anda belum terdaftar di kelas pelatihan apapun. Silakan pilih kelas terlebih dahulu untuk mulai belajar.</p>
+                            <a href="<?= base_url('pelatihan/daftar-kelas') ?>" class="btn btn-kbm px-5 py-3 rounded-pill d-inline-flex align-items-center">
+                                <i class="bi bi-plus-circle-fill me-2"></i> Pilih Kelas Sekarang
+                            </a>
+                        </div>
+                    </div>
                 <?php endif; ?>
             </div>
+
         </div>
     </div>
 </div>
