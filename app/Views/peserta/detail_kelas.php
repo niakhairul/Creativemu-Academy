@@ -150,7 +150,7 @@
                 <div class="col-md-6">
                     <div class="info-box">
                         <span class="text-muted d-block" style="font-size: 0.7rem;"><i class="bi bi-people-fill text-primary me-1"></i> Kapasitas Peserta</span>
-                        <strong class="text-dark" style="font-size: 0.8rem;"><?= esc($kelas['kapasitas'] ?? '-') ?> Orang</strong>
+                        <strong class="text-dark" style="font-size: 0.8rem;"><?= esc($kelas['kapasitas_tersedia'] ?? $kelas['kapasitas'] ?? '-') ?> Orang</strong>
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -187,14 +187,34 @@
         </div>
 
         <!-- Footer / Tombol Aksi -->
-        <div class="p-3 bg-light border-top d-flex gap-2">
-            <a href="<?= base_url('pelatihan/daftar-kelas') ?>" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold" style="font-size: 0.85rem;">
-                Tutup
-            </a>
-           <a href="<?= base_url('pelatihan/pendaftaran/' . $kelas['id_kelas']) ?>" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm flex-grow-1 text-center" style="font-size: 0.85rem;">
-    Daftar Sekarang <i class="bi bi-arrow-right ms-1"></i>
-</a>
-        </div>
+        <!-- Footer / Tombol Aksi -->
+<div class="p-3 bg-light border-top d-flex gap-2">
+    <a href="<?= base_url('pelatihan/daftar-kelas') ?>"
+       class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold"
+       style="font-size: 0.85rem;">
+        Tutup
+    </a>
+
+    <?php if (($kelas['kapasitas_tersedia'] ?? 0) > 0): ?>
+
+        <a href="<?= base_url('pelatihan/pendaftaran/' . $kelas['id_kelas']) ?>"
+           class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm flex-grow-1 text-center"
+           style="font-size: 0.85rem;">
+            Daftar Sekarang <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+
+    <?php else: ?>
+
+        <button type="button"
+                class="btn btn-secondary rounded-pill px-4 py-2 fw-bold shadow-sm flex-grow-1"
+                style="font-size: 0.85rem;"
+                disabled>
+            <i class="bi bi-lock-fill me-1"></i>
+            Kelas Penuh
+        </button>
+
+    <?php endif; ?>
+</div>
 
     </div>
 </div>

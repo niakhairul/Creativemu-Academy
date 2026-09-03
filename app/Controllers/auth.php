@@ -60,45 +60,66 @@ class Auth extends BaseController
     }
 
     public function saveRegister()
-{
-    // Tangkap data inputan form secara spesifik
-    $nama         = $this->request->getPost('nama');
-    $jenisKelamin = $this->request->getPost('jenis_kelamin');
-    $no_hp        = $this->request->getPost('no_hp');
-    $email        = $this->request->getPost('email');
-    $password     = $this->request->getPost('password');
-    $konfirmasi   = $this->request->getPost('konfirmasi_password');
+    {
+        // Tangkap data inputan form secara spesifik
+        $nama         = $this->request->getPost('nama');
+        $jenisKelamin = $this->request->getPost('jenis_kelamin');
+        $no_hp        = $this->request->getPost('no_hp');
+        $email        = $this->request->getPost('email');
+        $password     = $this->request->getPost('password');
+        $konfirmasi   = $this->request->getPost('konfirmasi_password');
 
-    // Pengecekan ekstra: Jika field nama kosong sama sekali, kembalikan dengan pesan error
-    if (empty($nama)) {
-        return redirect()->back()->withInput()->with('error', 'Nama lengkap wajib diisi dan tidak boleh kosong!');
+        // Pengecekan ekstra: Jika field nama kosong sama sekali, kembalikan dengan pesan error
+        if (empty($nama)) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Nama lengkap wajib diisi dan tidak boleh kosong!');
+        }
+
+        if ($password !== $konfirmasi) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Konfirmasi password tidak cocok.');
+        }
+
+        $db = \Config\Database::connect();
+
+        // Ambil ID user terakhir untuk menentukan ID berikutnya
+        $lastUser = $db->table('users')
+            ->selectMax('id_users')
+            ->get()
+            ->getRowArray();
+
+        $nextId = ((int) ($lastUser['id_users'] ?? 0)) + 1;
+
+        // Cek apakah email sudah terdaftar
+        $cekEmail = $db->table('users')
+            ->where('email', $email)
+            ->get()
+            ->getRowArray();
+
+        if ($cekEmail) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Email sudah terdaftar, silakan gunakan email lain.');
+        }
+
+        // Data yang akan disimpan ke database
+        $dataSimpan = [
+            'id_users'      => $nextId,
+            'nama'          => trim($nama),
+            'jenis_kelamin' => $jenisKelamin,
+            'no_hp'         => $no_hp,
+            'email'         => $email,
+            'password'      => password_hash($password, PASSWORD_DEFAULT),
+            'role'          => 'peserta'
+        ];
+
+        // Proses insert ke tabel users
+        $db->table('users')->insert($dataSimpan);
+
+        return redirect()
+            ->to(base_url('pelatihan/login'))
+            ->with('success', 'Registrasi berhasil! Silakan login.');
     }
-
-    if ($password !== $konfirmasi) {
-        return redirect()->back()->withInput()->with('error', 'Konfirmasi password tidak cocok.');
-    }
-
-    $db = \Config\Database::connect();
-    
-    // Cek apakah email sudah terdaftar
-    $cekEmail = $db->table('users')->where('email', $email)->get()->getRowArray();
-    if ($cekEmail) {
-        return redirect()->back()->withInput()->with('error', 'Email sudah terdaftar, silakan gunakan email lain.');
-    }
-
-    // Data yang akan disimpan ke database
-    $dataSimpan = [
-        'nama'          => trim($nama),
-        'jenis_kelamin' => $jenisKelamin,
-        'no_hp'         => $no_hp,
-        'email'         => $email,
-        'password'      => password_hash($password, PASSWORD_DEFAULT),
-        'role'          => 'peserta'
-    ];
-
-    // Proses insert ke tabel users
-    $db->table('users')->insert($dataSimpan);
-
-    return redirect()->to(base_url('pelatihan/login'))->with('success', 'Registrasi berhasil! Silakan login.');
-}
 }

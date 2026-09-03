@@ -273,17 +273,66 @@ protected function userId()
 {
     $db = \Config\Database::connect();
     $pendaftaranModel = new \App\Models\PendaftaranModel();
-    
-    // --- 1. UPLOAD FILE PAS FOTO ---
+
+    // =========================================================
+    // 1. CEK KAPASITAS KELAS
+    // =========================================================
+    $idKelas = $this->request->getPost('id_kelas');
+
+    if (!$idKelas) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Kelas belum dipilih.');
+    }
+
+    // Ambil data kelas
+    $kelas = $db->table('kelas')
+        ->where('id_kelas', $idKelas)
+        ->get()
+        ->getRowArray();
+
+    if (!$kelas) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Kelas tidak ditemukan.');
+    }
+
+    // Hitung jumlah peserta yang sudah divalidasi Admin
+    $jumlahDisetujui = $db->table('pendaftaran')
+        ->where('id_kelas', $idKelas)
+        ->where('status_pembayaran', 'valid')
+        ->countAllResults();
+
+    // Hitung kapasitas yang masih tersedia
+    $kapasitasTersedia = max(
+        0,
+        (int) $kelas['kapasitas'] - $jumlahDisetujui
+    );
+
+    // Jika kapasitas sudah penuh
+    if ($kapasitasTersedia <= 0) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Maaf, kelas "' . $kelas['nama_kelas'] . '" sudah penuh.');
+    }
+
+    // =========================================================
+    // 2. UPLOAD FILE PAS FOTO
+    // =========================================================
     $namaFoto = null;
-    $fileFoto = $this->request->getFile('pas_foto'); 
-    if ($fileFoto && $fileFoto->isValid() && ! $fileFoto->hasMoved()) {
+    $fileFoto = $this->request->getFile('pas_foto');
+
+    if ($fileFoto && $fileFoto->isValid() && !$fileFoto->hasMoved()) {
+
         if ($fileFoto->getSize() > 2 * 1024 * 1024) {
-            return redirect()->back()->withInput()->with('error', 'Ukuran pas foto maksimal 2 MB.');
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Ukuran pas foto maksimal 2 MB.');
         }
 
         $folderFoto = 'uploads/foto/';
-        if (! is_dir(FCPATH . $folderFoto)) {
+
+        if (!is_dir(FCPATH . $folderFoto)) {
             mkdir(FCPATH . $folderFoto, 0777, true);
         }
 
@@ -291,16 +340,23 @@ protected function userId()
         $fileFoto->move(FCPATH . $folderFoto, $namaFoto);
     }
 
-    // --- 2. UPLOAD FILE BUKTI PEMBAYARAN ---
+    // =========================================================
+    // 3. UPLOAD FILE BUKTI PEMBAYARAN
+    // =========================================================
     $namaBukti = null;
-    $fileBukti = $this->request->getFile('bukti_pembayaran'); 
-    if ($fileBukti && $fileBukti->isValid() && ! $fileBukti->hasMoved()) {
+    $fileBukti = $this->request->getFile('bukti_pembayaran');
+
+    if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
+
         if ($fileBukti->getSize() > 2 * 1024 * 1024) {
-            return redirect()->back()->withInput()->with('error', 'Ukuran file bukti pembayaran maksimal 2 MB.');
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Ukuran file bukti pembayaran maksimal 2 MB.');
         }
 
         $folderBukti = 'uploads/bukti/';
-        if (! is_dir(FCPATH . $folderBukti)) {
+
+        if (!is_dir(FCPATH . $folderBukti)) {
             mkdir(FCPATH . $folderBukti, 0777, true);
         }
 
@@ -308,11 +364,13 @@ protected function userId()
         $fileBukti->move(FCPATH . $folderBukti, $namaBukti);
     }
 
-    // --- 3. SIAPKAN DATA (id_users dikosongkan dulu karena belum punya akun) ---
+    // =========================================================
+    // 4. SIAPKAN DATA PENDAFTARAN
+    // =========================================================
     $dataPendaftaran = [
-        'nis'                 => null, 
-        'id_users'            => null, // Belum ada akun sebelum disetujui admin
-        'id_kelas'            => $this->request->getPost('id_kelas'),
+        'nis'                 => null,
+        'id_users'            => $this->userId(),
+        'id_kelas'            => $idKelas,
         'nama'                => $this->request->getPost('nama'),
         'email'               => $this->request->getPost('email'),
         'no_hp'               => $this->request->getPost('no_hp'),
@@ -321,7 +379,7 @@ protected function userId()
         'jenis_kelamin'       => $this->request->getPost('jenis_kelamin'),
         'pendidikan_terakhir' => $this->request->getPost('pendidikan_terakhir'),
         'pas_foto'            => $namaFoto,
-        'status'              => 'Pending', // Status awal pendaftaran
+        'status'              => 'Pending',
         'lokasi_pelatihan'    => $this->request->getPost('pilihan_lokasi'),
         'pilihan_pelatihan'   => $this->request->getPost('pilihan_pelatihan'),
         'jenis_kelas'         => $this->request->getPost('jenis_kelas'),
@@ -336,18 +394,44 @@ protected function userId()
         'persetujuan_syarat'  => $this->request->getPost('persetujuan_syarat') ? 1 : 0,
     ];
 
+    // =========================================================
+    // 5. SIMPAN PENDAFTARAN
+    // =========================================================
     try {
+
         if ($pendaftaranModel->insert($dataPendaftaran)) {
-            return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('success', 'Pendaftaran berhasil dikirim! Silakan menunggu validasi dan pembuatan akun dari admin.');
+
+            return redirect()
+                ->to(base_url('pelatihan/daftar-kelas'))
+                ->with(
+                    'success',
+                    'Pendaftaran berhasil dikirim! Silakan menunggu validasi dan pembuatan akun dari admin.'
+                );
+
         } else {
+
             $errors = $pendaftaranModel->errors();
-            return redirect()->back()->withInput()->with('error', 'Gagal validasi database: ' . json_encode($errors));
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Gagal validasi database: ' . json_encode($errors)
+                );
         }
+
     } catch (\Exception $e) {
-        return redirect()->back()->withInput()->with('error', 'Database Exception: ' . $e->getMessage());
+
+        return redirect()
+            ->back()
+            ->withInput()
+            ->with(
+                'error',
+                'Database Exception: ' . $e->getMessage()
+            );
     }
 }
-
 public function setujuiPendaftaran($id_pendaftaran)
 {
     $pendaftaranModel = new \App\Models\PendaftaranModel();
@@ -728,19 +812,35 @@ if ($kelas) {
     public function detail($id)
 {
     $kelasModel = new \App\Models\KelasModel();
-    
+
     // Mengambil data kelas berdasarkan ID beserta data mentornya
-    // Pastikan nama tabel mentor di database kamu sesuai (misal: 'mentor' atau 'tb_mentor')
-    $data['kelas'] = $kelasModel->select('kelas.*, mentor.nama_mentor')
-                                ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-                                ->find($id);
+    $data['kelas'] = $kelasModel
+        ->select('kelas.*, mentor.nama_mentor')
+        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+        ->find($id);
 
     // Jika data kelas tidak ditemukan
     if (empty($data['kelas'])) {
-        throw new \CodeIgniter\Exceptions\PageNotFoundException("Kelas dengan ID $id tidak ditemukan.");
+        throw new \CodeIgniter\Exceptions\PageNotFoundException(
+            "Kelas dengan ID $id tidak ditemukan."
+        );
     }
 
-    // Tampilkan ke view detail (sesuaikan dengan nama file view detail kamu, misal: 'pelatihan/detail')
+    // Hitung jumlah peserta yang sudah disetujui Admin
+    $db = \Config\Database::connect();
+
+    $jumlahDisetujui = $db->table('pendaftaran')
+        ->where('id_kelas', $id)
+        ->where('status_pembayaran', 'valid')
+        ->countAllResults();
+
+    // Hitung kapasitas yang masih tersedia
+    $data['kelas']['kapasitas_tersedia'] = max(
+        0,
+        (int) $data['kelas']['kapasitas'] - $jumlahDisetujui
+    );
+
+    // Tampilkan ke view detail
     return view('peserta/detail_kelas', $data);
 }
 

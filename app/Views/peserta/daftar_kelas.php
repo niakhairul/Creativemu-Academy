@@ -457,7 +457,7 @@
                                 <div><i class="bi bi-person-workspace me-1" style="color: #5b21b6;"></i> Mentor: <strong class="text-dark"><?= esc($k['nama_mentor'] ?? '-') ?></strong></div>
                                 <div class="d-flex justify-content-between">
                                     <span><i class="bi bi-clock-fill me-1" style="color: #5b21b6;"></i><?= esc($k['jumlah_pertemuan']) ?> Pertemuan</span>
-                                    <span><i class="bi bi-people-fill me-1" style="color: #5b21b6;"></i>Kapasitas: <?= esc($k['kapasitas'] ?? '-') ?> org</span>
+                                    <span><i class="bi bi-people-fill me-1" style="color: #5b21b6;"></i>Kapasitas: <?= esc($k['kapasitas_tersedia'] ?? $k['kapasitas'] ?? '-') ?> org</span>
                                 </div>
                             </div>
 
