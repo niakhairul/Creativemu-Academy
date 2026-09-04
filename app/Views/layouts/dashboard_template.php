@@ -46,14 +46,13 @@
 
        <ul>
 
-    <li class="active">
+    <li>
         <a href="<?= base_url('peserta/dashboard') ?>">
             <i class="bi bi-house-door-fill"></i>
             Dashboard
         </a>
     </li>
 
-        <!-- Ubah bagian ini di sidebar: -->
     <li>
         <a href="<?= base_url('pelatihan/daftar-kelas-peserta') ?>">
             <i class="bi bi-grid-fill"></i>
@@ -63,45 +62,11 @@
 
     <li>
         <a href="<?= base_url('pelatihan/kelas') ?>">
-            <i class="bi bi-book-fill"></i>
-            Kelas Saya
-        </a>
-    </li>
-
-    <li>
-        <a href="<?= base_url('pelatihan/kbm') ?>">
             <i class="bi bi-mortarboard-fill"></i>
             KBM
         </a>
     </li>
 
-    <li>
-    <a href="<?= base_url('pelatihan/absensi') ?>">
-        <i class="bi bi-calendar-check-fill"></i>
-        Absensi
-    </a>
-</li>
-
-<li>
-    <a href="<?= base_url('pelatihan/riwayat-absensi') ?>">
-        <i class="bi bi-clock-history"></i>
-        Riwayat Absensi
-    </a>
-</li>
-
-<li>
-    <a href="<?= base_url('pelatihan/angket') ?>">
-        <i class="bi bi-clipboard-check-fill"></i>
-        Angket Evaluasi
-    </a>
-</li>
-
-<li>
-    <a href="<?= base_url('pelatihan/sertifikat') ?>">
-        <i class="bi bi-award-fill"></i>
-        Sertifikat
-    </a>
-</li>
     <li>
         <a href="<?= base_url('pelatihan/pengaturan') ?>">
             <i class="bi bi-gear-fill"></i>
@@ -112,12 +77,11 @@
     <li>
         <a href="<?= base_url('logout') ?>">
             <i class="bi bi-box-arrow-right"></i>
-            Logout
+            Keluar
         </a>
     </li>
 
 </ul>
-
     </div>
 
     <!-- Content -->

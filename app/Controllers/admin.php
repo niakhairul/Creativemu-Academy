@@ -434,9 +434,14 @@ public function masterKelas()
     $alasan = $this->request->getPost('alasan_penolakan');
 
     $dataUpdate = [
-        'status_pembayaran' => $status,
-        'status_pendaftaran' => ($status === 'valid' || $status === 'Disetujui' || $status === 'approved') ? 'Disetujui' : 'Pending'
-    ];
+    'status_pembayaran'  => $status,
+    'status_pendaftaran' => ($status === 'valid' || $status === 'Disetujui' || $status === 'approved')
+        ? 'Disetujui'
+        : 'Pending',
+    'status'             => ($status === 'valid' || $status === 'Disetujui' || $status === 'approved')
+        ? 'Disetujui'
+        : 'Ditolak'
+];
 
     if ($status === 'rejected' || $status === 'Ditolak') {
         $dataUpdate['alasan_penolakan'] = $alasan;

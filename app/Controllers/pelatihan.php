@@ -199,14 +199,57 @@ protected function userId()
     }
 
     public function editProfil()
-    {
-        if ($redirect = $this->requireLogin()) {
-            return $redirect;
-        }
-
-        return view('peserta/edit_profil', ['user' => (new UserModel())->find($this->userId())]);
+{
+    if ($redirect = $this->requireLogin()) {
+        return $redirect;
     }
 
+    $db = \Config\Database::connect();
+    $userId = $this->userId();
+
+    
+
+    // =========================================================
+    // 1. AMBIL DATA AKUN PESERTA
+    // =========================================================
+    $user = $db->table('users')
+        ->where('id_users', $userId)
+        ->get()
+        ->getRowArray();
+
+    // =========================================================
+    // 2. AMBIL DATA PENDAFTARAN PESERTA
+    // =========================================================
+    $pendaftaran = $db->table('pendaftaran')
+        ->where('id_users', $userId)
+        ->orderBy('id_pendaftaran', 'DESC')
+        ->get()
+        ->getRowArray();
+
+    // Jika belum ditemukan berdasarkan id_users,
+    // cari berdasarkan email akun yang sedang login
+    if (!$pendaftaran && !empty($user['email'])) {
+        $pendaftaran = $db->table('pendaftaran')
+            ->where('email', $user['email'])
+            ->orderBy('id_pendaftaran', 'DESC')
+            ->get()
+            ->getRowArray();
+    }
+
+    // Jika data pendaftaran tidak ditemukan
+    if (!$pendaftaran) {
+        return redirect()->to(base_url('pelatihan/pengaturan'))
+            ->with('error', 'Data pendaftaran peserta tidak ditemukan.');
+    }
+
+    // =========================================================
+    // 3. KIRIM DATA USER DAN PENDAFTARAN KE VIEW
+    // =========================================================
+    return view('peserta/edit_profil', [
+        'user' => $user,
+        'pendaftaran' => $pendaftaran
+    ]);
+}
         public function daftar($id_kelas = null)
 {
     // Pastikan ID kelas ada
@@ -1470,100 +1513,246 @@ public function riwayatAbsensi()
     ]);
 }
 public function pengaturan()
-    {
-        if ($redirect = $this->requireLogin()) {
-            return $redirect;
-        }
+{
+    if ($redirect = $this->requireLogin()) {
+        return $redirect;
+    }
 
-        $db = \Config\Database::connect();
-        $userId = $this->userId();
+    $db = \Config\Database::connect();
+    $userId = $this->userId();
 
-        // Ambil data akun
-        $user = $db->table('users')
-            ->where('id_users', $userId)
+
+    // =========================================================
+    // 1. AMBIL DATA AKUN PESERTA
+    // =========================================================
+    $user = $db->table('users')
+        ->where('id_users', $userId)
+        ->get()
+        ->getRowArray();
+
+    // =========================================================
+// 2. AMBIL DATA PENDAFTARAN PESERTA YANG SEDANG LOGIN
+// =========================================================
+$pendaftaran = $db->table('pendaftaran')
+    ->where('id_users', $userId)
+    ->orderBy('id_pendaftaran', 'DESC')
+    ->get()
+    ->getRowArray();
+
+// Jika belum ditemukan berdasarkan id_users,
+// cari berdasarkan email akun yang sedang login
+if (!$pendaftaran && !empty($user['email'])) {
+    $pendaftaran = $db->table('pendaftaran')
+        ->where('email', $user['email'])
+        ->orderBy('id_pendaftaran', 'DESC')
+        ->get()
+        ->getRowArray();
+}
+
+    // =========================================================
+    // 3. AMBIL DATA KELAS
+    // =========================================================
+    $kelas = null;
+
+    if ($pendaftaran) {
+        $kelas = $db->table('pendaftaran')
+            ->select('pendaftaran.*, kelas.*, mentor.nama_mentor')
+            ->join(
+                'kelas',
+                'kelas.id_kelas = pendaftaran.id_kelas',
+                'left'
+            )
+            ->join(
+                'mentor',
+                'mentor.id_mentor = kelas.id_mentor',
+                'left'
+            )
+            ->where(
+                'pendaftaran.id_pendaftaran',
+                $pendaftaran['id_pendaftaran']
+            )
+            ->get()
+            ->getRowArray();
+    }
+
+    // =========================================================
+    // 4. AMBIL DATA JADWAL & ABSENSI
+    // =========================================================
+    $jadwal = [];
+
+    if ($kelas) {
+
+        $jadwal = (new JadwalKelasModel())
+            ->where('id_kelas', $kelas['id_kelas'])
+            ->orderBy('pertemuan_ke', 'ASC')
+            ->findAll();
+    }
+
+    $jumlahHadir = 0;
+
+    foreach ($jadwal as &$item) {
+
+        $absensi = $db->table('absensi')
+            ->where(
+                'id_jadwal_kelas',
+                $item['id_jadwal_kelas']
+            )
+            ->where(
+                'id_user',
+                $userId
+            )
             ->get()
             ->getRowArray();
 
-        // Ambil data kelas & mentor
-        $kelas = (new PendaftaranModel())
-            ->select('pendaftaran.*, kelas.*, mentor.nama_mentor')
-            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-            ->where('pendaftaran.id_users', $userId)
-            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
-            ->first();
+        $item['absensi'] = $absensi;
 
-        // Ambil data jadwal & absensi
-        $jadwal = [];
-        if ($kelas) {
-            $jadwal = (new JadwalKelasModel())->where('id_kelas', $kelas['id_kelas'])->orderBy('pertemuan_ke', 'ASC')->findAll();
+        if (($absensi['status'] ?? null) === 'hadir') {
+            $jumlahHadir++;
         }
-
-        $jumlahHadir = 0;
-        foreach ($jadwal as &$item) {
-            $absensi = $db->table('absensi')
-                        ->where('id_jadwal_kelas', $item['id_jadwal_kelas'])
-                        ->where('id_user', $userId)
-                        ->get()
-                        ->getRowArray();
-
-            $item['absensi'] = $absensi;
-            if (($absensi['status'] ?? null) === 'hadir') {
-                $jumlahHadir++;
-            }
-        }
-
-        $totalPertemuan = count($jadwal);
-        $persentaseKehadiran = $totalPertemuan > 0 ? round(($jumlahHadir / $totalPertemuan) * 100) : 0;
-
-        $sudahIsiAngket = false;
-        $sertifikatAcademy = false; 
-
-        return view('peserta/pengaturan', [
-            'user'                => $user,
-            'pendaftaran'         => $kelas,
-            'kelas'               => $kelas,
-            'jadwal'              => $jadwal,
-            'totalPertemuan'      => $totalPertemuan,
-            'jumlahHadir'         => $jumlahHadir,
-            'persentaseKehadiran' => $persentaseKehadiran,
-            'sudahIsiAngket'      => $sudahIsiAngket,
-            'sertifikatAcademy'   => $sertifikatAcademy,
-        ]);
     }
+
+    unset($item);
+
+    // =========================================================
+    // 5. HITUNG KEHADIRAN
+    // =========================================================
+    $totalPertemuan = count($jadwal);
+
+    $persentaseKehadiran = $totalPertemuan > 0
+        ? round(($jumlahHadir / $totalPertemuan) * 100)
+        : 0;
+
+    // =========================================================
+    // 6. DATA TAMBAHAN
+    // =========================================================
+    $sudahIsiAngket = false;
+    $sertifikatAcademy = false;
+
+    // =========================================================
+    // 7. KIRIM KE VIEW
+    // =========================================================
+    return view('peserta/pengaturan', [
+
+        'user'                => $user,
+
+        // Data utama peserta dari tabel pendaftaran
+        'pendaftaran'         => $pendaftaran,
+
+        // Data kelas untuk kebutuhan lain
+        'kelas'               => $kelas,
+
+        'jadwal'              => $jadwal,
+
+        'totalPertemuan'      => $totalPertemuan,
+
+        'jumlahHadir'         => $jumlahHadir,
+
+        'persentaseKehadiran' => $persentaseKehadiran,
+
+        'sudahIsiAngket'      => $sudahIsiAngket,
+
+        'sertifikatAcademy'   => $sertifikatAcademy,
+    ]);
+}
 public function updateProfil()
 {
     if ($redirect = $this->requireLogin()) {
         return $redirect;
     }
 
+    $db = \Config\Database::connect();
+
+    // =========================================================
+    // ID PESERTA YANG SEDANG LOGIN
+    // =========================================================
     $userId = $this->userId();
 
-    $userModel = new \App\Models\UserModel();
+    if (!$userId) {
+        return redirect()->to(base_url('login'))
+            ->with('error', 'Silakan login terlebih dahulu.');
+    }
 
-    // Ambil data user saat ini
-    $user = $userModel->find($userId);
+
+    // =========================================================
+    // 1. AMBIL DATA USER
+    // =========================================================
+    $user = $db->table('users')
+        ->where('id_users', $userId)
+        ->get()
+        ->getRowArray();
 
     if (!$user) {
         return redirect()->to(base_url('pelatihan/pengaturan'))
             ->with('error', 'Data pengguna tidak ditemukan.');
     }
 
-    // Data yang akan diperbarui
-    $data = [
-        'nama'          => $this->request->getPost('nama'),
-        'email'         => $this->request->getPost('email'),
-        'no_hp'         => $this->request->getPost('no_hp'),
-        'jenis_kelamin' => $this->request->getPost('jenis_kelamin'),
-    ];
 
-    // Upload foto profil
+    // =========================================================
+    // 2. CARI DATA PENDAFTARAN PESERTA
+    // =========================================================
+    $pendaftaran = null;
+
+// Cari berdasarkan email terlebih dahulu
+if (!empty($user['email'])) {
+    $pendaftaran = $db->table('pendaftaran')
+        ->where('email', $user['email'])
+        ->orderBy('id_pendaftaran', 'DESC')
+        ->get()
+        ->getRowArray();
+}
+
+// Jika tidak ditemukan, baru cari berdasarkan id_users
+if (!$pendaftaran) {
+    $pendaftaran = $db->table('pendaftaran')
+        ->where('id_users', $userId)
+        ->orderBy('id_pendaftaran', 'DESC')
+        ->get()
+        ->getRowArray();
+}
+
+
+    // =========================================================
+// 3. DATA YANG DISIMPAN KE USERS
+// =========================================================
+$dataUser = [
+    'nama'          => $this->request->getPost('nama'),
+    'no_hp'         => $this->request->getPost('no_hp'),
+    'jenis_kelamin' => $this->request->getPost('jenis_kelamin'),
+];
+
+// Email hanya diperbarui jika memang berubah
+$emailBaru = trim($this->request->getPost('email'));
+$emailLama = trim($user['email'] ?? '');
+
+if ($emailBaru !== $emailLama) {
+
+    // Pastikan email tidak dipakai akun peserta lain
+    $emailDipakai = $db->table('users')
+        ->where('email', $emailBaru)
+        ->where('id_users !=', $userId)
+        ->get()
+        ->getRowArray();
+
+    if ($emailDipakai) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Email tersebut sudah digunakan oleh akun lain.');
+    }
+
+    $dataUser['email'] = $emailBaru;
+}
+
+
+    // =========================================================
+    // 4. UPLOAD FOTO PROFIL
+    // =========================================================
     $fileFoto = $this->request->getFile('foto');
 
     if ($fileFoto && $fileFoto->isValid() && !$fileFoto->hasMoved()) {
 
         // Maksimal 2 MB
         if ($fileFoto->getSize() > 2 * 1024 * 1024) {
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Ukuran foto maksimal 2 MB.');
@@ -1571,68 +1760,153 @@ public function updateProfil()
 
         $folderFoto = 'uploads/profil/';
 
+        // Buat folder jika belum ada
         if (!is_dir(FCPATH . $folderFoto)) {
             mkdir(FCPATH . $folderFoto, 0777, true);
         }
 
+        // Nama file random agar tidak bentrok
         $namaFoto = $fileFoto->getRandomName();
 
-        $fileFoto->move(FCPATH . $folderFoto, $namaFoto);
+        $fileFoto->move(
+            FCPATH . $folderFoto,
+            $namaFoto
+        );
 
-        $data['foto_profil'] = $namaFoto;
+        // Simpan nama file ke users
+        $dataUser['foto_profil'] = $namaFoto;
     }
 
-    // Simpan perubahan
-    if ($userModel->update($userId, $data)) {
 
-        // Perbarui session agar foto dan nama di sidebar langsung berubah
-        session()->set([
-            'nama' => $data['nama'],
-        ]);
+    // =========================================================
+    // 5. UPDATE USERS
+    // =========================================================
+    $db->table('users')
+        ->where('id_users', $userId)
+        ->update($dataUser);
 
-        if (!empty($data['foto_profil'])) {
-            session()->set('foto', $data['foto_profil']);
-        }
 
+    // =========================================================
+    // 6. UPDATE DATA PRIBADI DI PENDAFTARAN
+    // =========================================================
+    if ($pendaftaran) {
+
+       $dataPendaftaran = [
+    'nama'                => $this->request->getPost('nama'),
+    'email'               => $this->request->getPost('email'),
+    'no_hp'               => $this->request->getPost('no_hp'),
+    'jenis_kelamin'       => $this->request->getPost('jenis_kelamin'),
+    'ttl'                 => $this->request->getPost('ttl'),
+    'pendidikan_terakhir' => $this->request->getPost('pendidikan_terakhir'),
+    'alamat'              => $this->request->getPost('alamat'),
+    'updated_at'          => date('Y-m-d H:i:s'),
+];
+
+        $db->table('pendaftaran')
+            ->where(
+                'id_pendaftaran',
+                $pendaftaran['id_pendaftaran']
+            )
+            ->update($dataPendaftaran);
+    }
+
+
+    // =========================================================
+    // 7. UPDATE SESSION
+    // =========================================================
+    session()->set([
+        'nama' => $dataUser['nama'],
+    ]);
+
+    if (!empty($dataUser['foto_profil'])) {
+        session()->set(
+            'foto',
+            $dataUser['foto_profil']
+        );
+    }
+
+
+    // =========================================================
+    // 8. KEMBALI KE PENGATURAN
+    // =========================================================
+    return redirect()
+        ->to(base_url('pelatihan/pengaturan'))
+        ->with('success', 'Profil berhasil diperbarui.');
+}
+    public function ubahPassword()
+{
+    if ($redirect = $this->requireLogin()) {
+        return $redirect;
+    }
+
+    $userModel = new UserModel();
+    $user = $userModel->find($this->userId());
+
+    if (!$user) {
         return redirect()->to(base_url('pelatihan/pengaturan'))
-            ->with('success', 'Profil berhasil diperbarui.');
+            ->with('error', 'Data akun tidak ditemukan.');
     }
 
-    return redirect()->back()
-        ->withInput()
-        ->with('error', 'Gagal memperbarui profil.');
+    return view('peserta/ubah_password', [
+        'user' => $user
+    ]);
 }
 
-    public function ubahPassword()
-    {
-        if ($redirect = $this->requireLogin()) {
-            return $redirect;
-        }
-
-        return view('peserta/ubah_password');
+public function updatePassword()
+{
+    if ($redirect = $this->requireLogin()) {
+        return $redirect;
     }
 
-    public function updatePassword()
-    {
-        if ($redirect = $this->requireLogin()) {
-            return $redirect;
-        }
+    // ID akun peserta yang sedang login
+    $userId = $this->userId();
 
-        $userModel = new UserModel();
-        $user = $userModel->find($this->userId());
-        $passwordLama = $this->request->getPost('password_lama');
-        $passwordBaru = $this->request->getPost('password_baru');
-        $konfirmasi = $this->request->getPost('konfirmasi_password');
+    $userModel = new UserModel();
+    $user = $userModel->find($userId);
 
-        if (! password_verify($passwordLama, $user['password'])) {
-            return redirect()->back()->with('error', 'Password lama salah.');
-        }
-
-        $userModel->update($this->userId(), ['password' => password_hash($passwordBaru, PASSWORD_DEFAULT)]);
-
-        return redirect()->to(base_url('pelatihan/pengaturan'))->with('success', 'Password berhasil diubah.');
+    if (!$user) {
+        return redirect()->to(base_url('pelatihan/pengaturan'))
+            ->with('error', 'Data akun tidak ditemukan.');
     }
 
+    // Ambil data dari form
+    $passwordLama = $this->request->getPost('password_lama');
+    $passwordBaru = $this->request->getPost('password_baru');
+    $konfirmasi   = $this->request->getPost('konfirmasi_password');
+
+    // Cek password lama
+    if (!password_verify($passwordLama, $user['password'])) {
+        return redirect()->back()
+            ->with('error', 'Password lama salah.');
+    }
+
+    // Minimal 8 karakter
+    if (strlen($passwordBaru) < 8) {
+        return redirect()->back()
+            ->with('error', 'Password baru minimal 8 karakter.');
+    }
+
+    // Cek konfirmasi password
+    if ($passwordBaru !== $konfirmasi) {
+        return redirect()->back()
+            ->with('error', 'Konfirmasi password baru tidak sesuai.');
+    }
+
+    // Jangan menggunakan password lama sebagai password baru
+    if (password_verify($passwordBaru, $user['password'])) {
+        return redirect()->back()
+            ->with('error', 'Password baru harus berbeda dari password lama.');
+    }
+
+    // Simpan password baru ke akun yang sedang login
+    $userModel->update($userId, [
+        'password' => password_hash($passwordBaru, PASSWORD_DEFAULT)
+    ]);
+
+    return redirect()
+        ->to(base_url('pelatihan/pengaturan'))
+        ->with('success', 'Password berhasil diubah.');
+}
     public function logout()
     {
         // Menghapus semua data session yang aktif
