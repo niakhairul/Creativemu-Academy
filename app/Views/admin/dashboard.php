@@ -470,7 +470,7 @@
         </div>
 
         <!-- === TAMBAHAN DI BAWAH DIAGRAM (AKTIVITAS & STATISTIK CEPAT) === -->
-        <div class="content-card h-100 p-4">
+        <div class="content-card h-100 p-4 mb-4">
     <div class="d-flex align-items-center justify-content-between mb-3">
         <h5 class="fw-bold mb-0 text-dark">
             <i class="fas fa-bolt text-primary me-2"></i> Pintasan Admin
@@ -513,7 +513,7 @@
         </div>
     </div>
 </div>
-<div class="content-card mb-0">
+<div class="content-card mb-0 bg-white p-4 rounded-4 shadow-sm">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="fw-bold mb-0 text-dark">Antrean Validasi Pendaftaran</h5>
         <a href="<?= base_url('admin/validasi'); ?>" class="text-decoration-none small fw-semibold text-primary">Kelola Semua →</a>
@@ -533,29 +533,29 @@
                 <?php if(empty($pendaftaran_pending)): ?>
                     <tr>
                         <td colspan="4" class="text-center py-4 text-muted">
-                            <i class="bi bi-check-circle fs-3 text-success d-mb-2"></i>
+                            <i class="fas fa-check-circle fs-3 text-success mb-2"></i>
                             <p class="mb-0 small">Tidak ada antrean pendaftaran baru yang tertunda.</p>
                         </td>
                     </tr>
                 <?php else: ?>
-                    <?php foreach(($pendaftaran_pending ?? []) as $row): ?>
+                    <?php foreach($pendaftaran_pending as $row): ?>
                         <tr>
                             <td>
-                                <div class="fw-bold text-dark"><?= esc($row['nama']); ?></div>
-                                <small class="text-muted"><?= esc($row['email']); ?></small>
+                                <div class="fw-bold text-dark"><?= esc($row['nama'] ?? '-'); ?></div>
+                                <small class="text-muted"><?= esc($row['email'] ?? '-'); ?></small>
                             </td>
                             <td>
                                 <span class="badge bg-light text-primary border border-primary-subtle px-2 py-1">
-                                    <?= esc($row['nama_kelas']); ?>
+                                    <?= esc($row['nama_kelas'] ?? ($row['kelas'] ?? 'Tidak Diketahui')); ?>
                                 </span>
                             </td>
                             <td><small class="text-muted"><?= date('d M Y', strtotime($row['created_at'] ?? 'now')); ?></small></td>
                             <td class="text-center">
-                                <a href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm me-1" title="Setujui">
-                                    <i class="bi bi-check-lg"></i>
+                                <a href="<?= base_url('admin/validasi/update/' . ($row['id_pendaftaran'] ?? '') . '/setuju'); ?>" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm me-1" title="Setujui">
+                                    <i class="fas fa-check"></i>
                                 </a>
-                                <a href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm" title="Tolak">
-                                    <i class="bi bi-x-lg"></i>
+                                <a href="<?= base_url('admin/validasi/update/' . ($row['id_pendaftaran'] ?? '') . '/tolak'); ?>" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm" title="Tolak">
+                                    <i class="fas fa-times"></i>
                                 </a>
                             </td>
                         </tr>
@@ -579,10 +579,9 @@
         const today = new Date();
         document.getElementById('current-date').innerText = today.toLocaleDateString('id-ID', options);
 
-        // Chart Angket (Bar Chart dengan Animasi Elegan & Gradient)
+        // Chart Angket (Sumbu dan label tetap ada, data bernilai 0 / flat)
         const ctxAngket = document.getElementById('angketChart').getContext('2d');
         
-        // Gradient untuk Bar Chart
         let gradientBar = ctxAngket.createLinearGradient(0, 0, 0, 300);
         gradientBar.addColorStop(0, '#794bc4');
         gradientBar.addColorStop(1, '#b293f0');
@@ -593,25 +592,21 @@
                 labels: ['Sangat Puas', 'Puas', 'Cukup', 'Kurang'],
                 datasets: [{
                     label: 'Jumlah Responden',
-                    data: [120, 85, 30, 10],
+                    data: [0, 0, 0, 0], // Nilai 0 agar batangnya rata di bawah
                     backgroundColor: gradientBar,
                     borderRadius: 10,
-                    barThickness: 45,
-                    hoverBackgroundColor: '#5931a0'
+                    barThickness: 45
                 }]
             },
             options: {
                 responsive: true,
-                animation: {
-                    duration: 1500,
-                    easing: 'easeOutQuart'
-                },
                 plugins: { 
                     legend: { display: false } 
                 },
                 scales: {
                     y: { 
                         beginAtZero: true, 
+                        suggestedMax: 100, 
                         grid: { color: '#f0edf6' } 
                     },
                     x: { 
@@ -621,7 +616,7 @@
             }
         });
 
-        // Chart Absensi Mentor (Line Chart Per Bulan dengan Smooth Gradient Fill)
+        // Chart Absensi Mentor (Sumbu dan bulan tetap ada, garis rata di bawah / flat)
         const ctxAbsensi = document.getElementById('absensiChart').getContext('2d');
         
         let gradientLine = ctxAbsensi.createLinearGradient(0, 0, 0, 250);
@@ -634,7 +629,7 @@
                 labels: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'],
                 datasets: [{
                     label: 'Rata-rata Kehadiran (%)',
-                    data: [92, 94, 91, 96, 95, 98],
+                    data: [0, 0, 0, 0, 0, 0], // Nilai 0 agar garisnya rata di bawah
                     borderColor: '#794bc4',
                     backgroundColor: gradientLine,
                     fill: true,
@@ -643,23 +638,17 @@
                     pointBackgroundColor: '#ffffff',
                     pointBorderColor: '#794bc4',
                     pointBorderWidth: 3,
-                    pointRadius: 6,
-                    pointHoverRadius: 8
+                    pointRadius: 6
                 }]
             },
             options: {
                 responsive: true,
-                animation: {
-                    duration: 1800,
-                    easing: 'easeOutQuart'
-                },
                 plugins: { 
                     legend: { position: 'bottom', labels: { font: { family: 'Poppins', size: 12, weight: 500 }, padding: 15 } } 
                 },
                 scales: {
                     y: { 
-                        beginAtZero: false, 
-                        min: 80, 
+                        beginAtZero: true, 
                         max: 100, 
                         grid: { color: '#f0edf6' } 
                     },

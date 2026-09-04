@@ -48,29 +48,27 @@ class Admin extends BaseController
 
     // --- DASHBOARD ---
     public function dashboard()
-    {
-        $mentorModel       = new MentorModel();
-        $kelasModel        = new KelasModel();
-        $pendaftaranModel  = new PendaftaranModel();
+{
+    $db = \Config\Database::connect();
+    
+    // Contoh pengambilan data dinamis (pastikan tabel & kolom sesuai database Anda)
+    $data = [
+        'title'             => 'Dashboard',
+        'total_kelas'       => $db->table('kelas')->countAll(),
+        'total_mentor'      => $db->table('mentor')->countAll(),
+        'total_peserta'     => $db->table('peserta')->countAll(),
+        'pending_validasi'  => $db->table('pendaftaran')->where('status', 'pending')->countAll(),
+        'pendaftaran_pending' => $db->table('pendaftaran')->where('status', 'pending')->get()->getResultArray(),
         
-        $db = \Config\Database::connect();
-        $userId = session()->get('id_users');
+        // Data untuk Chart Angket (Contoh jika belum ada data, jadikan 0)
+        'angket_data'       => [0, 0, 0, 0], 
         
-        $currentUser = $db->table('users')->where('id_users', $userId)->get()->getRowArray();
-        $foto = (!empty($currentUser['foto_profil'])) ? $currentUser['foto_profil'] : 'admin-profile.jpg';
+        // Data untuk Chart Absensi
+        'absensi_data'      => [0, 0, 0, 0, 0, 0]
+    ];
 
-        $data = [
-            'title'            => 'Dashboard Admin',
-            'total_kelas'      => $kelasModel->countAllResults(), 
-            'total_mentor'     => $mentorModel->where('status', 'Aktif')->countAllResults(),
-            'total_peserta'    => $pendaftaranModel->countAllResults(),
-            'pending_validasi' => $pendaftaranModel->where('status_pembayaran', 'pending')->countAllResults(), // Dihitung otomatis
-            'admin_name'       => $currentUser['nama'] ?? 'Super Admin',
-            'admin_photo'      => base_url('assets/img/' . $foto),
-        ];
-        
-        return view('admin/dashboard', $data);
-    }
+    return view('admin/dashboard', $data);
+}
 
     // --- MASTER KELAS ---
     // --- MASTER KELAS ---
@@ -275,18 +273,46 @@ public function masterKelas()
         return redirect()->to(base_url('admin/mentor'))->with('success', 'Data mentor berhasil diperbarui.');
     }
 
+    // --- ABSENSI ---
+    public function absen()
+    {
+        $db = \Config\Database::connect();
+        
+        // Contoh query untuk mengambil data absensi mentor/peserta
+        $data = [
+            'title'  => 'Monitoring Absensi',
+            'absen'  => $db->table('absen') // Sesuaikan dengan nama tabel absensi Anda di database
+                        ->select('absen.*, kelas.nama_kelas')
+                        ->join('kelas', 'kelas.id_kelas = absen.id_kelas', 'left')
+                        ->get()
+                        ->getResultArray()
+        ];
+
+        return view('admin/absen/index', $data);
+    }
+
     // --- PESERTA & PENDAFTARAN ---
     public function dataPeserta()
-    {
-        $pesertaModel = new PesertaModel();
-        
-        $data = [
-            'title'   => 'Data Peserta - Panel Admin',
-            'peserta' => $pesertaModel->findAll()
-        ];
-        
-        return view('admin/data_peserta/index', $data); 
-    }
+{
+    $pendaftaranModel = new PendaftaranModel();
+    
+    $data = [
+        'title'   => 'Data Peserta - Panel Admin',
+        'peserta' => $pendaftaranModel
+            ->select('pendaftaran.*, users.nama, users.email, users.no_hp, kelas.nama_kelas')
+            ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
+            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+            ->groupStart()
+                ->where('pendaftaran.status_pembayaran', 'valid')
+                ->orWhere('pendaftaran.status_pembayaran', 'Disetujui')
+                ->orWhere('pendaftaran.status_pembayaran', 'approved')
+            ->groupEnd()
+            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+            ->findAll()
+    ];
+    
+    return view('admin/data_peserta/index', $data); 
+}
 
     public function pendaftaran()
     {

@@ -1,42 +1,274 @@
-<?= $this->extend('admin/layouts/sidebar') ?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= esc($title ?? 'Data Peserta'); ?> - Creativemu Academy</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --sidebar-bg: #22133c;
+            --sidebar-active-gradient: linear-gradient(135deg, #794bc4 0%, #5931a0 100%);
+            --sidebar-text: #c8bfe7;
+            --primary-purple: #794bc4;
+            --light-purple: #f4f0fc;
+            --dark-purple: #1e0f33;
+        }
 
-<?= $this->section('content') ?>
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h3 class="fw-bold mb-1">Data Peserta</h3>
-        <p class="text-muted mb-0">Daftar peserta yang sudah divalidasi.</p>
-    </div>
-</div>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f7f5fd;
+            overflow-x: hidden;
+            margin: 0;
+        }
 
-<div class="card border-0 shadow-sm">
-    <div class="table-responsive">
-        <table class="table align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>No</th>
-                    <th>Peserta</th>
-                    <th>No HP</th>
-                    <th>Kelas</th>
-                    <th>Pembayaran</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if(empty($peserta)): ?>
-                    <tr><td colspan="6" class="text-center text-muted py-4">Belum ada peserta yang divalidasi.</td></tr>
-                <?php endif; ?>
-                <?php foreach(($peserta ?? []) as $i => $item): ?>
-                    <tr>
-                        <td><?= $i + 1 ?></td>
-                        <td><strong><?= esc($item['nama'] ?? '-') ?></strong><br><small class="text-muted"><?= esc($item['email'] ?? '-') ?></small></td>
-                        <td><?= esc($item['no_hp'] ?? '-') ?></td>
-                        <td><?= esc($item['nama_kelas'] ?? '-') ?></td>
-                        <td><?= esc($item['metode_pembayaran'] ?? '-') ?> / <?= esc($item['status_pembayaran'] ?? '-') ?></td>
-                        <td><span class="badge bg-success">Sudah divalidasi</span></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+        #sidebar {
+            width: 275px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            z-index: 1000;
+            box-shadow: 8px 0 30px rgba(121, 75, 196, 0.08);
+            overflow-y: auto;
+        }
+
+        #sidebar .sidebar-header {
+            padding: 25px 20px;
+            background: rgba(0, 0, 0, 0.25);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            text-align: center;
+        }
+
+        #sidebar .sidebar-header img {
+            max-width: 170px;
+            height: auto;
+        }
+
+        #sidebar .nav {
+            padding: 20px 14px;
+        }
+
+        #sidebar .nav-item {
+            margin-bottom: 6px;
+        }
+
+        #sidebar .nav-link {
+            color: var(--sidebar-text);
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        #sidebar .nav-link i {
+            margin-right: 14px;
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        #sidebar .nav-link:hover {
+            background-color: rgba(121, 75, 196, 0.2);
+            color: #ffffff;
+        }
+
+        #sidebar .nav-link.active {
+            background: var(--sidebar-active-gradient);
+            color: #ffffff;
+            box-shadow: 0 6px 20px rgba(121, 75, 196, 0.4);
+            font-weight: 600;
+        }
+
+        #main-content {
+            margin-left: 275px;
+            padding: 35px;
+        }
+
+        .top-navbar {
+            background: #ffffff;
+            padding: 22px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(121, 75, 196, 0.05);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(121, 75, 196, 0.04);
+        }
+
+        .dash-header h3 {
+            font-weight: 800;
+            color: var(--dark-purple);
+            font-size: 1.6rem;
+            margin-bottom: 2px;
+        }
+        
+        .dash-header p {
+            color: #8c83a5;
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+
+        .content-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(121, 75, 196, 0.04);
+            border: 1px solid rgba(121, 75, 196, 0.05);
+        }
+
+        .table-hover tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: var(--light-purple);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- === SIDEBAR MENU === -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <span class="fs-5 fw-bold text-white"><i class="fas fa-graduation-cap me-2 text-primary"></i>Creativemu</span>
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a href="<?= base_url('admin/dashboard'); ?>" class="nav-link">
+                    <i class="fas fa-chart-pie"></i> <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link">
+                    <i class="fas fa-book"></i> <span>Master Kelas</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/mentor'); ?>" class="nav-link">
+                    <i class="fas fa-chalkboard-user"></i> <span>Mentor</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link active">
+                    <i class="fas fa-users"></i> <span>Data Peserta</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/validasi'); ?>" class="nav-link">
+                    <i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/angket'); ?>" class="nav-link">
+                    <i class="fas fa-award"></i> <span>Angket</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link">
+                    <i class="fas fa-award"></i> <span>Sertifikat</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/laporan'); ?>" class="nav-link">
+                    <i class="fas fa-file-lines"></i> <span>Laporan</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link">
+                    <i class="fas fa-gear"></i> <span>Pengaturan</span>
+                </a>
+            </li>
+            <li class="nav-item mt-4">
+                <a href="<?= base_url('logout'); ?>" class="nav-link text-danger">
+                    <i class="fas fa-right-from-bracket"></i> <span>Logout</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- === MAIN CONTENT === -->
+    <div id="main-content">
+        
+        <!-- === TOP NAVBAR === -->
+        <div class="top-navbar">
+            <div class="dash-header">
+                <h3>Data Peserta</h3>
+                <p>Daftar peserta yang sudah divalidasi dan memiliki akun.</p>
+            </div>
+            <div class="admin-profile d-flex align-items-center gap-3">
+                <div>
+                    <h6 class="mb-0 fw-bold text-dark text-end"><?= esc(session()->get('nama') ?? 'Administrator'); ?></h6>
+                    <small class="text-muted">Administrator</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- === TABLE SECTION === -->
+        <div class="content-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="fas fa-users text-primary me-2"></i> Tabel Akun Peserta Terverifikasi
+                </h5>
+                <span class="badge bg-primary px-3 py-2 rounded-pill">Total: <?= count($peserta ?? []); ?> Peserta</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>No</th>
+                            <th>Peserta</th>
+                            <th>No HP</th>
+                            <th>Kelas</th>
+                            <th>NIS</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if(empty($peserta)): ?>
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <i class="fas fa-folder-open fs-3 mb-2 d-block"></i>
+                                    Belum ada peserta yang divalidasi.
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                        <?php foreach(($peserta ?? []) as $i => $item): ?>
+                            <tr>
+                                <td><?= $i + 1 ?></td>
+                                <td>
+                                    <strong><?= esc($item['nama'] ?? '-') ?></strong><br>
+                                    <small class="text-muted"><?= esc($item['email'] ?? '-') ?></small>
+                                </td>
+                                <td><?= esc($item['no_hp'] ?? '-') ?></td>
+                                <td><?= esc($item['nama_kelas'] ?? '-') ?></td>
+                                <td>
+                                    <span class="badge bg-light text-dark border"><?= esc($item['nis'] ?? 'Belum ada NIS') ?></span>
+                                </td>
+                                <td><span class="badge bg-success">Sudah Divalidasi</span></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
-</div>
-<?= $this->endSection() ?>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
