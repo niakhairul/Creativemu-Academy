@@ -8,17 +8,20 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- FontAwesome Icons (untuk ikon tambahan) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #faf5ff; /* Ungu pastel sangat lembut sebagai latar belakang utama */
-            background-image: radial-gradient(#d8b4fe 1px, transparent 1px);
-            background-size: 24px 24px;
+            /* Gradasi latar belakang cerah bernuansa ungu lembut yang selaras */
+            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #fdf4ff 100%);
+            background-attachment: fixed;
             margin: 0;
             padding: 0;
+            color: #1e293b;
         }
 
         /* Layout Utama dengan Sidebar */
@@ -27,23 +30,23 @@
             min-height: 100vh;
         }
 
-        /* Sidebar dengan Gradasi 2 Warna Ungu */
+        /* Sidebar dengan Gradasi Ungu Deep Modern */
         .sidebar {
             width: 260px;
-            background: linear-gradient(180deg, #581c87 0%, #7c3aed 100%);
+            background: linear-gradient(180deg, #4c1d95 0%, #6d28d9 100%);
             color: white;
             position: fixed;
             top: 0;
             bottom: 0;
             left: 0;
             z-index: 100;
-            padding: 20px;
-            box-shadow: 4px 0 20px rgba(124, 58, 237, 0.1);
+            padding: 24px 20px;
+            box-shadow: 6px 0 25px rgba(109, 40, 217, 0.15);
             overflow-y: auto;
         }
 
         .sidebar-brand {
-            font-size: 1.25rem;
+            font-size: 1.3rem;
             font-weight: 700;
             color: white;
             text-decoration: none;
@@ -67,7 +70,7 @@
         .sidebar-menu a {
             display: flex;
             align-items: center;
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.75);
             text-decoration: none;
             padding: 12px 16px;
             border-radius: 12px;
@@ -76,9 +79,10 @@
         }
 
         .sidebar-menu a:hover, .sidebar-menu a.active {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.18);
             color: white;
-            transform: translateX(4px);
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .sidebar-menu a i {
@@ -91,15 +95,27 @@
             flex: 1;
             margin-left: 260px;
             padding: 30px;
+            width: calc(100% - 260px);
+        }
+
+        /* Card Umum dengan Nuansa Semi-Transparan & Glassmorphism */
+        .card {
+            border: none;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(109, 40, 217, 0.05);
+            transition: all 0.3s ease;
         }
 
         .hover-card {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .hover-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(124, 58, 237, 0.1) !important;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(109, 40, 217, 0.12) !important;
         }
+
         .stat-icon {
             width: 56px;
             height: 56px;
@@ -107,10 +123,13 @@
             align-items: center;
             justify-content: center;
             border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
         }
+
         .bg-purple-soft {
-            background-color: #f3e8ff;
+            background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
         }
+        
         .text-purple-custom {
             color: #7c3aed;
         }
@@ -123,7 +142,7 @@
     <!-- Sidebar Kustom dengan Menu Terstruktur Ringkas & Konsisten -->
     <nav class="sidebar">
         <a href="#" class="sidebar-brand">
-            <i class="bi bi-mortarboard-fill me-2 fs-4"></i> Creativemu
+            <i class="bi bi-mortarboard-fill me-2 fs-4 text-warning"></i> Creativemu
         </a>
         <ul class="sidebar-menu">
             <li>
@@ -136,10 +155,10 @@
                 <a href="<?= base_url('pelatihan/kbm') ?>"><i class="bi bi-mortarboard-fill"></i> KBM</a>
             </li>
             <li>
-                <a href="<?= base_url('pelatihan/pengaturan') ?>"><i class="bi bi-journals"></i> Pengaturan</a>
+                <a href="<?= base_url('pelatihan/pengaturan') ?>"><i class="bi bi-gear-fill"></i> Pengaturan</a>
             </li>
             <li class="mt-5">
-                <a href="<?= base_url('auth/logout') ?>" class="text-danger-subtle bg-danger bg-opacity-10"><i class="bi bi-box-arrow-left"></i> Keluar</a>
+                <a href="<?= base_url('auth/logout') ?>" class="text-danger bg-danger bg-opacity-10"><i class="bi bi-box-arrow-left"></i> Keluar</a>
             </li>
         </ul>
     </nav>
@@ -148,10 +167,10 @@
     <div class="main-content">
         <div class="container-fluid py-2">
 
-            <!-- Header Sambutan Sesuai Referensi Gambar -->
+            <!-- Header Sambutan -->
             <div class="row mb-4 align-items-center">
                 <div class="col-md-8 mb-3 mb-md-0">
-                    <h2 class="fw-bold mb-1" style="color: #2e1065;">
+                    <h2 class="fw-bold mb-1" style="color: #4c1d95;">
                         Halo, <?= esc($user['nama']) ?> 👋
                     </h2>
                     <p class="text-muted mb-0">
@@ -162,7 +181,7 @@
                     <div class="d-inline-flex align-items-center bg-white p-2 px-3 rounded-pill shadow-sm border border-purple border-opacity-10">
                         <div class="bg-purple-soft text-purple-custom p-2 rounded-circle me-2 position-relative">
                             <i class="bi bi-bell-fill fs-5"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">3</span>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;"></span>
                         </div>
                         <div class="text-start me-2">
                             <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;"><?= esc($user['nama']) ?></h6>
@@ -172,17 +191,17 @@
                 </div>
             </div>
                 
-            <!-- Kotak Statistik Ringkas 4 Kolom Sesuai Gambar Referensi -->
+            <!-- Kotak Statistik Ringkas 4 Kolom -->
             <div class="row mb-4">
                 <!-- 1. Kelas Aktif -->
                 <div class="col-md-3 mb-3 mb-md-0">
-                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card bg-white">
+                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
                         <div class="card-body p-4 d-flex align-items-center">
                             <div class="stat-icon bg-purple-soft text-purple-custom me-3 flex-shrink-0">
                                 <i class="bi bi-mortarboard-fill fs-4"></i>
                             </div>
                             <div>
-                                <h3 class="fw-bold mb-0" style="color: #2e1065;"><?= $pendaftaran ? 1 : 0 ?></h3>
+                                <h3 class="fw-bold mb-0" style="color: #4c1d95;"><?= $pendaftaran ? 1 : 0 ?></h3>
                                 <p class="text-dark mb-0 fw-bold small">Kelas Aktif</p>
                                 <span class="text-muted" style="font-size: 0.75rem;">Sedang berlangsung</span>
                             </div>
@@ -192,13 +211,13 @@
                 
                 <!-- 2. Kehadiran -->
                 <div class="col-md-3 mb-3 mb-md-0">
-                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card bg-white">
+                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
                         <div class="card-body p-4 d-flex align-items-center">
                             <div class="stat-icon bg-purple-soft text-purple-custom me-3 flex-shrink-0">
                                 <i class="bi bi-calendar-check-fill fs-4"></i>
                             </div>
                             <div>
-                                <h3 class="fw-bold mb-0" style="color: #2e1065;"><?= esc($total_kehadiran ?? '0') ?>%</h3>
+                                <h3 class="fw-bold mb-0" style="color: #4c1d95;"><?= esc($total_kehadiran ?? '0') ?>%</h3>
                                 <p class="text-dark mb-0 fw-bold small">Kehadiran</p>
                                 <span class="text-muted" style="font-size: 0.75rem;">Total Kehadiran</span>
                             </div>
@@ -208,13 +227,13 @@
 
                 <!-- 3. Tugas -->
                 <div class="col-md-3 mb-3 mb-md-0">
-                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card bg-white">
+                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
                         <div class="card-body p-4 d-flex align-items-center">
                             <div class="stat-icon bg-purple-soft text-purple-custom me-3 flex-shrink-0">
                                 <i class="bi bi-clipboard-check-fill fs-4"></i>
                             </div>
                             <div>
-                                <h3 class="fw-bold mb-0" style="color: #2e1065;"><?= esc($total_tugas ?? '0') ?></h3>
+                                <h3 class="fw-bold mb-0" style="color: #4c1d95;"><?= esc($total_tugas ?? '0') ?></h3>
                                 <p class="text-dark mb-0 fw-bold small">Tugas</p>
                                 <span class="text-muted" style="font-size: 0.75rem;">Belum Dikumpulkan</span>
                             </div>
@@ -224,13 +243,13 @@
 
                 <!-- 4. Sertifikat -->
                 <div class="col-md-3">
-                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card bg-white">
+                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
                         <div class="card-body p-4 d-flex align-items-center">
                             <div class="stat-icon bg-purple-soft text-purple-custom me-3 flex-shrink-0">
                                 <i class="bi bi-award-fill fs-4"></i>
                             </div>
                             <div>
-                                <h3 class="fw-bold mb-0" style="color: #2e1065;"><?= esc($total_sertifikat ?? '0') ?></h3>
+                                <h3 class="fw-bold mb-0" style="color: #4c1d95;"><?= esc($total_sertifikat ?? '0') ?></h3>
                                 <p class="text-dark mb-0 fw-bold small">Sertifikat</p>
                                 <span class="text-muted" style="font-size: 0.75rem;">Telah Diperoleh</span>
                             </div>
@@ -244,16 +263,16 @@
 
                 <!-- Profil Saya -->
                 <div class="col-md-6 mb-4 mb-md-0">
-                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card bg-white">
+                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center mb-4">
                                 <div class="bg-purple-soft text-purple-custom p-2 rounded-3 me-3">
                                     <i class="bi bi-person-circle fs-4"></i>
                                 </div>
-                                <h4 class="fw-bold mb-0" style="color: #2e1065;">Profil Saya</h4>
+                                <h4 class="fw-bold mb-0" style="color: #4c1d95;">Profil Saya</h4>
                             </div>
 
-                            <table class="table table-borderless align-middle mb-0">
+                            <table class="table table-borderless align-middle mb-0 bg-transparent">
                                 <tr>
                                     <td width="130" class="text-muted fw-semibold">NIS</td>
                                     <td class="fw-bold text-primary">: <span class="badge bg-purple-soft text-purple-custom px-2 py-1"><?= esc($user['nis'] ?? $pendaftaran['nis'] ?? '-') ?></span></td>
@@ -277,13 +296,13 @@
 
                 <!-- Status Pendaftaran -->
                 <div class="col-md-6">
-                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card bg-white">
+                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center mb-4">
                                 <div class="bg-purple-soft text-purple-custom p-2 rounded-3 me-3">
                                     <i class="bi bi-clipboard-check fs-4"></i>
                                 </div>
-                                <h4 class="fw-bold mb-0" style="color: #2e1065;">Status Pendaftaran</h4>
+                                <h4 class="fw-bold mb-0" style="color: #4c1d95;">Status Pendaftaran</h4>
                             </div>
 
                             <?php if ($pendaftaran == null): ?>
@@ -294,7 +313,7 @@
                                     <p class="text-muted small mb-3">
                                         Anda belum terdaftar di kelas pelatihan apapun. Mari mulai langkah belajarmu sekarang.
                                     </p>
-                                    <a href="<?= base_url('pelatihan/daftar-kelas') ?>" class="btn btn-custom-primary px-4 rounded-pill shadow-sm text-white" style="background-color: #7c3aed;">
+                                    <a href="<?= base_url('pelatihan/daftar-kelas') ?>" class="btn px-4 rounded-pill shadow-sm text-white fw-bold" style="background: linear-gradient(135deg, #7c3aed, #4c1d95);">
                                         Pilih Kelas Sekarang
                                     </a>
                                 </div>
@@ -321,16 +340,30 @@
                                 </div>
 
                                 <!-- Kotak Informasi Kelas yang Dipilih -->
-                                <!-- Kotak Informasi Kelas yang Dipilih -->
-<div class="p-3 border border-purple border-opacity-25 rounded-4 bg-light shadow-sm">
-    <h6 class="fw-bold mb-2" style="color: #2e1065;"><?= esc($pendaftaran['nama_kelas'] ?? 'Kelas Pelatihan') ?></h6>
-    <p class="text-muted small mb-1">
-        <i class="bi bi-person-badge me-1"></i> Mentor: <strong class="text-dark"><?= esc($pendaftaran['nama_mentor'] ?? '-') ?></strong>
-    </p>
-    <p class="text-muted small mb-0">
-        <i class="bi bi-calendar-event me-1"></i> Jadwal: <strong class="text-dark"><?= esc($pendaftaran['jadwal'] ?? '-') ?></strong>
-    </p>
-</div>
+                                <div class="p-3 border border-purple border-opacity-25 rounded-4 bg-white shadow-sm">
+                                    <h6 class="fw-bold mb-2" style="color: #4c1d95;"><?= esc($pendaftaran['nama_kelas'] ?? 'Kelas Pelatihan') ?></h6>
+                                    <p class="text-muted small mb-1">
+                                        <i class="bi bi-person-badge me-1"></i> Mentor: <strong class="text-dark"><?= esc($pendaftaran['nama_mentor'] ?? '-') ?></strong>
+                                    </p>
+                                    <p class="text-muted small mb-1">
+                                        <i class="bi bi-calendar-event me-1"></i> Jadwal: <strong class="text-dark"><?= esc($pendaftaran['jadwal'] ?? '-') ?></strong>
+                                    </p>
+                                    <hr class="my-2 border-purple border-opacity-10">
+                                    <div class="row g-1 text-muted small">
+                                        <div class="col-12">
+                                            <span><i class="bi bi-laptop me-1"></i> Metode Pembelajaran:</span> 
+                                            <strong class="text-dark text-capitalize"><?= esc($pendaftaran['metode_pembelajaran'] ?? '-') ?></strong>
+                                        </div>
+                                        <div class="col-12">
+                                            <span><i class="bi bi-grid me-1"></i> Kategori Kelas:</span> 
+                                            <strong class="text-dark"><?= esc($pendaftaran['kategori_kelas'] ?? '-') ?></strong>
+                                        </div>
+                                        <div class="col-12">
+                                            <span><i class="bi bi-tag me-1"></i> Jenis Kelas:</span> 
+                                            <strong class="text-dark text-capitalize"><?= esc($pendaftaran['jenis_kelas'] ?? '-') ?></strong>
+                                        </div>
+                                    </div>
+                                </div>
                             <?php endif; ?>
 
                         </div>
@@ -342,19 +375,19 @@
             <!-- Bagian Tambahan: Jadwal Pelatihan & Pengumuman -->
             <div class="row">
                 
-                <!-- Jadwal Pelatihan & Materi (Dinamis dari Admin) -->
+                <!-- Jadwal Pelatihan & Materi -->
                 <div class="col-lg-7 mb-4">
-                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card bg-white">
+                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center mb-4">
                                 <div class="bg-purple-soft text-purple-custom p-2 rounded-3 me-3">
                                     <i class="bi bi-calendar-range fs-4"></i>
                                 </div>
-                                <h4 class="fw-bold mb-0" style="color: #2e1065;">Jadwal Pelatihan & Materi</h4>
+                                <h4 class="fw-bold mb-0" style="color: #4c1d95;">Jadwal Pelatihan & Materi</h4>
                             </div>
 
                             <div class="table-responsive">
-                                <table class="table table-hover align-middle">
+                                <table class="table table-hover align-middle bg-transparent">
                                     <thead class="table-light text-uppercase" style="font-size: 0.75rem;">
                                         <tr>
                                             <th>Pertemuan</th>
@@ -398,29 +431,29 @@
                     </div>
                 </div>
 
-                <!-- Pengumuman (Dinamis dari Admin) -->
+                <!-- Pengumuman -->
                 <div class="col-lg-5 mb-4">
-                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card bg-white">
+                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center mb-4">
                                 <div class="bg-purple-soft text-purple-custom p-2 rounded-3 me-3">
                                     <i class="bi bi-megaphone-fill fs-4"></i>
                                 </div>
-                                <h4 class="fw-bold mb-0" style="color: #2e1065;">Pengumuman Penting</h4>
+                                <h4 class="fw-bold mb-0" style="color: #4c1d95;">Pengumuman Penting</h4>
                             </div>
 
                             <?php if (!empty($pengumuman_list) && is_array($pengumuman_list)): ?>
                                 <?php foreach ($pengumuman_list as $pengumuman): ?>
-                                    <div class="p-3 mb-3 border border-purple border-opacity-25 rounded-4 bg-purple-soft bg-opacity-25">
+                                    <div class="p-3 mb-3 border border-purple border-opacity-25 rounded-4 bg-white shadow-sm">
                                         <div class="d-flex align-items-start">
                                             <i class="bi bi-info-circle fs-3 text-purple-custom me-3 mt-1"></i>
                                             <div>
-                                                <h6 class="fw-bold mb-1" style="color: #2e1065;"><?= esc($pengumuman['judul'] ?? 'Pengumuman') ?></h6>
+                                                <h6 class="fw-bold mb-1" style="color: #4c1d95;"><?= esc($pengumuman['judul'] ?? 'Pengumuman') ?></h6>
                                                 <p class="text-muted small mb-2">
                                                     <?= esc($pengumuman['isi'] ?? $pengumuman['konten'] ?? '') ?>
                                                 </p>
                                                 <?php if (!empty($pengumuman['link_url'])): ?>
-                                                    <a href="<?= esc($pengumuman['link_url']) ?>" class="btn btn-sm btn-custom-primary rounded-pill px-3 fw-semibold text-white" style="background-color: #7c3aed;">
+                                                    <a href="<?= esc($pengumuman['link_url']) ?>" class="btn btn-sm rounded-pill px-3 fw-semibold text-white shadow-sm" style="background: linear-gradient(135deg, #7c3aed, #4c1d95);">
                                                         <?= esc($pengumuman['link_text'] ?? 'Aksi Selengkapnya') ?>
                                                     </a>
                                                 <?php endif; ?>
@@ -429,34 +462,50 @@
                                     </div>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <!-- Kotak Pengumuman Sertifikat & Angket (Default Fallback) -->
-                                <div class="p-3 mb-3 border border-purple border-opacity-25 rounded-4 bg-purple-soft bg-opacity-25">
+                                <!-- Kotak Pengumuman Sertifikat (Default Fallback) -->
+                                <?php 
+                                    $kategoriKelas = trim($pendaftaran['kategori_kelas'] ?? '');
+                                    $isSertifikat = (strcasecmp($kategoriKelas, 'Pelatihan Sertifikasi') === 0 || stripos($kategoriKelas, 'sertifikasi') !== false);
+                                ?>
+                                <div class="p-3 mb-3 border border-purple border-opacity-25 rounded-4 bg-white shadow-sm">
                                     <div class="d-flex align-items-start">
                                         <i class="bi bi-award fs-3 text-purple-custom me-3 mt-1"></i>
                                         <div>
-                                            <h6 class="fw-bold mb-1" style="color: #2e1065;">Unduh Sertifikat Pelatihan</h6>
-                                            <p class="text-muted small mb-3">
-                                                Bagi peserta yang mengambil pilihan kelas dengan sertifikat, silakan lengkapi angket evaluasi terlebih dahulu melalui menu KBM sebelum mengunduh sertifikat Anda.
-                                            </p>
-                                            
-                                            <div class="d-flex flex-wrap gap-2">
-                                                <?php if (!empty($pendaftaran['ambil_sertifikat']) && $pendaftaran['ambil_sertifikat'] == 'Ya'): ?>
-                                                    <a href="<?= base_url('pelatihan/kbm') ?>" class="btn btn-sm btn-custom-primary rounded-pill px-3 fw-semibold text-white" style="background-color: #7c3aed;">
-                                                        <i class="bi bi-mortarboard me-1"></i> Buka Menu KBM
-                                                    </a>
+                                            <h6 class="fw-bold mb-1" style="color: #4c1d95;">Informasi Sertifikat Pelatihan</h6>
+                                            <p class="text-muted small mb-0">
+                                                <?php if ($isSertifikat): ?>
+                                                    Bagi peserta yang mengambil pilihan kelas dengan sertifikat, silakan lengkapi angket evaluasi terlebih dahulu melalui menu KBM sebelum mengunduh sertifikat Anda[cite: 9].
                                                 <?php else: ?>
-                                                    <span class="badge bg-light text-muted border px-3 py-2 rounded-pill">
-                                                        <i class="bi bi-info-circle me-1"></i> Kelas Anda tidak mengambil opsi sertifikat.
-                                                    </span>
+                                                    Kelas Anda terdaftar sebagai kelas basic/non-sertifikat, sehingga tidak mengambil opsi sertifikat[cite: 9].
                                                 <?php endif; ?>
-                                            </div>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
+                            <!-- KARTU PENGUMUMAN ANGKET -->
+                            <?php if (isset($tampilkan_notif_angket) && $tampilkan_notif_angket): ?>
+                                <div class="card shadow-sm border-0 rounded-4 p-4 mb-3 bg-white" style="border-left: 4px solid #7c3aed !important;">
+                                    <div class="d-flex align-items-start">
+                                        <div class="me-3 fs-3 text-purple-custom">
+                                            <i class="fas fa-clipboard-list"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="fw-bold mb-1" style="color: #6b21a8;">Angket Evaluasi Pelatihan</h5>
+                                            <p class="text-muted mb-3" style="font-size: 14px;">
+                                                Anda telah menyelesaikan seluruh rangkaian ujian. Silakan isi angket evaluasi terlebih dahulu untuk membantu meningkatkan kualitas pelatihan kami.
+                                            </p>
+                                            <a href="<?= base_url('pelatihan/angket'); ?>" class="btn btn-sm text-white fw-bold px-3 py-2 rounded-pill shadow-sm" style="background: linear-gradient(135deg, #7c3aed, #4c1d95);">
+                                                Isi Angket Sekarang
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
                             <?php endif; ?>
 
                             <!-- Ketentuan Kehadiran -->
-                            <div class="p-3 border rounded-4 bg-light">
+                            <div class="p-3 border border-light rounded-4 bg-white shadow-sm">
                                 <div class="d-flex align-items-start">
                                     <i class="bi bi-info-circle fs-4 text-primary me-3 mt-1"></i>
                                     <div>
@@ -471,7 +520,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
 
         </div>
