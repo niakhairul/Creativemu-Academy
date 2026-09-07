@@ -197,7 +197,7 @@
     <div class="sidebar">
         <div>
             <div class="brand-logo">
-                <img src="<?= base_url('assets/img/logo.png'); ?>" alt="Creativemu Logo">
+            <img src="<?= base_url('assets/img/logo_creativemu_academy.jpg'); ?>" alt="Creativemu Logo">
                 <span>Creativemu</span>
             </div>
             

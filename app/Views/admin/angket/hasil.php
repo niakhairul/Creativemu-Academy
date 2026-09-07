@@ -32,7 +32,7 @@
     <!-- Sidebar -->
     <nav id="sidebar">
         <div class="sidebar-header">
-            <img src="<?= base_url('assets/img/logo-creativemu.png'); ?>" alt="Logo" class="img-fluid" style="max-width: 150px;">
+            <img src="<?= base_url('assets/img/logo_creativemu_academy.jpg'); ?>" alt="Logo" class="img-fluid" style="max-width: 150px;">
         </div>
         <ul class="nav flex-column mt-3">
             <li class="nav-item"><a href="<?= base_url('admin/dashboard'); ?>" class="nav-link"><i class="fas fa-chart-pie me-3"></i> Dashboard</a></li>
