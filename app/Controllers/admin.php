@@ -51,21 +51,27 @@ class Admin extends BaseController
 {
     $db = \Config\Database::connect();
     
+    // Ambil data pendaftaran pending beserta relasi ke users dan kelas
+    $pendaftaranPending = $db->table('pendaftaran')
+        ->select('pendaftaran.*, users.nama, users.email, kelas.nama_kelas')
+        ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
+        ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+        ->where('pendaftaran.status', 'pending')
+        ->get()
+        ->getResultArray();
+
     $data = [
         'title'               => 'Dashboard',
         'total_kelas'         => $db->table('kelas')->countAll(),
         'total_mentor'        => $db->table('mentor')->countAll(),
         'total_peserta'       => $db->table('peserta')->countAll(),
         'pending_validasi'    => $db->table('pendaftaran')->where('status', 'pending')->countAll(),
-
-        'pendaftaran_pending' => $db->table('pendaftaran')
-            ->select('pendaftaran.*, kelas.nama_kelas')
-            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-            ->where('pendaftaran.status', 'pending')
-            ->get()
-            ->getResultArray(),
-
-        'angket_data'         => [0, 0, 0, 0],
+        'pendaftaran_pending' => $pendaftaranPending,
+        
+        // Data untuk Chart Angket
+        'angket_data'         => [0, 0, 0, 0], 
+        
+        // Data untuk Chart Absensi
         'absensi_data'        => [0, 0, 0, 0, 0, 0]
     ];
 
@@ -210,42 +216,32 @@ public function masterKelas()
     }
 
     public function simpan()
-{
-    $db = \Config\Database::connect();
-
-    $data = [
-        'id_users'     => session()->get('id_users') ? session()->get('id_users') : 1,
-        'nama_mentor' => $this->request->getPost('nama_mentor'),
-        'email'       => $this->request->getPost('email'),
-        'telepon'     => $this->request->getPost('telepon'),
-        'keahlian'    => $this->request->getPost('keahlian'),
-        'pengalaman'  => $this->request->getPost('pengalaman'),
-        'bio'         => $this->request->getPost('bio'), 
-        'status'      => $this->request->getPost('status'),
-    ];
-
-    $fileCv = $this->request->getFile('cv');
-    if ($fileCv && $fileCv->isValid() && !$fileCv->hasMoved()) {
-        $namaFileCv = $fileCv->getRandomName();
-        $fileCv->move('uploads/cv', $namaFileCv);
-        $data['cv'] = $namaFileCv;
-    }
-
-    // Insert langsung ke tabel database (bypass model)
-    $db->table('mentor')->insert($data);
-
-    return redirect()->to(base_url('admin/mentor'))->with('success', 'Mentor baru berhasil ditambahkan.');
-}
-    public function editMentor($id)
     {
-        $mentorModel = new MentorModel();
-        
+        $db = \Config\Database::connect();
+
         $data = [
-            'title'  => 'Edit Mentor',
-            'mentor' => $mentorModel->find($id)
+            'id_users'    => session()->get('id_users') ? session()->get('id_users') : 1,
+            'nip'         => $this->request->getPost('nip'), // <-- TAMBAHKAN INI
+            'nama_mentor' => $this->request->getPost('nama_mentor'),
+            'email'       => $this->request->getPost('email'),
+            'telepon'     => $this->request->getPost('telepon'),
+            'keahlian'    => $this->request->getPost('keahlian'),
+            'pengalaman'  => $this->request->getPost('pengalaman'),
+            'bio'         => $this->request->getPost('bio'), 
+            'status'      => $this->request->getPost('status'),
         ];
 
-        return view('admin/mentor/edit', $data);
+        $fileCv = $this->request->getFile('cv');
+        if ($fileCv && $fileCv->isValid() && !$fileCv->hasMoved()) {
+            $namaFileCv = $fileCv->getRandomName();
+            $fileCv->move('uploads/cv', $namaFileCv);
+            $data['cv'] = $namaFileCv;
+        }
+
+        // Insert langsung ke tabel database (bypass model)
+        $db->table('mentor')->insert($data);
+
+        return redirect()->to(base_url('admin/mentor'))->with('success', 'Mentor baru berhasil ditambahkan.');
     }
 
     public function updateMentor($id)
@@ -253,6 +249,7 @@ public function masterKelas()
         $mentorModel = new MentorModel();
 
         $data = [
+            'nip'         => $this->request->getPost('nip'), // <-- TAMBAHKAN INI
             'nama_mentor' => $this->request->getPost('nama_mentor'),
             'email'       => $this->request->getPost('email'),
             'telepon'     => $this->request->getPost('telepon'),
@@ -273,6 +270,18 @@ public function masterKelas()
 
         return redirect()->to(base_url('admin/mentor'))->with('success', 'Data mentor berhasil diperbarui.');
     }
+    public function editMentor($id)
+    {
+        $mentorModel = new MentorModel();
+        
+        $data = [
+            'title'  => 'Edit Mentor',
+            'mentor' => $mentorModel->find($id)
+        ];
+
+        return view('admin/mentor/edit', $data);
+    }
+
 
     // --- ABSENSI ---
     public function absen()

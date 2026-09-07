@@ -12,305 +12,622 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
+
         :root {
-            --purple-primary: #7c3aed;    
-            --purple-hover: #6d28d9;
-            --purple-light: #f5f3ff;      
-            --purple-gradient-start: #8b5cf6;
-            --purple-gradient-end: #4c1d95;  
-            --bg-light: #f8fafc;         
-            --text-dark: #1e1b4b;
-            --text-muted: #64748b;
+            --purple-primary: #7a3ff2;
+            --purple-strong: #4d1d95;
+            --purple-mid: #9565ff;
+            --purple-soft: #eee7ff;
+            --purple-tint: #faf7ff;
+            --ink: #20143f;
+            --muted: #6f6581;
+            --line: rgba(122, 63, 242, 0.16);
+            --surface: rgba(255, 255, 255, 0.86);
+            --shadow: 0 22px 60px rgba(54, 24, 108, 0.14);
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            letter-spacing: 0;
         }
 
         body {
+            min-height: 100vh;
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-light);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.1) 0px, transparent 50%);
-            background-attachment: fixed;
-            color: var(--text-dark);
+            color: var(--ink);
+            background:
+                linear-gradient(135deg, rgba(248, 245, 255, 0.98) 0%, rgba(255, 255, 255, 0.92) 42%, rgba(235, 229, 255, 0.88) 100%),
+                repeating-linear-gradient(115deg, rgba(122, 63, 242, 0.045) 0 1px, transparent 1px 28px);
             overflow-x: hidden;
         }
 
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(25px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes softSweep {
+            from { transform: translateX(-34%) skewX(-10deg); }
+            to { transform: translateX(34%) skewX(-10deg); }
+        }
+
+        @keyframes floatPanel {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
 
         .animate-fade-in {
-            animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            animation: fadeInUp 0.72s var(--ease) forwards;
         }
 
         .navbar-custom {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            box-shadow: 0 4px 25px rgba(124, 58, 237, 0.1);
-            padding: 14px 0;
-            border-bottom: 1px solid rgba(221, 214, 254, 0.8);
+            padding: 12px 0;
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-bottom: 1px solid rgba(122, 63, 242, 0.12);
+            box-shadow: 0 12px 34px rgba(54, 24, 108, 0.08);
         }
 
         .navbar-logo {
             width: 46px;
             height: 46px;
             object-fit: contain;
-            border-radius: 10px;
+            border-radius: 14px;
+            box-shadow: 0 10px 24px rgba(122, 63, 242, 0.18);
         }
 
         .navbar-brand span {
-            background: linear-gradient(135deg, #7c3aed, #4c1d95);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            max-width: 260px;
+            line-height: 1.15;
             font-weight: 800;
+            color: var(--purple-strong);
         }
 
         .nav-link {
-            font-weight: 600;
-            color: var(--text-muted) !important;
-            transition: color 0.2s ease;
+            position: relative;
+            width: max-content;
+            font-weight: 700;
+            color: var(--muted) !important;
+            transition: color 0.25s ease;
             cursor: pointer;
         }
 
-        .nav-link:hover, .nav-link.active {
-            color: var(--purple-primary) !important;
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 2px;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--purple-primary), var(--purple-mid));
+            border-radius: 99px;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.28s var(--ease);
+        }
+
+        .nav-link:hover,
+        .nav-link.active { color: var(--purple-primary) !important; }
+        .nav-link:hover::after,
+        .nav-link.active::after { transform: scaleX(1); }
+
+        .btn-outline-custom-auth,
+        .btn-custom-auth,
+        .btn-outline-detail,
+        .btn-custom-daftar {
+            min-height: 42px;
+            border-radius: 14px;
+            font-weight: 800;
+            transition: transform 0.28s var(--ease), box-shadow 0.28s var(--ease), background 0.28s ease, color 0.28s ease, border-color 0.28s ease;
         }
 
         .btn-outline-custom-auth {
-            border: 1.5px solid #7c3aed;
-            color: #7c3aed;
-            background: transparent;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 0.85rem;
+            border: 1.5px solid rgba(122, 63, 242, 0.45);
+            color: var(--purple-primary);
+            background: rgba(255, 255, 255, 0.7);
+            font-size: 0.86rem;
             padding: 8px 16px;
-            transition: all 0.25s ease;
         }
+
         .btn-outline-custom-auth:hover {
-            background: rgba(124, 58, 237, 0.05);
-            color: #6d28d9;
-            border-color: #6d28d9;
+            color: var(--purple-strong);
+            border-color: var(--purple-primary);
+            background: var(--purple-tint);
+            transform: translateY(-2px);
+        }
+
+        .btn-custom-auth,
+        .btn-custom-daftar {
+            color: #ffffff;
+            border: none;
+            background: linear-gradient(135deg, var(--purple-mid) 0%, var(--purple-primary) 48%, var(--purple-strong) 100%);
+            box-shadow: 0 14px 28px rgba(122, 63, 242, 0.28);
         }
 
         .btn-custom-auth {
-            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-            color: #ffffff;
-            border: none;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 0.85rem;
+            font-size: 0.86rem;
             padding: 8px 18px;
-            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
-            transition: all 0.25s ease;
-        }
-        .btn-custom-auth:hover {
-            background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
-            color: #ffffff;
-            box-shadow: 0 6px 16px rgba(124, 58, 237, 0.45);
-            transform: translateY(-1px);
         }
 
-        /* HERO SECTION DIPERBAIKI AGAR TIDAK TUMPANG TINDIH */
+        .btn-custom-auth:hover,
+        .btn-custom-daftar:hover {
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 18px 38px rgba(77, 29, 149, 0.32);
+        }
+
         .hero-section {
-            background: linear-gradient(135deg, rgba(245, 243, 255, 0.95) 0%, rgba(237, 233, 254, 0.9) 100%);
-            padding: 40px 0 60px 0;
-            border-bottom: 1px solid rgba(221, 214, 254, 0.8);
             position: relative;
             overflow: hidden;
-            margin-bottom: -30px; /* Memberikan ruang transisi yang pas untuk filter box */
+            margin-bottom: -42px;
+            padding: 58px 0 92px;
+            color: #ffffff;
+            background:
+                linear-gradient(135deg, rgba(77, 29, 149, 0.98) 0%, rgba(122, 63, 242, 0.94) 54%, rgba(149, 101, 255, 0.9) 100%),
+                repeating-linear-gradient(125deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 34px);
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0.18) 46%, transparent 74%);
+            opacity: 0.65;
+            animation: softSweep 7s ease-in-out infinite alternate;
+        }
+
+        .hero-section::after {
+            content: '';
+            position: absolute;
+            inset: auto 0 0;
+            height: 80px;
+            background: linear-gradient(180deg, transparent, rgba(250, 247, 255, 0.9));
+        }
+
+        .hero-content,
+        .hero-highlight { position: relative; z-index: 1; }
+
+        .hero-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.13);
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 0.82rem;
+            font-weight: 800;
+            backdrop-filter: blur(10px);
         }
 
         .page-title {
+            max-width: 780px;
+            margin: 0;
+            color: #ffffff;
+            font-size: clamp(2.05rem, 5vw, 4.25rem);
+            line-height: 1.02;
             font-weight: 800;
-            color: #1e1b4b;
-            letter-spacing: -0.8px;
-            font-size: 2.2rem;
         }
+
+        .hero-section .lead {
+            max-width: 650px;
+            color: rgba(255, 255, 255, 0.82);
+            font-weight: 500;
+        }
+
+        .hero-highlight {
+            width: min(100%, 350px);
+            margin-left: auto;
+            padding: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.26);
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.14);
+            box-shadow: 0 24px 60px rgba(32, 20, 63, 0.22);
+            backdrop-filter: blur(16px);
+            animation: floatPanel 5.5s ease-in-out infinite;
+        }
+
+        .hero-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .hero-stat {
+            min-height: 92px;
+            padding: 16px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .hero-stat strong {
+            display: block;
+            font-size: 1.45rem;
+            line-height: 1;
+        }
+
+        .hero-stat span {
+            display: block;
+            margin-top: 8px;
+            color: rgba(255, 255, 255, 0.78);
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .main-content { position: relative; z-index: 3; }
 
         .filter-container {
-            background: #ffffff;
-            border-radius: 24px;
-            padding: 20px;
-            box-shadow: 0 20px 40px rgba(124, 58, 237, 0.08);
-            border: 1px solid rgba(221, 214, 254, 0.9);
             position: relative;
-            z-index: 10;
-            margin-bottom: 2rem;
-            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            z-index: 4;
+            padding: 18px;
+            margin-bottom: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            border-radius: 24px;
+            background: var(--surface);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(18px);
+            animation: fadeInUp 0.8s var(--ease) forwards;
         }
 
-        .search-input, .filter-select {
-            border: 1.5px solid #ede9fe;
-            border-radius: 14px;
-            padding: 12px 16px;
-            font-size: 0.92rem;
-            color: var(--text-dark);
-            background-color: #faf5ff;
+        .filter-form {
+            display: grid;
+            grid-template-columns: minmax(220px, 1fr) minmax(180px, 0.45fr) minmax(130px, 0.24fr);
+            gap: 14px;
+            align-items: center;
+        }
+
+        .search-input,
+        .filter-select {
             width: 100%;
-            transition: all 0.25s ease;
+            min-height: 52px;
+            border: 1.5px solid rgba(122, 63, 242, 0.14);
+            border-radius: 16px;
+            padding: 13px 16px;
+            font-size: 0.93rem;
+            font-weight: 600;
+            color: var(--ink);
+            background-color: rgba(255, 255, 255, 0.92);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+            transition: border-color 0.24s ease, box-shadow 0.24s ease, background 0.24s ease;
         }
 
-        .search-input:focus, .filter-select:focus {
-            border-color: var(--purple-primary);
-            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15);
+        .search-input:focus,
+        .filter-select:focus {
+            border-color: rgba(122, 63, 242, 0.78);
+            box-shadow: 0 0 0 5px rgba(122, 63, 242, 0.12);
             background-color: #ffffff;
             outline: none;
         }
 
+        .btn-custom-daftar {
+            font-size: 0.86rem;
+            padding: 10px 14px;
+        }
+
+        .alert-modern {
+            border-radius: 18px;
+            padding: 1rem 1.15rem;
+            margin-bottom: 1.4rem;
+            font-weight: 700;
+            border: 1px solid transparent;
+            box-shadow: 0 14px 34px rgba(32, 20, 63, 0.08);
+        }
+
+        .alert-modern.success { color: #166534; background: #f0fdf4; border-color: #bbf7d0; }
+        .alert-modern.error { color: #991b1b; background: #fef2f2; border-color: #fecaca; }
+
+        .kelas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 28px;
+            align-items: stretch;
+            padding-bottom: 56px;
+        }
+
+        .kelas-grid-item { min-width: 0; }
+
         .kelas-card {
-            border: 1px solid rgba(221, 214, 254, 0.8);
-            border-radius: 24px;
-            overflow: hidden;
-            background: #ffffff;
-            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.06);
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
+            isolation: isolate;
             height: 100%;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
+            border: 1px solid rgba(122, 63, 242, 0.14);
+            border-radius: 26px;
+            background: rgba(255, 255, 255, 0.94);
+            box-shadow: 0 18px 44px rgba(54, 24, 108, 0.11);
+            transition: transform 0.42s var(--ease), box-shadow 0.42s var(--ease), border-color 0.3s ease;
+            will-change: transform;
+        }
+
+        .kelas-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            background: linear-gradient(145deg, rgba(149, 101, 255, 0.16), transparent 48%);
+            opacity: 0;
+            transition: opacity 0.35s ease;
+        }
+
+        .kelas-card::after {
+            content: '';
+            position: absolute;
+            top: -45%;
+            left: -70%;
+            z-index: 3;
+            width: 48%;
+            height: 190%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.46), transparent);
+            transform: rotate(22deg) translateX(0);
+            transition: transform 0.82s ease;
+            pointer-events: none;
         }
 
         .kelas-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 25px 50px rgba(124, 58, 237, 0.2);
-            border-color: rgba(124, 58, 237, 0.6);
+            transform: translateY(-12px);
+            border-color: rgba(122, 63, 242, 0.42);
+            box-shadow: 0 30px 70px rgba(54, 24, 108, 0.2);
         }
-        
+
+        .kelas-card:hover::before { opacity: 1; }
+        .kelas-card:hover::after { transform: rotate(22deg) translateX(390%); }
+
         .img-wrapper {
             position: relative;
-            height: 200px;
             width: 100%;
-            background-color: #f5f3ff;
+            aspect-ratio: 16 / 10;
+            min-height: 190px;
             overflow: hidden;
+            background: linear-gradient(135deg, #f1eaff, #ffffff);
+        }
+
+        .img-wrapper::after {
+            content: '';
+            position: absolute;
+            inset: auto 0 0;
+            height: 54%;
+            background: linear-gradient(180deg, transparent, rgba(32, 20, 63, 0.54));
+            transition: opacity 0.3s ease;
         }
 
         .img-wrapper img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: scale(1.01);
+            transition: transform 0.72s var(--ease), filter 0.35s ease;
         }
 
         .kelas-card:hover .img-wrapper img {
             transform: scale(1.1);
+            filter: saturate(1.08);
+        }
+
+        .badge-kategori,
+        .badge-metode,
+        .badge-status-aktif,
+        .badge-status-nonaktif {
+            display: inline-flex;
+            align-items: center;
+            width: max-content;
+            max-width: 100%;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            line-height: 1;
+            white-space: nowrap;
         }
 
         .badge-kategori {
-            background: rgba(124, 58, 237, 0.95);
-            backdrop-filter: blur(6px);
+            max-width: min(210px, 58vw);
+            padding: 8px 12px;
             color: #ffffff;
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 0.75rem;
-            letter-spacing: 0.4px;
+            background: rgba(77, 29, 149, 0.9);
+            box-shadow: 0 12px 28px rgba(32, 20, 63, 0.22);
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .badge-metode {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(6px);
-            color: #1e1b4b;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 0.7rem;
+            padding: 8px 11px;
+            color: var(--ink);
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: 0 12px 28px rgba(32, 20, 63, 0.16);
         }
 
-        .badge-status-aktif {
-            background-color: #d1fae5;
-            color: #065f46;
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 4px 8px;
-            border-radius: 6px;
-        }
+        .badge-status-aktif { padding: 7px 10px; color: #047857; background: #d9fbe8; }
+        .badge-status-nonaktif { padding: 7px 10px; color: #a21caf; background: #fae8ff; }
 
-        .badge-status-nonaktif {
-            background-color: #fee2e2;
-            color: #991b1b;
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 4px 8px;
-            border-radius: 6px;
-        }
+        .card-body { position: relative; z-index: 2; }
 
         .judul-kelas {
+            min-width: 0;
+            margin-bottom: 0;
+            color: var(--ink);
             font-size: 1.12rem;
             font-weight: 800;
-            color: var(--text-dark);
-            line-height: 1.4;
+            line-height: 1.36;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
-            height: 2.8em;
-            margin-bottom: 0.5rem;
-            transition: color 0.2s ease;
+            transition: color 0.25s ease;
         }
 
-        .kelas-card:hover .judul-kelas {
-            color: var(--purple-primary);
-        }
-        
+        .kelas-card:hover .judul-kelas { color: var(--purple-primary); }
+
         .deskripsi-kelas {
-            font-size: 0.85rem;
-            color: var(--text-muted);
+            min-height: 3.1em;
+            margin: 12px 0 16px;
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.58;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
-            height: 2.8em;
-            line-height: 1.5;
-            margin-bottom: 1rem;
+        }
+
+        .info-list {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 16px;
+            color: var(--muted);
+            font-size: 0.84rem;
+            font-weight: 650;
+        }
+
+        .info-row,
+        .info-split {
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-row strong {
+            min-width: 0;
+            color: var(--ink);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .info-icon {
+            flex: 0 0 auto;
+            display: inline-grid;
+            place-items: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 10px;
+            color: var(--purple-primary);
+            background: var(--purple-soft);
         }
 
         .box-harga {
-            background: #faf5ff;
-            border: 1px dashed #c4b5fd;
-            border-radius: 12px;
-            padding: 10px 12px;
-            margin-bottom: 1rem;
+            margin-top: auto;
+            margin-bottom: 16px;
+            padding: 14px;
+            border: 1px solid rgba(122, 63, 242, 0.14);
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(250, 247, 255, 0.96), rgba(255, 255, 255, 0.94));
         }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.82rem;
+        }
+
+        .price-row + .price-row {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(122, 63, 242, 0.1);
+        }
+
+        .price-row span { color: var(--muted); font-weight: 700; }
+        .price-row strong { color: var(--purple-strong); font-size: 0.9rem; white-space: nowrap; }
 
         .btn-outline-detail {
-            border: 1.5px solid #7c3aed;
-            color: #7c3aed;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 1.5px solid rgba(122, 63, 242, 0.28);
+            color: var(--purple-primary);
             background: #ffffff;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 0.82rem;
-            padding: 9px 10px;
-            transition: all 0.25s ease;
-        }
-        .btn-outline-detail:hover {
-            background: rgba(124, 58, 237, 0.05);
-            color: #6d28d9;
-            border-color: #6d28d9;
+            font-size: 0.86rem;
+            padding: 10px 12px;
         }
 
-        .btn-custom-daftar {
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        .btn-outline-detail:hover {
             color: #ffffff;
-            border: none;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 0.82rem;
-            padding: 9px 10px;
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.35);
-            transition: all 0.3s ease;
+            border-color: var(--purple-primary);
+            background: var(--purple-primary);
+            box-shadow: 0 16px 30px rgba(122, 63, 242, 0.24);
+            transform: translateY(-2px);
         }
-        .btn-custom-daftar:hover {
-            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-            color: #ffffff;
-            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.45);
-            transform: translateY(-1px);
+
+        .empty-state {
+            max-width: 560px;
+            margin-inline: auto;
+            padding: 44px 28px;
+            border: 1px solid rgba(122, 63, 242, 0.14);
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.88);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(16px);
+        }
+
+        .empty-icon {
+            display: inline-grid;
+            place-items: center;
+            width: 76px;
+            height: 76px;
+            margin-bottom: 18px;
+            border-radius: 24px;
+            color: var(--purple-primary);
+            background: linear-gradient(135deg, var(--purple-soft), #ffffff);
+            box-shadow: 0 16px 34px rgba(122, 63, 242, 0.16);
+        }
+
+        @media (min-width: 1400px) {
+            .kelas-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 991.98px) {
+            .navbar-custom { padding: 10px 0; }
+            .navbar-collapse { padding-top: 14px; }
+            .navbar-nav { gap: 10px !important; }
+            .hero-section { margin-bottom: -34px; padding: 42px 0 76px; }
+            .hero-highlight { margin: 24px 0 0; }
+            .filter-form { grid-template-columns: 1fr 210px; }
+            .filter-action { grid-column: 1 / -1; }
+        }
+
+        @media (max-width: 575.98px) {
+            .container { padding-left: 18px; padding-right: 18px; }
+            .navbar-logo { width: 40px; height: 40px; border-radius: 12px; }
+            .navbar-brand span { max-width: 185px; font-size: 1rem !important; }
+            .hero-section { padding: 34px 0 68px; }
+            .hero-eyebrow { font-size: 0.76rem; }
+            .hero-highlight { width: 100%; padding: 16px; border-radius: 20px; }
+            .hero-stat { min-height: 82px; padding: 13px; }
+            .hero-stat strong { font-size: 1.18rem; }
+            .filter-container { padding: 14px; border-radius: 20px; }
+            .filter-form { grid-template-columns: 1fr; gap: 12px; }
+            .kelas-grid { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+            .kelas-card { border-radius: 22px; }
+            .kelas-card:hover { transform: translateY(-6px); }
+            .img-wrapper { min-height: 184px; }
+            .card-body { padding: 18px !important; }
+            .judul-kelas { font-size: 1rem; }
+            .info-split { flex-wrap: wrap; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .kelas-card:hover,
+            .kelas-card:hover .img-wrapper img,
+            .btn-custom-daftar:hover,
+            .btn-outline-detail:hover,
+            .btn-custom-auth:hover,
+            .btn-outline-custom-auth:hover { transform: none; }
         }
     </style>
 </head>
@@ -346,49 +663,72 @@
     </div>
 </nav>
 
-<!-- HERO SECTION (DITAMBAHKAN KEMBALI AGAR JUDUL & SEARCH TIDAK TUMPANG TINDIH) -->
+<!-- Hero Section -->
 <div class="hero-section">
     <div class="container px-lg-4">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <h1 class="page-title mb-2">Daftar Program Pelatihan</h1>
-                <p class="text-muted mb-0">Temukan kelas pengembangan skill profesional terbaik yang sesuai dengan kebutuhan kariermu.</p>
+        <div class="row align-items-center g-4">
+            <div class="col-lg-8 hero-content animate-fade-in">
+                <div class="hero-eyebrow"><i class="bi bi-stars"></i> Kelas kreatif pilihan untuk naik level</div>
+                <h1 class="page-title mb-3">Daftar Program Pelatihan</h1>
+                <p class="lead mb-0">Temukan kelas pengembangan skill profesional dengan mentor berpengalaman, jadwal fleksibel, dan materi yang siap dipakai untuk karier maupun bisnis.</p>
+            </div>
+            <div class="col-lg-4">
+                <div class="hero-highlight">
+                    <div class="hero-stat-grid">
+                        <div class="hero-stat">
+                            <strong><?= count($kelas ?? []) ?></strong>
+                            <span>Program tersedia</span>
+                        </div>
+                        <div class="hero-stat">
+                            <strong>Online</strong>
+                            <span>Belajar fleksibel</span>
+                        </div>
+                        <div class="hero-stat">
+                            <strong>Privat</strong>
+                            <span>Opsi intensif</span>
+                        </div>
+                        <div class="hero-stat">
+                            <strong>Mentor</strong>
+                            <span>Pendamping ahli</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Main Content / Daftar Kelas -->
-<div class="container px-lg-4 py-3">
+<div class="container px-lg-4 py-3 main-content">
 
     <!-- NOTIFIKASI FLASH MESSAGE (SUKSES / ERROR) -->
     <?php if (session()->getFlashdata('success')): ?>
-        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; font-weight: 500;">
+        <div class="alert-modern success animate-fade-in">
             <i class="bi bi-check-circle-fill me-2"></i> <?= session()->getFlashdata('success') ?>
         </div>
     <?php endif; ?>
 
     <?php if (session()->getFlashdata('error')): ?>
-        <div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; font-weight: 500;">
+        <div class="alert-modern error animate-fade-in">
             <i class="bi bi-exclamation-triangle-fill me-2"></i> <?= session()->getFlashdata('error') ?>
         </div>
     <?php endif; ?>
 
     <!-- Kotak Filter Pencarian -->
     <div class="filter-container">
-        <form action="" method="get" class="row g-3 align-items-center">
-            <div class="col-lg-7">
+        <form action="" method="get" class="filter-form">
+            <div>
                 <div class="position-relative">
                     <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3" style="color: #5b21b6;"></i>
                     <input type="text" name="keyword" class="search-input ps-5" placeholder="Cari nama kelas atau materi..." value="<?= esc($_GET['keyword'] ?? '') ?>">
                 </div>
             </div>
-            <div class="col-lg-3">
+            <div>
                 <select name="kategori" class="filter-select">
                     <option value="">Semua Kategori</option>
                 </select>
             </div>
-            <div class="col-lg-2">
+            <div class="filter-action">
                 <button type="submit" class="btn btn-custom-daftar w-100 py-2.5">
                     <i class="bi bi-funnel-fill me-1"></i> Filter
                 </button>
@@ -397,9 +737,9 @@
     </div>
 
     <!-- Daftar Kelas Grid -->
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mt-2">
+    <div class="kelas-grid mt-2">
         <?php if (empty($kelas)) : ?>
-            <div class="col-12 text-center py-5">
+            <div class="kelas-grid-item text-center py-5" style="grid-column: 1 / -1;">
                 <div class="card border-0 shadow-sm p-5 rounded-4 bg-white mx-auto animate-fade-in" style="max-width: 500px;">
                     <div class="p-4 rounded-circle d-inline-flex mx-auto mb-3" style="background-color: rgba(91,33,182,0.1); color: #5b21b6;">
                         <i class="bi bi-inbox fs-1"></i>
@@ -410,7 +750,7 @@
             </div>
         <?php else : ?>
             <?php $delay = 0.1; foreach ($kelas as $k) : ?>
-                <div class="col d-flex animate-fade-in" style="animation-delay: <?= $delay ?>s;">
+                <div class="kelas-grid-item d-flex animate-fade-in" style="animation-delay: <?= $delay ?>s;">
                     <div class="card kelas-card w-100">
                         <div class="img-wrapper">
                             <?php $gambarFile = $k['thumbnail'] ?? ''; ?>
@@ -434,7 +774,7 @@
                             <?php endif; ?>
                         </div>
 
-                        <div class="card-body p-3.5 d-flex flex-column">
+                        <div class="card-body p-4 d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
                                 <h3 class="judul-kelas flex-grow-1 mb-0"><?= esc($k['nama_kelas']) ?></h3>
                                 <div>
@@ -453,28 +793,31 @@
                                 <?= esc($k['deskripsi']) ?>
                             </p>
 
-                            <div class="small mb-2 d-flex flex-column gap-1 text-muted">
-                                <div><i class="bi bi-person-workspace me-1" style="color: #5b21b6;"></i> Mentor: <strong class="text-dark"><?= esc($k['nama_mentor'] ?? '-') ?></strong></div>
-                                <div class="d-flex justify-content-between">
-                                    <span><i class="bi bi-clock-fill me-1" style="color: #5b21b6;"></i><?= esc($k['jumlah_pertemuan']) ?> Pertemuan</span>
-                                    <span><i class="bi bi-people-fill me-1" style="color: #5b21b6;"></i>Kapasitas: <?= esc($k['kapasitas_tersedia'] ?? $k['kapasitas'] ?? '-') ?> org</span>
+                            <div class="info-list">
+                                <div class="info-row">
+                                    <span class="info-icon"><i class="bi bi-person-workspace"></i></span>
+                                    <span>Mentor: <strong><?= esc($k['nama_mentor'] ?? '-') ?></strong></span>
+                                </div>
+                                <div class="info-split justify-content-between">
+                                    <span class="info-row"><span class="info-icon"><i class="bi bi-clock-fill"></i></span><?= esc($k['jumlah_pertemuan']) ?> Pertemuan</span>
+                                    <span class="info-row"><span class="info-icon"><i class="bi bi-people-fill"></i></span><?= esc($k['kapasitas_tersedia'] ?? $k['kapasitas'] ?? '-') ?> org</span>
                                 </div>
                             </div>
 
                             <div class="box-harga mt-auto">
-                                <div class="d-flex justify-content-between align-items-center mb-1 small">
-                                    <span class="text-muted" style="font-size: 0.78rem;">Reguler:</span>
-                                    <strong class="text-dark" style="font-size: 0.85rem;">Rp <?= number_format($k['harga_reguler'] ?? 0, 0, ',', '.') ?></strong>
+                                <div class="price-row">
+                                    <span>Reguler</span>
+                                    <strong>Rp <?= number_format($k['harga_reguler'] ?? 0, 0, ',', '.') ?></strong>
                                 </div>
-                                <div class="d-flex justify-content-between align-items-center small">
-                                    <span class="text-muted" style="font-size: 0.78rem;">Privat:</span>
-                                    <strong style="color: #5b21b6; font-size: 0.85rem;">Rp <?= number_format($k['harga_privat'] ?? 0, 0, ',', '.') ?></strong>
+                                <div class="price-row">
+                                    <span>Privat</span>
+                                    <strong>Rp <?= number_format($k['harga_privat'] ?? 0, 0, ',', '.') ?></strong>
                                 </div>
                             </div>
 
                             <div class="d-flex gap-2 mt-1">
                                 <a href="<?= base_url('pelatihan/detail/' . $k['id_kelas']) ?>" class="btn btn-outline-detail flex-fill text-center">
-                                    <i class="bi bi-info-circle me-1"></i> Detail
+                                    <i class="bi bi-arrow-right-circle"></i> Lihat Detail
                                 </a>
                             </div>
                         </div>

@@ -400,68 +400,73 @@
             </div>
 
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Nama & Kontak</th>
-                            <th>Keahlian</th>
-                            <th>Pengalaman</th>
-                            <th>Status</th>
-                            <th>CV</th>
-                            <th class="text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($mentor) && is_array($mentor)): ?>
-                            <?php $no = 1; foreach ($mentor as $m): ?>
-                                <tr>
-                                    <td class="fw-semibold"><?= $no++; ?></td>
-                                    <td>
-                                        <div class="fw-bold" style="color: var(--dark-purple);"><?= esc($m['nama_mentor']); ?></div>
-                                        <small class="text-muted"><i class="fas fa-envelope me-1"></i> <?= esc($m['email']); ?></small><br>
-                                        <small class="text-muted"><i class="fas fa-phone me-1"></i> <?= esc($m['telepon']); ?></small>
-                                    </td>
-                                    <td>
-                                        <span class="badge px-2 py-1" style="background: var(--light-purple); color: var(--primary-purple);">
-                                            <?= esc($m['keahlian']); ?>
-                                        </span>
-                                    </td>
-                                    <td><?= esc($m['pengalaman']); ?> Tahun</td>
-                                    <td>
-                                        <?php if($m['status'] == 'Aktif'): ?>
-                                            <span class="badge bg-success">Aktif</span>
-                                        <?php else: ?>
-                                            <span class="badge bg-secondary">Non-Aktif</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <?php if (!empty($m['cv'])): ?>
-                                            <a href="<?= base_url('uploads/cv/' . $m['cv']); ?>" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                                                <i class="fas fa-file-pdf text-danger me-1"></i> Lihat CV
-                                            </a>
-                                        <?php else: ?>
-                                            <span class="text-muted small">Tidak ada CV</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td class="text-center">
-                                        <a href="<?= base_url('admin/mentor/edit/' . ($m['id_mentor'] ?? $m['id'])); ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3 me-1" title="Edit">
-                                            <i class="fas fa-pen-to-square"></i>
-                                        </a>
-                                        <a href="<?= base_url('admin/mentor/delete/' . ($m['id_mentor'] ?? $m['id'])); ?>" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Hapus" onclick="return confirm('Yakin ingin menghapus mentor ini?')">
-                                            <i class="fas fa-trash-can"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">Belum ada data mentor yang tersedia.</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
+    <table class="table table-hover align-middle mb-0">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>NIP & Nama</th> <!-- Diperbarui -->
+                <th>Kontak</th>
+                <th>Keahlian</th>
+                <th>Pengalaman</th>
+                <th>Status</th>
+                <th>CV</th>
+                <th class="text-center">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (!empty($mentor) && is_array($mentor)): ?>
+                <?php $no = 1; foreach ($mentor as $m): ?>
+                    <tr>
+                        <td class="fw-semibold"><?= $no++; ?></td>
+                        <td>
+                            <!-- TAMPILKAN NIP DI SINI -->
+                            <span class="badge bg-light text-dark border mb-1">NIP: <?= esc($m['nip'] ?? '-'); ?></span>
+                            <div class="fw-bold" style="color: var(--dark-purple);"><?= esc($m['nama_mentor']); ?></div>
+                        </td>
+                        <td>
+                            <small class="text-muted"><i class="fas fa-envelope me-1"></i> <?= esc($m['email']); ?></small><br>
+                            <small class="text-muted"><i class="fas fa-phone me-1"></i> <?= esc($m['telepon']); ?></small>
+                        </td>
+                        <td>
+                            <span class="badge px-2 py-1" style="background: var(--light-purple); color: var(--primary-purple);">
+                                <?= esc($m['keahlian']); ?>
+                            </span>
+                        </td>
+                        <td><?= esc($m['pengalaman']); ?> Tahun</td>
+                        <td>
+                            <?php if($m['status'] == 'Aktif'): ?>
+                                <span class="badge bg-success">Aktif</span>
+                            <?php else: ?>
+                                <span class="badge bg-secondary">Non-Aktif</span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <?php if (!empty($m['cv'])): ?>
+                                <a href="<?= base_url('uploads/cv/' . $m['cv']); ?>" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                    <i class="fas fa-file-pdf text-danger me-1"></i> Lihat CV
+                                </a>
+                            <?php else: ?>
+                                <span class="text-muted small">Tidak ada CV</span>
+                            <?php endif; ?>
+                        </td>
+                        <td class="text-center">
+                            <a href="<?= base_url('admin/mentor/edit/' . ($m['id_mentor'] ?? $m['id'])); ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3 me-1" title="Edit">
+                                <i class="fas fa-pen-to-square"></i>
+                            </a>
+                            <a href="<?= base_url('admin/mentor/delete/' . ($m['id_mentor'] ?? $m['id'])); ?>" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Hapus" onclick="return confirm('Yakin ingin menghapus mentor ini?')">
+                                <i class="fas fa-trash-can"></i>
+                            </a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <tr>
+                    <td colspan="8" class="text-center py-4 text-muted">Belum ada data mentor yang tersedia.</td>
+                </tr>
+            <?php endif; ?>
+        </tbody>
+    </table>
+</div>
         </div>
 
     </div>

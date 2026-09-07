@@ -401,6 +401,10 @@
                 
                 <div class="row g-4">
                     <div class="col-md-6">
+            <label class="form-label">NIP (Nomor Induk Pegawai)</label>
+            <input type="text" name="nip" class="form-control" value="<?= esc($mentor['nip'] ?? ''); ?>" required>
+        </div>
+                    <div class="col-md-6">
                         <label class="form-label">Nama Lengkap & Gelar</label>
                         <input type="text" name="nama_mentor" class="form-control" value="<?= esc($mentor['nama_mentor']); ?>" required>
                     </div>

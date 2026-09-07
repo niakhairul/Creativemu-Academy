@@ -410,6 +410,9 @@ protected function userId()
     // =========================================================
     // 4. SIAPKAN DATA PENDAFTARAN
     // =========================================================
+    $metodePembelajaran = strtolower($this->request->getPost('metode_pembelajaran'));
+    $lokasiPelatihan = ($metodePembelajaran === 'offline') ? $this->request->getPost('pilihan_lokasi') : null;
+    
     $dataPendaftaran = [
         'nis'                 => null,
         'id_users'            => $this->userId(),
@@ -423,7 +426,7 @@ protected function userId()
         'pendidikan_terakhir' => $this->request->getPost('pendidikan_terakhir'),
         'pas_foto'            => $namaFoto,
         'status'              => 'Pending',
-        'lokasi_pelatihan'    => $this->request->getPost('pilihan_lokasi'),
+        'lokasi_pelatihan'    => $lokasiPelatihan,
         'pilihan_pelatihan'   => $this->request->getPost('pilihan_pelatihan'),
         'jenis_kelas'         => $this->request->getPost('jenis_kelas'),
         'metode_pembelajaran' => strtolower($this->request->getPost('metode_pembelajaran')),
