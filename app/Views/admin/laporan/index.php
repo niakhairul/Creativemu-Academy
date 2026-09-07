@@ -46,6 +46,14 @@
             text-align: center;
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
+        #sidebar .sidebar-header img {
+    width: 240px;
+    height: 95px;
+    object-fit: cover;
+    border-radius: 10px;
+    filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
+    transition: transform 0.3s ease;
+}
         #sidebar .nav { padding: 20px 14px; }
         #sidebar .nav-item { margin-bottom: 6px; }
         #sidebar .nav-link {
@@ -250,8 +258,8 @@
     <!-- === SIDEBAR UTAMA === -->
     <nav id="sidebar">
         <div class="sidebar-header">
-            <h5 class="text-white fw-bold m-0" style="letter-spacing: -0.5px;">Creativemu Academy</h5>
-        </div>
+    <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
+</div>
         <ul class="nav flex-column">
             <li class="nav-item"><a href="<?= base_url('admin/dashboard'); ?>" class="nav-link"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
             <li class="nav-item"><a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link"><i class="fas fa-book"></i> <span>Master Kelas</span></a></li>

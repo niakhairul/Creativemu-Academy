@@ -62,16 +62,14 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     text-align: center;
 }
-
 #sidebar .sidebar-header img {
-    width: 100px;
-    height: 100px;
-    object-fit: contain;
-    border-radius: 8px;
+    width: 240px;
+    height: 95px;
+    object-fit: cover;
+    border-radius: 10px;
     filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
     transition: transform 0.3s ease;
 }
-
         #sidebar .sidebar-header img:hover {
             transform: scale(1.05);
         }
@@ -332,7 +330,8 @@
     <nav id="sidebar">
         <div class="sidebar-header">
             <!-- Logo Creativemu Academy -->
-            <img src="<?= base_url('assets/img/logo_creativemu_academy.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
+            <!-- Logo Creativemu Academy -->
+            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
         </div>
         <ul class="nav flex-column">
             <li class="nav-item">

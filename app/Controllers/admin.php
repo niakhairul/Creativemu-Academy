@@ -51,25 +51,26 @@ class Admin extends BaseController
 {
     $db = \Config\Database::connect();
     
-    // Contoh pengambilan data dinamis (pastikan tabel & kolom sesuai database Anda)
     $data = [
-        'title'             => 'Dashboard',
-        'total_kelas'       => $db->table('kelas')->countAll(),
-        'total_mentor'      => $db->table('mentor')->countAll(),
-        'total_peserta'     => $db->table('peserta')->countAll(),
-        'pending_validasi'  => $db->table('pendaftaran')->where('status', 'pending')->countAll(),
-        'pendaftaran_pending' => $db->table('pendaftaran')->where('status', 'pending')->get()->getResultArray(),
-        
-        // Data untuk Chart Angket (Contoh jika belum ada data, jadikan 0)
-        'angket_data'       => [0, 0, 0, 0], 
-        
-        // Data untuk Chart Absensi
-        'absensi_data'      => [0, 0, 0, 0, 0, 0]
+        'title'               => 'Dashboard',
+        'total_kelas'         => $db->table('kelas')->countAll(),
+        'total_mentor'        => $db->table('mentor')->countAll(),
+        'total_peserta'       => $db->table('peserta')->countAll(),
+        'pending_validasi'    => $db->table('pendaftaran')->where('status', 'pending')->countAll(),
+
+        'pendaftaran_pending' => $db->table('pendaftaran')
+            ->select('pendaftaran.*, kelas.nama_kelas')
+            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+            ->where('pendaftaran.status', 'pending')
+            ->get()
+            ->getResultArray(),
+
+        'angket_data'         => [0, 0, 0, 0],
+        'absensi_data'        => [0, 0, 0, 0, 0, 0]
     ];
 
     return view('admin/dashboard', $data);
 }
-
     // --- MASTER KELAS ---
     // --- MASTER KELAS ---
 public function masterKelas()
@@ -802,11 +803,11 @@ public function hasilAngket()
     
     // Menggunakan tabel 'peserta' dan menyesuaikan kolom relasinya
     $data['hasil'] = $db->table('jawaban_angket')
-                        ->select('jawaban_angket.*, angket_pertanyaan.judul_angket, peserta.nama_peserta as nama_siswa')
-                        ->join('angket_pertanyaan', 'angket_pertanyaan.id_angket_pertanyaan = jawaban_angket.id_pertanyaan', 'left')
-                        ->join('peserta', 'peserta.id_peserta = jawaban_angket.id_siswa', 'left')
-                        ->get()
-                        ->getResultArray();
+    ->select('jawaban_angket.*, angket_pertanyaan.judul_angket, peserta.nama as nama_siswa')
+    ->join('angket_pertanyaan', 'angket_pertanyaan.id_angket_pertanyaan = jawaban_angket.id_pertanyaan', 'left')
+    ->join('peserta', 'peserta.id_peserta = jawaban_angket.id_siswa', 'left')
+    ->get()
+    ->getResultArray();
     
     $data['title'] = 'Hasil Angket Siswa';
     return view('admin/angket/hasil', $data);
@@ -815,16 +816,16 @@ public function hasilAngket()
 // --- SERTIFIKAT ---
     
     public function sertifikat()
-    {
-        $sertifikatModel = new SertifikatModel();
-        $data['sertifikat'] = $sertifikatModel->select('sertifikat.*, peserta.nama_peserta, peserta.email, peserta.telepon, kelas.nama_kelas')
-                                            ->join('peserta', 'peserta.id_peserta = sertifikat.id_peserta')
-                                            ->join('kelas', 'kelas.id_kelas = sertifikat.id_kelas')
-                                            ->findAll();
-        $data['title'] = 'Manajemen Sertifikat Peserta';
-        return view('admin/sertifikat/index', $data);
-    }
+{
+    $sertifikatModel = new SertifikatModel();
+    $data['sertifikat'] = $sertifikatModel->select('sertifikat.*, peserta.nama, peserta.email, peserta.telepon, kelas.nama_kelas')
+        ->join('peserta', 'peserta.id_peserta = sertifikat.id_peserta')
+        ->join('kelas', 'kelas.id_kelas = sertifikat.id_kelas')
+        ->findAll();
 
+    $data['title'] = 'Manajemen Sertifikat Peserta';
+    return view('admin/sertifikat/index', $data);
+}
     public function uploadSertifikat()
     {
         $pesertaModel = new PesertaModel();

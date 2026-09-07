@@ -37,11 +37,14 @@
             overflow-y: auto; 
             box-shadow: 4px 0 20px rgba(0, 0, 0, 0.05);
         }
-        .sidebar-header { 
-            padding: 25px 20px; 
-            background: rgba(0, 0, 0, 0.15); 
-            text-align: center; 
-        }
+   #sidebar .sidebar-header img {
+    width: 240px;
+    height: 95px;
+    object-fit: cover;
+    border-radius: 10px;
+    filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
+    transition: transform 0.3s ease;
+}
         .nav-link { 
             color: var(--sidebar-text); 
             padding: 12px 18px; 
@@ -154,7 +157,7 @@
     <!-- Sidebar -->
     <nav id="sidebar">
         <div class="sidebar-header">
-            <img src="<?= base_url('assets/img/logo_creativemu_academy.jpg'); ?>" alt="Logo" class="img-fluid" style="max-width: 150px;">
+           <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
         </div>
         <ul class="nav flex-column mt-3">
             <li class="nav-item"><a href="<?= base_url('admin/dashboard'); ?>" class="nav-link"><i class="fas fa-chart-pie me-3"></i> Dashboard</a></li>

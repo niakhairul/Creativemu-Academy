@@ -58,10 +58,13 @@
         }
 
         #sidebar .sidebar-header img {
-            max-width: 170px;
-            height: auto;
-            filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
-        }
+    width: 240px;
+    height: 95px;
+    object-fit: cover;
+    border-radius: 10px;
+    filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
+    transition: transform 0.3s ease;
+}
 
         #sidebar .nav { padding: 20px 14px; }
         #sidebar .nav-item { margin-bottom: 6px; }
@@ -295,7 +298,7 @@
     <!-- === SIDEBAR MENU === -->
     <nav id="sidebar">
         <div class="sidebar-header">
-            <img src="<?= base_url('assets/img/logo_creativemu_academy.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
+           <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
         </div>
         <ul class="nav flex-column">
             <li class="nav-item">
