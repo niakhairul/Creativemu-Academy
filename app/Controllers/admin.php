@@ -46,7 +46,7 @@ class Admin extends BaseController
         helper(['url', 'form']);
     }
 
-    // --- DASHBOARD ---
+    // --- DASHBOARD ---\
     public function dashboard()
 {
     $db = \Config\Database::connect();
@@ -60,11 +60,20 @@ class Admin extends BaseController
         ->get()
         ->getResultArray();
 
+    // Hitung total peserta yang sudah divalidasi/aktif (berdasarkan status pembayaran valid/disetujui)
+    $totalPesertaAktif = $db->table('pendaftaran')
+        ->groupStart()
+            ->where('status_pembayaran', 'valid')
+            ->orWhere('status_pembayaran', 'Disetujui')
+            ->orWhere('status_pembayaran', 'approved')
+        ->groupEnd()
+        ->countAllResults();
+
     $data = [
         'title'               => 'Dashboard',
         'total_kelas'         => $db->table('kelas')->countAll(),
         'total_mentor'        => $db->table('mentor')->countAll(),
-        'total_peserta'       => $db->table('peserta')->countAll(),
+        'total_peserta'       => $totalPesertaAktif, // <-- Menggunakan total peserta aktif
         'pending_validasi'    => $db->table('pendaftaran')->where('status', 'pending')->countAll(),
         'pendaftaran_pending' => $pendaftaranPending,
         
@@ -810,13 +819,12 @@ public function hasilAngket()
 {
     $db = \Config\Database::connect();
     
-    // Menggunakan tabel 'peserta' dan menyesuaikan kolom relasinya
     $data['hasil'] = $db->table('jawaban_angket')
-    ->select('jawaban_angket.*, angket_pertanyaan.judul_angket, peserta.nama as nama_siswa')
-    ->join('angket_pertanyaan', 'angket_pertanyaan.id_angket_pertanyaan = jawaban_angket.id_pertanyaan', 'left')
-    ->join('peserta', 'peserta.id_peserta = jawaban_angket.id_siswa', 'left')
-    ->get()
-    ->getResultArray();
+        ->select('jawaban_angket.*, angket_pertanyaan.judul_angket, users.nama as nama_siswa')
+        ->join('angket_pertanyaan', 'angket_pertanyaan.id_angket_pertanyaan = jawaban_angket.id_angket_pertanyaan', 'left') 
+        ->join('users', 'users.id_users = jawaban_angket.id_users', 'left') // Ganti id_users sesuai kolom relasi asli di tabel jawaban_angket
+        ->get()
+        ->getResultArray();
     
     $data['title'] = 'Hasil Angket Siswa';
     return view('admin/angket/hasil', $data);

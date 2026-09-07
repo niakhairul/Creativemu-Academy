@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= esc($title); ?> - Creativemu Academy</title>
     <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"[cite: 11]>
     <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"[cite: 11]>
     <!-- Google Fonts: Poppins -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"[cite: 11]>
     
     <style>
         :root {
@@ -56,20 +56,20 @@
             overflow-y: auto;
         }
 
-       #sidebar .sidebar-header {
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.25);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    text-align: center;
-}
-#sidebar .sidebar-header img {
-    width: 240px;
-    height: 95px;
-    object-fit: cover;
-    border-radius: 10px;
-    filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
-    transition: transform 0.3s ease;
-}
+        #sidebar .sidebar-header {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.25);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            text-align: center;
+        }
+        #sidebar .sidebar-header img {
+            width: 240px;
+            height: 95px;
+            object-fit: cover;
+            border-radius: 10px;
+            filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
+            transition: transform 0.3s ease;
+        }
         #sidebar .sidebar-header img:hover {
             transform: scale(1.05);
         }
@@ -145,11 +145,6 @@
             justify-content: space-between;
             align-items: center;
             border: 1px solid rgba(121, 75, 196, 0.04);
-            transition: transform 0.3s ease;
-        }
-
-        .top-navbar:hover {
-            box-shadow: 0 15px 35px rgba(121, 75, 196, 0.08);
         }
 
         .dash-header h3 {
@@ -178,11 +173,6 @@
             object-fit: cover;
             border: 2.5px solid var(--primary-purple);
             box-shadow: 0 4px 12px rgba(121, 75, 196, 0.2);
-            transition: transform 0.3s ease;
-        }
-
-        .admin-profile img:hover {
-            transform: rotate(10deg) scale(1.05);
         }
 
         .admin-info h6 {
@@ -197,10 +187,9 @@
             font-size: 0.78rem;
         }
 
-        /* --- Modern Stat Cards with Floating & Glow Animation --- */
+        /* --- Modern Stat Cards --- */
         .stat-card {
             background: #ffffff;
-            border: none;
             border-radius: 20px;
             padding: 25px;
             box-shadow: 0 10px 30px rgba(121, 75, 196, 0.04);
@@ -243,12 +232,6 @@
             transition: all 0.4s ease;
         }
 
-        .stat-card:hover .stat-icon {
-            background: var(--sidebar-active-gradient);
-            color: #ffffff;
-            transform: scale(1.1) rotate(6deg);
-        }
-
         .stat-card small {
             font-weight: 700;
             letter-spacing: 0.8px;
@@ -264,7 +247,7 @@
             font-size: 1.9rem;
         }
 
-        /* --- Chart Boxes with Glass/Card Styling --- */
+        /* --- Chart Boxes --- */
         .chart-box {
             background: #ffffff;
             border-radius: 20px;
@@ -272,11 +255,6 @@
             box-shadow: 0 10px 30px rgba(121, 75, 196, 0.04);
             margin-bottom: 30px;
             border: 1px solid rgba(121, 75, 196, 0.05);
-            transition: transform 0.3s ease;
-        }
-
-        .chart-box:hover {
-            box-shadow: 0 15px 40px rgba(121, 75, 196, 0.08);
         }
         
         .chart-title {
@@ -293,12 +271,13 @@
             color: var(--primary-purple);
         }
 
-        /* --- Extra Section (Table & Security Status) --- */
-        .extra-section {
+        /* --- Content Card / Flat Box Styling --- */
+        .content-card {
             background: #ffffff;
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 10px 30px rgba(121, 75, 196, 0.04);
+            margin-bottom: 30px;
             border: 1px solid rgba(121, 75, 196, 0.05);
         }
 
@@ -308,10 +287,8 @@
 
         .table-hover tbody tr:hover {
             background-color: var(--light-purple);
-            transform: scale(1.01);
         }
 
-        /* --- Animations --- */
         @keyframes mainFadeIn {
             from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
@@ -329,9 +306,7 @@
     <!-- === SIDEBAR MENU === -->
     <nav id="sidebar">
         <div class="sidebar-header">
-            <!-- Logo Creativemu Academy -->
-            <!-- Logo Creativemu Academy -->
-            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
+            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid"[cite: 11]>
         </div>
         <ul class="nav flex-column">
             <li class="nav-item">
@@ -401,31 +376,31 @@
                     Memuat tanggal...
                 </div>
                 <div class="admin-profile">
-                <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
-                <div class="admin-info">
-                <?= esc(session()->get('nama')); ?>
-                <small>Administrator</small>
-                </div>
+                    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
+                    <div class="admin-info">
+                        <h6><?= esc(session()->get('nama')); ?></h6>
+                        <small>Administrator</small>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- === STAT CARDS (KOTAKAN ATAS) === -->
+        <!-- === STAT CARDS === -->
         <div class="row g-4 mb-4">
             <div class="col-xl-3 col-md-6">
-                <div class="stat-card d-flex align-items-center justify-content-between">
-                    <div>
-                        <small>TOTAL KELAS</small>
-                        <h3><?= $total_kelas; ?></h3>
-                    </div>
-                    <div class="stat-icon"><i class="fas fa-book-open"></i></div>
-                </div>
-            </div>
+    <div class="stat-card d-flex align-items-center justify-content-between">
+        <div>
+            <small>TOTAL SISWA</small>
+            <h3><?= $total_peserta ?? 0; ?></h3>
+        </div>
+        <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
+    </div>
+</div>
             <div class="col-xl-3 col-md-6">
                 <div class="stat-card d-flex align-items-center justify-content-between">
                     <div>
                         <small>TOTAL MENTOR</small>
-                        <h3><?= $total_mentor; ?></h3>
+                        <h3><?= $total_mentor ?? 0; ?></h3>
                     </div>
                     <div class="stat-icon"><i class="fas fa-user-tie"></i></div>
                 </div>
@@ -434,7 +409,7 @@
                 <div class="stat-card d-flex align-items-center justify-content-between">
                     <div>
                         <small>TOTAL SISWA</small>
-                        <h3><?= $total_peserta; ?></h3>
+                        <h3><?= $total_peserta ?? 0; ?></h3>
                     </div>
                     <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
                 </div>
@@ -443,14 +418,14 @@
                 <div class="stat-card d-flex align-items-center justify-content-between">
                     <div>
                         <small>VALIDASI</small>
-                        <h3 class="text-warning"><?= $pending_validasi; ?></h3>
+                        <h3 class="text-warning"><?= $pending_validasi ?? 0; ?></h3>
                     </div>
                     <div class="stat-icon" style="background: #fff8e1; color: #fbc02d;"><i class="fas fa-clock-rotate-left"></i></div>
                 </div>
             </div>
         </div>
 
-        <!-- === DIAGRAM / CHART SECTION === -->
+        <!-- === DIAGRAM / CHART SECTION (FLAT / KOSONG) === -->
         <div class="row g-4 mb-4">
             <div class="col-lg-6">
                 <div class="chart-box">
@@ -470,102 +445,100 @@
             </div>
         </div>
 
-        <!-- === TAMBAHAN DI BAWAH DIAGRAM (AKTIVITAS & STATISTIK CEPAT) === -->
-        <div class="content-card h-100 p-4">
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <h5 class="fw-bold mb-0 text-dark">
-            <i class="fas fa-bolt text-primary me-2"></i> Pintasan Admin
-        </h5>
-    </div>
-    <p class="text-muted small mb-4">Akses cepat menu pengelolaan Creativemu Academy.</p>
+        <!-- === PINTASAN ADMIN === -->
+        <div class="content-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="fas fa-bolt text-primary me-2"></i> Pintasan Admin
+                </h5>
+            </div>
+            <p class="text-muted small mb-4">Akses cepat menu pengelolaan Creativemu Academy.</p>
 
-    <div class="row g-3">
-        <!-- Tombol Validasi -->
-        <div class="col-6">
-            <a href="<?= base_url('admin/validasi'); ?>" class="p-3 bg-light rounded-4 text-decoration-none d-block text-center border border-light transition-hover">
-                <i class="fas fa-clipboard-check text-warning fs-3 mb-2"></i>
-                <h6 class="fw-bold text-dark mb-1 small">Validasi</h6>
-                <small class="text-muted" style="font-size: 0.7rem;">Konfirmasi Peserta</small>
-            </a>
+            <div class="row g-3">
+                <div class="col-6 col-md-3">
+                    <a href="<?= base_url('admin/validasi'); ?>" class="p-3 bg-light rounded-4 text-decoration-none d-block text-center border border-light transition-hover">
+                        <i class="fas fa-clipboard-check text-warning fs-3 mb-2"></i>
+                        <h6 class="fw-bold text-dark mb-1 small">Validasi</h6>
+                        <small class="text-muted" style="font-size: 0.7rem;">Konfirmasi Peserta</small>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="<?= base_url('admin/master-kelas'); ?>" class="p-3 bg-light rounded-4 text-decoration-none d-block text-center border border-light transition-hover">
+                        <i class="fas fa-book text-primary fs-3 mb-2"></i>
+                        <h6 class="fw-bold text-dark mb-1 small">Master Kelas</h6>
+                        <small class="text-muted" style="font-size: 0.7rem;">Kelola Pelatihan</small>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="<?= base_url('admin/mentor'); ?>" class="p-3 bg-light rounded-4 text-decoration-none d-block text-center border border-light transition-hover">
+                        <i class="fas fa-chalkboard-user text-success fs-3 mb-2"></i>
+                        <h6 class="fw-bold text-dark mb-1 small">Mentor</h6>
+                        <small class="text-muted" style="font-size: 0.7rem;">Daftar Pengajar</small>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="<?= base_url('admin/laporan'); ?>" class="p-3 bg-light rounded-4 text-decoration-none d-block text-center border border-light transition-hover">
+                        <i class="fas fa-file-lines text-danger fs-3 mb-2"></i>
+                        <h6 class="fw-bold text-dark mb-1 small">Laporan</h6>
+                        <small class="text-muted" style="font-size: 0.7rem;">Unduh Rekap</small>
+                    </a>
+                </div>
+            </div>
         </div>
-        <!-- Tombol Master Kelas -->
-        <div class="col-6">
-            <a href="<?= base_url('admin/master-kelas'); ?>" class="p-3 bg-light rounded-4 text-decoration-none d-block text-center border border-light transition-hover">
-                <i class="fas fa-book text-primary fs-3 mb-2"></i>
-                <h6 class="fw-bold text-dark mb-1 small">Master Kelas</h6>
-                <small class="text-muted" style="font-size: 0.7rem;">Kelola Pelatihan</small>
-            </a>
-        </div>
-        <!-- Tombol Data Mentor -->
-        <div class="col-6">
-            <a href="<?= base_url('admin/mentor'); ?>" class="p-3 bg-light rounded-4 text-decoration-none d-block text-center border border-light transition-hover">
-                <i class="fas fa-chalkboard-user text-success fs-3 mb-2"></i>
-                <h6 class="fw-bold text-dark mb-1 small">Mentor</h6>
-                <small class="text-muted" style="font-size: 0.7rem;">Daftar Pengajar</small>
-            </a>
-        </div>
-        <!-- Tombol Laporan -->
-        <div class="col-6">
-            <a href="<?= base_url('admin/laporan'); ?>" class="p-3 bg-light rounded-4 text-decoration-none d-block text-center border border-light transition-hover">
-                <i class="fas fa-file-lines text-danger fs-3 mb-2"></i>
-                <h6 class="fw-bold text-dark mb-1 small">Laporan</h6>
-                <small class="text-muted" style="font-size: 0.7rem;">Unduh Rekap</small>
-            </a>
-        </div>
-    </div>
-</div>
-<div class="content-card mb-0">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold mb-0 text-dark">Antrean Validasi Pendaftaran</h5>
-        <a href="<?= base_url('admin/validasi'); ?>" class="text-decoration-none small fw-semibold text-primary">Kelola Semua →</a>
-    </div>
-    
-    <div class="table-responsive">
-        <table class="table table-hover table-custom mb-0">
-            <thead>
-                <tr>
-                    <th>NAMA PESERTA</th>
-                    <th>PILIHAN KELAS</th>
-                    <th>TANGGAL</th>
-                    <th class="text-center">AKSI CEPAT</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if(empty($pendaftaran_pending)): ?>
-                    <tr>
-                        <td colspan="4" class="text-center py-4 text-muted">
-                            <i class="bi bi-check-circle fs-3 text-success d-mb-2"></i>
-                            <p class="mb-0 small">Tidak ada antrean pendaftaran baru yang tertunda.</p>
-                        </td>
-                    </tr>
-                <?php else: ?>
-                    <?php foreach(($pendaftaran_pending ?? []) as $row): ?>
-                        <tr>
-                            <td>
-                                <div class="fw-bold text-dark"><?= esc($row['nama']); ?></div>
-                                <small class="text-muted"><?= esc($row['email']); ?></small>
-                            </td>
-                            <td>
-                                <span class="badge bg-light text-primary border border-primary-subtle px-2 py-1">
-                                    <?= esc($row['nama_kelas']); ?>
-                                </span>
-                            </td>
-                            <td><small class="text-muted"><?= date('d M Y', strtotime($row['created_at'] ?? 'now')); ?></small></td>
-                            <td class="text-center">
-                                <a href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm me-1" title="Setujui">
-                                    <i class="bi bi-check-lg"></i>
-                                </a>
-                                <a href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm" title="Tolak">
-                                    <i class="bi bi-x-lg"></i>
-                                </a>
-                            </td>
+
+        <!-- === ANTREAN VALIDASI PENDAFTARAN === -->
+        <div class="content-card mb-0">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0 text-dark">Antrean Validasi Pendaftaran</h5>
+                <a href="<?= base_url('admin/validasi'); ?>" class="text-decoration-none small fw-semibold text-primary">Kelola Semua →</a>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover table-custom mb-0 align-middle">
+                    <thead>
+                        <tr class="text-secondary fs-7">
+                            <th>NAMA PESERTA</th>
+                            <th>PILIHAN KELAS</th>
+                            <th>TANGGAL</th>
+                            <th class="text-center">AKSI CEPAT</th>
                         </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
-</div>
+                    </thead>
+                    <tbody>
+                        <?php if(empty($pendaftaran_pending)): ?>
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">
+                                    <i class="fas fa-check-circle fs-3 text-success mb-2 d-block"></i>
+                                    <p class="mb-0 small">Tidak ada antrean pendaftaran baru yang tertunda.</p>
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach(($pendaftaran_pending ?? []) as $row): ?>
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold text-dark"><?= esc($row['nama']); ?></div>
+                                        <small class="text-muted"><?= esc($row['email']); ?></small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-primary border border-primary-subtle px-2 py-1">
+                                            <?= esc($row['nama_kelas']); ?>
+                                        </span>
+                                    </td>
+                                    <td><small class="text-muted"><?= date('d M Y', strtotime($row['created_at'] ?? 'now')); ?></small></td>
+                                    <td class="text-center">
+                                        <a href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm me-1" title="Setujui">
+                                            <i class="fas fa-check"></i>
+                                        </a>
+                                        <a href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm" title="Tolak">
+                                            <i class="fas fa-times"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
     </div>
 
@@ -580,39 +553,30 @@
         const today = new Date();
         document.getElementById('current-date').innerText = today.toLocaleDateString('id-ID', options);
 
-        // Chart Angket (Bar Chart dengan Animasi Elegan & Gradient)
+        // Chart Angket (Flat/Kosong dengan nilai 0)
         const ctxAngket = document.getElementById('angketChart').getContext('2d');
-        
-        // Gradient untuk Bar Chart
-        let gradientBar = ctxAngket.createLinearGradient(0, 0, 0, 300);
-        gradientBar.addColorStop(0, '#794bc4');
-        gradientBar.addColorStop(1, '#b293f0');
-
         new Chart(ctxAngket, {
             type: 'bar',
             data: {
                 labels: ['Sangat Puas', 'Puas', 'Cukup', 'Kurang'],
                 datasets: [{
                     label: 'Jumlah Responden',
-                    data: [120, 85, 30, 10],
-                    backgroundColor: gradientBar,
+                    data: [0, 0, 0, 0],
+                    backgroundColor: '#e9ecef',
                     borderRadius: 10,
-                    barThickness: 45,
-                    hoverBackgroundColor: '#5931a0'
+                    barThickness: 45
                 }]
             },
             options: {
                 responsive: true,
-                animation: {
-                    duration: 1500,
-                    easing: 'easeOutQuart'
-                },
                 plugins: { 
-                    legend: { display: false } 
+                    legend: { display: false },
+                    tooltip: { enabled: false }
                 },
                 scales: {
                     y: { 
                         beginAtZero: true, 
+                        max: 10,
                         grid: { color: '#f0edf6' } 
                     },
                     x: { 
@@ -622,45 +586,32 @@
             }
         });
 
-        // Chart Absensi Mentor (Line Chart Per Bulan dengan Smooth Gradient Fill)
+        // Chart Absensi Mentor (Flat/Kosong dengan nilai 0 di semua bulan)
         const ctxAbsensi = document.getElementById('absensiChart').getContext('2d');
-        
-        let gradientLine = ctxAbsensi.createLinearGradient(0, 0, 0, 250);
-        gradientLine.addColorStop(0, 'rgba(121, 75, 196, 0.35)');
-        gradientLine.addColorStop(1, 'rgba(121, 75, 196, 0.0)');
-
         new Chart(ctxAbsensi, {
             type: 'line',
             data: {
                 labels: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'],
                 datasets: [{
                     label: 'Rata-rata Kehadiran (%)',
-                    data: [92, 94, 91, 96, 95, 98],
-                    borderColor: '#794bc4',
-                    backgroundColor: gradientLine,
+                    data: [0, 0, 0, 0, 0, 0],
+                    borderColor: '#cbd5e1',
+                    backgroundColor: 'rgba(203, 213, 225, 0.1)',
                     fill: true,
                     tension: 0.4,
-                    borderWidth: 3.5,
-                    pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#794bc4',
-                    pointBorderWidth: 3,
-                    pointRadius: 6,
-                    pointHoverRadius: 8
+                    borderWidth: 2,
+                    pointRadius: 4
                 }]
             },
             options: {
                 responsive: true,
-                animation: {
-                    duration: 1800,
-                    easing: 'easeOutQuart'
-                },
                 plugins: { 
-                    legend: { position: 'bottom', labels: { font: { family: 'Poppins', size: 12, weight: 500 }, padding: 15 } } 
+                    legend: { position: 'bottom', labels: { font: { family: 'Poppins', size: 12, weight: 500 }, padding: 15 } },
+                    tooltip: { enabled: false }
                 },
                 scales: {
                     y: { 
-                        beginAtZero: false, 
-                        min: 80, 
+                        beginAtZero: true, 
                         max: 100, 
                         grid: { color: '#f0edf6' } 
                     },
