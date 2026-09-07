@@ -384,6 +384,13 @@
             </div>
         <?php endif; ?>
 
+        <?php if (session()->getFlashdata('error')): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <?= esc(session()->getFlashdata('error')); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
         <div class="content-card">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
                 <div class="fw-bold" style="font-size: 1.05rem; color: #1e1e2d;">
@@ -493,6 +500,15 @@
                             <div class="col-md-6">
                                 <label class="form-label">Email Aktif</label>
                                 <input type="email" name="email" class="form-control" placeholder="budi@example.com" required>
+                                <small class="text-muted">Email ini digunakan mentor untuk login.</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Password Login</label>
+                                <input type="password" name="password" class="form-control" placeholder="Minimal 8 karakter" minlength="8" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Konfirmasi Password</label>
+                                <input type="password" name="konfirmasi_password" class="form-control" placeholder="Ulangi password" minlength="8" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">No. Telepon / WhatsApp</label>

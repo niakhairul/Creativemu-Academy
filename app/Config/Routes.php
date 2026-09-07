@@ -151,8 +151,9 @@ $routes->group('mentor', function($routes) {
     $routes->get('dashboard', 'Mentor::dashboard');
     $routes->get('kelas', 'Mentor::kelas');
     $routes->get('kelas/(:num)', 'Mentor::detail/$1');
-    $routes->get('kelas/(:num)/kbm', 'Mentor::kbm/$1');
-    $routes->post('kelas/(:num)/kbm/jadwal', 'Mentor::simpanJadwal/$1');
-    $routes->post('kelas/(:num)/kbm/nilai', 'Mentor::simpanNilai/$1');
+    $routes->get('kelas/(:num)/materi', 'Mentor::materi/$1');
+    $routes->post('kelas/(:num)/materi', 'Mentor::simpanMateri/$1');
+    $routes->post('kelas/(:num)/materi/(:num)', 'Mentor::ubahMateri/$1/$2');
+    $routes->post('kelas/(:num)/materi/(:num)/hapus', 'Mentor::hapusMateri/$1/$2');
     $routes->get('profil', 'Mentor::profil');
 });

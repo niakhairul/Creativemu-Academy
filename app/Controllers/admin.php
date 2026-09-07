@@ -224,60 +224,161 @@ public function masterKelas()
         return view('admin/mentor/index', $data); 
     }
 
-    public function simpan()
-    {
-        $db = \Config\Database::connect();
+public function simpan()
+{
+    $db = \Config\Database::connect();
+    $nama = trim((string) $this->request->getPost('nama_mentor'));
+    $email = strtolower(trim((string) $this->request->getPost('email')));
+    $password = (string) $this->request->getPost('password');
+    $konfirmasiPassword = (string) $this->request->getPost('konfirmasi_password');
 
-        $data = [
-            'id_users'    => session()->get('id_users') ? session()->get('id_users') : 1,
-            'nip'         => $this->request->getPost('nip'), // <-- TAMBAHKAN INI
-            'nama_mentor' => $this->request->getPost('nama_mentor'),
-            'email'       => $this->request->getPost('email'),
-            'telepon'     => $this->request->getPost('telepon'),
-            'keahlian'    => $this->request->getPost('keahlian'),
-            'pengalaman'  => $this->request->getPost('pengalaman'),
-            'bio'         => $this->request->getPost('bio'), 
-            'status'      => $this->request->getPost('status'),
-        ];
+    if ($nama === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return redirect()->back()->withInput()->with('error', 'Nama dan alamat email yang valid wajib diisi.');
+    }
 
-        $fileCv = $this->request->getFile('cv');
-        if ($fileCv && $fileCv->isValid() && !$fileCv->hasMoved()) {
-            $namaFileCv = $fileCv->getRandomName();
-            $fileCv->move('uploads/cv', $namaFileCv);
-            $data['cv'] = $namaFileCv;
+    if (strlen($password) < 8) {
+        return redirect()->back()->withInput()->with('error', 'Password mentor minimal terdiri dari 8 karakter.');
+    }
+
+    if ($password !== $konfirmasiPassword) {
+        return redirect()->back()->withInput()->with('error', 'Konfirmasi password tidak sama.');
+    }
+
+    if ($db->table('users')->where('email', $email)->countAllResults() > 0) {
+        return redirect()->back()->withInput()->with('error', 'Email tersebut sudah terdaftar sebagai akun pengguna.');
+    }
+
+    $data = [
+        'nama_mentor' => $nama,
+        'email'       => $email,
+        'telepon'     => $this->request->getPost('telepon'),
+        'keahlian'    => $this->request->getPost('keahlian'),
+        'pengalaman'  => $this->request->getPost('pengalaman'),
+        'bio'         => $this->request->getPost('bio'),
+        'status'      => $this->request->getPost('status'),
+    ];
+
+    $fileCv = $this->request->getFile('cv');
+
+    if ($fileCv && $fileCv->isValid() && ! $fileCv->hasMoved()) {
+        if (! is_dir(FCPATH . 'uploads/cv')) {
+            mkdir(FCPATH . 'uploads/cv', 0755, true);
         }
 
-        // Insert langsung ke tabel database (bypass model)
-        $db->table('mentor')->insert($data);
-
-        return redirect()->to(base_url('admin/mentor'))->with('success', 'Mentor baru berhasil ditambahkan.');
+        $namaFileCv = $fileCv->getRandomName();
+        $fileCv->move(FCPATH . 'uploads/cv', $namaFileCv);
+        $data['cv'] = $namaFileCv;
     }
+
+    $db->transStart();
+
+    $lastUser = $db->table('users')
+        ->selectMax('id_users')
+        ->get()
+        ->getRowArray();
+
+    $idUserBaru = ((int) ($lastUser['id_users'] ?? 0)) + 1;
+
+    $db->table('users')->insert([
+        'id_users'    => $idUserBaru,
+        'nama'        => $nama,
+        'email'       => $email,
+        'password'    => password_hash($password, PASSWORD_DEFAULT),
+        'role'        => 'mentor',
+        'no_hp'       => $this->request->getPost('telepon'),
+        'created_at'  => date('Y-m-d H:i:s'),
+        'updated_at'  => date('Y-m-d H:i:s'),
+    ]);
+
+    $data['id_users'] = $idUserBaru;
+
+    $db->table('mentor')->insert($data);
+
+    $db->transComplete();
+
+    if (! $db->transStatus()) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Akun mentor gagal dibuat. Silakan coba kembali.');
+    }
+
+    return redirect()
+        ->to(base_url('admin/mentor'))
+        ->with('success', 'Akun login dan profil mentor berhasil ditambahkan.');
+}
+
 
     public function updateMentor($id)
     {
         $mentorModel = new MentorModel();
+        $db = \Config\Database::connect();
+        $mentor = $mentorModel->find($id);
+        if (! $mentor) {
+            return redirect()->to(base_url('admin/mentor'))->with('error', 'Data mentor tidak ditemukan.');
+        }
 
-        $data = [
-            'nip'         => $this->request->getPost('nip'), // <-- TAMBAHKAN INI
-            'nama_mentor' => $this->request->getPost('nama_mentor'),
-            'email'       => $this->request->getPost('email'),
-            'telepon'     => $this->request->getPost('telepon'),
-            'keahlian'    => $this->request->getPost('keahlian'),
-            'pengalaman'  => $this->request->getPost('pengalaman'),
-            'bio'         => $this->request->getPost('bio'), 
-            'status'      => $this->request->getPost('status'),
-        ];
+        $nama = trim((string) $this->request->getPost('nama_mentor'));
+        $email = strtolower(trim((string) $this->request->getPost('email')));
+        $password = (string) $this->request->getPost('password');
+        $konfirmasiPassword = (string) $this->request->getPost('konfirmasi_password');
+        if ($nama === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return redirect()->back()->withInput()->with('error', 'Nama dan alamat email yang valid wajib diisi.');
+        }
+        if ($password !== '' && strlen($password) < 8) {
+            return redirect()->back()->withInput()->with('error', 'Password baru minimal terdiri dari 8 karakter.');
+        }
+        if ($password !== $konfirmasiPassword) {
+            return redirect()->back()->withInput()->with('error', 'Konfirmasi password tidak sama.');
+        }
+
+        $akun = ! empty($mentor['id_users']) ? $db->table('users')->where('id_users', $mentor['id_users'])->get()->getRowArray() : null;
+        $akunMentor = $akun && $akun['role'] === 'mentor';
+        $emailDipakai = $db->table('users')->where('email', $email);
+        if ($akunMentor) $emailDipakai->where('id_users !=', $akun['id_users']);
+        if ($emailDipakai->countAllResults() > 0) {
+            return redirect()->back()->withInput()->with('error', 'Email tersebut sudah dipakai akun lain.');
+        }
+        if (! $akunMentor && $password === '') {
+            return redirect()->back()->withInput()->with('error', 'Password baru wajib diisi untuk membuat akun login mentor ini.');
+        }
+
+       
+$data = [
+    'nip'         => $this->request->getPost('nip'),
+    'nama_mentor' => $nama,
+    'email'       => $email,
+    'telepon'     => $this->request->getPost('telepon'),
+    'keahlian'    => $this->request->getPost('keahlian'),
+    'pengalaman'  => $this->request->getPost('pengalaman'),
+    'bio'         => $this->request->getPost('bio'),
+    'status'      => $this->request->getPost('status'),
+];
+
 
         $fileCv = $this->request->getFile('cv');
         if ($fileCv && $fileCv->isValid() && !$fileCv->hasMoved()) {
+            if (! is_dir(FCPATH . 'uploads/cv')) mkdir(FCPATH . 'uploads/cv', 0755, true);
             $namaFileCv = $fileCv->getRandomName();
-            $fileCv->move('uploads/cv', $namaFileCv);
+            $fileCv->move(FCPATH . 'uploads/cv', $namaFileCv);
             $data['cv'] = $namaFileCv;
         }
 
-        $mentorModel->update($id, $data);
+        $db->transStart();
+        if ($akunMentor) {
+            $dataAkun = ['nama' => $nama, 'email' => $email, 'no_hp' => $this->request->getPost('telepon'), 'updated_at' => date('Y-m-d H:i:s')];
+            if ($password !== '') $dataAkun['password'] = password_hash($password, PASSWORD_DEFAULT);
+            $db->table('users')->where('id_users', $akun['id_users'])->update($dataAkun);
+        } else {
+            $lastUser = $db->table('users')->selectMax('id_users')->get()->getRowArray();
+            $idUserBaru = ((int) ($lastUser['id_users'] ?? 0)) + 1;
+            $db->table('users')->insert(['id_users' => $idUserBaru, 'nama' => $nama, 'email' => $email, 'password' => password_hash($password, PASSWORD_DEFAULT), 'role' => 'mentor', 'no_hp' => $this->request->getPost('telepon'), 'created_at' => date('Y-m-d H:i:s'), 'updated_at' => date('Y-m-d H:i:s')]);
+            $data['id_users'] = $idUserBaru;
+        }
+        $db->table('mentor')->where('id_mentor', $id)->update($data);
+        $db->transComplete();
+        if (! $db->transStatus()) return redirect()->back()->withInput()->with('error', 'Perubahan mentor gagal disimpan.');
 
-        return redirect()->to(base_url('admin/mentor'))->with('success', 'Data mentor berhasil diperbarui.');
+        return redirect()->to(base_url('admin/mentor'))->with('success', 'Data profil dan akun login mentor berhasil diperbarui.');
     }
     public function editMentor($id)
     {
@@ -697,7 +798,9 @@ public function simpanAngket()
 }
     public function getAngket()
 {
-    return $this->db->table('angket_pertanyaan')
+    $db = \Config\Database::connect();
+
+    return $db->table('angket_pertanyaan')
         ->select('angket_pertanyaan.*, kelas.id_kelas, kelas.nama_kelas, mentor.id_mentor, mentor.nama_mentor')
         ->join('kelas', 'kelas.id_kelas = angket_pertanyaan.id_kelas', 'left')
         ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')

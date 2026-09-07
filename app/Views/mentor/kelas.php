@@ -1,15 +1,24 @@
 <?= $this->extend('mentor/layout') ?>
 <?= $this->section('content') ?>
-<h3 class="fw-bold mb-4">Daftar Kelas Diampu</h3>
-<div class="row g-3">
-<?php if(empty($kelas)): ?><div class="col-12"><div class="alert alert-info">Belum ada kelas yang diampu.</div></div><?php endif; ?>
-<?php foreach(($kelas ?? []) as $item): ?>
-    <div class="col-md-6"><div class="card border-0 shadow-sm h-100"><div class="card-body">
-        <h5 class="fw-bold"><?= esc($item['nama_kelas']) ?></h5>
-        <p class="text-muted"><?= esc($item['ringkasan'] ?? $item['deskripsi'] ?? '-') ?></p>
-        <a href="<?= base_url('mentor/kelas/' . $item['id_kelas']) ?>" class="btn btn-primary btn-sm">Detail Kelas</a>
-        <a href="<?= base_url('mentor/kelas/' . $item['id_kelas'] . '/kbm') ?>" class="btn btn-outline-primary btn-sm">KBM</a>
-    </div></div></div>
-<?php endforeach; ?>
-</div>
+<style>
+    .kelas-banner{background:linear-gradient(125deg,#251340,#6239a3);border-radius:22px;overflow:hidden;position:relative;color:#fff}.kelas-banner:after{content:'';position:absolute;right:-35px;bottom:-90px;width:250px;height:250px;border:40px solid rgba(255,255,255,.08);border-radius:50%}.kelas-banner>*{position:relative;z-index:1}.kelas-total{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.18);border-radius:16px;min-width:105px}.kelas-card{border:1px solid #ece6f4;border-radius:19px;overflow:hidden;box-shadow:0 8px 22px rgba(37,19,64,.05);transition:all .22s}.kelas-card:hover{transform:translateY(-4px);box-shadow:0 15px 30px rgba(68,34,111,.14);border-color:#c5a6e9}.kelas-top{height:7px;background:linear-gradient(90deg,#7746ba,#b184e7)}.kelas-icon{height:50px;width:50px;display:grid;place-items:center;border-radius:15px;background:#f0e8fb;color:#7042b4;font-size:1.25rem}.kelas-card .progress{height:7px;background:#eee7f6;border-radius:10px}.kelas-card .progress-bar{background:linear-gradient(90deg,#794bc4,#af7ee6)}.info-chip{font-size:.78rem;background:#f8f5fc;border:1px solid #eee8f6;border-radius:10px;padding:.55rem .65rem;color:#655b71}.empty-kelas{background:#fcfaff;border:2px dashed #dfd2f1;border-radius:18px}.filter-input{border-radius:12px;border:1px solid #ded4ed;padding:.72rem 1rem}.filter-input:focus{box-shadow:0 0 0 .2rem rgba(121,75,196,.12);border-color:#9a6ad1}
+</style>
+
+<section class="kelas-banner p-4 p-lg-5 mb-4"><div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4"><div><span class="badge rounded-pill text-bg-light text-primary mb-3">RUANG MENGAJAR</span><h2 class="fw-bold mb-2">Kelas yang Anda Ampu</h2><p class="mb-0 opacity-75">Kelola materi dan pantau peserta pada setiap kelas pelatihan.</p></div><div class="kelas-total text-center p-3"><div class="small opacity-75 text-uppercase">Total Kelas</div><div class="fs-2 fw-bold"><?= count($kelas ?? []) ?></div></div></div></section>
+
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4"><div><h4 class="fw-bold mb-1">Daftar Pelatihan</h4><p class="text-muted mb-0">Pilih kelas untuk melihat peserta atau mengelola materi.</p></div><div class="position-relative"><i class="fa-solid fa-magnifying-glass position-absolute text-muted" style="left:14px;top:13px"></i><input id="cariKelas" type="search" class="filter-input ps-5" placeholder="Cari nama kelas..."></div></div>
+
+<?php if (empty($kelas)): ?>
+    <div class="empty-kelas text-center py-5 px-3"><div class="fs-1 mb-3" style="color:#794bc4"><i class="fa-solid fa-book-open"></i></div><h5 class="fw-bold">Belum ada kelas yang ditugaskan</h5><p class="text-muted mb-0">Kelas dari Admin akan otomatis tampil di halaman ini.</p></div>
+<?php else: ?>
+    <div class="row g-4" id="daftarKelas">
+        <?php foreach ($kelas as $item): ?>
+            <div class="col-md-6 col-xl-4 kartu-kelas" data-nama="<?= esc(strtolower($item['nama_kelas'])) ?>"><article class="kelas-card bg-white h-100"><div class="kelas-top"></div><div class="p-4"><div class="d-flex justify-content-between gap-3 mb-3"><div class="kelas-icon"><i class="fa-solid fa-graduation-cap"></i></div><span class="badge align-self-start rounded-pill" style="background:#f0e8fb;color:#6636a7"><?= esc($item['kategori'] ?: 'Pelatihan') ?></span></div><h5 class="fw-bold mb-2 text-dark"><?= esc($item['nama_kelas']) ?></h5><p class="text-muted small mb-3" style="min-height:40px"><?= esc($item['ringkasan'] ?: $item['deskripsi'] ?: 'Informasi kelas belum tersedia.') ?></p><div class="d-flex gap-2 mb-3"><div class="info-chip flex-fill"><i class="fa-solid fa-users me-1" style="color:#794bc4"></i><?= $item['jumlah_peserta'] ?> peserta</div><div class="info-chip flex-fill"><i class="fa-solid fa-folder-open me-1" style="color:#794bc4"></i><?= $item['jumlah_materi'] ?> materi</div></div><div class="d-flex justify-content-between small mb-2"><span class="text-muted">Kapasitas kelas</span><span class="fw-semibold"><?= $item['jumlah_peserta'] ?>/<?= (int) ($item['kapasitas'] ?? 0) ?></span></div><div class="progress mb-3"><div class="progress-bar" style="width:<?= $item['persentase_peserta'] ?>%"></div></div><div class="small text-muted mb-4"><i class="fa-regular fa-calendar me-2"></i><?= esc($item['tanggal_mulai_kelas'] ?: 'Jadwal belum ditentukan') ?></div><div class="d-grid gap-2"><a href="<?= base_url('mentor/kelas/' . $item['id_kelas']) ?>" class="btn btn-primary">Lihat Kelas <i class="fa-solid fa-arrow-right ms-1"></i></a><a href="<?= base_url('mentor/kelas/' . $item['id_kelas'] . '/materi') ?>" class="btn btn-light" style="color:#7042b4"> <i class="fa-solid fa-file-circle-plus me-1"></i> Kelola Materi</a></div></div></article></div>
+        <?php endforeach; ?>
+    </div>
+    <div id="kelasTidakDitemukan" class="empty-kelas text-center py-5 d-none"><i class="fa-solid fa-magnifying-glass fs-2 text-muted mb-3"></i><p class="mb-0 text-muted">Kelas tidak ditemukan.</p></div>
+<?php endif; ?>
+<script>
+document.getElementById('cariKelas')?.addEventListener('input', function () { const kata = this.value.toLowerCase().trim(); let ada = false; document.querySelectorAll('.kartu-kelas').forEach(kartu => { const cocok = kartu.dataset.nama.includes(kata); kartu.classList.toggle('d-none', !cocok); ada ||= cocok; }); document.getElementById('kelasTidakDitemukan')?.classList.toggle('d-none', ada); });
+</script>
 <?= $this->endSection() ?>

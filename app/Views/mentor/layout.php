@@ -11,9 +11,9 @@
 <body>
 <div class="sidebar py-4">
     <div class="px-4 mb-4 fw-bold fs-5">Creativemu Mentor</div>
-    <a href="<?= base_url('mentor/dashboard') ?>"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a>
-    <a href="<?= base_url('mentor/kelas') ?>"><i class="fa-solid fa-book me-2"></i> Daftar Kelas</a>
-    <a href="<?= base_url('mentor/profil') ?>"><i class="fa-solid fa-user me-2"></i> Profil Mentor</a>
+    <a class="<?= uri_string() === 'mentor/dashboard' ? 'active' : '' ?>" href="<?= base_url('mentor/dashboard') ?>"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a>
+    <a class="<?= str_starts_with(uri_string(), 'mentor/kelas') ? 'active' : '' ?>" href="<?= base_url('mentor/kelas') ?>"><i class="fa-solid fa-book me-2"></i> Daftar Kelas</a>
+    <a class="<?= uri_string() === 'mentor/profil' ? 'active' : '' ?>" href="<?= base_url('mentor/profil') ?>"><i class="fa-solid fa-user me-2"></i> Profil Mentor</a>
     <a href="<?= base_url('logout') ?>" class="text-danger"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</a>
 </div>
 <main class="main">

@@ -411,6 +411,16 @@
                     <div class="col-md-6">
                         <label class="form-label">Alamat Email Aktif</label>
                         <input type="email" name="email" class="form-control" value="<?= esc($mentor['email']); ?>" required>
+                        <div class="form-text">Email ini juga dipakai untuk login mentor.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Password Baru</label>
+                        <input type="password" name="password" class="form-control" minlength="8" placeholder="Kosongkan jika tidak diubah">
+                        <div class="form-text">Minimal 8 karakter.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Konfirmasi Password Baru</label>
+                        <input type="password" name="konfirmasi_password" class="form-control" minlength="8" placeholder="Ulangi password baru">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">No. Telepon / WhatsApp</label>
