@@ -15,6 +15,9 @@ class JadwalKelasModel extends Model
         'materi',
         'tanggal_kbm',
         'jam_selesai',
+        'absensi_dibuka',
+        'absensi_mulai',
+        'absensi_selesai',
         'created_at',
         'updated_at'
     ];

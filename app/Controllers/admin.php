@@ -69,6 +69,21 @@ class Admin extends BaseController
         ->groupEnd()
         ->countAllResults();
 
+    $namaBulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    $bulanMulai = new \DateTimeImmutable('first day of this month 00:00:00');
+    $absensiLabels = [];
+    $absensiData = [];
+    for ($i = 5; $i >= 0; $i--) {
+        $mulai = $bulanMulai->modify("-$i months");
+        $selesai = $mulai->modify('+1 month');
+        $absensiLabels[] = $namaBulan[(int) $mulai->format('n') - 1];
+        $absensiData[] = $db->table('absensi')
+            ->join('mentor', 'mentor.id_users = absensi.id_user', 'inner')
+            ->where('absensi.waktu_absen >=', $mulai->format('Y-m-d H:i:s'))
+            ->where('absensi.waktu_absen <', $selesai->format('Y-m-d H:i:s'))
+            ->countAllResults();
+    }
+
     $data = [
         'title'               => 'Dashboard',
         'total_kelas'         => $db->table('kelas')->countAll(),
@@ -80,8 +95,9 @@ class Admin extends BaseController
         // Data untuk Chart Angket
         'angket_data'         => [0, 0, 0, 0], 
         
-        // Data untuk Chart Absensi
-        'absensi_data'        => [0, 0, 0, 0, 0, 0]
+        // Data absensi mentor untuk enam bulan terakhir
+        'absensi_labels'      => $absensiLabels,
+        'absensi_data'        => $absensiData
     ];
 
     return view('admin/dashboard', $data);
@@ -394,6 +410,21 @@ $data = [
 
 
     // --- ABSENSI ---
+    public function monitoringAbsensi()
+    {
+        $db = \Config\Database::connect();
+        $absensi = $db->table('absensi')
+            ->select('absensi.*, users.nama AS nama_mentor, kelas.nama_kelas, jadwal_kelas.pertemuan_ke, jadwal_kelas.materi, jadwal_kelas.tanggal_kbm')
+            ->join('users', 'users.id_users = absensi.id_user', 'inner')
+            ->join('mentor', 'mentor.id_users = users.id_users', 'inner')
+            ->join('jadwal_kelas', 'jadwal_kelas.id_jadwal_kelas = absensi.id_jadwal_kelas', 'inner')
+            ->join('kelas', 'kelas.id_kelas = jadwal_kelas.id_kelas', 'inner')
+            ->orderBy('absensi.waktu_absen', 'DESC')
+            ->get()->getResultArray();
+
+        return view('admin/monitoring_absensi', ['title' => 'Monitoring Absensi Mentor', 'absensi' => $absensi]);
+    }
+
     public function absen()
     {
         $db = \Config\Database::connect();

@@ -586,15 +586,15 @@
             }
         });
 
-        // Chart Absensi Mentor (Flat/Kosong dengan nilai 0 di semua bulan)
+        // Chart absensi mentor dari data database enam bulan terakhir
         const ctxAbsensi = document.getElementById('absensiChart').getContext('2d');
         new Chart(ctxAbsensi, {
             type: 'line',
             data: {
-                labels: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'],
+                labels: <?= json_encode($absensi_labels ?? []) ?>,
                 datasets: [{
-                    label: 'Rata-rata Kehadiran (%)',
-                    data: [0, 0, 0, 0, 0, 0],
+                    label: 'Jumlah Absensi Mentor',
+                    data: <?= json_encode($absensi_data ?? []) ?>,
                     borderColor: '#cbd5e1',
                     backgroundColor: 'rgba(203, 213, 225, 0.1)',
                     fill: true,
@@ -610,9 +610,9 @@
                     tooltip: { enabled: false }
                 },
                 scales: {
-                    y: { 
-                        beginAtZero: true, 
-                        max: 100, 
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 },
                         grid: { color: '#f0edf6' } 
                     },
                     x: { 

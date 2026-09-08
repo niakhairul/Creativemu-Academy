@@ -220,6 +220,9 @@
                 <a href="<?= base_url('admin/laporan'); ?>" class="nav-link-custom <?= (url_is('admin/laporan*')) ? 'active' : ''; ?>">
                     <i class="fa-solid fa-file-lines"></i> Laporan
                 </a>
+                <a href="<?= base_url('admin/monitoring-absensi'); ?>" class="nav-link-custom <?= (url_is('admin/monitoring-absensi*')) ? 'active' : ''; ?>">
+                    <i class="fa-solid fa-calendar-check"></i> Absensi Mentor
+                </a>
                 <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link-custom <?= (url_is('admin/pengaturan*')) ? 'active' : ''; ?>">
                     <i class="fa-solid fa-gear"></i> Pengaturan
                 </a>

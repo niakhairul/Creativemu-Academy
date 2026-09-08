@@ -155,6 +155,9 @@ class CompleteAcademyWorkflow extends Migration
             'materi' => ['type' => 'TEXT', 'null' => true],
             'tanggal_kbm' => ['type' => 'DATETIME', 'null' => true],
             'jam_selesai' => ['type' => 'TIME', 'null' => true],
+            'absensi_dibuka' => ['type' => 'TINYINT', 'constraint' => 1, 'default' => 0],
+            'absensi_mulai' => ['type' => 'DATETIME', 'null' => true],
+            'absensi_selesai' => ['type' => 'DATETIME', 'null' => true],
             'created_at' => ['type' => 'DATETIME', 'null' => true],
             'updated_at' => ['type' => 'DATETIME', 'null' => true],
         ];

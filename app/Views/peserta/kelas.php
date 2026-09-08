@@ -97,10 +97,13 @@
 
         /* Konten Utama */
         .main-content {
-            flex: 1;
+            flex: 0 0 calc(100% - 260px);
             margin-left: 260px;
             padding: 30px;
             width: calc(100% - 260px);
+            max-width: calc(100% - 260px);
+            min-width: 0;
+            box-sizing: border-box;
         }
 
         /* Navbar Atas dengan Efek Kaca Tipis */
@@ -308,6 +311,7 @@
                                     Tipe: Basic
                                 </span>
                             <?php endif; ?>
+
                         </div>
                     <?php else: ?>
                         <div class="alert alert-warning mb-0 rounded-3">
@@ -351,7 +355,7 @@
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="ujian-tab" data-bs-toggle="tab" data-bs-target="#ujian" type="button" role="tab">
-                        <i class="fa-solid fa-pen-to-square me-1"></i> Ujian & Tugas
+                        <i class="fa-solid fa-pen-to-square me-1"></i> Ujian
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -497,7 +501,7 @@
                 <div class="tab-pane fade" id="ujian" role="tabpanel">
                     <div class="card">
                         <div class="card-body p-4">
-                            <h5 class="fw-bold mb-2 text-dark">Ujian & Tugas Akhir</h5>
+                            <h5 class="fw-bold mb-2 text-dark">Ujian Akhir</h5>
                             <p class="text-muted mb-4">Silakan download soal ujian dan kumpulkan jawaban Anda dalam bentuk file PDF.</p>
 
                             <!-- Flashdata Notifikasi -->
@@ -588,8 +592,6 @@
                         </div>
                     </div>
                 </div>
-
-
                 <!-- ================= TAB 4 : ANGKET EVALUASI ================= -->
                 <div class="tab-pane fade" id="angket" role="tabpanel">
                     <div class="card">

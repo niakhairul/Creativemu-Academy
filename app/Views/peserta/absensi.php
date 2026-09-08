@@ -307,24 +307,18 @@
 
                                         <?php else: ?>
 
-                                            <form action="<?= base_url('pelatihan/absensi/simpan') ?>"
-                                                  method="post">
-
-                                                <input type="hidden"
-                                                       name="id_jadwal_kelas"
-                                                       value="<?= esc($item['id_jadwal_kelas']) ?>">
-
-
-                                                <button type="submit"
-                                                        class="btn btn-primary">
-
-                                                    <i class="bi bi-check-circle me-1"></i>
-
-                                                    Absen Sekarang
-
-                                                </button>
-
-                                            </form>
+                                            <?php $absensiDibuka = (int) ($item['absensi_dibuka'] ?? 0) === 1 && !empty($item['absensi_mulai']) && !empty($item['absensi_selesai']) && time() >= strtotime($item['absensi_mulai']) && time() <= strtotime($item['absensi_selesai']); ?>
+                                            <?php if ($absensiDibuka): ?>
+                                                <div class="alert alert-success py-2 mb-2"><i class="bi bi-unlock me-2"></i>Absensi dibuka pukul <strong><?= esc(date('H:i', strtotime($item['absensi_mulai']))) ?> - <?= esc(date('H:i', strtotime($item['absensi_selesai']))) ?></strong></div>
+                                                <form action="<?= base_url('pelatihan/absensi/simpan') ?>" method="post">
+                                                    <input type="hidden" name="id_jadwal_kelas" value="<?= esc($item['id_jadwal_kelas']) ?>">
+                                                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i> Absen Sekarang</button>
+                                                </form>
+                                            <?php elseif ((int) ($item['absensi_dibuka'] ?? 0) === 1 && !empty($item['absensi_selesai']) && time() > strtotime($item['absensi_selesai'])): ?>
+                                                <div class="alert alert-secondary mb-0"><i class="bi bi-clock-history me-2"></i>Waktu absensi sudah berakhir.</div>
+                                            <?php else: ?>
+                                                <div class="alert alert-light border mb-0"><i class="bi bi-lock me-2"></i>Absensi belum dibuka oleh mentor.</div>
+                                            <?php endif; ?>
 
                                         <?php endif; ?>
 

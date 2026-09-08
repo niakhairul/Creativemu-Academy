@@ -140,6 +140,7 @@ $routes->group('admin', function($routes) {
     $routes->get('sertifikat/delete/(:num)', 'Admin::deleteSertifikat/$1');
 
     $routes->get('laporan', 'Admin::laporan');
+    $routes->get('monitoring-absensi', 'Admin::monitoringAbsensi');
 
     // Pengaturan Admin
     $routes->get('pengaturan', 'Admin::pengaturan');
@@ -151,7 +152,14 @@ $routes->group('mentor', function($routes) {
     $routes->get('dashboard', 'Mentor::dashboard');
     $routes->get('kelas', 'Mentor::kelas');
     $routes->get('kelas/(:num)', 'Mentor::detail/$1');
+    $routes->get('kelas/(:num)/absensi', 'Mentor::absensi/$1');
+    $routes->post('kelas/(:num)/absensi/sesi', 'Mentor::simpanJadwal/$1');
+    $routes->post('kelas/(:num)/absensi/(:num)', 'Mentor::simpanAbsensi/$1/$2');
+    $routes->post('kelas/(:num)/absensi/(:num)/buka', 'Mentor::bukaAbsensi/$1/$2');
+    $routes->post('kelas/(:num)/absensi/(:num)/tutup', 'Mentor::tutupAbsensi/$1/$2');
     $routes->get('kelas/(:num)/materi', 'Mentor::materi/$1');
+    $routes->get('kelas/(:num)/ujian-tugas', 'Mentor::ujianTugas/$1');
+    $routes->post('kelas/(:num)/ujian-tugas', 'Mentor::simpanUjianTugas/$1');
     $routes->post('kelas/(:num)/materi', 'Mentor::simpanMateri/$1');
     $routes->post('kelas/(:num)/materi/(:num)', 'Mentor::ubahMateri/$1/$2');
     $routes->post('kelas/(:num)/materi/(:num)/hapus', 'Mentor::hapusMateri/$1/$2');
