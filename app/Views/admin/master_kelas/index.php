@@ -575,6 +575,10 @@
                                         data-bs-target="#modalDetailKelas<?= $row['id_kelas']; ?>">
                                         <i class="fas fa-eye me-1"></i> Lihat Detail Kelas
                                     </button>
+                                    <!-- Tombol Aksi Tambahan untuk Jadwal Kelas -->
+<a href="<?= base_url('admin/master-kelas/jadwal/' . $row['id_kelas']); ?>" class="btn btn-sm btn-warning text-dark rounded-pill py-1 w-100 mb-1" style="font-size: 0.82rem;">
+    <i class="fas fa-calendar-alt me-1"></i> Jadwal Kelas
+</a>
                                     <div class="d-flex gap-2">
                                         <a href="<?= base_url('admin/master-kelas/edit/' . $row['id_kelas']); ?>" class="btn btn-sm btn-outline-primary rounded-pill w-50 py-1" style="font-size: 0.82rem;">
                                             <i class="fas fa-pen-to-square me-1"></i> Edit

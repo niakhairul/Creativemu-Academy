@@ -97,9 +97,11 @@ $routes->group('admin', function($routes) {
     $routes->get('pendaftaran', 'Admin::pendaftaran');
     $routes->match(['get', 'post'], 'pendaftaran/proses_validasi/(:num)', 'Admin::proses_validasi/$1');
     
-    // Master Kelas
+   // Master Kelas
     $routes->get('master-kelas', 'Admin::masterKelas');
     $routes->get('master-kelas/edit/(:num)', 'Admin::editKelas/$1');
+    $routes->get('master-kelas/jadwal/(:num)', 'Admin::jadwalKelas/$1');
+    $routes->match(['get', 'post'], 'jadwal/tambah', 'Admin::simpanJadwal'); // <--- TAMBAHKAN BARIS INI DI SINI
     $routes->match(['get', 'post'], 'master-kelas/tambah', 'Admin::simpanKelas');
     $routes->match(['get', 'post'], 'master-kelas/update/(:num)', 'Admin::updateKelas/$1');
     $routes->match(['get', 'post'], 'master-kelas/store', 'Admin::simpanKelas');

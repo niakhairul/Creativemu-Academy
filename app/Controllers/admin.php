@@ -226,6 +226,137 @@ public function masterKelas()
         return redirect()->to('/admin/master-kelas')->with('success', 'Data kelas berhasil diperbarui!');
     }
 
+    public function jadwalKelas($id_kelas)
+{
+    $db = \Config\Database::connect();
+    
+    // Ambil data kelas berdasarkan ID
+    $kelas = $db->table('kelas')->where('id_kelas', $id_kelas)->get()->getRowArray();
+
+    if (empty($kelas)) {
+        return redirect()->to(base_url('admin/master-kelas'))->with('error', 'Data kelas tidak ditemukan.');
+    }
+
+    // Cari nama mentor secara otomatis dan aman
+    $nama_mentor = 'Mentor Belum Ditentukan';
+    if (!empty($kelas['id_mentor'])) {
+        $listTable = ['mentor', 'users', 'admin', 'pengguna'];
+        $listKolomNama = ['nama', 'nama_lengkap', 'username', 'nama_mentor', 'fullname'];
+        $listPK = ['id_mentor', 'id', 'id_user', 'user_id'];
+
+        $ketemu = false;
+        foreach ($listTable as $tableName) {
+            if ($ketemu) break;
+            if ($db->tableExists($tableName)) {
+                foreach ($listPK as $pk) {
+                    if ($ketemu) break;
+                    foreach ($listKolomNama as $colName) {
+                        try {
+                            $cekMentor = $db->table($tableName)
+                                            ->select($colName)
+                                            ->where($pk, $kelas['id_mentor'])
+                                            ->get()
+                                            ->getRowArray();
+                            
+                            if ($cekMentor && !empty($cekMentor[$colName])) {
+                                $nama_mentor = $cekMentor[$colName];
+                                $ketemu = true;
+                                break;
+                            }
+                        } catch (\Exception $e) {
+                            continue;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Masukkan nama mentor ke array kelas
+    $kelas['nama_mentor'] = $nama_mentor;
+
+    // Ambil data jadwal berdasarkan id_kelas
+    $jadwal = $db->table('jadwal')
+                 ->where('id_kelas', $id_kelas)
+                 ->orderBy('pertemuan_ke', 'ASC')
+                 ->get()
+                 ->getResultArray();
+
+    $data = [
+        'title'        => 'Jadwal Kelas: ' . ($kelas['nama_kelas'] ?? ''),
+        'detail_kelas' => $kelas,
+        'jadwal'       => $jadwal
+    ];
+
+    return view('admin/master_kelas/jadwal', $data);
+}
+
+    // Method untuk menyimpan jadwal dasar oleh Admin
+    // Method untuk menyimpan jadwal dasar oleh Admin
+    // Method untuk menyimpan jadwal dasar oleh Admin
+    public function simpanJadwal()
+{
+    $db = \Config\Database::connect();
+    
+    $id_kelas = $this->request->getPost('id_kelas');
+
+    if (empty($id_kelas)) {
+        return redirect()->back()->with('error', 'ID Kelas tidak ditemukan.');
+    }
+
+    $data = [
+        'id_kelas'      => $id_kelas,
+        'pertemuan_ke'  => $this->request->getPost('pertemuan_ke'),
+        'tanggal_kbm'   => $this->request->getPost('tanggal_kbm'),
+        'waktu_mulai'   => $this->request->getPost('waktu_mulai'),
+        'waktu_selesai' => $this->request->getPost('waktu_selesai') // Menangkap jam berakhir
+    ];
+
+    // Sesuaikan nama tabel database Anda (misal: 'jadwal')
+    $db->table('jadwal')->insert($data);
+    
+    return redirect()->to(base_url('admin/master-kelas/jadwal/' . $id_kelas))->with('pesan', 'Jadwal berhasil ditambahkan');
+}
+
+// Method untuk mengupdate jadwal dasar oleh Admin
+public function updateJadwal($id_jadwal)
+{
+    $db = \Config\Database::connect();
+    
+    // Ambil data jadwal lama untuk mengetahui id_kelas tujuan redirect
+    $jadwalLama = $db->table('jadwal')->where('id_jadwal', $id_jadwal)->get()->getRowArray();
+
+    $data = [
+        'pertemuan_ke' => $this->request->getPost('pertemuan_ke'),
+        'tanggal_kbm'  => $this->request->getPost('tanggal_kbm'),
+        'waktu_mulai'  => $this->request->getPost('waktu_mulai')
+        // Kolom materi, waktu_selesai, file_pdf, dll. tidak diubah oleh admin di sini
+    ];
+
+    $db->table('jadwal')->where('id_jadwal', $id_jadwal)->update($data);
+
+    return redirect()->to(base_url('admin/master-kelas/jadwal/' . $jadwalLama['id_kelas']))->with('success', 'Jadwal pertemuan berhasil diperbarui.');
+}
+
+
+// Method untuk menghapus jadwal
+public function hapusJadwal($id_jadwal)
+{
+    $db = \Config\Database::connect();
+    $jadwal = $db->table('jadwal_kelas')->where('id_jadwal', $id_jadwal)->get()->getRowArray();
+
+    if ($jadwal) {
+        // Jika file materi sudah terlanjur diupload mentor, hapus juga file fisiknya dari server
+        if (!empty($jadwal['materi_file']) && file_exists('uploads/materi/' . $jadwal['materi_file'])) {
+            unlink('uploads/materi/' . $jadwal['materi_file']);
+        }
+        $db->table('jadwal_kelas')->where('id_jadwal', $id_jadwal)->delete();
+        return redirect()->to(base_url('admin/master-kelas/jadwal/' . $jadwal['id_kelas']))->with('success', 'Jadwal berhasil dihapus.');
+    }
+
+    return redirect()->back()->with('error', 'Data jadwal tidak ditemukan.');
+}
+
     // --- MENTOR ---
     public function mentor()
     {
