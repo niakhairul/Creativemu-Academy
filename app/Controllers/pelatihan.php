@@ -671,29 +671,14 @@ public function setujuiPendaftaran($id_pendaftaran)
 {
     $pendaftaranModel = new PendaftaranModel();
     
-    // Ambil file bukti pembayaran baru
-    $fileBukti = $this->request->getFile('bukti_pembayaran');
-    $namaFileBaru = '';
-
-    if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
-    $namaFileBaru = $fileBukti->getRandomName();
-    $fileBukti->move('uploads/bukti/', $namaFileBaru);
-}
-
-    // Data yang akan di-update (Hanya status, alasan penolakan, dan file bukti)
-    $dataUpdate = [
-        'status_pembayaran' => 'pending', 
-        'alasan_penolakan' => null 
-    ];
-
-    if ($namaFileBaru) {
-        $dataUpdate['bukti_pembayaran'] = $namaFileBaru;
+    // Pastikan ini murni menggunakan id_pendaftaran
+    $pendaftaran = $pendaftaranModel->where('id_pendaftaran', $id_pendaftaran)->first();
+    
+    if (!$pendaftaran) {
+        return redirect()->back()->with('error', 'Data tidak ditemukan.');
     }
-
-    // Lakukan update ke database (nama dan no_hp aman tidak berubah)
-    $pendaftaranModel->update($id_pendaftaran, $dataUpdate);
-
-    return redirect()->to('/pelatihan/daftar-kelas')->with('success', 'Bukti pembayaran berhasil diperbarui. Silakan tunggu validasi ulang dari admin.');
+    
+    // Sisa kode proses upload...
 }
 
     public function generateNIS()
@@ -753,25 +738,24 @@ public function setujuiPendaftaran($id_pendaftaran)
             ->findAll();
     }
     // Ambil data ujian berdasarkan kelas peserta
-$ujian = [];
+    $ujian = [];
 
-if ($kelas) {
-    $ujian = $db->table('ujian')
-        ->where('id_kelas', $kelas['id_kelas'])
-        ->orderBy('id_ujian', 'ASC')
-        ->get()
-        ->getResultArray();
-
-    foreach ($ujian as &$item) {
-        $item['jawaban'] = $db->table('jawaban_ujian')
-            ->where('id_ujian', $item['id_ujian'])
-            ->where('id_user', $this->userId())
+    if ($kelas) {
+        $ujian = $db->table('ujian')
+            ->where('id_kelas', $kelas['id_kelas'])
+            ->orderBy('id_ujian', 'ASC')
             ->get()
-            ->getRowArray();
-    }
+            ->getResultArray();
 
-    unset($item);
-}
+        foreach ($ujian as &$itemUjian) {
+            $itemUjian['jawaban'] = $db->table('jawaban_ujian')
+                ->where('id_ujian', $itemUjian['id_ujian'])
+                ->where('id_user', $this->userId())
+                ->get()
+                ->getRowArray();
+        }
+        unset($itemUjian);
+    }
 
     // Ambil materi berdasarkan kelas peserta
     $materi = [];
@@ -785,16 +769,23 @@ if ($kelas) {
     }
 
     // Hitung absensi dan hubungkan materi dengan pertemuan
+    // Hitung absensi dan hubungkan materi dengan pertemuan
     $jumlahHadir = 0;
 
     foreach ($jadwal as &$item) {
 
+        // Sesuaikan 'id' di bawah ini dengan nama primary key di tabel jadwal Anda (misal: 'id' atau 'id_jadwal_kelas')
+        $idJadwal = $item['id_jadwal'] ?? $item['id'] ?? null;
+
         // Cari absensi peserta pada pertemuan ini
-        $absensi = $db->table('absensi')
-            ->where('id_jadwal_kelas', $item['id_jadwal_kelas'])
-            ->where('id_user', $this->userId())
-            ->get()
-            ->getRowArray();
+        $absensi = null;
+        if ($idJadwal) {
+            $absensi = $db->table('absensi')
+                ->where('id_jadwal', $idJadwal)
+                ->where('id_user', $this->userId())
+                ->get()
+                ->getRowArray();
+        }
 
         $item['absensi'] = $absensi;
 
@@ -803,8 +794,8 @@ if ($kelas) {
 
         foreach ($materi as $materiItem) {
             if (
-                isset($materiItem['id_jadwal_kelas']) &&
-                $materiItem['id_jadwal_kelas'] == $item['id_jadwal_kelas']
+                isset($materiItem['id_jadwal']) &&
+                $materiItem['id_jadwal'] == $idJadwal
             ) {
                 $item['materi'] = $materiItem;
                 break;
@@ -837,7 +828,7 @@ if ($kelas) {
         'kelas'               => $kelas,
         'jadwal'              => $jadwal,
         'materi'              => $materi,
-        'ujian'                => $ujian,
+        'ujian'               => $ujian,
         'totalPertemuan'      => $totalPertemuan,
         'jumlahHadir'         => $jumlahHadir,
         'persentaseKehadiran' => $persentaseKehadiran,
@@ -994,9 +985,9 @@ if ($kelas) {
     // Cari jadwal/pertemuan yang terkait dengan materi
     $jadwal = null;
 
-    if (!empty($materi['id_jadwal_kelas'])) {
+    if (!empty($materi['id_jadwal'])) {
         $jadwal = $db->table('jadwal_kelas')
-            ->where('id_jadwal_kelas', $materi['id_jadwal_kelas'])
+            ->where('id_jadwal', $materi['id_jadwal'])
             ->where('id_kelas', $kelas['id_kelas'])
             ->get()
             ->getRowArray();
@@ -1010,7 +1001,7 @@ if ($kelas) {
 
     // Cek apakah peserta sudah melakukan absensi pada pertemuan tersebut
     $absensi = $db->table('absensi')
-        ->where('id_jadwal_kelas', $jadwal['id_jadwal_kelas'])
+        ->where('id_jadwal', $jadwal['id_jadwal'])
         ->where('id_user', $this->userId())
         ->where('status', 'hadir')
         ->get()
@@ -1434,7 +1425,7 @@ public function simpanJawabanUjian()
         $jadwal = (new JadwalKelasModel())->where('id_kelas', $pendaftaran['id_kelas'])->orderBy('pertemuan_ke', 'ASC')->findAll();
         $absensiModel = new AbsensiModel();
         foreach ($jadwal as &$item) {
-            $item['absensi'] = $absensiModel->where('id_jadwal_kelas', $item['id_jadwal_kelas'])->where('id_users', $this->userId())->first();
+            $item['absensi'] = $absensiModel->where('id_jadwal', $item['id_jadwal'])->where('id_users', $this->userId())->first();
         }
 
         return view('peserta/absensi', ['jadwal' => $jadwal]);
@@ -1446,7 +1437,7 @@ public function simpanJawabanUjian()
         return $redirect;
     }
 
-    $idJadwal = $this->request->getPost('id_jadwal_kelas');
+    $idJadwal = $this->request->getPost('id_jadwal');
 
     if (!$idJadwal) {
         return redirect()->to(base_url('pelatihan/kelas'))
@@ -1457,7 +1448,7 @@ public function simpanJawabanUjian()
 
     // Cek apakah peserta sudah absen
     $sudahAbsen = $absensiModel
-        ->where('id_jadwal_kelas', $idJadwal)
+        ->where('id_jadwal', $idJadwal)
         ->where('id_user', $this->userId())
         ->first();
 
@@ -1468,7 +1459,7 @@ public function simpanJawabanUjian()
 
     // Simpan absensi
     $absensiModel->insert([
-        'id_jadwal_kelas' => $idJadwal,
+        'id_jadwal'       => $idJadwal,
         'id_user'         => $this->userId(),
         'status'          => 'hadir',
         'waktu_absen'     => date('Y-m-d H:i:s'),
@@ -1505,7 +1496,7 @@ public function riwayatAbsensi()
     foreach ($jadwal as &$item) {
 
         $item['absensi'] = $absensiModel
-            ->where('id_jadwal_kelas', $item['id_jadwal_kelas'])
+            ->where('id_jadwal', $item['id_jadwal'])
             ->where('id_user', $this->userId())
             ->first();
 
@@ -1619,8 +1610,8 @@ if (!$pendaftaran && !empty($user['email'])) {
 
         $absensi = $db->table('absensi')
             ->where(
-                'id_jadwal_kelas',
-                $item['id_jadwal_kelas']
+                'id_jadwal',
+                $item['id_jadwal']
             )
             ->where(
                 'id_user',
