@@ -101,7 +101,9 @@ $routes->group('admin', function($routes) {
     $routes->get('master-kelas', 'Admin::masterKelas');
     $routes->get('master-kelas/edit/(:num)', 'Admin::editKelas/$1');
     $routes->get('master-kelas/jadwal/(:num)', 'Admin::jadwalKelas/$1');
-    $routes->match(['get', 'post'], 'jadwal/tambah', 'Admin::simpanJadwal'); // <--- TAMBAHKAN BARIS INI DI SINI
+    $routes->match(['get', 'post'], 'jadwal/tambah', 'Admin::simpanJadwal'); 
+    $routes->match(['get', 'post'], 'jadwal/update/(:num)', 'Admin::updateJadwal/$1');
+    $routes->get('jadwal/hapus/(:num)', 'Admin::hapusJadwal/$1');// <--- TAMBAHKAN BARIS INI DI SINI
     $routes->match(['get', 'post'], 'master-kelas/tambah', 'Admin::simpanKelas');
     $routes->match(['get', 'post'], 'master-kelas/update/(:num)', 'Admin::updateKelas/$1');
     $routes->match(['get', 'post'], 'master-kelas/store', 'Admin::simpanKelas');
@@ -160,6 +162,12 @@ $routes->group('mentor', function($routes) {
     $routes->post('kelas/(:num)/absensi/(:num)/buka', 'Mentor::bukaAbsensi/$1/$2');
     $routes->post('kelas/(:num)/absensi/(:num)/tutup', 'Mentor::tutupAbsensi/$1/$2');
     $routes->get('kelas/(:num)/materi', 'Mentor::materi/$1');
+    $routes->get('jadwal/(:num)/edit', 'Mentor::editJadwal/$1');
+    
+    // Tambahkan baris di bawah ini untuk menangani rute update-materi
+    $routes->post('jadwal/update-materi/(:num)', 'Mentor::updateMateri/$1'); 
+    
+    $routes->post('jadwal/update/(:num)', 'Mentor::updateMateri/$1'); 
     $routes->get('kelas/(:num)/ujian-tugas', 'Mentor::ujianTugas/$1');
     $routes->post('kelas/(:num)/ujian-tugas', 'Mentor::simpanUjianTugas/$1');
     $routes->post('kelas/(:num)/materi', 'Mentor::simpanMateri/$1');

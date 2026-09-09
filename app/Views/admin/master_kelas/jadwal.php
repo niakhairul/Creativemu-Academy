@@ -299,10 +299,10 @@
                         <input type="number" class="form-control" id="pertemuan_ke" name="pertemuan_ke" min="1" required placeholder="Misal: 1">
                     </div>
                     <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="tanggal_kbm" class="form-label fw-semibold">Tanggal</label>
-                            <input type="date" class="form-control" id="tanggal_kbm" name="tanggal_kbm" required>
-                        </div>
+    <div class="col-md-6">
+        <label for="tanggal_kbm" class="form-label fw-semibold">Tanggal</label>
+        <input type="date" class="form-control" id="tanggal_kbm" name="tanggal_kbm" required>
+    </div>
                     </div>
 
                             <div class="row mb-3">

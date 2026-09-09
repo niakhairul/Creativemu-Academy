@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Models\JadwalModel;
 
 class Mentor extends BaseController
 {
@@ -84,32 +85,6 @@ class Mentor extends BaseController
         return view('mentor/detail_kelas', ['kelas' => $kelas, 'peserta' => $peserta, 'jumlah_materi' => $jumlahMateri, 'persentase_peserta' => $kapasitas > 0 ? min(100, (int) round((count($peserta) / $kapasitas) * 100)) : 0]);
     }
 
-    public function absensi(int $idKelas)
-    {
-        if ($r = $this->requireMentor()) return $r;
-        $kelas = $this->kelasMilikMentor($idKelas);
-        if (! $kelas) return redirect()->to(base_url('mentor/kelas'))->with('error', 'Kelas tidak ditemukan atau bukan kelas Anda.');
-
-        $idUser = (int) session()->get('id_users');
-        $jadwal = $this->db->table('jadwal_kelas')
-            ->select('jadwal_kelas.*, absensi.id_absensi, absensi.status AS status_absen, absensi.waktu_absen')
-            ->join('absensi', 'absensi.id_jadwal_kelas = jadwal_kelas.id_jadwal_kelas AND absensi.id_user = ' . $idUser, 'left')
-            ->where('jadwal_kelas.id_kelas', $idKelas)
-            ->orderBy('jadwal_kelas.pertemuan_ke', 'ASC')
-            ->get()->getResultArray();
-
-        $pesertaAbsensi = $this->db->table('jadwal_kelas')
-            ->select('jadwal_kelas.id_jadwal_kelas, jadwal_kelas.pertemuan_ke, users.nama AS nama_peserta, users.email, absensi.status, absensi.waktu_absen')
-            ->join('pendaftaran', 'pendaftaran.id_kelas = jadwal_kelas.id_kelas AND (pendaftaran.status_pembayaran IN ("valid", "Valid", "Disetujui", "approved") OR pendaftaran.status IN ("disetujui", "Disetujui", "approved"))', 'inner')
-            ->join('users', 'users.id_users = pendaftaran.id_users', 'inner')
-            ->join('absensi', 'absensi.id_jadwal_kelas = jadwal_kelas.id_jadwal_kelas AND absensi.id_user = pendaftaran.id_users', 'left')
-            ->where('jadwal_kelas.id_kelas', $idKelas)
-            ->orderBy('jadwal_kelas.pertemuan_ke', 'ASC')
-            ->orderBy('users.nama', 'ASC')
-            ->get()->getResultArray();
-
-        return view('mentor/absensi', ['kelas' => $kelas, 'jadwal' => $jadwal, 'pesertaAbsensi' => $pesertaAbsensi]);
-    }
 
     public function simpanJadwal(int $idKelas)
     {
@@ -118,42 +93,87 @@ class Mentor extends BaseController
 
         $pertemuan = (int) $this->request->getPost('pertemuan_ke');
         $materi = trim((string) $this->request->getPost('materi'));
-        $keterangan = trim((string) $this->request->getPost('keterangan'));
         $tanggal = trim((string) $this->request->getPost('tanggal_kbm'));
-        $judulMateri = trim((string) $this->request->getPost('judul_materi'));
-        $urlMateri = trim((string) $this->request->getPost('url_materi'));
-        $fileMateri = $this->request->getFile('file_materi');
-        if ($pertemuan < 1 || $materi === '' || $tanggal === '') return redirect()->back()->with('error', 'Nomor pertemuan, topik materi, dan jadwal wajib diisi.');
-        if (! preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', $tanggal)) return redirect()->back()->with('error', 'Format jadwal tidak valid.');
-        if ($judulMateri === '' || ((! $fileMateri || ! $fileMateri->isValid()) && $urlMateri === '')) return redirect()->back()->with('error', 'Judul materi serta file atau tautan materi wajib diisi.');
-        if ($urlMateri !== '' && ! filter_var($urlMateri, FILTER_VALIDATE_URL)) return redirect()->back()->with('error', 'Tautan materi tidak valid.');
 
+        if ($pertemuan < 1 || $materi === '' || $tanggal === '') {
+            return redirect()->back()->with('error', 'Nomor pertemuan, topik materi, dan jadwal wajib diisi.');
+        }
+
+        // Cek ke tabel jadwal_kelas
         $sudahAda = $this->db->table('jadwal_kelas')->where(['id_kelas' => $idKelas, 'pertemuan_ke' => $pertemuan])->countAllResults();
         if ($sudahAda > 0) return redirect()->back()->with('error', "Pertemuan ke-$pertemuan sudah tersedia.");
 
-        $this->db->table('jadwal_kelas')->insert([
-            'id_kelas' => $idKelas,
-            'pertemuan_ke' => $pertemuan,
-            'materi' => $materi,
-            'tanggal_kbm' => str_replace('T', ' ', $tanggal) . ':00',
-            'absensi_dibuka' => 0,
-        ]);
-        $idJadwal = $this->db->insertID();
-        try {
-            $namaFile = $this->simpanBerkas($fileMateri);
-        } catch (\RuntimeException $e) {
-            return redirect()->back()->with('error', $e->getMessage());
+        $filePdf = $this->request->getFile('file_pdf');
+        $namaFilePdf = null;
+        if ($filePdf && $filePdf->isValid() && ! $filePdf->hasMoved()) {
+            $namaFilePdf = $filePdf->getRandomName();
+            $filePdf->move('uploads/materi/', $namaFilePdf);
         }
-        $fieldNames = $this->db->getFieldNames('materi');
-        $dataMateri = ['id_kelas' => $idKelas, 'judul_materi' => $judulMateri, 'file_materi' => $namaFile];
-        if (in_array('id_jadwal_kelas', $fieldNames, true)) $dataMateri['id_jadwal_kelas'] = $idJadwal;
-        if (in_array('pertemuan_ke', $fieldNames, true)) $dataMateri['pertemuan_ke'] = $pertemuan;
-        if (in_array('deskripsi', $fieldNames, true)) $dataMateri['deskripsi'] = $keterangan;
-        if (in_array('tipe_materi', $fieldNames, true)) $dataMateri['tipe_materi'] = $this->request->getPost('tipe_materi') ?: 'Dokumen';
-        if (in_array('url_materi', $fieldNames, true)) $dataMateri['url_materi'] = $urlMateri ?: null;
-        if (in_array('created_at', $fieldNames, true)) $dataMateri['created_at'] = date('Y-m-d H:i:s');
-        $this->db->table('materi')->insert($dataMateri);
-        return redirect()->to(base_url("mentor/kelas/$idKelas/absensi"))->with('success', "Sesi materi pertemuan ke-$pertemuan berhasil ditambahkan.");
+
+        // Simpan ke tabel jadwal_kelas
+        $this->db->table('jadwal')->insert([
+            'id_kelas'          => $idKelas,
+            'pertemuan_ke'      => $pertemuan,
+            'tanggal_kbm'       => $tanggal,
+            'waktu_mulai'       => $this->request->getPost('waktu_mulai'),
+            'waktu_selesai'     => $this->request->getPost('waktu_selesai'),
+            'materi'            => $materi,
+            'ruangan_atau_link' => $this->request->getPost('ruangan_atau_link'),
+            'link_materi'       => $this->request->getPost('link_materi'),
+            'file_pdf'          => $namaFilePdf,
+            'created_at'        => date('Y-m-d H:i:s'),
+            'updated_at'        => date('Y-m-d H:i:s'),
+        ]);
+
+        return redirect()->to(base_url("mentor/kelas/$idKelas/absensi"))->with('success', "Sesi pertemuan ke-$pertemuan berhasil ditambahkan.");
+    }
+
+    public function updateMateri($id_jadwal)
+    {
+        $db = \Config\Database::connect();
+        
+        $dataUpdate = [
+            'materi'      => $this->request->getPost('materi'),
+            'link_materi' => $this->request->getPost('link_materi'),
+        ];
+
+        $filePdf = $this->request->getFile('file_pdf');
+        if ($filePdf && $filePdf->isValid() && !$filePdf->hasMoved()) {
+            $namaFile = $filePdf->getRandomName();
+            $filePdf->move('uploads/materi/', $namaFile);
+            $dataUpdate['file_pdf'] = $namaFile;
+        }
+
+        // Ubah kembali ke tabel 'jadwal' dan primary key 'id_jadwal'
+        $db->table('jadwal')->where('id_jadwal', $id_jadwal)->update($dataUpdate);
+        return redirect()->back()->with('success', 'Materi dan berkas berhasil diperbarui.');
+    }
+
+    public function absensi(int $idKelas)
+    {
+        if ($r = $this->requireMentor()) return $r;
+        $kelas = $this->kelasMilikMentor($idKelas);
+        if (! $kelas) return redirect()->to(base_url('mentor/kelas'))->with('error', 'Kelas tidak ditemukan atau bukan kelas Anda.');
+
+        $idUser = (int) session()->get('id_users');
+        $jadwal = $this->db->table('jadwal')
+            ->select('jadwal.*, absensi.id_absensi, absensi.status AS status_absen, absensi.waktu_absen')
+            ->join('absensi', 'absensi.id_jadwal = jadwal.id_jadwal AND absensi.id_user = ' . $idUser, 'left')
+            ->where('jadwal.id_kelas', $idKelas)
+            ->orderBy('jadwal.pertemuan_ke', 'ASC')
+            ->get()->getResultArray();
+
+        $pesertaAbsensi = $this->db->table('jadwal')
+            ->select('jadwal.id_jadwal, jadwal.pertemuan_ke, users.nama AS nama_peserta, users.email, absensi.status, absensi.waktu_absen')
+            ->join('pendaftaran', 'pendaftaran.id_kelas = jadwal.id_kelas AND (pendaftaran.status_pembayaran IN ("valid", "Valid", "Disetujui", "approved") OR pendaftaran.status IN ("disetujui", "Disetujui", "approved"))', 'inner')
+            ->join('users', 'users.id_users = pendaftaran.id_users', 'inner')
+            ->join('absensi', 'absensi.id_jadwal = jadwal.id_jadwal AND absensi.id_user = pendaftaran.id_users', 'left')
+            ->where('jadwal.id_kelas', $idKelas)
+            ->orderBy('jadwal.pertemuan_ke', 'ASC')
+            ->orderBy('users.nama', 'ASC')
+            ->get()->getResultArray();
+
+        return view('mentor/absensi', ['kelas' => $kelas, 'jadwal' => $jadwal, 'pesertaAbsensi' => $pesertaAbsensi]);
     }
 
     public function simpanAbsensi(int $idKelas, int $idJadwal)
@@ -161,14 +181,14 @@ class Mentor extends BaseController
         if ($r = $this->requireMentor()) return $r;
         if (! $this->kelasMilikMentor($idKelas)) return redirect()->to(base_url('mentor/kelas'))->with('error', 'Akses kelas ditolak.');
 
-        $jadwal = $this->db->table('jadwal_kelas')->where(['id_jadwal_kelas' => $idJadwal, 'id_kelas' => $idKelas])->get()->getRowArray();
+        $jadwal = $this->db->table('jadwal')->where(['id_jadwal' => $idJadwal, 'id_kelas' => $idKelas])->get()->getRowArray();
         if (! $jadwal) return redirect()->back()->with('error', 'Jadwal mengajar tidak ditemukan.');
 
         $idUser = (int) session()->get('id_users');
-        $absensi = $this->db->table('absensi')->where(['id_jadwal_kelas' => $idJadwal, 'id_user' => $idUser])->get()->getRowArray();
+        $absensi = $this->db->table('absensi')->where(['id_jadwal' => $idJadwal, 'id_user' => $idUser])->get()->getRowArray();
         if ($absensi) return redirect()->back()->with('error', 'Anda sudah mengisi absensi pada pertemuan ini.');
 
-        $this->db->table('absensi')->insert(['id_jadwal_kelas' => $idJadwal, 'id_user' => $idUser, 'status' => 'hadir', 'waktu_absen' => date('Y-m-d H:i:s')]);
+        $this->db->table('absensi')->insert(['id_jadwal' => $idJadwal, 'id_user' => $idUser, 'status' => 'hadir', 'waktu_absen' => date('Y-m-d H:i:s')]);
         return redirect()->to(base_url("mentor/kelas/$idKelas/absensi"))->with('success', 'Absensi mengajar berhasil dicatat.');
     }
 
@@ -177,11 +197,11 @@ class Mentor extends BaseController
         if ($r = $this->requireMentor()) return $r;
         if (! $this->kelasMilikMentor($idKelas)) return redirect()->to(base_url('mentor/kelas'))->with('error', 'Akses kelas ditolak.');
 
-        $jadwal = $this->db->table('jadwal_kelas')->where(['id_jadwal_kelas' => $idJadwal, 'id_kelas' => $idKelas])->get()->getRowArray();
+        $jadwal = $this->db->table('jadwal')->where(['id_jadwal' => $idJadwal, 'id_kelas' => $idKelas])->get()->getRowArray();
         if (! $jadwal) return redirect()->back()->with('error', 'Jadwal mengajar tidak ditemukan.');
 
         $idUser = (int) session()->get('id_users');
-        $mentorAbsen = $this->db->table('absensi')->where(['id_jadwal_kelas' => $idJadwal, 'id_user' => $idUser, 'status' => 'hadir'])->get()->getRowArray();
+        $mentorAbsen = $this->db->table('absensi')->where(['id_jadwal' => $idJadwal, 'id_user' => $idUser, 'status' => 'hadir'])->get()->getRowArray();
         if (! $mentorAbsen) return redirect()->back()->with('error', 'Mentor wajib mengisi absensi terlebih dahulu sebelum membuka absensi peserta.');
 
         $jamMulai = trim((string) $this->request->getPost('jam_mulai_absensi'));
@@ -196,7 +216,7 @@ class Mentor extends BaseController
         if (strtotime($selesai) <= strtotime($mulai)) {
             return redirect()->back()->with('error', 'Jam selesai harus lebih besar dari jam mulai.');
         }
-        $this->db->table('jadwal_kelas')->where('id_jadwal_kelas', $idJadwal)->update(['absensi_dibuka' => 1, 'absensi_mulai' => $mulai, 'absensi_selesai' => $selesai, 'updated_at' => $mulai]);
+        $this->db->table('jadwal')->where('id_jadwal', $idJadwal)->update(['absensi_dibuka' => 1, 'absensi_mulai' => $mulai, 'absensi_selesai' => $selesai, 'updated_at' => $mulai]);
 
         return redirect()->to(base_url("mentor/kelas/$idKelas/absensi"))->with('success', "Absensi peserta dibuka pukul $jamMulai sampai $jamSelesai.");
     }
@@ -205,9 +225,10 @@ class Mentor extends BaseController
     {
         if ($r = $this->requireMentor()) return $r;
         if (! $this->kelasMilikMentor($idKelas)) return redirect()->to(base_url('mentor/kelas'))->with('error', 'Akses kelas ditolak.');
-        $this->db->table('jadwal_kelas')->where(['id_jadwal_kelas' => $idJadwal, 'id_kelas' => $idKelas])->update(['absensi_dibuka' => 0, 'updated_at' => date('Y-m-d H:i:s')]);
+        $this->db->table('jadwal')->where(['id_jadwal' => $idJadwal, 'id_kelas' => $idKelas])->update(['absensi_dibuka' => 0, 'updated_at' => date('Y-m-d H:i:s')]);
         return redirect()->to(base_url("mentor/kelas/$idKelas/absensi"))->with('success', 'Absensi peserta ditutup.');
     }
+
 
     public function materi(int $idKelas)
     {
@@ -303,6 +324,9 @@ class Mentor extends BaseController
         if (! empty($materi['file_materi'])) { $file = FCPATH . 'uploads/materi/' . basename($materi['file_materi']); if (is_file($file)) unlink($file); }
         return redirect()->to(base_url("mentor/kelas/$idKelas/materi"))->with('success', 'Materi berhasil dihapus.');
     }
+
+    // Method baru untuk update Materi, Link GDrive, & File PDF oleh Mentor berdasarkan Jadwal
+    
 
     public function profil()
     {

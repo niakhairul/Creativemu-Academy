@@ -6,9 +6,8 @@ use CodeIgniter\Model;
 
 class JadwalModel extends Model
 {
-    protected $tableSelected      = 'jadwal'; // Sesuaikan dengan nama tabel di database kamu
     protected $table            = 'jadwal'; 
-    protected $primaryKey       = 'id_jadwal'; // Sesuaikan primary key tabel jadwal kamu
+    protected $primaryKey       = 'id_jadwal'; 
     protected $allowedFields    = [
         'id_kelas', 
         'pertemuan_ke', 
@@ -18,6 +17,9 @@ class JadwalModel extends Model
         'materi', 
         'ruangan_atau_link', 
         'link_materi', 
-        'file_pdf'
+        'file_pdf',
+        'absensi_dibuka',
+        'absensi_mulai',
+        'absensi_selesai'
     ];
 }

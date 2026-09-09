@@ -295,42 +295,57 @@ public function masterKelas()
     // Method untuk menyimpan jadwal dasar oleh Admin
     // Method untuk menyimpan jadwal dasar oleh Admin
     public function simpanJadwal()
-{
-    $db = \Config\Database::connect();
-    
-    $id_kelas = $this->request->getPost('id_kelas');
+    {
+        $db = \Config\Database::connect();
+        $id_kelas = $this->request->getPost('id_kelas');
 
-    if (empty($id_kelas)) {
-        return redirect()->back()->with('error', 'ID Kelas tidak ditemukan.');
+        if (empty($id_kelas)) {
+            return redirect()->back()->with('error', 'ID Kelas tidak ditemukan.');
+        }
+
+        $data = [
+            'id_kelas'       => $id_kelas,
+            'pertemuan_ke'      => $this->request->getPost('pertemuan_ke'),
+            'tanggal_kbm'       => $this->request->getPost('tanggal_kbm'),
+            'waktu_mulai'       => $this->request->getPost('waktu_mulai'),
+            'waktu_selesai'     => $this->request->getPost('waktu_selesai'),
+            'materi'            => $this->request->getPost('materi'),
+            'ruangan_atau_link' => $this->request->getPost('ruangan_atau_link'), // Tangkap input dari form di sini
+            'absensi_dibuka'    => 0,
+        ];
+
+        // Diubah dari 'jadwal_kelas' ke 'jadwal' sesuai tabel database Anda
+        $db->table('jadwal')->insert($data);
+        
+        return redirect()->to(base_url('admin/master-kelas/jadwal/' . $id_kelas))->with('pesan', 'Jadwal berhasil ditambahkan');
     }
 
-    $data = [
-        'id_kelas'      => $id_kelas,
-        'pertemuan_ke'  => $this->request->getPost('pertemuan_ke'),
-        'tanggal_kbm'   => $this->request->getPost('tanggal_kbm'),
-        'waktu_mulai'   => $this->request->getPost('waktu_mulai'),
-        'waktu_selesai' => $this->request->getPost('waktu_selesai') // Menangkap jam berakhir
-    ];
+    public function monitoringAbsensi()
+    {
+        $db = \Config\Database::connect();
+        $absensi = $db->table('absensi')
+            ->select('absensi.*, users.nama AS nama_mentor, kelas.nama_kelas, jadwal.pertemuan_ke, jadwal.materi, jadwal.tanggal_kbm')
+            ->join('users', 'users.id_users = absensi.id_user', 'inner')
+            ->join('mentor', 'mentor.id_users = users.id_users', 'inner')
+            ->join('jadwal', 'jadwal.id_jadwal = absensi.id_jadwal', 'inner') // Sesuaikan relasi tabel jadwal
+            ->join('kelas', 'kelas.id_kelas = jadwal.id_kelas', 'inner')
+            ->orderBy('absensi.waktu_absen', 'DESC')
+            ->get()->getResultArray();
 
-    // Sesuaikan nama tabel database Anda (misal: 'jadwal')
-    $db->table('jadwal')->insert($data);
-    
-    return redirect()->to(base_url('admin/master-kelas/jadwal/' . $id_kelas))->with('pesan', 'Jadwal berhasil ditambahkan');
-}
+        return view('admin/monitoring_absensi', ['title' => 'Monitoring Absensi Mentor', 'absensi' => $absensi]);
+    }
 
-// Method untuk mengupdate jadwal dasar oleh Admin
 public function updateJadwal($id_jadwal)
 {
     $db = \Config\Database::connect();
-    
-    // Ambil data jadwal lama untuk mengetahui id_kelas tujuan redirect
     $jadwalLama = $db->table('jadwal')->where('id_jadwal', $id_jadwal)->get()->getRowArray();
 
     $data = [
-        'pertemuan_ke' => $this->request->getPost('pertemuan_ke'),
-        'tanggal_kbm'  => $this->request->getPost('tanggal_kbm'),
-        'waktu_mulai'  => $this->request->getPost('waktu_mulai')
-        // Kolom materi, waktu_selesai, file_pdf, dll. tidak diubah oleh admin di sini
+        'pertemuan_ke'      => $this->request->getPost('pertemuan_ke'),
+        'tanggal_kbm'       => $this->request->getPost('tanggal_kbm'),
+        'waktu_mulai'       => $this->request->getPost('waktu_mulai'),
+        'waktu_selesai'     => $this->request->getPost('waktu_selesai'),
+        'ruangan_atau_link' => $this->request->getPost('ruangan_atau_link'),
     ];
 
     $db->table('jadwal')->where('id_jadwal', $id_jadwal)->update($data);
@@ -343,15 +358,22 @@ public function updateJadwal($id_jadwal)
 public function hapusJadwal($id_jadwal)
 {
     $db = \Config\Database::connect();
-    $jadwal = $db->table('jadwal_kelas')->where('id_jadwal', $id_jadwal)->get()->getRowArray();
+    
+    // Ambil data jadwal terlebih dahulu untuk mengetahui id_kelas
+    $jadwal = $db->table('jadwal')->where('id_jadwal', $id_jadwal)->get()->getRowArray();
 
     if ($jadwal) {
-        // Jika file materi sudah terlanjur diupload mentor, hapus juga file fisiknya dari server
-        if (!empty($jadwal['materi_file']) && file_exists('uploads/materi/' . $jadwal['materi_file'])) {
-            unlink('uploads/materi/' . $jadwal['materi_file']);
+        $id_kelas = $jadwal['id_kelas'];
+
+        // Jika file PDF sudah diupload mentor, hapus juga file fisiknya dari server
+        if (!empty($jadwal['file_pdf']) && file_exists('uploads/materi/' . $jadwal['file_pdf'])) {
+            @unlink('uploads/materi/' . $jadwal['file_pdf']);
         }
-        $db->table('jadwal_kelas')->where('id_jadwal', $id_jadwal)->delete();
-        return redirect()->to(base_url('admin/master-kelas/jadwal/' . $jadwal['id_kelas']))->with('success', 'Jadwal berhasil dihapus.');
+        
+        // Hapus data dari database
+        $db->table('jadwal')->where('id_jadwal', $id_jadwal)->delete();
+        
+        return redirect()->to(base_url('admin/master-kelas/jadwal/' . $id_kelas))->with('success', 'Jadwal berhasil dihapus.');
     }
 
     return redirect()->back()->with('error', 'Data jadwal tidak ditemukan.');
@@ -541,20 +563,6 @@ $data = [
 
 
     // --- ABSENSI ---
-    public function monitoringAbsensi()
-    {
-        $db = \Config\Database::connect();
-        $absensi = $db->table('absensi')
-            ->select('absensi.*, users.nama AS nama_mentor, kelas.nama_kelas, jadwal_kelas.pertemuan_ke, jadwal_kelas.materi, jadwal_kelas.tanggal_kbm')
-            ->join('users', 'users.id_users = absensi.id_user', 'inner')
-            ->join('mentor', 'mentor.id_users = users.id_users', 'inner')
-            ->join('jadwal_kelas', 'jadwal_kelas.id_jadwal_kelas = absensi.id_jadwal_kelas', 'inner')
-            ->join('kelas', 'kelas.id_kelas = jadwal_kelas.id_kelas', 'inner')
-            ->orderBy('absensi.waktu_absen', 'DESC')
-            ->get()->getResultArray();
-
-        return view('admin/monitoring_absensi', ['title' => 'Monitoring Absensi Mentor', 'absensi' => $absensi]);
-    }
 
     public function absen()
     {

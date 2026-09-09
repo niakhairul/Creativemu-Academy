@@ -10,11 +10,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-purple: #7c3aed;
-            --dark-purple: #581c87;
-            --deep-purple: #2e1065;
-            --light-purple: #f3e8ff;
-            --bg-body: #faf5ff;
+            --primary-purple: #7c5cfa;
+            --dark-purple: #5b3fd6;
+            --deep-purple: #4a2fc9;
+            --light-purple: #efeaff;
+            --bg-body: #f8f6ff;
         }
 
         body { 
@@ -28,10 +28,12 @@
             min-height: 100vh; 
         }
 
-        /* Sidebar Styling */
+        /* Sidebar Styling - identik dengan warna sidebar Dashboard */
         .sidebar { 
             width: 270px; 
-            background: linear-gradient(180deg, var(--dark-purple) 0%, var(--primary-purple) 100%); 
+            background:
+                radial-gradient(circle at 15% 12%, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 45%),
+                linear-gradient(165deg, #4a2fc9 0%, #7440e6 32%, #9257f2 60%, #b678f5 100%);
             color: white; 
             position: fixed; 
             top: 0; 
@@ -39,7 +41,37 @@
             left: 0; 
             padding: 24px; 
             z-index: 100; 
-            box-shadow: 4px 0 25px rgba(124, 58, 237, 0.1);
+            box-shadow: 4px 0 25px rgba(116, 64, 230, 0.25);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Tekstur garis tipis diagonal agar sidebar tidak terlihat polos, sama seperti Dashboard */
+        .sidebar::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.035) 0px,
+                rgba(255, 255, 255, 0.035) 2px,
+                transparent 2px,
+                transparent 14px
+            );
+            pointer-events: none;
+        }
+
+        /* Lingkaran cahaya lembut di sidebar, tidak terlalu mencolok, sama seperti Dashboard */
+        .sidebar::before {
+            content: "";
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
         }
 
         .sidebar-brand { 
@@ -53,12 +85,16 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.15); 
             margin-bottom: 24px; 
             letter-spacing: -0.5px;
+            position: relative;
+            z-index: 1;
         }
 
         .sidebar-menu { 
             list-style: none; 
             padding: 0; 
             margin: 0; 
+            position: relative;
+            z-index: 1;
         }
 
         .sidebar-menu li { 
@@ -83,6 +119,11 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
+        .sidebar-menu a.active {
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.12));
+            box-shadow: 0 6px 18px rgba(20, 5, 60, 0.28), inset 3px 0 0 #ffd166;
+        }
+
         .sidebar-menu a i { 
             font-size: 1.25rem; 
             margin-right: 14px; 
@@ -103,7 +144,7 @@
             padding: 35px 40px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.2);
+            box-shadow: 0 10px 30px rgba(124, 92, 250, 0.2);
         }
 
         .header-banner::after {
@@ -123,18 +164,18 @@
             border-radius: 20px;
             background: #ffffff;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.05);
+            box-shadow: 0 4px 20px rgba(124, 92, 250, 0.05);
             overflow: hidden;
             display: flex;
             flex-direction: column;
             height: 100%;
-            border: 1px solid rgba(124, 58, 237, 0.08);
+            border: 1px solid rgba(124, 92, 250, 0.08);
         }
 
         .course-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 12px 30px rgba(124, 58, 237, 0.15);
-            border-color: rgba(124, 58, 237, 0.3);
+            box-shadow: 0 12px 30px rgba(124, 92, 250, 0.15);
+            border-color: rgba(124, 92, 250, 0.3);
         }
 
         .card-img-wrapper {
@@ -164,7 +205,7 @@
         }
 
         .custom-badge {
-            background: rgba(46, 16, 101, 0.85);
+            background: rgba(74, 47, 201, 0.85);
             backdrop-filter: blur(4px);
             color: white;
             font-weight: 600;
@@ -205,22 +246,46 @@
             font-weight: 700;
             letter-spacing: 0.3px;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+            box-shadow: 0 4px 12px rgba(124, 92, 250, 0.25);
         }
 
         .btn-kbm:hover {
             background: linear-gradient(135deg, var(--dark-purple) 0%, var(--deep-purple) 100%);
             color: white;
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(124, 58, 237, 0.35);
+            box-shadow: 0 6px 16px rgba(124, 92, 250, 0.35);
         }
 
         /* Empty State */
         .empty-state-card {
             background: white;
             border-radius: 24px;
-            border: 2px dashed rgba(124, 58, 237, 0.2);
+            border: 2px dashed rgba(124, 92, 250, 0.2);
             padding: 60px 20px;
+        }
+
+        /* Animasi masuk yang halus, secukupnya saja */
+        .header-banner {
+            animation: fadeInDown 0.5s ease;
+        }
+        .course-card {
+            opacity: 0;
+            animation: fadeInUp 0.5s ease forwards;
+        }
+        .row.g-4 > div:nth-child(1) .course-card { animation-delay: 0.05s; }
+        .row.g-4 > div:nth-child(2) .course-card { animation-delay: 0.1s; }
+        .row.g-4 > div:nth-child(3) .course-card { animation-delay: 0.15s; }
+        .row.g-4 > div:nth-child(4) .course-card { animation-delay: 0.2s; }
+        .row.g-4 > div:nth-child(5) .course-card { animation-delay: 0.25s; }
+        .row.g-4 > div:nth-child(6) .course-card { animation-delay: 0.3s; }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -286,7 +351,7 @@
 
                                 <!-- Card Body Content -->
                                 <div class="card-body p-4 d-flex flex-column">
-                                    <h4 class="fw-bold mb-3" style="color: var(--deep-purple); font-size: 1.25rem; line-height: 1.4;">
+                                    <h4 class="fw-bold mb-3" style="color: var(--dark-purple); font-size: 1.25rem; line-height: 1.4;">
                                         <?= esc($k['nama_kelas'] ?? $k['pilihan_pelatihan']) ?>
                                     </h4>
 
@@ -347,7 +412,7 @@
                                     <i class="bi bi-journal-x fs-1"></i>
                                 </span>
                             </div>
-                            <h4 class="fw-bold" style="color: var(--deep-purple);">Belum Ada Kelas yang Diambil</h4>
+                            <h4 class="fw-bold" style="color: var(--dark-purple);">Belum Ada Kelas yang Diambil</h4>
                             <p class="text-muted mb-4 mx-auto" style="max-width: 400px;">Anda belum terdaftar di kelas pelatihan apapun. Silakan pilih kelas terlebih dahulu untuk mulai belajar.</p>
                             <a href="<?= base_url('pelatihan/daftar-kelas') ?>" class="btn btn-kbm px-5 py-3 rounded-pill d-inline-flex align-items-center">
                                 <i class="bi bi-plus-circle-fill me-2"></i> Pilih Kelas Sekarang

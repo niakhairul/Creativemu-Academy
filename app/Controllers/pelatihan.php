@@ -109,18 +109,26 @@ protected function userId()
 
     public function index()
 {
-    $kelasModel = new \App\Models\KelasModel();
+    $userId = session()->get('id_user'); // atau id_peserta sesuai session kamu
     
-    // Ambil data dengan join mentor
-    $data['kelas'] = $kelasModel->getKelasWithMentor();
+    // Ambil data peserta & kelas yang diikuti
+    $pendaftaranModel = new \App\Models\PendaftaranModel();
+    $jadwalModel = new \App\Models\JadwalModel();
+    $userModel = new \App\Models\UserModel();
 
-    // DEBUG: Cek isi datanya di layar (hapus/komentar jika sudah selesai dicek)
-    echo "<pre>";
-    print_r($data['kelas']);
-    echo "</pre>";
-    exit();
+    $data['user'] = $userModel->find($userId);
+    $data['pendaftaran'] = $pendaftaranModel->where('id_user', $userId)->first();
 
-    return view('nama_view_kamu', $data);
+    // Ambil jadwal pelatihan berdasarkan id_kelas dari pendaftaran peserta
+    if (!empty($data['pendaftaran']['id_kelas'])) {
+        $data['jadwal_pelatihan'] = $jadwalModel->where('id_kelas', $data['pendaftaran']['id_kelas'])
+                                                ->orderBy('pertemuan_ke', 'ASC')
+                                                ->findAll();
+    } else {
+        $data['jadwal_pelatihan'] = [];
+    }
+
+    return view('peserta/dashboard', $data);
 }
 
    public function dashboard()
@@ -131,6 +139,7 @@ protected function userId()
 
     $pendaftaranModel = new \App\Models\PendaftaranModel();
     $userModel = new \App\Models\UserModel(); 
+    $jadwalModel = new \App\Models\JadwalModel();
 
     // 1. Cari data pendaftaran berdasarkan id_users ATAU email, sekaligus JOIN ke tabel kelas & mentor
     $pendaftaran = null;
@@ -170,10 +179,23 @@ protected function userId()
         $userData = $userModel->where('email', $userEmail)->first();
     }
 
+    // 3. Ambil data list jadwal pelatihan berdasarkan id_kelas peserta yang sedang aktif
+    // Ambil data list jadwal pelatihan berdasarkan id_kelas peserta 
+    // DAN pastikan kolom 'materi' tidak kosong (sudah diisi oleh mentor)
+    $list_jadwal = [];
+    if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
+        $list_jadwal = $jadwalModel->where('id_kelas', $pendaftaran['id_kelas'])
+                                   ->where('materi IS NOT NULL', null, false)
+                                   ->where('materi !=', '')
+                                   ->findAll();
+    }
+
+    // 4. Masukkan 'list_jadwal' ke dalam array data yang dikirim ke view
     $data = [
         'title'       => 'Dashboard Peserta',
         'pendaftaran' => $pendaftaran,
         'user'        => $userData ?? ['nama' => session()->get('nama') ?? 'Peserta'],
+        'list_jadwal' => $list_jadwal, // <--- Ini wajib ada agar terbaca di file view
     ];
 
     return view('peserta/dashboard', $data);
@@ -751,15 +773,6 @@ if ($kelas) {
     unset($item);
 }
 
-    $tugas = [];
-    if ($kelas && $db->tableExists('tugas')) {
-        $tugas = $db->table('tugas')->where('id_kelas', $kelas['id_kelas'])->orderBy('id_tugas', 'ASC')->get()->getResultArray();
-        foreach ($tugas as &$item) {
-            $item['pengumpulan'] = $db->table('pengumpulan_tugas')->where(['id_tugas' => $item['id_tugas'], 'id_users' => $this->userId()])->get()->getRowArray();
-        }
-        unset($item);
-    }
-
     // Ambil materi berdasarkan kelas peserta
     $materi = [];
 
@@ -825,7 +838,6 @@ if ($kelas) {
         'jadwal'              => $jadwal,
         'materi'              => $materi,
         'ujian'                => $ujian,
-        'tugas'                => $tugas,
         'totalPertemuan'      => $totalPertemuan,
         'jumlahHadir'         => $jumlahHadir,
         'persentaseKehadiran' => $persentaseKehadiran,
@@ -911,26 +923,7 @@ if ($kelas) {
             return redirect()->to(base_url('pelatihan/kelas'))->with('error', 'Kelas Anda belum disetujui admin.');
         }
 
-        $jadwal = (new JadwalKelasModel())->where('id_kelas', $kelas['id_kelas'])->orderBy('pertemuan_ke', 'ASC')->findAll();
-        $absensiModel = new AbsensiModel();
-        $jumlahHadir = 0;
-        foreach ($jadwal as &$item) {
-            $item['absensi'] = $absensiModel->where(['id_jadwal_kelas' => $item['id_jadwal_kelas'], 'id_user' => $this->userId()])->first();
-            if (($item['absensi']['status'] ?? null) === 'hadir') $jumlahHadir++;
-        }
-        unset($item);
-
-        $ujian = $this->db->table('ujian')->where('id_kelas', $kelas['id_kelas'])->orderBy('id_ujian', 'ASC')->get()->getResultArray();
-        foreach ($ujian as &$item) {
-            $item['jawaban'] = $this->db->table('jawaban_ujian')->where(['id_ujian' => $item['id_ujian'], 'id_user' => $this->userId()])->get()->getRowArray();
-        }
-        unset($item);
-
-        $tugas = $this->db->tableExists('tugas') ? $this->db->table('tugas')->where('id_kelas', $kelas['id_kelas'])->orderBy('id_tugas', 'ASC')->get()->getResultArray() : [];
-        $pengumpulan = (new PengumpulanTugasModel())->where('id_users', $this->userId())->first();
-        $hasilUjian = (new HasilUjianModel())->where(['id_kelas' => $kelas['id_kelas'], 'id_user' => $this->userId()])->orderBy('id_hasil_ujian', 'DESC')->first();
-
-        return view('peserta/kbm', ['kelas' => $kelas, 'jadwal' => $jadwal, 'ujian' => $ujian, 'tugas' => $tugas, 'pengumpulan' => $pengumpulan, 'hasilUjian' => $hasilUjian, 'jumlahHadir' => $jumlahHadir, 'totalPertemuan' => count($jadwal), 'persentaseKehadiran' => $jadwal ? round(($jumlahHadir / count($jadwal)) * 100) : 0, 'sudahIsiAngket' => false, 'sertifikatAcademy' => false]);
+        return view('peserta/kbm', ['kelas' => $kelas]);
     }
 
     public function daftarMateri()
@@ -1060,14 +1053,6 @@ if ($kelas) {
             return $redirect;
         }
 
-        $idTugas = (int) $this->request->getPost('id_tugas');
-        $kelas = $this->approvedEnrollment();
-        $tugas = ($kelas && $this->db->tableExists('tugas'))
-            ? $this->db->table('tugas')->where(['id_tugas' => $idTugas, 'id_kelas' => $kelas['id_kelas']])->get()->getRowArray()
-            : null;
-        if (! $tugas) return redirect()->to(base_url('pelatihan/kelas'))->with('error', 'Tugas tidak ditemukan atau bukan untuk kelas Anda.');
-        if (! empty($tugas['deadline']) && strtotime($tugas['deadline']) < time()) return redirect()->to(base_url('pelatihan/kelas'))->with('error', 'Deadline tugas sudah berakhir.');
-
         $file = $this->request->getFile('tugas');
         if (! $file || ! $file->isValid()) {
             return redirect()->back()->with('error', 'File tidak valid.');
@@ -1082,7 +1067,7 @@ if ($kelas) {
         $file->move($folder, $namaFile);
 
         (new PengumpulanTugasModel())->save([
-            'id_tugas' => $idTugas,
+            'id_tugas' => 1,
             'id_users' => $this->userId(),
             'file_tugas' => $namaFile,
             'status' => 'Belum Dinilai',
@@ -1449,7 +1434,7 @@ public function simpanJawabanUjian()
         $jadwal = (new JadwalKelasModel())->where('id_kelas', $pendaftaran['id_kelas'])->orderBy('pertemuan_ke', 'ASC')->findAll();
         $absensiModel = new AbsensiModel();
         foreach ($jadwal as &$item) {
-            $item['absensi'] = $absensiModel->where('id_jadwal_kelas', $item['id_jadwal_kelas'])->where('id_user', $this->userId())->first();
+            $item['absensi'] = $absensiModel->where('id_jadwal_kelas', $item['id_jadwal_kelas'])->where('id_users', $this->userId())->first();
         }
 
         return view('peserta/absensi', ['jadwal' => $jadwal]);
@@ -1466,20 +1451,6 @@ public function simpanJawabanUjian()
     if (!$idJadwal) {
         return redirect()->to(base_url('pelatihan/kelas'))
             ->with('error', 'Jadwal pertemuan tidak ditemukan.');
-    }
-
-    $pendaftaran = $this->approvedEnrollment();
-    $jadwal = $pendaftaran
-        ? (new JadwalKelasModel())->where(['id_jadwal_kelas' => $idJadwal, 'id_kelas' => $pendaftaran['id_kelas']])->first()
-        : null;
-    if (! $jadwal) {
-        return redirect()->to(base_url('pelatihan/kelas'))
-            ->with('error', 'Jadwal bukan bagian dari kelas Anda.');
-    }
-
-    $sekarang = time();
-    if ((int) ($jadwal['absensi_dibuka'] ?? 0) !== 1 || empty($jadwal['absensi_mulai']) || empty($jadwal['absensi_selesai']) || $sekarang < strtotime($jadwal['absensi_mulai']) || $sekarang > strtotime($jadwal['absensi_selesai'])) {
-        return redirect()->to(base_url('pelatihan/absensi'))->with('error', 'Absensi belum dibuka atau waktu absensi sudah berakhir.');
     }
 
     $absensiModel = new AbsensiModel();
