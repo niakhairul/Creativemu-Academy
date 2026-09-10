@@ -78,7 +78,7 @@
                                 <?php if(!isset($j['absensi'])): ?>
                                 <form action="<?= base_url('pelatihan/absensi/simpan') ?>" method="POST">
                                     <?= csrf_field() ?>
-                                    <input type="hidden" name="id_jadwal_kelas" value="<?= $j['id_jadwal_kelas'] ?>">
+                                    <input type="hidden" name="id_jadwal" value="<?= $j['id_jadwal'] ?>">
                                     <button type="submit" class="btn btn-sm btn-primary">Hadir</button>
                                 </form>
                                 <?php else: ?>

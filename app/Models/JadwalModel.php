@@ -11,6 +11,7 @@ class JadwalModel extends Model
     protected $allowedFields    = [
         'id_kelas', 
         'pertemuan_ke', 
+        'lokasi_nama',
         'tanggal_kbm', 
         'waktu_mulai', 
         'waktu_selesai', 

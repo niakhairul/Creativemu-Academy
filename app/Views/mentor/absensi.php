@@ -23,7 +23,7 @@
     </a>
 </div>
 
-<!-- Kotak Ungu (Hero Section) yang dikembalikan -->
+<!-- Kotak Ungu (Hero Section) -->
 <section class="absensi-hero p-4 p-lg-5 mb-4 shadow-sm">
     <div class="position-relative z-1 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
@@ -37,7 +37,7 @@
     </div>
 </section>
 
-<!-- Layout Utama Dibagi Menjadi Dua Bagian yang Lega -->
+<!-- Layout Utama Dibagi Menjadi Dua Bagian -->
 <div class="row g-4">
     <!-- Bagian Kiri: Kelola Materi & Status Absen Mentor -->
     <div class="col-lg-7">
@@ -99,7 +99,39 @@
                                 </div>
                             </div>
 
-                            <!-- Tombol Aksi Mentor -->
+                            <!-- Tampilan Token Sesi Aktif dengan Live Update tiap 5 detik -->
+                            <?php if ($sesiDibuka): ?>
+                                <div class="card text-center p-4 shadow-sm border-info my-2">
+                                    <h6 class="text-muted mb-1">Token Absensi Pertemuan Ini</h6>
+                                    <h1 id="box-token-<?= esc($item['id_jadwal']) ?>" class="display-4 fw-bold text-primary my-2 font-monospace" style="letter-spacing: 4px;">----</h1>
+                                    <p class="text-danger fw-semibold small mb-0">Token akan otomatis diperbarui setiap 5 detik. Harap lihat ke layar proyektor!</p>
+                                </div>
+
+                                <script>
+                                (function() {
+                                    const jadwalId = <?= esc($item['id_jadwal']) ?>;
+                                    const tokenElement = document.getElementById('box-token-' + jadwalId);
+
+                                    function fetchToken() {
+                                        fetch('<?= base_url("mentor/jadwal/get-live-token/") ?>' + jadwalId)
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                if(tokenElement && data.token) {
+                                                    tokenElement.innerText = data.token;
+                                                }
+                                            }).catch(err => console.error('Gagal mengambil token:', err));
+                                    }
+
+                                    // Jalankan saat pertama kali halaman dibuka
+                                    fetchToken();
+
+                                    // Set interval untuk memperbarui token setiap 5 detik (5000 milidetik)
+                                    setInterval(fetchToken, 5000);
+                                })();
+                                </script>
+                            <?php endif; ?>
+
+                            <!-- Tombol Aksi Mentor (Alur: Absen Dulu -> Baru Bisa Buka/Tutup Sesi) -->
                             <div class="bg-light p-2 rounded-2 mb-3">
                                 <?php if (! $mentorSudahAbsen): ?>
                                     <form action="<?= base_url('mentor/kelas/' . $kelas['id_kelas'] . '/absensi/' . $item['id_jadwal']) ?>" method="post">
@@ -110,19 +142,15 @@
                                         <button class="btn btn-outline-danger btn-sm w-100"><i class="fa-solid fa-lock me-1"></i> Tutup Sesi Absen Peserta</button>
                                     </form>
                                 <?php else: ?>
-                                    <form action="<?= base_url('mentor/kelas/' . $kelas['id_kelas'] . '/absensi/' . $item['id_jadwal'] . '/buka') ?>" method="post" class="d-flex align-items-center gap-2">
-                                        <input type="time" name="jam_mulai_absensi" class="form-control form-control-sm" required style="width: 85px;">
-                                        <span class="text-muted small">s/d</span>
-                                        <input type="time" name="jam_selesai_absensi" class="form-control form-control-sm" required style="width: 85px;">
-                                        <button class="btn btn-main btn-sm text-nowrap flex-grow-1"><i class="fa-solid fa-lock-open me-1"></i> Buka Sesi</button>
+                                    <form action="<?= base_url('mentor/kelas/' . $kelas['id_kelas'] . '/absensi/' . $item['id_jadwal'] . '/buka') ?>" method="post">
+                                        <button class="btn btn-main btn-sm w-100"><i class="fa-solid fa-lock-open me-1"></i> Buka Sesi Absensi</button>
                                     </form>
                                 <?php endif; ?>
                             </div>
 
-                            <!-- Form Update Materi Ringkas (Judul selalu terbuka, File/Link dibatasi tanggal KBM) -->
+                            <!-- Form Update Materi & Upload PDF -->
                             <form action="<?= base_url('mentor/jadwal/update-materi/' . $item['id_jadwal']) ?>" method="post" enctype="multipart/form-data">
                                 <div class="row g-2">
-                                    <!-- Input Judul Materi: Selalu terbuka agar bisa diisi kapan saja -->
                                     <div class="col-12">
                                         <input type="text" name="materi" class="form-control form-control-sm" value="<?= esc($item['materi'] ?? '') ?>" placeholder="Topik / Materi Pembelajaran" required>
                                     </div>
@@ -134,7 +162,6 @@
                                     ?>
 
                                     <?php if ($sudahWaktunya): ?>
-                                        <!-- Input File & Link Google Drive: Hanya terbuka saat hari H atau setelahnya -->
                                         <div class="col-sm-6">
                                             <input type="url" name="link_materi" class="form-control form-control-sm" value="<?= esc($item['link_materi'] ?? '') ?>" placeholder="Link Google Drive">
                                         </div>
@@ -142,7 +169,6 @@
                                             <input type="file" name="file_pdf" class="form-control form-control-sm" accept=".pdf">
                                         </div>
                                     <?php else: ?>
-                                        <!-- Pesan jika berkas belum bisa diunggah -->
                                         <div class="col-12">
                                             <div class="alert alert-light border small text-muted py-1 mb-0 text-center">
                                                 <i class="fa-solid fa-clock me-1"></i> Unggah file & link Google Drive akan dibuka pada tanggal <strong><?= $tanggalKbm ? date('d M Y', strtotime($tanggalKbm)) : 'pelatihan' ?></strong>.
@@ -162,7 +188,7 @@
         </div>
     </div>
 
-    <!-- Bagian Kanan: Rekap Kehadiran Peserta (Accordion Bersih) -->
+    <!-- Bagian Kanan: Rekap Kehadiran Peserta -->
     <div class="col-lg-5">
         <div class="content-card p-4 h-100">
             <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">

@@ -154,7 +154,7 @@
                         <span class="text-muted small text-uppercase fw-bold">Status Kelas</span>
                         <div>
                             <?php 
-                                $status =$detail_kelas['status'] ?? 'Aktif';
+                                $status = $detail_kelas['status'] ?? 'Aktif';
                                 $badgeClass = (strtolower($status) == 'aktif') ? 'bg-success' : 'bg-secondary';
                             ?>
                             <span class="badge <?= $badgeClass; ?> px-3 py-2 mt-1"><?= esc($status); ?></span>
@@ -201,7 +201,7 @@
                     <tbody>
                         <?php if (!empty($jadwal) && is_array($jadwal)): ?>
                             <?php $no = 1; ?>
-                            <?php foreach ($jadwal as$row): ?>
+                            <?php foreach ($jadwal as $row): ?>
                                 <tr>
                                     <td class="ps-4 fw-semibold"><?= $no++; ?></td>
                                     <td>
@@ -284,7 +284,7 @@
 
 <!-- 1. Modal Tambah Jadwal (Oleh Admin) -->
 <div class="modal fade" id="modalTambahJadwal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content shadow-lg">
             <form action="<?= base_url('admin/jadwal/tambah'); ?>" method="post">
                 <?= csrf_field(); ?>
@@ -299,13 +299,12 @@
                         <input type="number" class="form-control" id="pertemuan_ke" name="pertemuan_ke" min="1" required placeholder="Misal: 1">
                     </div>
                     <div class="row mb-3">
-    <div class="col-md-6">
-        <label for="tanggal_kbm" class="form-label fw-semibold">Tanggal</label>
-        <input type="date" class="form-control" id="tanggal_kbm" name="tanggal_kbm" required>
-    </div>
+                        <div class="col-md-12">
+                            <label for="tanggal_kbm" class="form-label fw-semibold">Tanggal</label>
+                            <input type="date" class="form-control" id="tanggal_kbm" name="tanggal_kbm" required>
+                        </div>
                     </div>
-
-                            <div class="row mb-3">
+                    <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="waktu_mulai" class="form-label fw-semibold">Jam Mulai</label>
                             <input type="time" class="form-control" id="waktu_mulai" name="waktu_mulai" required>
@@ -331,18 +330,17 @@
 </div>
 
 <!-- 2. Modal Edit Jadwal (Oleh Admin) -->
-<!-- Loop untuk membuat modal unik untuk setiap baris jadwal -->
 <?php if (!empty($jadwal) && is_array($jadwal)): ?>
     <?php foreach ($jadwal as $row): ?>
     <div class="modal fade" id="modalEditJadwal<?= $row['id_jadwal']; ?>" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content shadow-lg">
                 <form action="<?= base_url('admin/jadwal/update/' . $row['id_jadwal']); ?>" method="post">
                     <?= csrf_field(); ?>
                     <input type="hidden" name="id_kelas" value="<?= esc($row['id_kelas']); ?>">
-                    <div class="modal-header text-white" style="background-color: #ffc107;"> <!-- Warna kuning warning -->
-                        <h5 class="modal-title text-white"><i class="fas fa-edit me-2"></i> Edit Jadwal (Admin)</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="modal-header text-white" style="background-color: #ffc107;">
+                        <h5 class="modal-title text-dark"><i class="fas fa-edit me-2"></i> Edit Jadwal (Admin)</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body p-4">
                         <div class="mb-3">
@@ -350,7 +348,7 @@
                             <input type="number" class="form-control" id="pertemuan_ke_edit<?= $row['id_jadwal']; ?>" name="pertemuan_ke" value="<?= esc($row['pertemuan_ke']); ?>" min="1" required>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label for="tanggal_kbm_edit<?= $row['id_jadwal']; ?>" class="form-label fw-semibold">Tanggal</label>
                                 <input type="date" class="form-control" id="tanggal_kbm_edit<?= $row['id_jadwal']; ?>" name="tanggal_kbm" value="<?= esc($row['tanggal_kbm']); ?>" required>
                             </div>
@@ -369,13 +367,14 @@
                             <label for="ruangan_atau_link_edit<?= $row['id_jadwal']; ?>" class="form-label fw-semibold">Ruangan / Link GMeet</label>
                             <input type="text" class="form-control" id="ruangan_atau_link_edit<?= $row['id_jadwal']; ?>" name="ruangan_atau_link" value="<?= esc($row['ruangan_atau_link']); ?>" placeholder="Masukkan nama ruangan atau URL Google Meet">
                         </div>
+
                          <div class="alert alert-warning py-2 small mb-0">
-                            <i class="fas fa-exclamation-triangle me-1"></i> Data materi dan berkas (di bawah) tidak diubah di sini.
+                            <i class="fas fa-exclamation-triangle me-1"></i> Data materi dan berkas (di bawah) dikelola terpisah oleh mentor.
                         </div>
                     </div>
                     <div class="modal-footer bg-light">
                         <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-warning text-white px-4">Simpan Perubahan</button>
+                        <button type="submit" class="btn btn-warning text-dark px-4">Simpan Perubahan</button>
                     </div>
                 </form>
             </div>
@@ -383,7 +382,6 @@
     </div>
     <?php endforeach; ?>
 <?php endif; ?>
-
 
 <!-- 3. Modal Input Materi (Oleh Mentor) -->
 <?php if (!empty($jadwal) && is_array($jadwal)): ?>

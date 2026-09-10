@@ -88,8 +88,13 @@ $routes->post('pelatihan/update-password', 'Pelatihan::updatePassword');
 
 // ===== MENU ABSENSI PESERTA =====
 $routes->get('pelatihan/absensi', 'Pelatihan::absensi');
+// Contoh routing untuk absensi berbasis GPS
 $routes->post('pelatihan/absensi/simpan', 'Pelatihan::simpanAbsensi');
 $routes->get('pelatihan/riwayat-absensi', 'Pelatihan::riwayatAbsensi');
+$routes->post('peserta/proses-absen', 'Peserta::prosesAbsen'); // Sesuaikan nama controller peserta jika berbeda
+$routes->post('pelatihan/proses-absen/(:num)', 'Pelatihan::prosesAbsen/$1');
+$routes->get('mentor/kelas/(:num)/buka-absen/(:num)', 'Mentor::bukaAbsen/$1/$2');
+$routes->get('mentor/kelas/(:num)/tutup-absen/(:num)', 'Mentor::tutupAbsen/$1/$2');
 
 // ===== MENU ADMIN =====
 $routes->group('admin', function($routes) {

@@ -291,9 +291,6 @@ public function masterKelas()
     return view('admin/master_kelas/jadwal', $data);
 }
 
-    // Method untuk menyimpan jadwal dasar oleh Admin
-    // Method untuk menyimpan jadwal dasar oleh Admin
-    // Method untuk menyimpan jadwal dasar oleh Admin
     public function simpanJadwal()
     {
         $db = \Config\Database::connect();
@@ -304,20 +301,97 @@ public function masterKelas()
         }
 
         $data = [
-            'id_kelas'       => $id_kelas,
+            'id_kelas'          => $id_kelas,
             'pertemuan_ke'      => $this->request->getPost('pertemuan_ke'),
             'tanggal_kbm'       => $this->request->getPost('tanggal_kbm'),
             'waktu_mulai'       => $this->request->getPost('waktu_mulai'),
             'waktu_selesai'     => $this->request->getPost('waktu_selesai'),
             'materi'            => $this->request->getPost('materi'),
-            'ruangan_atau_link' => $this->request->getPost('ruangan_atau_link'), // Tangkap input dari form di sini
+            'ruangan_atau_link' => $this->request->getPost('ruangan_atau_link'),
             'absensi_dibuka'    => 0,
         ];
 
-        // Diubah dari 'jadwal_kelas' ke 'jadwal' sesuai tabel database Anda
         $db->table('jadwal')->insert($data);
         
         return redirect()->to(base_url('admin/master-kelas/jadwal/' . $id_kelas))->with('pesan', 'Jadwal berhasil ditambahkan');
+    }
+
+    public function bukaAbsen($id_jadwal)
+    {
+        $db = \Config\Database::connect();
+        
+        // Buat token acak 4 digit angka
+        $token = rand(1000, 9999);
+
+        $data = [
+            'absensi_dibuka' => 1,
+            'token_absen'    => $token
+        ];
+
+        $db->table('jadwal')->where('id_jadwal', $id_jadwal)->update($data);
+
+        // Ambil data jadwal untuk redirect kembali ke halaman detail kelas
+        $jadwal = $db->table('jadwal')->where('id_jadwal', $id_jadwal)->get()->getRowArray();
+
+        return redirect()->to(base_url('admin/master-kelas/jadwal/' . $jadwal['id_kelas']))
+                         ->with('success', 'Absensi dibuka! Token untuk pertemuan ini: ' . $token);
+    }
+
+    public function tutupAbsen($id_jadwal)
+    {
+        $db = \Config\Database::connect();
+        
+        $data = [
+            'absensi_dibuka' => 0,
+            'token_absen'    => null
+        ];
+
+        $db->table('jadwal')->where('id_jadwal', $id_jadwal)->update($data);
+        $jadwal = $db->table('jadwal')->where('id_jadwal', $id_jadwal)->get()->getRowArray();
+
+        return redirect()->to(base_url('admin/master-kelas/jadwal/' . $jadwal['id_kelas']))
+                         ->with('success', 'Absensi berhasil ditutup.');
+    }
+
+    public function prosesAbsen()
+    {
+        $db = \Config\Database::connect();
+        $id_jadwal = $this->request->getPost('id_jadwal');
+        $tokenInput = $this->request->getPost('token_absen');
+        $id_user = session()->get('id_users'); // ID peserta yang sedang login
+
+        // Ambil data jadwal
+        $jadwal = $db->table('jadwal')->where('id_jadwal', $id_jadwal)->get()->getRowArray();
+
+        // 1. Cek apakah absensi sedang dibuka
+        if (!$jadwal || $jadwal['absensi_dibuka'] != 1) {
+            return redirect()->back()->with('error', 'Maaf, absensi untuk pertemuan ini belum dibuka oleh mentor.');
+        }
+
+        // 2. Cek apakah token yang dimasukkan sesuai
+        if ($jadwal['token_absen'] !== $tokenInput) {
+            return redirect()->back()->with('error', 'Token absensi salah! Silakan tanyakan token terbaru ke mentor.');
+        }
+
+        // 3. Cek apakah peserta sudah pernah absen di jadwal ini sebelumnya
+        $sudahAbsen = $db->table('absensi')
+                         ->where('id_jadwal', $id_jadwal)
+                         ->where('id_user', $id_user)
+                         ->countAllResults();
+
+        if ($sudahAbsen > 0) {
+            return redirect()->back()->with('error', 'Anda sudah melakukan absensi untuk pertemuan ini.');
+        }
+
+        // 4. Simpan data absensi jika semua valid
+        $db->table('absensi')->insert([
+            'id_jadwal'        => $id_jadwal,
+            'id_user'          => $id_user,
+            'waktu_absen'      => date('Y-m-d H:i:s'),
+            'status_kehadiran' => 'Hadir'
+        ]);
+
+        return redirect()->back()->with('success', 'Berhasil absen! Kehadiran Anda telah dicatat.');
     }
 
     public function monitoringAbsensi()
@@ -327,7 +401,7 @@ public function masterKelas()
             ->select('absensi.*, users.nama AS nama_mentor, kelas.nama_kelas, jadwal.pertemuan_ke, jadwal.materi, jadwal.tanggal_kbm')
             ->join('users', 'users.id_users = absensi.id_user', 'inner')
             ->join('mentor', 'mentor.id_users = users.id_users', 'inner')
-            ->join('jadwal', 'jadwal.id_jadwal = absensi.id_jadwal', 'inner') // Sesuaikan relasi tabel jadwal
+            ->join('jadwal', 'jadwal.id_jadwal = absensi.id_jadwal', 'inner')
             ->join('kelas', 'kelas.id_kelas = jadwal.id_kelas', 'inner')
             ->orderBy('absensi.waktu_absen', 'DESC')
             ->get()->getResultArray();
@@ -353,24 +427,19 @@ public function updateJadwal($id_jadwal)
     return redirect()->to(base_url('admin/master-kelas/jadwal/' . $jadwalLama['id_kelas']))->with('success', 'Jadwal pertemuan berhasil diperbarui.');
 }
 
-
-// Method untuk menghapus jadwal
 public function hapusJadwal($id_jadwal)
 {
     $db = \Config\Database::connect();
     
-    // Ambil data jadwal terlebih dahulu untuk mengetahui id_kelas
     $jadwal = $db->table('jadwal')->where('id_jadwal', $id_jadwal)->get()->getRowArray();
 
     if ($jadwal) {
         $id_kelas = $jadwal['id_kelas'];
 
-        // Jika file PDF sudah diupload mentor, hapus juga file fisiknya dari server
         if (!empty($jadwal['file_pdf']) && file_exists('uploads/materi/' . $jadwal['file_pdf'])) {
             @unlink('uploads/materi/' . $jadwal['file_pdf']);
         }
         
-        // Hapus data dari database
         $db->table('jadwal')->where('id_jadwal', $id_jadwal)->delete();
         
         return redirect()->to(base_url('admin/master-kelas/jadwal/' . $id_kelas))->with('success', 'Jadwal berhasil dihapus.');
@@ -379,7 +448,6 @@ public function hapusJadwal($id_jadwal)
     return redirect()->back()->with('error', 'Data jadwal tidak ditemukan.');
 }
 
-    // --- MENTOR ---
     public function mentor()
     {
         $mentorModel = new MentorModel();
@@ -476,7 +544,6 @@ public function simpan()
         ->with('success', 'Akun login dan profil mentor berhasil ditambahkan.');
 }
 
-
     public function updateMentor($id)
     {
         $mentorModel = new MentorModel();
@@ -523,7 +590,6 @@ $data = [
     'status'      => $this->request->getPost('status'),
 ];
 
-
         $fileCv = $this->request->getFile('cv');
         if ($fileCv && $fileCv->isValid() && !$fileCv->hasMoved()) {
             if (! is_dir(FCPATH . 'uploads/cv')) mkdir(FCPATH . 'uploads/cv', 0755, true);
@@ -561,17 +627,13 @@ $data = [
         return view('admin/mentor/edit', $data);
     }
 
-
-    // --- ABSENSI ---
-
     public function absen()
     {
         $db = \Config\Database::connect();
         
-        // Contoh query untuk mengambil data absensi mentor/peserta
         $data = [
             'title'  => 'Monitoring Absensi',
-            'absen'  => $db->table('absen') // Sesuaikan dengan nama tabel absensi Anda di database
+            'absen'  => $db->table('absen')
                         ->select('absen.*, kelas.nama_kelas')
                         ->join('kelas', 'kelas.id_kelas = absen.id_kelas', 'left')
                         ->get()
@@ -581,7 +643,6 @@ $data = [
         return view('admin/absen/index', $data);
     }
 
-    // --- PESERTA & PENDAFTARAN ---
     public function dataPeserta()
 {
     $pendaftaranModel = new PendaftaranModel();
@@ -641,7 +702,6 @@ $data = [
     {
         $pendaftaranModel = new \App\Models\PendaftaranModel();
 
-        // Pastikan aksi benar
         if ($aksi === 'setuju') {
             $statusBaru = 'valid';
             $statusPendaftaranBaru = 'Disetujui';
@@ -653,7 +713,6 @@ $data = [
                 ->with('error', 'Aksi tidak valid: ' . $aksi);
         }
 
-        // Ambil data pendaftaran untuk pengecekan NIS dan Email peserta
         $pendaftaran = $pendaftaranModel->find($id_pendaftaran);
 
         if (!$pendaftaran) {
@@ -663,7 +722,6 @@ $data = [
 
         $nisBaru = $pendaftaran['nis'];
 
-        // Jika disetujui dan peserta belum punya NIS, generate NIS baru
         if ($aksi === 'setuju' && empty($nisBaru)) {
             $tanggalHariIni = date('Ymd');
 
@@ -682,18 +740,15 @@ $data = [
             $nisBaru = $tanggalHariIni . str_pad($urutanBaru, 3, '0', STR_PAD_LEFT);
         }
 
-        // Siapkan data yang akan di-update
         $dataUpdate = [
             'status_pembayaran'   => $statusBaru,
             'status_pendaftaran'  => $statusPendaftaranBaru,
         ];
 
-        // Masukkan NIS jika aksinya disetujui
         if ($aksi === 'setuju') {
             $dataUpdate['nis'] = $nisBaru;
         }
 
-        // Update database menggunakan model
         $hasil = $pendaftaranModel->update($id_pendaftaran, $dataUpdate);
 
         if (!$hasil) {
@@ -701,9 +756,6 @@ $data = [
                 ->with('error', 'Database gagal diperbarui.');
         }
 
-        // =======================================================
-        // LETAKKAN KODE PENGIRIMAN EMAIL DI SINI
-        // =======================================================
         $email = \Config\Services::email();
         $email->setTo($pendaftaran['email']);
         $email->setFrom('email_anda@gmail.com', 'Creativemu Academy');
@@ -733,14 +785,9 @@ $data = [
             ');
         }
 
-        $email->send(); // Ganti bagian ini atau bungkus dengan if di bawah:
-
         if (!$email->send()) {
             print_r($email->printDebugger(['headers', 'subject', 'body']));
             exit;
-
-        return redirect()->to(base_url('admin/validasi'))
-            ->with('pesan', $pesanSukses);
         }
     }
 
@@ -796,16 +843,12 @@ $data = [
         $dataUpdate['bukti_pembayaran'] = $newName;
     }
 
-    // Update ke database
     $pendaftaranModel->update($id_pendaftaran, $dataUpdate);
 
-    // =======================================================
-    // KIRIM EMAIL NOTIFIKASI
-    // =======================================================
     if ($pendaftaranLama && !empty($pendaftaranLama['email'])) {
         $email = \Config\Services::email();
         $email->setTo($pendaftaranLama['email']);
-        $email->setFrom('email_anda@gmail.com', 'Creativemu Academy'); // Ganti dengan email Anda
+        $email->setFrom('email_anda@gmail.com', 'Creativemu Academy');
 
         $isDisetujui = ($status === 'valid' || $status === 'Disetujui' || $status === 'approved');
 
@@ -891,7 +934,6 @@ $data = [
             exit;
         }
     }
-    // =======================================================
 
     if ($status === 'rejected' || $status === 'Ditolak') {
         $pesan = 'Pendaftaran berhasil ditolak.';
@@ -902,17 +944,15 @@ $data = [
     return redirect()->to(base_url('admin/validasi'))
                      ->with('success', $pesan);
 }
-    
 
    public function angket()
 {
     $db = \Config\Database::connect();
     
-    // Sambungkan angket ke kelas, lalu kelas ke mentor
     $data['angket'] = $db->table('angket_pertanyaan')
                          ->select('angket_pertanyaan.*, kelas.nama_kelas, mentor.nama_mentor')
                          ->join('kelas', 'kelas.id_kelas = angket_pertanyaan.id_kelas', 'left')
-                         ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left') // <- Ambil mentor lewat kelas
+                         ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
                          ->groupBy('angket_pertanyaan.judul_angket') 
                          ->get()
                          ->getResultArray();
@@ -921,16 +961,15 @@ $data = [
     return view('admin/angket/index', $data);
 }
 
-    // --- TAMBAH ANGKET ---
     public function tambahAngket()
 {
     $kelasModel  = new \App\Models\KelasModel();
-    $mentorModel = new \App\Models\MentorModel(); // Pastikan model mentor dipanggil
+    $mentorModel = new \App\Models\MentorModel();
 
     $data = [
         'title'  => 'Buat Angket Evaluasi',
         'kelas'  => $kelasModel->findAll(),
-        'mentor' => $mentorModel->findAll() // Pastikan variabel 'mentor' dikirim ke view
+        'mentor' => $mentorModel->findAll()
     ];
 
     return view('admin/angket/tambah_angket', $data);
@@ -938,34 +977,31 @@ $data = [
 
 public function simpanAngket()
 {
-    // 1. Menangkap data utama dari form
-    $judulAngket = $this->request->getPost('judul_angket'); // <-- Tangkap judul angket
+    $judulAngket = $this->request->getPost('judul_angket');
     $idKelas     = $this->request->getPost('id_kelas');
-    $kategori    = $this->request->getPost('kategori');   // Berbentuk Array
-    $pertanyaan  = $this->request->getPost('pertanyaan'); // Berbentuk Array
+    $kategori    = $this->request->getPost('kategori');
+    $pertanyaan  = $this->request->getPost('pertanyaan');
 
     $db = \Config\Database::connect();
     $builder = $db->table('angket_pertanyaan'); 
 
-    // 3. Simpan setiap baris pertanyaan dinamis menggunakan perulangan (looping)
     if (!empty($pertanyaan)) {
         for ($i = 0; $i < count($pertanyaan); $i++) {
             $dataSimpan = [
-                'judul_angket' => $judulAngket,          // <-- Masukkan judul angket di sini
+                'judul_angket' => $judulAngket,
                 'id_kelas'     => $idKelas,
                 'kategori'     => $kategori[$i] ?? null,
                 'pertanyaan'   => $pertanyaan[$i],
                 'created_at'   => date('Y-m-d H:i:s')
             ];
 
-            // Masukkan ke database
             $builder->insert($dataSimpan);
         }
     }
 
-    // 4. Arahkan kembali ke halaman daftar angket dengan pesan sukses
     return redirect()->to(base_url('admin/angket'))->with('success', 'Konfigurasi angket berhasil disimpan!');
 }
+
     public function getAngket()
 {
     $db = \Config\Database::connect();
@@ -982,7 +1018,6 @@ public function edit($id)
 {
     $db = \Config\Database::connect();
     
-    // 1. Ambil data angket utama berdasarkan ID yang diklik
     $angketUtama = $db->table('angket_pertanyaan')
                       ->where('id_angket_pertanyaan', $id)
                       ->get()
@@ -994,7 +1029,6 @@ public function edit($id)
 
     $judulTarget = $angketUtama['judul_angket'];
 
-    // 2. Ambil SEMUA baris pertanyaan yang memiliki judul_angket yang sama
     $data['semua_pertanyaan'] = $db->table('angket_pertanyaan')
                                    ->where('judul_angket', $judulTarget)
                                    ->get()
@@ -1002,9 +1036,8 @@ public function edit($id)
 
     $data['angket'] = $angketUtama;
     $data['title']  = 'Edit Angket Evaluasi';
-    $data['id']     = $id; // <--- TAMBAHKAN BARIS INI AGAR $id DIKENALI DI VIEW
+    $data['id']     = $id;
     
-    // 3. Ambil data kelas dan mentor untuk pilihan dropdown
     $data['kelas']  = $db->table('kelas')->get()->getResultArray();
     $data['mentor'] = $db->table('mentor')->get()->getResultArray();
 
@@ -1015,25 +1048,20 @@ public function update($id)
 {
     $db = \Config\Database::connect();
     
-    // Ambil judul lama untuk acuan data yang mau di-update
     $angketLama = $db->table('angket_pertanyaan')->where('id_angket_pertanyaan', $id)->get()->getRowArray();
     $judulLama  = $angketLama['judul_angket'] ?? '';
 
-    // Tangkap data dari form edit
-   
     $judulBaru  = $this->request->getPost('judul_angket');
     $idKelas    = $this->request->getPost('id_kelas');
-    $kategori   = $this->request->getPost('kategori');   // Array
-    $pertanyaan = $this->request->getPost('pertanyaan'); // Array
+    $kategori   = $this->request->getPost('kategori');
+    $pertanyaan = $this->request->getPost('pertanyaan');
 
-    // Hapus dulu data lama yang memiliki judul tersebut agar bisa diganti dengan yang baru dikirim
     if (!empty($judulLama)) {
         $db->table('angket_pertanyaan')->where('judul_angket', $judulLama)->delete();
     } else {
         $db->table('angket_pertanyaan')->where('id_angket_pertanyaan', $id)->delete();
     }
 
-    // Masukkan kembali data yang sudah diperbarui melalui looping
     if (!empty($pertanyaan)) {
         for ($i = 0; $i < count($pertanyaan); $i++) {
             $dataSimpan = [
@@ -1054,7 +1082,6 @@ public function update($id)
 {
     $db = \Config\Database::connect();
 
-    // 1. Ambil data utama berdasarkan ID baris yang diklik, lengkap dengan join ke kelas dan mentor
     $data['angket'] = $db->table('angket_pertanyaan')
                          ->select('angket_pertanyaan.*, kelas.nama_kelas, mentor.nama_mentor')
                          ->join('kelas', 'kelas.id_kelas = angket_pertanyaan.id_kelas', 'left')
@@ -1069,7 +1096,6 @@ public function update($id)
 
     $judulTarget = $data['angket']['judul_angket'];
 
-    // 2. Ambil SEMUA daftar pertanyaan yang memiliki judul_angket yang sama (untuk ditampilkan di tabel bawah)
     $data['semua_pertanyaan'] = $db->table('angket_pertanyaan')
                                    ->where('judul_angket', $judulTarget)
                                    ->get()
@@ -1082,7 +1108,6 @@ public function delete($id)
 {
     $db = \Config\Database::connect();
     
-    // Hapus langsung menggunakan query builder berdasarkan primary key
     $db->table('angket_pertanyaan')->where('id_angket_pertanyaan', $id)->delete();
     
     return redirect()->to('admin/angket')->with('success', 'Data angket berhasil dihapus.');
@@ -1095,7 +1120,7 @@ public function hasilAngket()
     $data['hasil'] = $db->table('jawaban_angket')
         ->select('jawaban_angket.*, angket_pertanyaan.judul_angket, users.nama as nama_siswa')
         ->join('angket_pertanyaan', 'angket_pertanyaan.id_angket_pertanyaan = jawaban_angket.id_angket_pertanyaan', 'left') 
-        ->join('users', 'users.id_users = jawaban_angket.id_users', 'left') // Ganti id_users sesuai kolom relasi asli di tabel jawaban_angket
+        ->join('users', 'users.id_users = jawaban_angket.id_users', 'left')
         ->get()
         ->getResultArray();
     
@@ -1103,8 +1128,6 @@ public function hasilAngket()
     return view('admin/angket/hasil', $data);
 }
 
-// --- SERTIFIKAT ---
-    
     public function sertifikat()
 {
     $sertifikatModel = new SertifikatModel();
@@ -1165,7 +1188,6 @@ public function hasilAngket()
         return redirect()->to(base_url('admin/sertifikat'))->with('error', 'Sertifikat tidak ditemukan.');
     }
 
-    // --- LAPORAN & PENGATURAN ---
     public function laporan()
     {
         $pesertaModel = new PesertaModel();
