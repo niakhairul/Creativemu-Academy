@@ -58,13 +58,10 @@
         }
 
         #sidebar .sidebar-header img {
-    width: 240px;
-    height: 95px;
-    object-fit: cover;
-    border-radius: 10px;
-    filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
-    transition: transform 0.3s ease;
-}
+            max-width: 170px;
+            height: auto;
+            filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
+        }
 
         #sidebar .nav { padding: 20px 14px; }
         #sidebar .nav-item { margin-bottom: 6px; }
@@ -298,7 +295,7 @@
     <!-- === SIDEBAR MENU === -->
     <nav id="sidebar">
         <div class="sidebar-header">
-           <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
+            <img src="<?= base_url('assets/img/logo_creativemu_academy.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
         </div>
         <ul class="nav flex-column">
             <li class="nav-item">
@@ -360,7 +357,7 @@
         <!-- === TOP NAVBAR === -->
         <div class="top-navbar">
             <div class="dash-header">
-                <h3>Master Kelas</h3>
+                <h3>Kelas</h3>
                 <p>Kelola data pelatihan, tambah kelas baru, dan atur jadwal dengan mudah.</p>
             </div>
             <div class="d-flex align-items-center gap-4">
@@ -380,13 +377,6 @@
         <?php if (session()->getFlashdata('success')): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <?= session()->getFlashdata('success'); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endif; ?>
-
-        <?php if (session()->getFlashdata('error')): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <?= esc(session()->getFlashdata('error')); ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
@@ -493,6 +483,10 @@
     <?= csrf_field(); ?>
                     <div class="modal-body">
                         <div class="row g-3">
+                            <div class="col-12">
+            <label class="form-label">NIP (Nomor Induk Pegawai)</label>
+            <input type="text" name="nip" class="form-control" placeholder="Contoh: 198501012010121001" required>
+        </div>
                             <div class="col-md-6">
                                 <label class="form-label">Nama Lengkap & Gelar</label>
                                 <input type="text" name="nama_mentor" class="form-control" placeholder="Contoh: Dr. Budi Santoso, M.Kom" required>
@@ -500,15 +494,6 @@
                             <div class="col-md-6">
                                 <label class="form-label">Email Aktif</label>
                                 <input type="email" name="email" class="form-control" placeholder="budi@example.com" required>
-                                <small class="text-muted">Email ini digunakan mentor untuk login.</small>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Password Login</label>
-                                <input type="password" name="password" class="form-control" placeholder="Minimal 8 karakter" minlength="8" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Konfirmasi Password</label>
-                                <input type="password" name="konfirmasi_password" class="form-control" placeholder="Ulangi password" minlength="8" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">No. Telepon / WhatsApp</label>
