@@ -21,7 +21,7 @@
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             /* Latar belakang persis warna ungu dari sampel Anda */
-            background: #8E5EC7;
+            background: #B078E8;
             min-height: 100vh;
             margin: 0;
             display: flex;
@@ -67,7 +67,10 @@
         .login-card {
             background: #ffffff;
             border-radius: 28px;
-            box-shadow: 0 20px 50px rgba(60, 30, 100, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            box-shadow:
+                0 25px 60px rgba(55, 25, 90, 0.25),
+                0 8px 25px rgba(55, 25, 90, 0.15);
             overflow: hidden;
             display: flex;
             flex-direction: row;
@@ -75,16 +78,16 @@
 
         /* Sisi Kiri: Banner Ungu */
         .login-banner {
-            flex: 1.1;
-            background: #8E5EC7;
-            padding: 45px;
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            overflow: hidden;
-        }
+    flex: 1.1;
+    background: #8E5EC7;
+    padding: 45px;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+}
 
         .login-banner::after {
             content: "";
@@ -95,21 +98,22 @@
             border-radius: 50%;
         }
 
-        .banner-logo-box {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+       .banner-logo-box {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+}
 
-        .banner-logo {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            object-fit: cover;
-            background: #ffffff;
-            padding: 2px;
-        }
-
+.banner-logo {
+    width: 90px;
+    height: 58px;
+    border-radius: 12px;
+    object-fit: cover;
+    background: #ffffff;
+    padding: 0;
+    transform: scale(1.35);
+    flex-shrink: 0;
+}
         .banner-title-sm {
             font-weight: 700;
             font-size: 1rem;
@@ -124,12 +128,13 @@
         }
 
         .banner-center-content h2 {
-            font-weight: 800;
-            font-size: 1.9rem;
-            line-height: 1.25;
-            margin-bottom: 14px;
-            letter-spacing: -0.5px;
-        }
+    font-weight: 800;
+    font-size: 1.9rem;
+    line-height: 1.25;
+    margin-bottom: 14px;
+    letter-spacing: -0.5px;
+    margin-top: 8px;
+}
 
         .banner-center-content p {
             font-size: 0.88rem;
@@ -280,14 +285,14 @@
             <!-- Sisi Kiri: Banner -->
             <div class="login-banner">
                 <div class="banner-logo-box">
-                    <img src="<?= base_url('assets/img/logo_creativemu_academy.jpg') ?>" class="banner-logo" alt="Logo">
+                    <img src="<?= base_url('assets/img/logo_creativemu.jpg') ?>" class="banner-logo" alt="Logo">
                     <div>
                         <h6 class="banner-title-sm">Creativemu</h6>
                         <p class="banner-subtitle-sm">Academy Platform</p>
                     </div>
                 </div>
 
-                <div class="banner-center-content my-4">
+                <div class="banner-center-content my-3">
                     <h2>Tingkatkan Skill dan Bangun Portofolio Bersama Creativemu Academy.</h2>
                     <p>Siapkan dirimu dengan skill yang mumpuni dan bangun portofolio yang berkualitas.</p>
                 </div>

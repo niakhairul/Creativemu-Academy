@@ -20,7 +20,7 @@
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #8E5EC7; 
+            background: #B078E8;
             min-height: 100vh;
             margin: 0;
             display: flex;
@@ -46,24 +46,35 @@
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(25px);
             border-radius: 28px;
-            box-shadow: 0 20px 50px rgba(60, 30, 100, 0.25);
+            box-shadow:
+    0 25px 60px rgba(55, 25, 90, 0.25),
+    0 8px 25px rgba(55, 25, 90, 0.15);
             z-index: 10;
             width: 100%;
             max-width: 500px;
             padding: 40px;
         }
 
-        .brand-logo-container {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 15px auto;
-            border-radius: 16px;
-            overflow: hidden;
-            border: 2px solid #ffffff;
-            box-shadow: 0 6px 15px rgba(111, 82, 168, 0.2);
-        }
+       .brand-logo-container {
+    width: 120px;
+    height: 70px;
+    margin: 0 auto 15px auto;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #E8DDF5;
+    box-shadow: 0 8px 18px rgba(91, 63, 130, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-        .brand-logo { width: 100%; height: 100%; object-fit: cover; }
+       .brand-logo {
+    width: 100px;
+    height: auto;
+    object-fit: contain;
+    display: block;
+}
 
         .main-heading { font-weight: 800; font-size: 1.6rem; color: var(--text-dark); margin-bottom: 5px; }
         .sub-heading { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 25px; }
@@ -117,7 +128,7 @@
                 <div class="text-center">
                     <div class="brand-logo-container">
                         <!-- Pastikan path gambar ini benar -->
-                        <img src="<?= base_url('assets/img/logo_creativemu_academy.jpg') ?>" class="brand-logo" alt="Logo">
+                        <img src="<?= base_url('assets/img/logo_creativemu.jpg') ?>" class="brand-logo" alt="Logo">
                     </div>
                     <h3 class="main-heading">Registrasi Peserta</h3>
                     <p class="sub-heading">Bergabunglah dengan Creativemu Academy</p>

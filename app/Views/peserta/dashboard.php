@@ -482,7 +482,7 @@
                 <a href="<?= base_url('pelatihan/daftar-kelas-peserta') ?>"><i class="bi bi-journals"></i> Daftar Kelas Saya</a>
             </li>
             <li>
-                <a href="<?= base_url('pelatihan/kbm') ?>"><i class="bi bi-mortarboard-fill"></i> KBM</a>
+                <a href="<?= base_url('pelatihan/kelas') ?>"><i class="bi bi-mortarboard-fill"></i> KBM</a>
             </li>
             <li>
                 <a href="<?= base_url('pelatihan/pengaturan') ?>"><i class="bi bi-gear-fill"></i> Pengaturan</a>
@@ -730,17 +730,15 @@
                                 <i class="bi bi-calendar-event text-purple-custom me-2"></i><strong>Tanggal:</strong> <?= esc($jdl['tanggal_kbm']); ?>
                             </p>
                             <p class="text-muted small mb-1">
-                                <i class="bi bi-clock text-purple-custom me-2"></i><strong>Jam mulai:</strong> <?= esc($jdl['waktu_mulai']); ?>
+                                <i class="bi bi-clock text-purple-custom me-2"></i><strong>Jam mulai:</strong> <?= esc(date('H:i', strtotime($jdl['tanggal_kbm']))); ?>
                             </p>
                             <p class="text-muted small mb-1">
-                                <i class="bi bi-clock text-purple-custom me-2"></i><strong>Jam selesai:</strong> <?= esc($jdl['waktu_selesai']); ?>
+                                <i class="bi bi-clock text-purple-custom me-2"></i><strong>Jam selesai:</strong> <?= esc($jdl['jam_selesai'] ?? '-'); ?>
                             </p>
                             <p class="text-muted small mb-2">
-                                <i class="bi bi-camera-video text-purple-custom me-2"></i><strong>Tempat / Link Meet:</strong> 
-                                <a href="<?= esc($jdl['ruangan_atau_link']); ?>" target="_blank" class="text-decoration-none text-primary fw-bold">
-                                    <?= esc($jdl['ruangan_atau_link']); ?> <i class="bi bi-box-arrow-up-right ms-1" style="font-size: 0.75rem;"></i>
-                                </a>
-                            </p>
+    <i class="bi bi-camera-video text-purple-custom me-2"></i>
+    <strong>Tempat / Link Meet:</strong> -
+</p>
                         </div>
                     <?php endforeach; ?>
                 </div>

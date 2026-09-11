@@ -29,65 +29,212 @@
             min-height: 100vh;
         }
 
-        /* Sidebar dengan Gradasi Ungu Deep Modern */
-        .sidebar {
-            width: 250px;
-            background: linear-gradient(180deg, #4c1d95 0%, #6d28d9 100%);
-            color: white;
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            padding: 20px 16px;
-            box-shadow: 6px 0 25px rgba(109, 40, 217, 0.15);
-            overflow-y: auto;
-        }
+        /* Sidebar dengan Gradasi Ungu Modern */
+.sidebar {
+    width: 260px;
+    background:
+        radial-gradient(circle at 15% 12%, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 45%),
+        linear-gradient(165deg, #4a2fc9 0%, #7440e6 32%, #9257f2 60%, #b678f5 100%);
+    background-size: 200% 200%, 220% 220%;
+    animation: sidebarGlow 14s ease infinite;
+    color: white;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    padding: 24px 20px;
+    box-shadow: 6px 0 34px rgba(116, 64, 230, 0.35);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
 
-        .sidebar-brand {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: white;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            margin-bottom: 15px;
-        }
+.sidebar::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.035) 0px,
+        rgba(255, 255, 255, 0.035) 2px,
+        transparent 2px,
+        transparent 14px
+    );
+    pointer-events: none;
+}
 
-        .sidebar-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
+@keyframes sidebarGlow {
+    0% {
+        background-position: 0% 0%, 0% 0%;
+    }
 
-        .sidebar-menu li {
-            margin-bottom: 6px;
-        }
+    50% {
+        background-position: 100% 100%, 100% 100%;
+    }
 
-        .sidebar-menu a {
-            display: flex;
-            align-items: center;
-            color: rgba(255, 255, 255, 0.75);
-            text-decoration: none;
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
+    100% {
+        background-position: 0% 0%, 0% 0%;
+    }
+}
 
-        .sidebar-menu a:hover, .sidebar-menu a.active {
-            background: rgba(255, 255, 255, 0.18);
-            color: white;
-            transform: translateX(4px);
-        }
+.sidebar::before {
+    content: "";
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(
+        circle,
+        rgba(255,255,255,0.18) 0%,
+        rgba(255,255,255,0) 70%
+    );
+    border-radius: 50%;
+    pointer-events: none;
+    animation: floatBlob 8s ease-in-out infinite;
+}
 
-        .sidebar-menu a i {
-            font-size: 1.1rem;
-            margin-right: 10px;
-        }
+@keyframes floatBlob {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+
+    50% {
+        transform: translateY(20px) scale(1.08);
+    }
+}
+
+.sidebar-brand {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.sidebar-brand i {
+    animation: brandPulse 3s ease-in-out infinite;
+}
+
+@keyframes brandPulse {
+    0%, 100% {
+        transform: scale(1) rotate(0deg);
+    }
+
+    50% {
+        transform: scale(1.12) rotate(-4deg);
+    }
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.sidebar-menu li {
+    margin-bottom: 8px;
+    opacity: 0;
+    transform: translateX(-12px);
+    animation: menuSlideIn 0.5s ease forwards;
+}
+
+.sidebar-menu li:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.sidebar-menu li:nth-child(2) {
+    animation-delay: 0.12s;
+}
+
+.sidebar-menu li:nth-child(3) {
+    animation-delay: 0.19s;
+}
+
+.sidebar-menu li:nth-child(4) {
+    animation-delay: 0.26s;
+}
+
+.sidebar-menu li:nth-child(5) {
+    animation-delay: 0.33s;
+}
+
+@keyframes menuSlideIn {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.sidebar-menu a {
+    display: flex;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.75);
+    text-decoration: none;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.sidebar-menu a::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255,255,255,0.15),
+        transparent
+    );
+    transition: left 0.6s ease;
+}
+
+.sidebar-menu a:hover::before {
+    left: 100%;
+}
+
+.sidebar-menu a:hover,
+.sidebar-menu a.active {
+    background: rgba(255, 255, 255, 0.18);
+    color: white;
+    transform: translateX(6px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.sidebar-menu a.active {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.28),
+        rgba(255, 255, 255, 0.12)
+    );
+    box-shadow:
+        0 6px 18px rgba(20, 5, 60, 0.28),
+        inset 3px 0 0 #ffd166;
+}
+
+.sidebar-menu a i {
+    font-size: 1.2rem;
+    margin-right: 12px;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-menu a:hover i {
+    transform: scale(1.15) rotate(-6deg);
+}
 
         /* Konten Utama */
         .main-content {

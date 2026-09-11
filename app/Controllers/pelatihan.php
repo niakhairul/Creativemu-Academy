@@ -979,6 +979,7 @@ public function setujuiPendaftaran($id_pendaftaran)
         ]);
     }
 
+
     public function daftarMateri()
 {
     if ($redirect = $this->requireLogin()) {
@@ -1605,7 +1606,8 @@ public function simpanJawabanUjian()
             return redirect()->to(base_url('pelatihan/kelas'))->with('error', 'Anda belum memiliki kelas yang disetujui.');
         }
 
-        $jadwal = (new JadwalModel())->select('jadwal.*, jadwal.absensi_dibuka')->where('id_kelas', $pendaftaran['id_kelas'])->orderBy('pertemuan_ke', 'ASC')->findAll();
+        $jadwal = (new JadwalModel())
+    ->select('jadwal.*')->where('id_kelas', $pendaftaran['id_kelas'])->orderBy('pertemuan_ke', 'ASC')->findAll();
         $absensiModel = new AbsensiModel();
         foreach ($jadwal as &$item) {
             $item['absensi'] = $absensiModel->where('id_jadwal', $item['id_jadwal'])->where('id_users', $this->userId())->first();
