@@ -907,6 +907,28 @@ public function setujuiPendaftaran($id_pendaftaran)
     return view('peserta/detail_kelas', $data);
 }
 
+    public function detailJadwal($idJadwal)
+{
+    $absensiModel = new \App\Models\AbsensiModel();
+    $jadwalModel = new \App\Models\JadwalModel(); // Sesuaikan dengan model jadwal Anda
+
+    // Cek apakah user sudah pernah absen di jadwal ini
+    $sudahAbsen = $absensiModel->where('id_jadwal', $idJadwal)
+                                 ->where('id_user', session()->get('id_user'))
+                                 ->first();
+
+    // Ambil data jadwal berdasarkan ID
+    $jadwal = $jadwalModel->find($idJadwal);
+
+    $data = [
+        'jadwal'      => $jadwal,
+        'sudah_absen' => $sudahAbsen ? true : false,
+        'data_absen'  => $sudahAbsen
+    ];
+
+    return view('peserta/detail_jadwal', $data);
+}
+
     public function kbm()
     {
         if ($redirect = $this->requireLogin()) {
@@ -1084,123 +1106,7 @@ public function setujuiPendaftaran($id_pendaftaran)
     ]);
 }
 
-public function prosesAbsenGps()
-{
-    if (!$this->request->isAJAX()) {
-        return $this->response->setJSON(['status' => false, 'message' => 'Akses ditolak']);
-    }
 
-    $json = $this->request->getJSON();
-    $userLat = $json->latitude ?? null;
-    $userLng = $json->longitude ?? null;
-    $idJadwal = $json->id_jadwal ?? null;
-
-    if (!$userLat || !$userLng || !$idJadwal) {
-        return $this->response->setJSON(['status' => false, 'message' => 'Data koordinat tidak lengkap.']);
-    }
-
-    $db = \Config\Database::connect();
-
-    // 1. Ambil Titik Koordinat dan Radius dari tabel jadwal berdasarkan id_jadwal
-    $jadwal = $db->table('jadwal')
-        ->select('latitude, longitude, radius_meter')
-        ->where('id_jadwal', $idJadwal)
-        ->get()
-        ->getRowArray();
-
-    if (!$jadwal || empty($jadwal['latitude']) || empty($jadwal['longitude'])) {
-        return $this->response->setJSON([
-            'status' => false, 
-            'message' => 'Absen gagal! Koordinat GPS untuk jadwal ini belum diatur oleh admin.'
-        ]);
-    }
-
-    $targetLat = $jadwal['latitude'];
-    $targetLng = $jadwal['longitude'];
-    $maxRadius = $jadwal['radius_meter'] ?? 100;
-
-    // 2. Hitung Jarak Menggunakan Haversine Formula
-    $jarak = $this->hitungJarakHaversine($userLat, $userLng, $targetLat, $targetLng);
-
-    // 3. Validasi apakah jarak peserta berada di dalam radius
-    if ($jarak > $maxRadius) {
-        return $this->response->setJSON([
-            'status' => false, 
-            'message' => 'Absen gagal! Anda berada di luar radius kelas (Jarak Anda: ' . round($jarak) . ' meter dari lokasi).'
-        ]);
-    }
-
-    // 4. Cek apakah sudah pernah absen di jadwal ini
-    $cekAbsen = $db->table('absensi')
-        ->where('id_jadwal', $idJadwal)
-        ->where('id_user', $this->userId())
-        ->get()
-        ->getRowArray();
-
-    if ($cekAbsen) {
-        return $this->response->setJSON(['status' => false, 'message' => 'Anda sudah melakukan absensi sebelumnya.']);
-    }
-
-    // 5. Simpan ke database jika valid
-    $db->table('absensi')->insert([
-        'id_jadwal'   => $idJadwal,
-        'id_user'     => $this->userId(),
-        'status'      => 'hadir',
-        'waktu_absen' => date('Y-m-d H:i:s') 
-    ]);
-
-    return $this->response->setJSON(['status' => true, 'message' => 'Absensi berhasil dicatat! Selamat belajar.']);
-}
-
-public function prosesAbsen(int $idJadwal)
-    {
-        // 1. Ambil data jadwal & koordinat yang telah ditentukan mentor
-        $jadwal = $this->db->table('jadwal')->where('id_jadwal', $idJadwal)->get()->getRowArray();
-        if (! $jadwal) {
-            return redirect()->back()->with('error', 'Jadwal tidak ditemukan.');
-        }
-
-        // Jika mentor belum mengatur koordinat GPS sama sekali untuk sesi ini
-        if (empty($jadwal['latitude']) || empty($jadwal['longitude'])) {
-            return redirect()->back()->with('error', 'Lokasi absensi untuk sesi ini belum diatur oleh mentor.');
-        }
-
-        // 2. Tangkap koordinat GPS yang dikirim dari browser/HP peserta
-        $userLat = $this->request->getPost('user_latitude');
-        $userLng = $this->request->getPost('user_longitude');
-
-        if (! $userLat || ! $userLng) {
-            return redirect()->back()->with('error', 'Gagal mendeteksi lokasi GPS Anda. Pastikan izin lokasi (GPS) di perangkat Anda aktif.');
-        }
-
-        // 3. Hitung jarak menggunakan Haversine
-        $jarakMeter = $this->hitungJarakGPS($userLat, $userLng, $jadwal['latitude'], $jadwal['longitude']);
-        $radiusMaksimal = (int) ($jadwal['radius_meter'] ?? 100); // Default 100 meter
-
-        // 4. Validasi apakah peserta berada di dalam radius
-        if ($jarakMeter > $radiusMaksimal) {
-            return redirect()->back()->with('error', 'Anda berada di luar radius lokasi pelatihan! Jarak Anda sekitar ' . round($jarakMeter) . ' meter dari titik pusat (Maksimal ' . $radiusMaksimal . ' meter).');
-        }
-
-        // 5. Simpan absensi jika valid
-        $idUser = $this->userId();
-        $cekAbsen = $this->db->table('absensi')->where(['id_jadwal' => $idJadwal, 'id_user' => $idUser])->get()->getRowArray();
-        
-        if ($cekAbsen) {
-            return redirect()->back()->with('error', 'Anda sudah melakukan absensi pada sesi ini.');
-        }
-
-        $this->db->table('absensi')->insert([
-            'id_jadwal'   => $idJadwal,
-            'id_user'     => $idUser,
-            'status'      => 'hadir',
-            'waktu_absen' => date('Y-m-d H:i:s')
-        ]);
-
-        return redirect()->back()->with('success', 'Absensi berhasil! Kehadiran Anda telah tercatat.');
-    }
-
-    
 
 // Fungsi pendukung untuk menghitung jarak GPS (dalam meter)
 
@@ -1595,6 +1501,62 @@ public function simpanJawabanUjian()
         ]);
     }
 
+    public function prosesAbsen()
+{
+    if ($redirect = $this->requireLogin()) {
+        return $redirect;
+    }
+
+    $idJadwal   = $this->request->getPost('id_jadwal');
+    $tokenInput = trim($this->request->getPost('token_absen'));
+    $userId     = session()->get('id_users') ?? session()->get('id_user');
+
+    if (!$idJadwal || !$userId || !$tokenInput) {
+        return redirect()->back()->with('error', 'Data absensi, sesi, atau token tidak lengkap.');
+    }
+
+    // Ambil data jadwal dari database terlebih dahulu
+    $jadwalData = $this->db->table('jadwal')
+                           ->where('id_jadwal', $idJadwal)
+                           ->get()
+                           ->getRowArray();
+
+    if (!$jadwalData || $jadwalData['absensi_dibuka'] != 1) {
+        return redirect()->back()->with('error', 'Sesi absensi belum dibuka atau sudah ditutup.');
+    }
+
+    if ((string)$jadwalData['token_absen'] !== trim($tokenInput)) {
+        return redirect()->back()->with('error', 'Token absensi salah atau tidak valid.');
+    }
+
+    $absensiModel = new \App\Models\AbsensiModel();
+
+    // Cek apakah peserta sudah pernah absen di jadwal ini
+    $sudahAbsen = $absensiModel->where('id_jadwal', $idJadwal)
+                               ->where('id_user', $userId)
+                               ->first();
+
+    if ($sudahAbsen) {
+        return redirect()->back()->with('error', 'Anda sudah tercatat hadir pada pertemuan ini.');
+    }
+
+    // Simpan data langsung ke database
+    $dataSimpan = [
+        'id_jadwal'   => $idJadwal,
+        'id_user'     => $userId,
+        'status'      => 'hadir',
+        'waktu_absen' => date('Y-m-d H:i:s'),
+    ];
+
+    $simpan = $absensiModel->insert($dataSimpan);
+
+    if ($simpan) {
+        return redirect()->back()->with('success', 'Absensi berhasil dicatat dan masuk ke sistem.');
+    } else {
+        return redirect()->back()->with('error', 'Gagal menyimpan ke database. Coba lagi.');
+    }
+}
+
     public function absensi()
     {
         if ($redirect = $this->requireLogin()) {
@@ -1622,50 +1584,49 @@ public function simpanJawabanUjian()
         return $redirect;
     }
 
-    $idJadwal = $this->request->getPost('id_jadwal') ?? $this->request->getPost('id_jadwal_kelas');
-
-    if (!$idJadwal) {
-        return redirect()->to(base_url('pelatihan/kelas'))
-            ->with('error', 'Jadwal pertemuan tidak ditemukan.');
-    }
-
-    // Validasi Token Live (Berubah tiap 5 detik)
-    $tokenInput = $this->request->getPost('token_input');
+    $idJadwal = $this->request->getPost('id_jadwal');
     
-    $timeBlock = floor(time() / 5);
-    $secretKey = "KunciRahasiaKelasOffline" . $idJadwal;
-    $tokenSekarang = substr(abs(crc32($timeBlock . $secretKey)), 0, 4);
+    // 1. Ambil ID User dari session secara spesifik (sesuaikan dengan key session login Anda)
+    $userId = session()->get('id_users') ?? session()->get('id_user') ?? session()->get('user_id');
 
-    $timeBlockPrev = floor(time() / 5) - 1;
-    $tokenSebelumnya = substr(abs(crc32($timeBlockPrev . $secretKey)), 0, 4);
-
-    if ($tokenInput !== $tokenSekarang && $tokenInput !== $tokenSebelumnya) {
-        return redirect()->back()->with('error', 'Token salah atau sudah kedaluwarsa! Silakan lihat token terbaru di proyektor.');
+    // Jika user ID atau id jadwal kosong, hentikan dan tampilkan pesan
+    if (!$idJadwal || !$userId) {
+        return redirect()->back()->with('error', 'Gagal: Sesi pengguna atau jadwal tidak valid. (ID Jadwal: ' . $idJadwal . ', ID User: ' . $userId . ')');
     }
 
-    $absensiModel = new AbsensiModel();
+    $absensiModel = new \App\Models\AbsensiModel();
 
-    // Cek apakah peserta sudah absen
+    // 2. Cek apakah sudah pernah absen sebelumnya
     $sudahAbsen = $absensiModel
         ->where('id_jadwal', $idJadwal)
-        ->where('id_user', $this->userId())
+        ->where('id_user', $userId) // Ganti 'id_user' dengan 'id_users' jika kolom di database Anda menggunakan id_users
         ->first();
 
     if ($sudahAbsen) {
         return redirect()->to(base_url('pelatihan/kelas'))
-            ->with('error', 'Anda sudah melakukan absensi pada pertemuan ini.');
+            ->with('error', 'Anda sudah tercatat melakukan absensi pada pertemuan ini.');
     }
 
-    // Simpan absensi
-    $absensiModel->insert([
-        'id_jadwal'       => $idJadwal,
-        'id_user'         => $this->userId(),
-        'status'          => 'hadir',
-        'waktu_absen'     => date('Y-m-d H:i:s'),
-    ]);
+    // 3. Siapkan data untuk dimasukkan
+    $dataSimpan = [
+        'id_jadwal'   => $idJadwal,
+        'id_user'     => $userId, // Pastikan nama kolom ini sama persis dengan di database (id_user atau id_users)
+        'status'      => 'hadir',
+        'waktu_absen' => date('Y-m-d H:i:s'),
+    ];
+
+    // 4. Eksekusi insert dan tangkap hasilnya
+    $simpan = $absensiModel->insert($dataSimpan);
+
+    // Jika proses insert gagal (mengembalikan nilai false atau 0)
+    if (!$simpan) {
+        // Tampilkan error validasi dari model CodeIgniter agar ketahuan kolom mana yang menolak
+        $errors = $absensiModel->errors();
+        dd('Gagal insert ke database:', $errors, $dataSimpan);
+    }
 
     return redirect()->to(base_url('pelatihan/kelas'))
-        ->with('success', 'Absensi berhasil.');
+        ->with('success', 'Absensi berhasil dicatat dan masuk ke sistem.');
 }
 
 

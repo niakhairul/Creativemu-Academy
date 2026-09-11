@@ -304,20 +304,28 @@
 
                                             <?php endif; ?>
 
-
                                         <?php else: ?>
 
-                                            <?php $absensiDibuka = (int) ($item['absensi_dibuka'] ?? 0) === 1 && !empty($item['absensi_mulai']) && !empty($item['absensi_selesai']) && time() >= strtotime($item['absensi_mulai']) && time() <= strtotime($item['absensi_selesai']); ?>
-                                            <?php if ($absensiDibuka): ?>
-                                                <div class="alert alert-success py-2 mb-2"><i class="bi bi-unlock me-2"></i>Absensi dibuka pukul <strong><?= esc(date('H:i', strtotime($item['absensi_mulai']))) ?> - <?= esc(date('H:i', strtotime($item['absensi_selesai']))) ?></strong></div>
-                                                <form action="<?= base_url('pelatihan/absensi/simpan') ?>" method="post">
-                                                    <input type="hidden" name="id_jadwal_kelas" value="<?= esc($item['id_jadwal_kelas']) ?>">
-                                                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i> Absen Sekarang</button>
+                                            <?php if (!empty($item['absensi_dibuka']) && $item['absensi_dibuka'] == 1): ?>
+
+                                                <form action="<?= base_url('pelatihan/prosesAbsen') ?>" method="POST" class="mt-3">
+                                                    <?= csrf_field() ?>
+                                                    <input type="hidden" name="id_jadwal" value="<?= esc($item['id_jadwal'] ?? $item['id']) ?>">
+                                                    
+                                                    <div class="input-group">
+                                                        <input type="text" name="token" class="form-control" placeholder="Masukkan Token Absensi" required>
+                                                        <button class="btn btn-primary" type="submit">
+                                                            <i class="bi bi-check2-square me-1"></i> Kirim Absen
+                                                        </button>
+                                                    </div>
                                                 </form>
-                                            <?php elseif ((int) ($item['absensi_dibuka'] ?? 0) === 1 && !empty($item['absensi_selesai']) && time() > strtotime($item['absensi_selesai'])): ?>
-                                                <div class="alert alert-secondary mb-0"><i class="bi bi-clock-history me-2"></i>Waktu absensi sudah berakhir.</div>
+
                                             <?php else: ?>
-                                                <div class="alert alert-light border mb-0"><i class="bi bi-lock me-2"></i>Absensi belum dibuka oleh mentor.</div>
+
+                                                <div class="alert alert-secondary mb-0">
+                                                    <i class="bi bi-clock me-2"></i> Absensi belum dibuka oleh mentor.
+                                                </div>
+
                                             <?php endif; ?>
 
                                         <?php endif; ?>
@@ -330,15 +338,11 @@
 
                         </div>
 
-
                     <?php else: ?>
 
-                        <div class="alert alert-info mb-0">
-
-                            <i class="bi bi-info-circle me-2"></i>
-
-                            Belum ada jadwal pertemuan.
-
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-calendar-x fs-1 mb-3 d-block"></i>
+                            Belum ada jadwal pertemuan yang tersedia.
                         </div>
 
                     <?php endif; ?>
@@ -353,8 +357,6 @@
 
 </div>
 
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>

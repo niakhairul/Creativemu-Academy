@@ -417,10 +417,10 @@
         <nav class="navbar navbar-expand-lg top-navbar mb-4 px-4 py-3">
             <div class="container-fluid px-0">
                 <span class="navbar-brand mb-0 h5 fw-bold text-dark">
-                    Detail Kelas Peserta[cite: 4]
+                    Detail Kelas Peserta
                 </span>
                 <span class="text-muted fw-semibold small px-3 py-1 bg-white rounded-pill shadow-sm">
-                    <i class="fa-solid fa-user-circle me-1 text-primary"></i> Peserta[cite: 4]
+                    <i class="fa-solid fa-user-circle me-1 text-primary"></i> Peserta
                 </span>
             </div>
         </nav>
@@ -432,8 +432,8 @@
             <!-- Flashdata Alert -->
             <?php if (session()->getFlashdata('success')): ?>
                 <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-4 mb-4" role="alert">
-                    <i class="bi bi-check-circle-fill me-2"></i> <?= session()->getFlashdata('success') ?>[cite: 4]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>[cite: 4]
+                    <i class="bi bi-check-circle-fill me-2"></i> <?= session()->getFlashdata('success') ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             <?php endif; ?>
             <?php if (session()->getFlashdata('error')): ?>
@@ -448,19 +448,19 @@
                 <div class="card-body p-4">
                     <?php if ($kelas): ?>
                         <h3 class="fw-bold mb-2" style="color: #4c1d95;">
-                            <?= esc($kelas['nama_kelas'] ?? 'Kelas Pelatihan') ?>[cite: 4]
+                            <?= esc($kelas['nama_kelas'] ?? 'Kelas Pelatihan') ?>
                         </h3>
                         <p class="text-muted mb-3">
-                            <?= esc($kelas['deskripsi'] ?? 'Pelatihan dirancang untuk membekali peserta dengan pemahaman komprehensif.') ?>[cite: 4]
+                            <?= esc($kelas['deskripsi'] ?? 'Pelatihan dirancang untuk membekali peserta dengan pemahaman komprehensif.') ?>
                         </p>
                         <div class="d-flex gap-2 align-items-center">
                             <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-semibold">
-                                <i class="bi bi-person-badge me-1"></i> Mentor: <?= esc($kelas['nama_mentor'] ?? '-') ?>[cite: 4]
+                                <i class="bi bi-person-badge me-1"></i> Mentor: <?= esc($kelas['nama_mentor'] ?? '-') ?>
                             </span>
                         </div>
                     <?php else: ?>
                         <div class="alert alert-warning mb-0 rounded-3">
-                            Anda belum terdaftar di kelas manapun.[cite: 4]
+                            Anda belum terdaftar di kelas manapun.
                         </div>
                     <?php endif; ?>
                 </div>
@@ -471,27 +471,27 @@
             <ul class="nav nav-tabs mb-4" id="kelasTab" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="materi-tab" data-bs-toggle="tab" data-bs-target="#materi" type="button" role="tab">
-                        <i class="fa-solid fa-book me-1"></i> Materi Pembelajaran[cite: 4]
+                        <i class="fa-solid fa-book me-1"></i> Materi Pembelajaran
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="absensi-tab" data-bs-toggle="tab" data-bs-target="#absensi" type="button" role="tab">
-                        <i class="fa-solid fa-calendar-check me-1"></i> Absensi & Riwayat[cite: 4]
+                        <i class="fa-solid fa-calendar-check me-1"></i> Absensi & Riwayat
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="ujian-tab" data-bs-toggle="tab" data-bs-target="#ujian" type="button" role="tab">
-                        <i class="fa-solid fa-pen-to-square me-1"></i> Ujian[cite: 4]
+                        <i class="fa-solid fa-pen-to-square me-1"></i> Ujian
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="angket-tab" data-bs-toggle="tab" data-bs-target="#angket" type="button" role="tab">
-                        <i class="fa-solid fa-clipboard-list me-1"></i> Angket Evaluasi[cite: 4]
+                        <i class="fa-solid fa-clipboard-list me-1"></i> Angket Evaluasi
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="sertifikat-tab" data-bs-toggle="tab" data-bs-target="#sertifikat" type="button" role="tab">
-                        <i class="fa-solid fa-award me-1"></i> Sertifikat[cite: 4]
+                        <i class="fa-solid fa-award me-1"></i> Sertifikat
                     </button>
                 </li>
             </ul>
@@ -504,8 +504,8 @@
                 <div class="tab-pane fade show active" id="materi" role="tabpanel">
                     <div class="card">
                         <div class="card-body p-4">
-                            <h5 class="fw-bold mb-2 text-dark">Daftar Modul & Materi Sesi[cite: 4]</h5>
-                            <p class="text-muted mb-4">Unduh atau pelajari modul materi yang telah diunggah oleh mentor.[cite: 4]</p>
+                            <h5 class="fw-bold mb-2 text-dark">Daftar Modul & Materi Sesi</h5>
+                            <p class="text-muted mb-4">Unduh atau pelajari modul materi yang telah diunggah oleh mentor.</p>
 
                             <?php if (!empty($materi)): ?>
                                 <div class="row g-4">
@@ -513,15 +513,15 @@
                                         <div class="col-lg-4 col-md-6">
                                             <div class="materi-card">
                                                 <div class="materi-icon"><i class="bi bi-journal-richtext"></i></div>
-                                                <h5 class="fw-bold mt-3 text-dark"><?= esc($item['judul_materi'] ?? '-') ?>[cite: 4]</h5>
-                                                <p class="text-muted mb-3"><?= esc($item['deskripsi'] ?? 'Tidak ada deskripsi materi.') ?>[cite: 4]</p>
+                                                <h5 class="fw-bold mt-3 text-dark"><?= esc($item['judul_materi'] ?? '-') ?></h5>
+                                                <p class="text-muted mb-3"><?= esc($item['deskripsi'] ?? 'Tidak ada deskripsi materi.') ?></p>
                                                 <div class="materi-footer">
                                                     <?php if (!empty($item['file_materi'])): ?>
                                                         <a href="<?= base_url('uploads/materi/' . $item['file_materi']) ?>" target="_blank" class="btn btn-sm btn-primary px-3 rounded-pill shadow-sm">
-                                                            Download <i class="bi bi-download ms-1"></i>[cite: 4]
+                                                            Download <i class="bi bi-download ms-1"></i>
                                                         </a>
                                                     <?php else: ?>
-                                                        <span class="text-muted small">File belum ada[cite: 4]</span>
+                                                        <span class="text-muted small">File belum ada</span>
                                                     <?php endif; ?>
                                                 </div>
                                             </div>
@@ -530,7 +530,7 @@
                                 </div>
                             <?php else: ?>
                                 <div class="alert alert-info border-0 shadow-sm rounded-4 mb-0">
-                                    <i class="bi bi-info-circle me-2"></i> Belum ada materi yang diunggah oleh mentor.[cite: 4]
+                                    <i class="bi bi-info-circle me-2"></i> Belum ada materi yang diunggah oleh mentor.
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -542,7 +542,7 @@
                 <div class="tab-pane fade" id="absensi" role="tabpanel">
                     <div class="card">
                         <div class="card-body p-4">
-                            <h5 class="fw-bold mb-2 text-dark">Rekap Absensi Kehadiran[cite: 4]</h5>
+                            <h5 class="fw-bold mb-2 text-dark">Rekap Absensi Kehadiran</h5>
                             <p class="text-muted mb-4">Masukkan 4 digit token yang diberikan oleh mentor saat sesi kelas berlangsung.</p>
 
                             <?php if (!empty($jadwal)): ?>
@@ -558,16 +558,16 @@
                                         ?>
                                         <div class="col-lg-6">
                                             <div class="materi-card">
-                                                <span class="materi-badge">Pertemuan <?= esc($item['pertemuan_ke'] ?? '-') ?>[cite: 4]</span>
-                                                <h5 class="fw-bold mt-3 mb-2 text-dark">Pertemuan <?= esc($item['pertemuan_ke'] ?? '-') ?>[cite: 4]</h5>
+                                                <span class="materi-badge">Pertemuan <?= esc($item['pertemuan_ke'] ?? '-') ?></span>
+                                                <h5 class="fw-bold mt-3 mb-2 text-dark">Pertemuan <?= esc($item['pertemuan_ke'] ?? '-') ?></h5>
                                                 <p class="text-muted mb-3">
-                                                    <i class="bi bi-calendar-event me-1 text-primary"></i>[cite: 4]
-                                                    <?= !empty($item['tanggal_kbm']) ? date('d F Y, H:i', strtotime($item['tanggal_kbm'])) : 'Jadwal belum ditentukan' ?>[cite: 4]
+                                                    <i class="bi bi-calendar-event me-1 text-primary"></i>
+                                                    <?= !empty($item['tanggal_kbm']) ? date('d F Y, H:i', strtotime($item['tanggal_kbm'])) : 'Jadwal belum ditentukan' ?>
                                                 </p>
 
                                                 <?php if ($statusAbsensi === 'hadir'): ?>
                                                     <div class="alert alert-success border-0 bg-success bg-opacity-10 text-success mb-0 rounded-3 py-2 small">
-                                                        <i class="bi bi-check-circle-fill me-2"></i> Anda sudah hadir pada pertemuan ini.[cite: 4]
+                                                        <i class="bi bi-check-circle-fill me-2"></i> Anda sudah hadir pada pertemuan ini.
                                                     </div>
                                                 <?php else: ?>
                                                     <!-- Form Input Token Absensi -->
@@ -591,7 +591,7 @@
                                 </div>
                             <?php else: ?>
                                 <div class="alert alert-info border-0 shadow-sm rounded-4 mb-0">
-                                    <i class="bi bi-info-circle me-2"></i> Belum ada jadwal pertemuan.[cite: 4]
+                                    <i class="bi bi-info-circle me-2"></i> Belum ada jadwal pertemuan.
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -603,8 +603,8 @@
                 <div class="tab-pane fade" id="ujian" role="tabpanel">
                     <div class="card">
                         <div class="card-body p-4">
-                            <h5 class="fw-bold mb-2 text-dark">Ujian Akhir[cite: 4]</h5>
-                            <p class="text-muted mb-4">Silakan download soal ujian dan kumpulkan jawaban Anda.[cite: 4]</p>
+                            <h5 class="fw-bold mb-2 text-dark">Ujian Akhir</h5>
+                            <p class="text-muted mb-4">Silakan download soal ujian dan kumpulkan jawaban Anda.</p>
                         </div>
                     </div>
                 </div>
@@ -614,21 +614,21 @@
                 <div class="tab-pane fade" id="angket" role="tabpanel">
                     <div class="card">
                         <div class="card-body p-4">
-                            <h5 class="fw-bold mb-2 text-dark">Angket Evaluasi Pelatihan[cite: 4]</h5>
+                            <h5 class="fw-bold mb-2 text-dark">Angket Evaluasi Pelatihan</h5>
                             <?php if (isset($sudah_ujian) && $sudah_ujian): ?>
                                 <?php if (isset($sudah_isi_angket) && $sudah_isi_angket): ?>
                                     <div class="alert alert-success border-0 bg-success bg-opacity-10 text-success mb-0 rounded-4 p-3">
-                                        <i class="bi bi-check-circle-fill me-2"></i> Terima kasih, Anda sudah mengisi angket evaluasi pelatihan ini.[cite: 4]
+                                        <i class="bi bi-check-circle-fill me-2"></i> Terima kasih, Anda sudah mengisi angket evaluasi pelatihan ini.
                                     </div>
                                 <?php else: ?>
-                                    <p class="text-muted mb-4">Silakan isi angket evaluasi untuk membantu meningkatkan kualitas pelatihan kami ke depannya.[cite: 4]</p>
+                                    <p class="text-muted mb-4">Silakan isi angket evaluasi untuk membantu meningkatkan kualitas pelatihan kami ke depannya.</p>
                                     <a href="<?= base_url('pelatihan/angket'); ?>" class="btn text-white fw-bold px-4 py-2 rounded-pill shadow-sm" style="background: linear-gradient(135deg, #7c3aed, #4c1d95);">
-                                        <i class="fas fa-clipboard-list me-2"></i> Isi Angket Sekarang[cite: 4]
+                                        <i class="fas fa-clipboard-list me-2"></i> Isi Angket Sekarang
                                     </a>
                                 <?php endif; ?>
                             <?php else: ?>
                                 <div class="alert alert-warning border-0 bg-warning bg-opacity-10 text-dark mb-0 rounded-4 p-3">
-                                    <i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i> <strong>Belum tersedia.</strong> Angket evaluasi akan terbuka setelah Anda menyelesaikan seluruh ujian.[cite: 4]
+                                    <i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i> <strong>Belum tersedia.</strong> Angket evaluasi akan terbuka setelah Anda menyelesaikan seluruh ujian.
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -640,7 +640,7 @@
                 <div class="tab-pane fade" id="sertifikat" role="tabpanel">
                     <div class="card">
                         <div class="card-body p-4">
-                            <h5 class="fw-bold mb-3 text-dark">Sertifikat Pelatihan[cite: 4]</h5>
+                            <h5 class="fw-bold mb-3 text-dark">Sertifikat Pelatihan</h5>
                             <?php 
                                 $kategoriKelas = '';
                                 if (!empty($pendaftaran) && is_array($pendaftaran)) {
@@ -652,23 +652,23 @@
                             <?php if ($isSertifikasi): ?>
                                 <?php if (isset($sertifikatTerbit) && $sertifikatTerbit): ?>
                                     <div class="alert alert-success border-0 bg-success bg-opacity-10 text-success mb-3 rounded-4 p-3">
-                                        <i class="bi bi-check-circle-fill me-2"></i> Selamat! Sertifikat kelas sertifikasi Anda sudah terbit dan siap diunduh.[cite: 4]
+                                        <i class="bi bi-check-circle-fill me-2"></i> Selamat! Sertifikat kelas sertifikasi Anda sudah terbit dan siap diunduh.
                                     </div>
                                     <a href="<?= base_url('pelatihan/sertifikat/' . ($pendaftaran['id_kelas'] ?? '')) ?>" class="btn btn-success rounded-pill px-4 py-2 shadow-sm">
-                                        <i class="bi bi-download me-1"></i> Unduh Sertifikat PDF[cite: 4]
+                                        <i class="bi bi-download me-1"></i> Unduh Sertifikat PDF
                                     </a>
                                 <?php elseif (isset($sudah_isi_angket) && $sudah_isi_angket): ?>
                                     <div class="alert alert-info border-0 bg-info bg-opacity-10 text-info mb-0 rounded-4 p-3">
-                                        <i class="bi bi-info-circle me-2"></i> Terima kasih telah mengisi angket evaluasi. Sertifikat Anda sedang dalam proses verifikasi oleh admin.[cite: 4]
+                                        <i class="bi bi-info-circle me-2"></i> Terima kasih telah mengisi angket evaluasi. Sertifikat Anda sedang dalam proses verifikasi oleh admin.
                                     </div>
                                 <?php else: ?>
                                     <div class="alert alert-warning border-0 bg-warning bg-opacity-10 text-dark mb-0 rounded-4 p-3">
-                                        <i class="bi bi-exclamation-circle me-2 text-warning"></i> Sertifikat belum dapat diunduh. Pastikan Anda sudah menyelesaikan ujian dan mengisi angket evaluasi terlebih dahulu.[cite: 4]
+                                        <i class="bi bi-exclamation-circle me-2 text-warning"></i> Sertifikat belum dapat diunduh. Pastikan Anda sudah menyelesaikan ujian dan mengisi angket evaluasi terlebih dahulu.
                                     </div>
                                 <?php endif; ?>
                             <?php else: ?>
                                 <div class="alert alert-secondary border-0 bg-secondary bg-opacity-10 text-secondary mb-0 rounded-4 p-3">
-                                    <i class="bi bi-info-circle me-2"></i> Anda terdaftar pada kelas tipe <strong>Basic</strong>. Kelas tipe Basic tidak menerbitkan sertifikat kelulusan.[cite: 4]
+                                    <i class="bi bi-info-circle me-2"></i> Anda terdaftar pada kelas tipe <strong>Basic</strong>. Kelas tipe Basic tidak menerbitkan sertifikat kelulusan.
                                 </div>
                             <?php endif; ?>
                         </div>

@@ -7,6 +7,7 @@
 
     <title>KBM Peserta - Creativemu Academy</title>
 
+<<<<<<< Updated upstream
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -600,6 +601,82 @@
                         Mentor:
                         <?= esc($kelas['nama_mentor'] ?? '-') ?>
                     </span>
+=======
+    <!-- Navigasi Tab -->
+    <ul class="nav kbm-tabs mb-3" id="kbmTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="materi-tab" data-bs-toggle="tab" data-bs-target="#materi" type="button" role="tab">Materi Pembelajaran</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="absensi-tab" data-bs-toggle="tab" data-bs-target="#absensi" type="button" role="tab">Absensi & Riwayat</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="tugas-tab" data-bs-toggle="tab" data-bs-target="#tugas" type="button" role="tab">Ujian & Tugas</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="sertifikat-tab" data-bs-toggle="tab" data-bs-target="#sertifikat" type="button" role="tab">Sertifikat & Angket</button>
+        </li>
+    </ul>
+
+    <!-- Konten Tab -->
+    <div class="tab-content kbm-shell bg-white p-4" id="kbmTabContent">
+        
+        <!-- TAB 1: MATERI -->
+        <div class="tab-pane fade show active" id="materi" role="tabpanel">
+            <h4 class="mb-3">Daftar Modul & Materi Sesi</h4>
+            <p class="text-muted">Unduh atau pelajari modul materi yang telah diunggah oleh mentor.</p>
+            <?php if (empty($jadwal)): ?><div class="alert alert-info">Belum ada sesi materi.</div><?php else: ?><?php foreach ($jadwal as $j): ?><div class="kbm-item d-flex gap-3 mb-3"><div class="kbm-icon"><i class="fa-solid fa-book-open"></i></div><div><div class="fw-bold">Pertemuan <?= esc($j['pertemuan_ke']) ?></div><div class="text-muted small"><?= esc($j['materi'] ?? 'Materi sesi') ?></div><div class="text-muted small mt-1"><i class="fa-regular fa-calendar me-1"></i><?= !empty($j['tanggal_kbm']) ? esc(date('d M Y, H:i', strtotime($j['tanggal_kbm']))) : 'Jadwal belum ditentukan' ?></div></div></div><?php endforeach; ?><?php endif; ?>
+        </div>
+
+        <!-- TAB 2: ABSENSI -->
+        <div class="tab-pane fade" id="absensi" role="tabpanel">
+            <h4 class="mb-3">Absensi Kehadiran & Riwayat</h4>
+            <div class="mb-3">
+                <span class="badge bg-secondary">Total Hadir: <?= $jumlahHadir ?> dari <?= $totalPertemuan ?> Pertemuan</span>
+                <span class="badge bg-info">Persentase: <?= $persentaseKehadiran ?>%</span>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table kbm-table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Pertemuan</th>
+                            <th>Topik / Tanggal</th>
+                            <th>Status Kehadiran</th>
+                            <th>Aksi / Masukkan Token</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($jadwal as $j): ?>
+                        <tr>
+                            <td><?= $j['pertemuan_ke'] ?></td>
+                            <td><?= esc($j['topik'] ?? 'Sesi ' . $j['pertemuan_ke']) ?></td>
+                            <td>
+                                <?php if(isset($j['absensi']['status'])): ?>
+                                    <span class="badge bg-success text-capitalize"><?= $j['absensi']['status'] ?></span>
+                                <?php else: ?>
+                                    <span class="badge bg-warning text-dark">Belum Absen</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if(!isset($j['absensi'])): ?>
+                                    <form action="<?= base_url('pelatihan/absensi/simpan') ?>" method="POST" class="d-flex gap-2"></form>
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="id_jadwal" value="<?= $j['id_jadwal'] ?>">
+                                        <input type="text" name="token_input" class="form-control form-control-sm font-monospace" placeholder="4 Digit Token" maxlength="4" style="width: 110px;" required>
+                                        <button type="submit" class="btn btn-sm btn-primary">Kirim</button>
+                                    </form>
+                                <?php else: ?>
+                                    -
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+>>>>>>> Stashed changes
 
                 </div>
 

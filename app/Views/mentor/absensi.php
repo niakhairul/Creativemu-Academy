@@ -125,8 +125,8 @@
         // Ambil token pertama kali saat halaman dibuka
         fetchToken();
 
-        // Set interval untuk memperbarui token setiap 5 detik (5000 milidetik)
-        setInterval(fetchToken, 5000);
+        // Perbarui token setiap 12 detik (12000 ms)
+        setInterval(fetchToken, 12000);
     })();
     </script>
 <?php endif; ?>
