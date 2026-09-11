@@ -237,37 +237,73 @@ class Mentor extends BaseController
     // Method untuk mentor membuka absensi dan membuat token acak
     // Method untuk mentor membuka absensi dan membuat token acak
     public function bukaAbsensi($id_kelas, $id_jadwal)
-    {
-        // Muat model jadwal secara dinamis
-        $jadwalModel = model('JadwalModel'); // Sesuaikan nama model jika berbeda (misal: \App\Models\JadwalModel)
+{
+    if ($r = $this->requireMentor()) return $r;
+    if (! $this->kelasMilikMentor($id_kelas)) return redirect()->to(base_url('mentor/kelas'))->with('error', 'Akses kelas ditolak.');
 
-        // Logika untuk mengubah status absensi dibuka di database
-        $jadwalModel->update($id_jadwal, [
-            'absensi_dibuka' => 1,
-            // Tambahkan token acak atau waktu selesai otomatis di sini jika diperlukan
+    // Buat token awal menggunakan fungsi yang sudah ada
+    $timeBlock = floor(time() / 5);
+    $secretKey = "KunciRahasiaKelasOffline" . $id_jadwal;
+    $tokenAwal = substr(abs(crc32($timeBlock . $secretKey)), 0, 4);
+
+    // Tentukan waktu selesai absensi (misal: 1 jam dari sekarang)
+    $waktuSelesai = date('Y-m-d H:i:s', strtotime('+1 hour'));
+
+    // Update langsung menggunakan query builder database agar lebih konsisten
+    $this->db->table('jadwal')->where(['id_jadwal' => $id_jadwal, 'id_kelas' => $id_kelas])->update([
+        'absensi_dibuka' => 1,
+        'token_absen'    => $tokenAwal,
+        'absensi_selesai'=> $waktuSelesai,
+        'updated_at'     => date('Y-m-d H:i:s')
+    ]);
+
+    return redirect()->to(base_url('mentor/kelas/' . $id_kelas . '/absensi'))->with('success', 'Sesi absensi berhasil dibuka.');
+}
+
+    // Method untuk mengambil token live secara periodik (AJAX)
+    // Method untuk mengambil token live secara periodik (AJAX)
+    // Method untuk mengambil token live secara periodik (AJAX)
+    public function getLiveToken($id_jadwal)
+    {
+        try {
+            $jadwal = $this->db->table('jadwal')->where('id_jadwal', $id_jadwal)->get()->getRowArray();
+            
+            if (! $jadwal || (int)($jadwal['absensi_dibuka'] ?? 0) !== 1) {
+                return $this->response->setJSON(['token' => '----', 'expires' => 5]);
+            }
+
+            $currentTime = time();
+            $timeBlock = floor($currentTime / 5);
+            $secretKey = "KunciRahasiaKelasOffline" . $id_jadwal;
+            $token = substr(abs(crc32($timeBlock . $secretKey)), 0, 4);
+
+            $this->db->table('jadwal')
+                     ->where('id_jadwal', $id_jadwal)
+                     ->update(['token_absen' => $token]);
+
+            // Hitung sisa detik menuju pergantian blok token berikutnya di server
+            $expiresIn = 5 - ($currentTime % 5);
+
+            return $this->response->setJSON([
+                'token' => $token,
+                'expires' => $expiresIn
+            ]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['token' => 'ERR', 'expires' => 5]);
+        }
+    }
+
+    // Method untuk menutup sesi absensi peserta
+    public function tutupAbsensi($id_kelas, $id_jadwal)
+    {
+        // Ubah status absensi dibuka menjadi 0 (tertutup) di database
+        $this->db->table('jadwal')->where('id_jadwal', $id_jadwal)->update([
+            'absensi_dibuka' => 0
         ]);
 
-        return redirect()->to(base_url('mentor/kelas/' . $id_kelas . '/absensi'))->with('success', 'Sesi absensi berhasil dibuka.');
+        return redirect()->to(base_url('mentor/kelas/' . $id_kelas . '/absensi'))->with('success', 'Sesi absensi berhasil ditutup.');
     }
 
-
-    // Method untuk mentor menutup absensi kembali
-    public function tutupAbsen(int $idKelas, int $idJadwal)
-    {
-        if ($r = $this->requireMentor()) return $r;
-        if (! $this->kelasMilikMentor($idKelas)) return redirect()->to(base_url('mentor/kelas'))->with('error', 'Akses kelas ditolak.');
-
-        $data = [
-            'absensi_dibuka' => 0,
-            'token_absen'    => null,
-            'updated_at'     => date('Y-m-d H:i:s')
-        ];
-
-        $this->db->table('jadwal')->where(['id_jadwal' => $idJadwal, 'id_kelas' => $idKelas])->update($data);
-
-        return redirect()->to(base_url("mentor/kelas/$idKelas/absensi"))
-                         ->with('success', 'Absensi berhasil ditutup.');
-    }
 
     public function generateTimeToken() {
     // Membagi waktu UNIX timestamp saat ini dengan 5 detik
@@ -281,14 +317,6 @@ class Mentor extends BaseController
     return $token;
 }
 
-public function getLiveToken($id_jadwal) {
-    // Hitung token berdasarkan waktu 5 detik
-    $timeBlock = floor(time() / 5);
-    $secretKey = "KunciRahasiaKelasOffline" . $id_jadwal; // Unik per jadwal
-    $token = substr(abs(crc32($timeBlock . $secretKey)), 0, 4);
-
-    return $this->response->getJSON(['token' => $token]);
-}
 
 
     public function materi(int $idKelas)

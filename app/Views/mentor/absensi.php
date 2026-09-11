@@ -99,39 +99,38 @@
                                 </div>
                             </div>
 
-                            <!-- Tampilan Token Sesi Aktif dengan Live Update tiap 5 detik -->
-                            <?php if ($sesiDibuka): ?>
-                                <div class="card text-center p-4 shadow-sm border-info my-2">
-                                    <h6 class="text-muted mb-1">Token Absensi Pertemuan Ini</h6>
-                                    <h1 id="box-token-<?= esc($item['id_jadwal']) ?>" class="display-4 fw-bold text-primary my-2 font-monospace" style="letter-spacing: 4px;">----</h1>
-                                    <p class="text-danger fw-semibold small mb-0">Token akan otomatis diperbarui setiap 5 detik. Harap lihat ke layar proyektor!</p>
-                                </div>
+                           <!-- Tampilan Token Sesi Aktif dengan Live Update -->
+<?php if ($sesiDibuka): ?>
+    <div class="card text-center p-4 shadow-sm border-info my-2">
+        <h6 class="text-muted mb-1">Token Absensi Pertemuan Ini</h6>
+        <h1 id="box-token-<?= esc($item['id_jadwal']) ?>" class="display-4 fw-bold text-primary my-2 font-monospace" style="letter-spacing: 4px;">----</h1>
+        <p class="text-danger fw-semibold small mb-0"></p>
+    </div>
 
-                                <script>
-                                (function() {
-                                    const jadwalId = <?= esc($item['id_jadwal']) ?>;
-                                    const tokenElement = document.getElementById('box-token-' + jadwalId);
+    <script>
+    (function() {
+        const jadwalId = <?= esc($item['id_jadwal']) ?>;
+        const tokenElement = document.getElementById('box-token-' + jadwalId);
 
-                                    function fetchToken() {
-                                        fetch('<?= base_url("mentor/jadwal/get-live-token/") ?>' + jadwalId)
-                                            .then(response => response.json())
-                                            .then(data => {
-                                                if(tokenElement && data.token) {
-                                                    tokenElement.innerText = data.token;
-                                                }
-                                            }).catch(err => console.error('Gagal mengambil token:', err));
-                                    }
+        function fetchToken() {
+            fetch('<?= base_url("mentor/jadwal/get-live-token/") ?>' + jadwalId)
+                .then(response => response.json())
+                .then(data => {
+                    if(tokenElement && data.token) {
+                        tokenElement.innerText = data.token;
+                    }
+                }).catch(err => console.error('Gagal mengambil token:', err));
+        }
 
-                                    // Jalankan saat pertama kali halaman dibuka
-                                    fetchToken();
+        // Ambil token pertama kali saat halaman dibuka
+        fetchToken();
 
-                                    // Set interval untuk memperbarui token setiap 5 detik (5000 milidetik)
-                                    setInterval(fetchToken, 5000);
-                                })();
-                                </script>
-                            <?php endif; ?>
-
-                            <!-- Tombol Aksi Mentor (Alur: Absen Dulu -> Baru Bisa Buka/Tutup Sesi) -->
+        // Set interval untuk memperbarui token setiap 5 detik (5000 milidetik)
+        setInterval(fetchToken, 5000);
+    })();
+    </script>
+<?php endif; ?>
+                            <!-- Tombol Aksi Mentor -->
                             <div class="bg-light p-2 rounded-2 mb-3">
                                 <?php if (! $mentorSudahAbsen): ?>
                                     <form action="<?= base_url('mentor/kelas/' . $kelas['id_kelas'] . '/absensi/' . $item['id_jadwal']) ?>" method="post">
@@ -139,11 +138,11 @@
                                     </form>
                                 <?php elseif ($sesiDibuka): ?>
                                     <form action="<?= base_url('mentor/kelas/' . $kelas['id_kelas'] . '/absensi/' . $item['id_jadwal'] . '/tutup') ?>" method="post">
-                                        <button class="btn btn-outline-danger btn-sm w-100"><i class="fa-solid fa-lock me-1"></i> Tutup Sesi Absen Peserta</button>
+                                        <button type="submit" class="btn btn-outline-danger btn-sm w-100"><i class="fa-solid fa-lock me-1"></i> Tutup Sesi Absen Peserta</button>
                                     </form>
                                 <?php else: ?>
                                     <form action="<?= base_url('mentor/kelas/' . $kelas['id_kelas'] . '/absensi/' . $item['id_jadwal'] . '/buka') ?>" method="post">
-                                        <button class="btn btn-main btn-sm w-100"><i class="fa-solid fa-lock-open me-1"></i> Buka Sesi Absensi</button>
+                                        <button type="submit" class="btn btn-main btn-sm w-100"><i class="fa-solid fa-lock-open me-1"></i> Buka Sesi Absensi</button>
                                     </form>
                                 <?php endif; ?>
                             </div>

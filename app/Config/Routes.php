@@ -157,6 +157,7 @@ $routes->group('admin', function($routes) {
 });
 
 // ===== MENU MENTOR =====
+// ===== MENU MENTOR =====
 $routes->group('mentor', function($routes) {
     $routes->get('dashboard', 'Mentor::dashboard');
     $routes->get('kelas', 'Mentor::kelas');
@@ -164,14 +165,16 @@ $routes->group('mentor', function($routes) {
     $routes->get('kelas/(:num)/absensi', 'Mentor::absensi/$1');
     $routes->post('kelas/(:num)/absensi/sesi', 'Mentor::simpanJadwal/$1');
     $routes->post('kelas/(:num)/absensi/(:num)', 'Mentor::simpanAbsensi/$1/$2');
+    
+    // Perbaiki baris rute live token di sini (cukup satu dan sesuaikan jalurnya)
+    $routes->get('jadwal/get-live-token/(:num)', 'Mentor::getLiveToken/$1');
+
     $routes->post('kelas/(:num)/absensi/(:num)/buka', 'Mentor::bukaAbsensi/$1/$2');
     $routes->post('kelas/(:num)/absensi/(:num)/tutup', 'Mentor::tutupAbsensi/$1/$2');
     $routes->get('kelas/(:num)/materi', 'Mentor::materi/$1');
     $routes->get('jadwal/(:num)/edit', 'Mentor::editJadwal/$1');
     
-    // Tambahkan baris di bawah ini untuk menangani rute update-materi
     $routes->post('jadwal/update-materi/(:num)', 'Mentor::updateMateri/$1'); 
-    
     $routes->post('jadwal/update/(:num)', 'Mentor::updateMateri/$1'); 
     $routes->get('kelas/(:num)/ujian-tugas', 'Mentor::ujianTugas/$1');
     $routes->post('kelas/(:num)/ujian-tugas', 'Mentor::simpanUjianTugas/$1');
