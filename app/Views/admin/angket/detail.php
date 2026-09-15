@@ -1,342 +1,190 @@
+<?php
+if (!function_exists('rating_stars_admin_angket')) {
+    function rating_stars_admin_angket($nilai): string
+    {
+        $nilai = max(0, min(5, (float) $nilai));
+        $full = (int) round($nilai);
+        return str_repeat('&#9733;', $full) . str_repeat('&#9734;', 5 - $full);
+    }
+}
+
+$tanggalPelatihan = !empty($angket['tanggal_mulai_kelas']) ? date('d M Y', strtotime($angket['tanggal_mulai_kelas'])) : '-';
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= esc($title); ?> - Creativemu Academy</title>
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
     <style>
-        :root {
-            --sidebar-bg: #22133c;
-            --sidebar-active-gradient: linear-gradient(135deg, #794bc4 0%, #5931a0 100%);
-            --sidebar-text: #c8bfe7;
-            --primary-purple: #794bc4;
-            --accent-purple: #9b6fd9;
-            --light-purple: #f4f0fc;
-            --dark-purple: #1e0f33;
+        :root { --sidebar-bg:#22133c; --sidebar-active-gradient:linear-gradient(135deg,#794bc4 0%,#5931a0 100%); --sidebar-text:#c8bfe7; --primary-purple:#794bc4; --dark-purple:#1e0f33; --light-purple:#f4f0fc; --soft-border:#eadffb; --muted-text:#817796; }
+        * { box-sizing: border-box; }
+        body { margin:0; font-family:'Poppins',sans-serif; background:#f7f5fd; color:#2f2442; overflow-x:hidden; }
+        #sidebar { width:275px; height:100vh; position:fixed; inset:0 auto 0 0; background:var(--sidebar-bg); z-index:1000; overflow-y:auto; box-shadow:8px 0 28px rgba(34,19,60,.12); }
+        #sidebar .sidebar-header { padding:22px 18px; background:rgba(0,0,0,.22); text-align:center; }
+        #sidebar .sidebar-header img { width:230px; max-width:100%; height:92px; object-fit:cover; border-radius:10px; }
+        #sidebar .nav { padding:18px 12px 28px; }
+        #sidebar .nav-link { color:var(--sidebar-text); padding:12px 16px; display:flex; align-items:center; gap:12px; border-radius:12px; margin-bottom:6px; font-weight:500; font-size:.92rem; transition:.2s ease; }
+        #sidebar .nav-link i { width:21px; text-align:center; }
+        #sidebar .nav-link:hover, #sidebar .nav-link.active { background:var(--sidebar-active-gradient); color:#fff; box-shadow:0 8px 20px rgba(121,75,196,.28); }
+        #main-content { margin-left:275px; padding:32px; min-height:100vh; }
+        .top-navbar, .panel, .info-card, .score-card, .comment-card { background:#fff; border:1px solid rgba(121,75,196,.08); box-shadow:0 14px 34px rgba(64,36,105,.06); }
+        .top-navbar { border-radius:18px; padding:22px 26px; display:flex; justify-content:space-between; align-items:center; gap:18px; margin-bottom:24px; }
+        .page-title { font-size:clamp(1.25rem,2vw,1.75rem); color:var(--dark-purple); font-weight:800; margin:0; }
+        .page-subtitle { color:var(--muted-text); margin:6px 0 0; font-size:.92rem; }
+        .admin-profile { display:flex; align-items:center; gap:12px; min-width:max-content; }
+        .admin-profile img { width:46px; height:46px; border-radius:50%; object-fit:cover; border:2px solid var(--primary-purple); }
+        .admin-info h6 { margin:0; color:var(--dark-purple); font-weight:700; font-size:.92rem; }
+        .admin-info small, .muted { color:var(--muted-text); }
+        .btn-purple { background:var(--sidebar-active-gradient); color:#fff; border:none; border-radius:12px; min-height:42px; padding:10px 16px; font-weight:700; }
+        .btn-purple:hover { color:#fff; filter:brightness(.98); }
+        .btn-soft { background:var(--light-purple); color:var(--primary-purple); border:1px solid var(--soft-border); border-radius:12px; min-height:42px; padding:10px 15px; font-weight:700; }
+        .panel { border-radius:18px; padding:24px; margin-bottom:20px; }
+        .detail-grid { display:grid; grid-template-columns:1.35fr .65fr; gap:18px; align-items:start; }
+        .info-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+        .info-card { border-radius:14px; padding:16px; box-shadow:none; }
+        .info-label { color:var(--muted-text); font-size:.78rem; font-weight:800; text-transform:uppercase; letter-spacing:.03em; margin-bottom:6px; }
+        .info-value { color:var(--dark-purple); font-weight:700; overflow-wrap:anywhere; }
+        .score-stack { display:grid; gap:12px; }
+        .score-card { border-radius:14px; padding:16px; box-shadow:none; }
+        .score-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:8px; }
+        .score-label { color:var(--dark-purple); font-weight:800; }
+        .score-number { color:var(--primary-purple); font-weight:800; }
+        .rating-stars { color:#f5b301; letter-spacing:1px; white-space:nowrap; font-size:1.08rem; }
+        .avg-card { background:linear-gradient(135deg,#794bc4,#5931a0); color:#fff; border-radius:16px; padding:20px; }
+        .avg-card .rating-stars { color:#ffd766; }
+        .avg-value { font-size:2rem; line-height:1; font-weight:800; }
+        .section-title { color:var(--dark-purple); font-weight:800; margin:0 0 14px; font-size:1.05rem; }
+        .question-list { display:grid; gap:10px; margin:0; padding:0; list-style:none; }
+        .question-item { display:grid; grid-template-columns:auto 1fr; gap:12px; padding:13px; border:1px solid #f0eafb; border-radius:12px; background:#fcfbff; }
+        .question-number { width:30px; height:30px; border-radius:10px; display:grid; place-items:center; background:var(--light-purple); color:var(--primary-purple); font-weight:800; font-size:.82rem; }
+        .question-category { display:inline-flex; width:max-content; max-width:100%; padding:4px 9px; border-radius:999px; background:#fff; border:1px solid var(--soft-border); color:var(--primary-purple); font-size:.72rem; font-weight:700; margin-bottom:5px; }
+        .comment-card { border-radius:14px; padding:16px; margin-bottom:12px; box-shadow:none; }
+        .comment-top { display:flex; justify-content:space-between; gap:12px; margin-bottom:8px; }
+        .comment-name { color:var(--dark-purple); font-weight:800; }
+        .empty-state { text-align:center; color:var(--muted-text); padding:34px 12px; }
+        @media (max-width:992px) { .detail-grid { grid-template-columns:1fr; } }
+        @media (max-width:768px) {
+            #sidebar { position:relative; width:100%; height:auto; }
+            #sidebar .sidebar-header { padding:14px; }
+            #sidebar .sidebar-header img { width:190px; height:74px; }
+            #sidebar .nav { padding:12px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+            #sidebar .nav-link { margin:0; min-height:46px; font-size:.82rem; padding:10px 12px; }
+            #main-content { margin-left:0; padding:18px; }
+            .top-navbar { flex-direction:column; align-items:flex-start; padding:18px; border-radius:14px; }
+            .admin-profile { width:100%; }
+            .panel { padding:16px; border-radius:14px; }
+            .info-grid { grid-template-columns:1fr; }
+            .comment-top { flex-direction:column; }
         }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f7f5fd;
-            overflow-x: hidden;
-            margin: 0;
-        }
-
-        /* --- Custom Scrollbar --- */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f7f5fd; }
-        ::-webkit-scrollbar-thumb { background: #b293f0; border-radius: 10px; }
-
-        /* --- Sidebar Styling --- */
-        #sidebar {
-            width: 275px;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background-color: var(--sidebar-bg);
-            color: var(--sidebar-text);
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-            z-index: 1000;
-            box-shadow: 8px 0 30px rgba(121, 75, 196, 0.08);
-            overflow-y: auto;
-        }
-
-        #sidebar .sidebar-header {
-            padding: 25px 20px;
-            background: rgba(0, 0, 0, 0.25);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            text-align: center;
-        }
-
-        #sidebar .sidebar-header img {
-    width: 240px;
-    height: 95px;
-    object-fit: cover;
-    border-radius: 10px;
-    filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
-    transition: transform 0.3s ease;
-}
-
-        #sidebar .nav { padding: 20px 14px; }
-        #sidebar .nav-item { margin-bottom: 6px; }
-        
-        #sidebar .nav-link {
-            color: var(--sidebar-text);
-            padding: 12px 18px;
-            display: flex;
-            align-items: center;
-            font-weight: 500;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        #sidebar .nav-link i {
-            margin-right: 14px;
-            font-size: 1.1rem;
-            width: 22px;
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-
-        #sidebar .nav-link:hover {
-            background-color: rgba(121, 75, 196, 0.2);
-            color: #ffffff;
-            transform: translateX(6px);
-        }
-
-        #sidebar .nav-link.active {
-            background: var(--sidebar-active-gradient);
-            color: #ffffff;
-            box-shadow: 0 6px 20px rgba(121, 75, 196, 0.4);
-            font-weight: 600;
-        }
-
-        #sidebar .nav-link.text-danger:hover {
-            background-color: rgba(220, 53, 69, 0.2);
-            color: #ff6b6b !important;
-        }
-
-        /* --- Main Content Area --- */
-        #main-content {
-            margin-left: 275px;
-            padding: 35px;
-            transition: all 0.4s ease;
-            animation: mainFadeIn 0.7s cubic-bezier(0.165, 0.84, 0.44, 1);
-        }
-
-        /* --- Top Navbar --- */
-        .top-navbar {
-            background: #ffffff;
-            padding: 22px 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(121, 75, 196, 0.05);
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid rgba(121, 75, 196, 0.04);
-        }
-
-        .dash-header h3 {
-            font-weight: 800;
-            color: var(--dark-purple);
-            font-size: 1.6rem;
-            letter-spacing: -0.5px;
-        }
-        
-        .dash-header p {
-            color: #8c83a5;
-            font-size: 0.9rem;
-            margin-bottom: 0;
-        }
-
-        .admin-profile {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .admin-profile img {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2.5px solid var(--primary-purple);
-            box-shadow: 0 4px 12px rgba(121, 75, 196, 0.2);
-        }
-
-        .admin-info h6 {
-            margin: 0;
-            font-weight: 700;
-            color: var(--dark-purple);
-            font-size: 0.98rem;
-        }
-
-        .admin-info small {
-            color: #8c83a5;
-            font-size: 0.78rem;
-        }
-
-        /* --- Content Cards --- */
-        .content-card {
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(121, 75, 196, 0.04);
-            margin-bottom: 30px;
-            border: 1px solid rgba(121, 75, 196, 0.05);
-        }
-
-        .table-custom th {
-            background-color: var(--light-purple);
-            color: var(--dark-purple);
-            font-weight: 700;
-            border: none;
-        }
-
-        @keyframes mainFadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @media (max-width:430px) { #sidebar .nav { grid-template-columns:1fr; } .avg-value { font-size:1.7rem; } }
     </style>
 </head>
 <body>
-
-    <!-- === SIDEBAR MENU === -->
     <nav id="sidebar">
-        <div class="sidebar-header">
-           <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
-        </div>
+        <div class="sidebar-header"><img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy"></div>
         <ul class="nav flex-column">
-            <li class="nav-item">
-                <a href="<?= base_url('admin/dashboard'); ?>" class="nav-link">
-                    <i class="fas fa-chart-pie"></i> <span>Dashboard</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link">
-                    <i class="fas fa-book"></i> <span>Master Kelas</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/mentor'); ?>" class="nav-link">
-                    <i class="fas fa-chalkboard-user"></i> <span>Instruktur</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link">
-                    <i class="fas fa-users"></i> <span>Data Peserta</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/validasi'); ?>" class="nav-link">
-                    <i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
-                    <i class="fas fa-book-open"></i> <span>Buku Induk</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/angket'); ?>" class="nav-link active">
-                    <i class="fas fa-award"></i> <span>Angket</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link">
-                    <i class="fas fa-award"></i> <span>Sertifikat</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/laporan'); ?>" class="nav-link">
-                    <i class="fas fa-file-lines"></i> <span>Laporan</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link">
-                    <i class="fas fa-user-shield"></i> <span>Hak Akses</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link">
-                    <i class="fas fa-gear"></i> <span>Pengaturan</span>
-                </a>
-            </li>
-            <li class="nav-item mt-4">
-                <a href="<?= base_url('logout'); ?>" class="nav-link text-danger">
-                    <i class="fas fa-right-from-bracket"></i> <span>Logout</span>
-                </a>
-            </li>
+            <li class="nav-item"><a href="<?= base_url('admin/dashboard'); ?>" class="nav-link"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link"><i class="fas fa-book"></i><span>Master Kelas</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/mentor'); ?>" class="nav-link"><i class="fas fa-chalkboard-user"></i><span>Instruktur</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link"><i class="fas fa-users"></i><span>Data Peserta</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/validasi'); ?>" class="nav-link"><i class="fas fa-clipboard-check"></i><span>Validasi</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link"><i class="fas fa-book-open"></i><span>Buku Induk</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/angket'); ?>" class="nav-link active"><i class="fas fa-award"></i><span>Angket</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link"><i class="fas fa-certificate"></i><span>Sertifikat</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/laporan'); ?>" class="nav-link"><i class="fas fa-file-lines"></i><span>Laporan</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link"><i class="fas fa-user-shield"></i><span>Hak Akses</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link"><i class="fas fa-gear"></i><span>Pengaturan</span></a></li>
+            <li class="nav-item mt-2"><a href="<?= base_url('logout'); ?>" class="nav-link text-danger"><i class="fas fa-right-from-bracket"></i><span>Logout</span></a></li>
         </ul>
     </nav>
 
-    <!-- === MAIN CONTENT === -->
-    <div id="main-content">
-        
-        <!-- === TOP NAVBAR === -->
-        <div class="top-navbar">
-            <div class="dash-header">
-                <h3>Detail Angket</h3>
-                <p>Informasi lengkap judul, kelas, instruktur, dan rincian pertanyaan angket.</p>
+    <main id="main-content">
+        <section class="top-navbar">
+            <div>
+                <h1 class="page-title">Detail Angket</h1>
+                <p class="page-subtitle"><?= esc($angket['judul_angket'] ?? 'Angket Evaluasi'); ?></p>
             </div>
-            <div class="d-flex align-items-center gap-4">
-                <div class="admin-profile">
-                    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
-                    <div class="admin-info">
-                        <h6><?= esc(session()->get('nama')); ?></h6>
-                        <small>Administrator</small>
+            <div class="admin-profile">
+                <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
+                <div class="admin-info"><h6><?= esc(session()->get('nama') ?: 'Administrator'); ?></h6><small>Administrator</small></div>
+            </div>
+        </section>
+
+        <div class="mb-3"><a href="<?= base_url('admin/angket'); ?>" class="btn btn-soft"><i class="fas fa-arrow-left me-2"></i>Kembali</a></div>
+
+        <section class="detail-grid">
+            <div class="panel">
+                <h2 class="section-title">Informasi Pelatihan</h2>
+                <div class="info-grid">
+                    <div class="info-card"><div class="info-label">Judul Angket</div><div class="info-value"><?= esc($angket['judul_angket'] ?? '-'); ?></div></div>
+                    <div class="info-card"><div class="info-label">Nama Mentor</div><div class="info-value"><?= esc($angket['nama_mentor'] ?? '-'); ?></div></div>
+                    <div class="info-card"><div class="info-label">Nama Kelas</div><div class="info-value"><?= esc($angket['nama_kelas'] ?? '-'); ?></div></div>
+                    <div class="info-card"><div class="info-label">Tempat Pelatihan</div><div class="info-value"><?= esc($angket['tempat_pelatihan'] ?? '-'); ?></div></div>
+                    <div class="info-card"><div class="info-label">Tanggal Pelatihan</div><div class="info-value"><?= esc($tanggalPelatihan); ?></div></div>
+                    <div class="info-card"><div class="info-label">Responden</div><div class="info-value"><?= number_format((int) ($angket['jumlah_responden'] ?? 0)); ?> peserta</div></div>
+                </div>
+            </div>
+
+            <aside class="score-stack">
+                <div class="avg-card">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div><div class="small opacity-75 fw-bold mb-2">Rata-rata Nilai</div><div class="avg-value"><?= number_format((float) ($angket['rata_rata'] ?? 0), 2); ?>/5</div></div>
+                        <i class="fas fa-star fa-2x opacity-75"></i>
                     </div>
+                    <div class="rating-stars mt-3"><?= rating_stars_admin_angket($angket['rata_rata'] ?? 0); ?></div>
                 </div>
-            </div>
-        </div>
+                <div class="score-card"><div class="score-head"><span class="score-label">Instruktur 1</span><span class="score-number"><?= number_format((float) ($angket['nilai_instruktur_1'] ?? 0), 1); ?>/5</span></div><div class="rating-stars"><?= rating_stars_admin_angket($angket['nilai_instruktur_1'] ?? 0); ?></div></div>
+                <div class="score-card"><div class="score-head"><span class="score-label">Instruktur 2</span><span class="score-number"><?= number_format((float) ($angket['nilai_instruktur_2'] ?? 0), 1); ?>/5</span></div><div class="rating-stars"><?= rating_stars_admin_angket($angket['nilai_instruktur_2'] ?? 0); ?></div></div>
+                <div class="score-card"><div class="score-head"><span class="score-label">Tempat Pelatihan</span><span class="score-number"><?= number_format((float) ($angket['nilai_tempat'] ?? 0), 1); ?>/5</span></div><div class="rating-stars"><?= rating_stars_admin_angket($angket['nilai_tempat'] ?? 0); ?></div></div>
+            </aside>
+        </section>
 
-        <!-- === PAGE CONTENT === -->
-        <div class="content-card">
-            <div class="row mb-4">
-                <div class="col-md-6 mb-3">
-                    <label class="text-muted small fw-bold">Judul Angket:</label>
-                    <p class="fs-5 fw-semibold text-dark mb-0"><?= esc($angket['judul_angket'] ?? '-'); ?></p>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="text-muted small fw-bold">Nama Kelas:</label>
-                    <p class="fs-6 fw-semibold text-dark mb-0"><?= esc($angket['nama_kelas'] ?? '-'); ?></p>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="text-muted small fw-bold">Nama Instruktur:</label>
-                    <p class="fs-6 text-dark mb-0"><?= esc($angket['nama_mentor'] ?? '-'); ?></p>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="text-muted small fw-bold">Tanggal Dibuat:</label>
-                    <p class="fs-6 text-dark mb-0"><?= esc($angket['created_at'] ?? '-'); ?></p>
-                </div>
-            </div>
+        <section class="panel">
+            <h2 class="section-title">Kumpulan Saran Peserta</h2>
+            <?php if (!empty($saranPeserta)) : ?>
+                <?php foreach ($saranPeserta as $saran): ?>
+                    <article class="comment-card">
+                        <div class="comment-top">
+                            <div>
+                                <div class="comment-name"><?= esc($saran['nama_peserta'] ?? 'Peserta'); ?></div>
+                                <div class="muted small"><?= !empty($saran['created_at']) ? esc(date('d M Y', strtotime($saran['created_at']))) : 'Tanpa tanggal'; ?></div>
+                            </div>
+                            <?php if (isset($saran['rating'])) : ?>
+                                <div><span class="rating-stars"><?= rating_stars_admin_angket($saran['rating']); ?></span> <strong><?= number_format((float) $saran['rating'], 1); ?>/5</strong></div>
+                            <?php endif; ?>
+                        </div>
+                        <div><?= esc($saran['saran'] ?? '-'); ?></div>
+                    </article>
+                <?php endforeach; ?>
+            <?php else : ?>
+                <div class="empty-state"><i class="fas fa-comment-slash fa-2x mb-3"></i><div>Belum ada saran atau masukan peserta untuk angket ini.</div></div>
+            <?php endif; ?>
+        </section>
 
-            <hr class="text-muted my-4">
+        <section class="panel">
+            <h2 class="section-title">Pertanyaan Angket</h2>
+            <?php if (!empty($semua_pertanyaan)) : ?>
+                <ul class="question-list">
+                    <?php $no = 1; foreach ($semua_pertanyaan as $row) : ?>
+                        <li class="question-item">
+                            <div class="question-number"><?= $no++; ?></div>
+                            <div>
+                                <div class="question-category"><?= esc($row['kategori'] ?? 'Umum'); ?></div>
+                                <div><?= esc($row['pertanyaan'] ?? '-'); ?></div>
+                            </div>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php else : ?>
+                <div class="empty-state"><i class="fas fa-list-check fa-2x mb-3"></i><div>Tidak ada pertanyaan ditemukan.</div></div>
+            <?php endif; ?>
+        </section>
+    </main>
 
-            <h5 class="fw-bold mb-3 text-dark"><i class="fas fa-list-check me-2 text-purple"></i>Rincian Pertanyaan</h5>
-            <div class="table-responsive">
-                <table class="table table-custom table-hover align-middle">
-                    <thead>
-                        <tr>
-                            <th width="10%">No</th>
-                            <th width="25%">Kategori</th>
-                            <th width="65%">Pertanyaan</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($semua_pertanyaan)) : ?>
-                            <?php $no = 1; foreach ($semua_pertanyaan as $row) : ?>
-                                <tr>
-                                    <td><?= $no++; ?></td>
-                                    <td><span class="badge bg-light text-dark border"><?= esc($row['kategori'] ?? 'Umum'); ?></span></td>
-                                    <td><?= esc($row['pertanyaan']); ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else : ?>
-                            <tr>
-                                <td colspan="3" class="text-center text-muted">Tidak ada pertanyaan ditemukan.</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="mt-4">
-                <a href="<?= base_url('admin/angket'); ?>" class="btn btn-secondary rounded-pill px-4">Kembali</a>
-            </div>
-        </div>
-
-    </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,478 +1,57 @@
+<?php
+$filters = $filters ?? ['keyword' => '', 'status' => '', 'id_kelas' => ''];
+$summary = $summary ?? ['total' => count($pendaftaran ?? []), 'menunggu' => 0, 'disetujui' => 0, 'ditolak' => 0];
+if (!function_exists('validasi_status_badge')) {
+    function validasi_status_badge(array $row): array
+    {
+        $text = strtolower(($row['status_pembayaran'] ?? '') . ' ' . ($row['status_pendaftaran'] ?? '') . ' ' . ($row['status'] ?? ''));
+        if (str_contains($text, 'valid') || str_contains($text, 'disetujui')) return ['Disetujui', 'success'];
+        if (str_contains($text, 'rejected') || str_contains($text, 'ditolak')) return ['Ditolak', 'danger'];
+        return ['Menunggu', 'warning'];
+    }
+    function validasi_tanggal($value): string
+    {
+        return !empty($value) ? date('d M Y', strtotime($value)) : '-';
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= esc($title); ?> - Creativemu Academy</title>
-    <!-- Bootstrap 5 CSS -->
+    <title><?= esc($title ?? 'Validasi Pendaftaran'); ?> - Creativemu Academy</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
     <style>
-        :root {
-            --sidebar-bg: #22133c;
-            --sidebar-active-gradient: linear-gradient(135deg, #794bc4 0%, #5931a0 100%);
-            --sidebar-text: #c8bfe7;
-            --primary-purple: #794bc4;
-            --accent-purple: #9b6fd9;
-            --light-purple: #f4f0fc;
-            --dark-purple: #1e0f33;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f7f5fd;
-            overflow-x: hidden;
-            margin: 0;
-        }
-
-        /* --- Custom Scrollbar --- */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f7f5fd; }
-        ::-webkit-scrollbar-thumb { background: #b293f0; border-radius: 10px; }
-
-        /* --- Sidebar Styling --- */
-        #sidebar {
-            width: 275px;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background-color: var(--sidebar-bg);
-            color: var(--sidebar-text);
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-            z-index: 1000;
-            box-shadow: 8px 0 30px rgba(121, 75, 196, 0.08);
-            overflow-y: auto;
-        }
-
-        #sidebar .sidebar-header {
-            padding: 25px 20px;
-            background: rgba(0, 0, 0, 0.25);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            text-align: center;
-        }
-
-        #sidebar .sidebar-header img {
-    width: 240px;
-    height: 95px;
-    object-fit: cover;
-    border-radius: 10px;
-    filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
-    transition: transform 0.3s ease;
-}
-
-        #sidebar .nav { padding: 20px 14px; }
-        #sidebar .nav-item { margin-bottom: 6px; }
-        
-        #sidebar .nav-link {
-            color: var(--sidebar-text);
-            padding: 12px 18px;
-            display: flex;
-            align-items: center;
-            font-weight: 500;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        #sidebar .nav-link i {
-            margin-right: 14px;
-            font-size: 1.1rem;
-            width: 22px;
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-
-        #sidebar .nav-link:hover {
-            background-color: rgba(121, 75, 196, 0.2);
-            color: #ffffff;
-            transform: translateX(6px);
-        }
-
-        #sidebar .nav-link.active {
-            background: var(--sidebar-active-gradient);
-            color: #ffffff;
-            box-shadow: 0 6px 20px rgba(121, 75, 196, 0.4);
-            font-weight: 600;
-        }
-
-        #sidebar .nav-link.text-danger:hover {
-            background-color: rgba(220, 53, 69, 0.2);
-            color: #ff6b6b !important;
-        }
-
-        /* --- Main Content Area --- */
-        #main-content {
-            margin-left: 275px;
-            padding: 35px;
-            transition: all 0.4s ease;
-            animation: mainFadeIn 0.7s cubic-bezier(0.165, 0.84, 0.44, 1);
-        }
-
-        /* --- Top Navbar --- */
-        .top-navbar {
-            background: #ffffff;
-            padding: 22px 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(121, 75, 196, 0.05);
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid rgba(121, 75, 196, 0.04);
-        }
-
-        .dash-header h3 {
-            font-weight: 800;
-            color: var(--dark-purple);
-            font-size: 1.6rem;
-            letter-spacing: -0.5px;
-        }
-        
-        .dash-header p {
-            color: #8c83a5;
-            font-size: 0.9rem;
-            margin-bottom: 0;
-        }
-
-        .admin-profile {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .admin-profile img {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2.5px solid var(--primary-purple);
-            box-shadow: 0 4px 12px rgba(121, 75, 196, 0.2);
-        }
-
-        .admin-info h6 {
-            margin: 0;
-            font-weight: 700;
-            color: var(--dark-purple);
-            font-size: 0.98rem;
-        }
-
-        .admin-info small {
-            color: #8c83a5;
-            font-size: 0.78rem;
-        }
-
-        /* --- Content Cards --- */
-        .content-card {
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(121, 75, 196, 0.04);
-            margin-bottom: 30px;
-            border: 1px solid rgba(121, 75, 196, 0.05);
-        }
-
-        /* --- Table Styling --- */
-        .table-custom {
-            vertical-align: middle;
-            font-size: 0.9rem;
-        }
-
-        .table-custom th {
-            background-color: var(--light-purple);
-            color: var(--dark-purple);
-            font-weight: 700;
-            padding: 15px;
-            border: none;
-        }
-
-        .table-custom td {
-            padding: 15px;
-            border-bottom: 1px solid #f0edf6;
-            color: #4a4259;
-        }
-
-        @keyframes mainFadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        :root{--sidebar-bg:#22133c;--sidebar-text:#c8bfe7;--primary:#794bc4;--primary-dark:#5931a0;--dark:#1e0f33;--soft:#f4f0fc;--border:#eadffb;--muted:#817796}*{box-sizing:border-box}body{margin:0;font-family:'Poppins',sans-serif;background:#f7f5fd;color:#2f2442;overflow-x:hidden}.sidebar{width:275px;background:var(--sidebar-bg);position:fixed;inset:0 auto 0 0;z-index:1040;overflow-y:auto;box-shadow:8px 0 28px rgba(34,19,60,.12)}.sidebar-header{padding:22px 18px;background:rgba(0,0,0,.22);text-align:center}.sidebar-header img{width:230px;max-width:100%;height:92px;object-fit:cover;border-radius:10px}.sidebar .nav{padding:18px 12px 28px}.sidebar .nav-link{display:flex;align-items:center;gap:12px;color:var(--sidebar-text);border-radius:12px;padding:12px 16px;margin-bottom:6px;font-weight:500;font-size:.9rem}.sidebar .nav-link i{width:21px;text-align:center}.sidebar .nav-link:hover,.sidebar .nav-link.active{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff}.main{margin-left:275px;width:calc(100% - 275px);padding:30px}.topbar,.panel,.metric,.validation-card{background:#fff;border:1px solid rgba(121,75,196,.08);box-shadow:0 14px 34px rgba(64,36,105,.06)}.topbar{border-radius:18px;padding:22px 26px;display:flex;justify-content:space-between;gap:18px;align-items:center;margin-bottom:20px}.mobile-menu{display:none}.page-title{margin:0;color:var(--dark);font-weight:800;font-size:clamp(1.25rem,2vw,1.75rem)}.page-subtitle{color:var(--muted);font-size:.9rem;margin:6px 0 0}.admin-profile{display:flex;gap:12px;align-items:center;min-width:max-content}.admin-profile img{width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid var(--primary)}.admin-profile h6{margin:0;color:var(--dark);font-weight:700;font-size:.9rem}.admin-profile small{color:var(--muted)}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.metric{border-radius:16px;padding:17px}.metric-icon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary-dark));margin-bottom:12px}.metric-label{color:var(--muted);font-size:.78rem;font-weight:700}.metric-value{font-size:1.45rem;font-weight:800;color:var(--dark)}.panel{border-radius:18px;padding:20px;margin-bottom:18px}.filter-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:12px;align-items:end}.form-label{font-size:.78rem;font-weight:800;color:var(--dark)}.form-control,.form-select{border-radius:12px;border-color:var(--border);min-height:44px}.btn-purple{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:0;border-radius:12px;min-height:42px;padding:10px 16px;font-weight:700}.btn-purple:hover{color:#fff}.btn-soft{background:var(--soft);color:var(--primary);border:1px solid var(--border);border-radius:12px;min-height:42px;padding:10px 15px;font-weight:700}.table-wrap{overflow-x:auto}.table{margin:0;vertical-align:middle}.table thead th{background:#faf8ff;color:var(--primary-dark);border-bottom:1px solid var(--border);padding:14px;font-size:.78rem;text-transform:uppercase;white-space:nowrap}.table tbody td{padding:15px;border-bottom:1px solid #f0eafb;color:#443652}.nis-badge{display:inline-flex;border-radius:999px;background:#f4f0fc;color:#5931a0;border:1px solid #ded0f7;padding:7px 11px;font-weight:800;letter-spacing:.04em;font-family:Consolas,monospace}.badge-status{border-radius:999px;padding:7px 11px;font-weight:800}.actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.mobile-list{display:none}.validation-card{border-radius:16px;padding:16px;margin-bottom:13px}.card-row{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #f0eafb;margin-top:10px;padding-top:10px}.card-row span:first-child{color:var(--muted);font-size:.78rem;font-weight:800}.card-row span:last-child{text-align:right;font-weight:700;color:var(--dark)}.detail-section{margin-bottom:18px}.detail-section h6{font-weight:800;color:var(--dark);margin-bottom:12px}.detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.detail-item{background:#fcfbff;border:1px solid #f0eafb;border-radius:12px;padding:12px}.detail-label{font-size:.73rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);font-weight:800}.detail-value{color:var(--dark);font-weight:700;overflow-wrap:anywhere}.empty-state{text-align:center;color:var(--muted);padding:38px 10px}.modal-content{border:0;border-radius:18px}.offcanvas{background:var(--sidebar-bg);color:var(--sidebar-text)}
+        @media(max-width:1100px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.filter-actions{grid-column:1/-1;display:flex;gap:10px}}
+        @media(max-width:768px){.sidebar{display:none}.mobile-menu{display:inline-flex}.main{margin-left:0;width:100%;padding:16px}.topbar{align-items:flex-start;flex-direction:column;border-radius:14px;padding:16px}.admin-profile{width:100%}.metrics,.filter-grid{grid-template-columns:1fr}.filter-actions{display:grid;grid-template-columns:1fr 1fr}.desktop-table{display:none}.mobile-list{display:block}.panel{padding:15px;border-radius:14px}.detail-grid{grid-template-columns:1fr}.actions{justify-content:stretch}.actions .btn{width:100%}.offcanvas .nav-link{color:var(--sidebar-text)}}
+        @media(max-width:430px){.filter-actions{grid-template-columns:1fr}.metric-value{font-size:1.25rem}}
     </style>
 </head>
 <body>
+<aside class="sidebar"><div class="sidebar-header"><img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy"></div><nav class="nav flex-column"><a href="<?= base_url('admin/dashboard'); ?>" class="nav-link"><i class="fas fa-chart-pie"></i>Dashboard</a><a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link"><i class="fas fa-book"></i>Master Kelas</a><a href="<?= base_url('admin/mentor'); ?>" class="nav-link"><i class="fas fa-chalkboard-user"></i>Instruktur</a><a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link"><i class="fas fa-users"></i>Data Peserta</a><a href="<?= base_url('admin/validasi'); ?>" class="nav-link active"><i class="fas fa-clipboard-check"></i>Validasi</a><a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link"><i class="fas fa-book-open"></i>Buku Induk</a><a href="<?= base_url('admin/angket'); ?>" class="nav-link"><i class="fas fa-poll"></i>Angket</a><a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link"><i class="fas fa-certificate"></i>Sertifikat</a><a href="<?= base_url('admin/laporan'); ?>" class="nav-link"><i class="fas fa-file-lines"></i>Laporan</a><a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link"><i class="fas fa-gear"></i>Pengaturan</a><a href="<?= base_url('logout'); ?>" class="nav-link text-danger mt-2"><i class="fas fa-right-from-bracket"></i>Logout</a></nav></aside>
 
-    <!-- === SIDEBAR MENU === -->
-    <nav id="sidebar">
-        <div class="sidebar-header">
-            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
-        </div>
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a href="<?= base_url('admin/dashboard'); ?>" class="nav-link">
-                    <i class="fas fa-chart-pie"></i> <span>Dashboard</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link">
-                    <i class="fas fa-book"></i> <span>Master Kelas</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/mentor'); ?>" class="nav-link">
-                    <i class="fas fa-chalkboard-user"></i> <span>Instruktur</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link">
-                    <i class="fas fa-users"></i> <span>Data Peserta</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/validasi'); ?>" class="nav-link active">
-                    <i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
-                    <i class="fas fa-book-open"></i> <span>Buku Induk</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/angket'); ?>" class="nav-link">
-                    <i class="fas fa-award"></i> <span>Angket</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link">
-                    <i class="fas fa-award"></i> <span>Sertifikat</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/laporan'); ?>" class="nav-link">
-                    <i class="fas fa-file-lines"></i> <span>Laporan</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link">
-                    <i class="fas fa-user-shield"></i> <span>Hak Akses</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link">
-                    <i class="fas fa-gear"></i> <span>Pengaturan</span>
-                </a>
-            </li>
-            <li class="nav-item mt-4">
-                <a href="<?= base_url('logout'); ?>" class="nav-link text-danger">
-                    <i class="fas fa-right-from-bracket"></i> <span>Logout</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
+<main class="main">
+    <section class="topbar"><div class="d-flex align-items-start gap-3"><button class="btn btn-soft mobile-menu" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar"><i class="fas fa-bars"></i></button><div><h1 class="page-title">Validasi Pendaftaran</h1><p class="page-subtitle">Setujui pembayaran dan pendaftaran peserta. NIS dibuat otomatis hanya saat disetujui.</p></div></div><div class="admin-profile"><img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil"><div><h6><?= esc(session()->get('nama') ?: 'Administrator'); ?></h6><small>Administrator</small></div></div></section>
 
-    <!-- === MAIN CONTENT === -->
-    <div id="main-content">
-        
-        <!-- === TOP NAVBAR === -->
-        <div class="top-navbar">
-            <div class="dash-header">
-                <h3>Validasi Pendaftaran</h3>
-                <p>Kelola dan setujui peserta yang sedang menunggu konfirmasi admin.</p>
-            </div>
-            <div class="d-flex align-items-center gap-4">
-                <div class="text-muted d-none d-md-block px-3 py-2 rounded-pill bg-light" id="current-date" style="font-size: 0.82rem; font-weight: 600; color: #794bc4 !important;">
-                    Memuat tanggal...
-                </div>
-                <div class="admin-profile">
-                    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
-                    <div class="admin-info">
-                        <h6><?= esc(session()->get('nama')); ?></h6>
-                        <small>Administrator</small>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <?php foreach (['success' => 'success', 'error' => 'danger', 'warning' => 'warning'] as $flash => $type): ?><?php if (session()->getFlashdata($flash)): ?><div class="alert alert-<?= $type; ?> border-0 rounded-4"><?= session()->getFlashdata($flash); ?></div><?php endif; ?><?php endforeach; ?>
 
-        <!-- Notifikasi Sukses -->
-        <?php if(session()->getFlashdata('success') || session()->getFlashdata('pesan')): ?>
-            <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 border-start border-5 border-success mb-4" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i> 
-                <?= session()->getFlashdata('success') ?? session()->getFlashdata('pesan') ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endif; ?>
+    <section class="metrics"><div class="metric"><div class="metric-icon"><i class="fas fa-file-signature"></i></div><div class="metric-label">Total Data</div><div class="metric-value"><?= number_format((int) $summary['total']); ?></div></div><div class="metric"><div class="metric-icon"><i class="fas fa-clock"></i></div><div class="metric-label">Menunggu</div><div class="metric-value"><?= number_format((int) $summary['menunggu']); ?></div></div><div class="metric"><div class="metric-icon"><i class="fas fa-check"></i></div><div class="metric-label">Disetujui</div><div class="metric-value"><?= number_format((int) $summary['disetujui']); ?></div></div><div class="metric"><div class="metric-icon"><i class="fas fa-xmark"></i></div><div class="metric-label">Ditolak</div><div class="metric-value"><?= number_format((int) $summary['ditolak']); ?></div></div></section>
 
-        <!-- Card Tabel -->
-        <div class="content-card">
-            <div class="table-responsive">
-                <table class="table table-hover table-custom mb-0">
-                    <thead>
-                        <tr>
-                            <th class="text-center" width="5%">No</th>
-                            <th>Data Peserta</th>
-                            <th>Kelas</th>
-                            <th>Pembayaran</th>
-                            <th class="text-center">Bukti</th>
-                            <th class="text-center">Status</th>
-                            <th class="text-center" width="15%">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if(empty($pendaftaran)): ?>
-                            <tr>
-                                <td colspan="7" class="text-center py-5">
-                                    <div class="text-muted">
-                                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                                        Belum ada data pendaftaran yang masuk.
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endif; ?>
+    <section class="panel"><form action="<?= base_url('admin/validasi'); ?>" method="get" class="filter-grid"><div><label class="form-label">Search</label><input type="search" name="keyword" class="form-control" placeholder="Cari nama, NIS, WhatsApp, email, kelas..." value="<?= esc($filters['keyword'] ?? ''); ?>"></div><div><label class="form-label">Kelas</label><select name="id_kelas" class="form-select"><option value="">Semua kelas</option><?php foreach (($kelasList ?? []) as $kelas): ?><option value="<?= esc($kelas['id_kelas']); ?>" <?= ((string) ($filters['id_kelas'] ?? '') === (string) $kelas['id_kelas']) ? 'selected' : ''; ?>><?= esc($kelas['nama_kelas']); ?></option><?php endforeach; ?></select></div><div><label class="form-label">Status</label><select name="status" class="form-select"><option value="">Semua status</option><?php foreach (['menunggu'=>'Menunggu','disetujui'=>'Disetujui','ditolak'=>'Ditolak'] as $value=>$label): ?><option value="<?= $value; ?>" <?= (($filters['status'] ?? '') === $value) ? 'selected' : ''; ?>><?= $label; ?></option><?php endforeach; ?></select></div><div class="filter-actions"><button class="btn btn-purple" type="submit"><i class="fas fa-magnifying-glass me-2"></i>Filter</button><a href="<?= base_url('admin/validasi'); ?>" class="btn btn-soft"><i class="fas fa-rotate-left me-2"></i>Reset</a></div></form></section>
 
-                        <?php foreach(($pendaftaran ?? []) as $i => $item): ?>
-                            <tr>
-                                <td class="text-center fw-semibold text-muted"><?= $i + 1 ?></td>
-                                <td>
-                                    <!-- Bagian Nama, Email, dan No HP -->
-                                    <div class="fw-bold text-dark mb-1"><?= esc($item['nama']) ?></div>
-                                    <div class="text-muted small">
-                                        <i class="bi bi-envelope me-1"></i><?= esc($item['email']) ?> <br>
-                                        <i class="bi bi-telephone me-1"></i><?= esc($item['no_hp']) ?>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="badge bg-light text-primary border border-primary-subtle px-3 py-2 rounded-pill">
-                                        <?= esc($item['nama_kelas'] ?? '-') ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="fw-semibold text-dark"><?= esc($item['metode_pembayaran'] ?? '-') ?></div>
-                                    <small class="text-muted text-capitalize"><?= esc($item['status_pembayaran'] ?? 'pending') ?></small>
-                                </td>
-                                <<td class="text-center">
-    <?php if(!empty($item['bukti_pembayaran'])): ?>
-       <a href="<?= base_url('uploads/bukti/' . $item['bukti_pembayaran']) ?>" target="_blank">
-    <img src="<?= base_url('uploads/bukti/' . $item['bukti_pembayaran']) ?>" alt="Bukti Pembayaran" width="100">
-</a>
-    <?php else: ?>
-        <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3">Belum Upload</span>
-    <?php endif; ?>
-</td>
-                                
-                                <!-- LOGIKA STATUS DINAMIS -->
-                                <td class="text-center">
-                                    <?php 
-                                        $statusBayar = strtolower(trim($item['status_pembayaran'] ?? 'pending'));
-                                    ?>
+    <section class="panel"><div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3"><div><h2 class="h5 fw-bold mb-1" style="color:var(--dark)">Daftar Validasi</h2><div class="text-muted small">Approve membuat NIS format YYMMNNNN. Reject tidak membuat NIS.</div></div></div><div class="desktop-table table-wrap"><table class="table table-hover"><thead><tr><th>No</th><th>Peserta</th><th>Kelas</th><th>Tanggal Daftar</th><th>Bukti</th><th>Status</th><th class="text-end">Aksi</th></tr></thead><tbody><?php if (!empty($pendaftaran)): ?><?php $no=1; foreach ($pendaftaran as $row): ?><?php [$statusLabel,$statusClass]=validasi_status_badge($row); $modalId='validasiDetail'.(int)$row['id_pendaftaran']; $isApproved=$statusLabel==='Disetujui'; $isRejected=$statusLabel==='Ditolak'; ?><tr><td><?= $no++; ?></td><td><strong><?= esc($row['nama'] ?? '-'); ?></strong><div class="text-muted small"><?= esc($row['email'] ?? '-'); ?></div><?= !empty($row['nis']) ? '<span class="nis-badge mt-1">'.esc($row['nis']).'</span>' : '<span class="badge bg-warning-subtle text-warning-emphasis rounded-pill mt-1">NIS belum dibuat</span>'; ?></td><td><?= esc($row['nama_kelas'] ?? $row['pilihan_kelas'] ?? '-'); ?></td><td><?= esc(validasi_tanggal($row['created_at'] ?? null)); ?></td><td><?php if (!empty($row['bukti_pembayaran'])): ?><a href="<?= base_url('uploads/bukti/' . $row['bukti_pembayaran']); ?>" target="_blank" class="btn btn-soft btn-sm"><i class="fas fa-receipt me-1"></i>Lihat</a><?php else: ?><span class="text-muted small">Tidak ada</span><?php endif; ?></td><td><span class="badge bg-<?= $statusClass; ?> badge-status"><?= esc($statusLabel); ?></span></td><td><div class="actions"><button class="btn btn-soft btn-sm" data-bs-toggle="modal" data-bs-target="#<?= $modalId; ?>"><i class="fas fa-eye me-1"></i>Detail</button><?php if (!$isApproved): ?><a class="btn btn-success btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('Setujui pendaftaran ini dan buat NIS otomatis?')"><i class="fas fa-check me-1"></i>Setujui</a><?php endif; ?><?php if (!$isRejected): ?><a class="btn btn-danger btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" onclick="return confirm('Tolak pendaftaran ini? NIS tidak akan dibuat.')"><i class="fas fa-xmark me-1"></i>Tolak</a><?php endif; ?></div></td></tr><?php endforeach; ?><?php else: ?><tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox fa-2x mb-3"></i><div>Belum ada data validasi.</div></div></td></tr><?php endif; ?></tbody></table></div>
 
-                                    <?php if ($statusBayar == 'valid'): ?>
-                                        <span class="badge bg-success rounded-pill px-3 py-2 shadow-sm">
-                                            <i class="bi bi-check-circle-fill me-1"></i> Disetujui
-                                        </span>
+    <div class="mobile-list"><?php if (!empty($pendaftaran)): ?><?php foreach ($pendaftaran as $row): ?><?php [$statusLabel,$statusClass]=validasi_status_badge($row); $modalId='validasiMobile'.(int)$row['id_pendaftaran']; $isApproved=$statusLabel==='Disetujui'; $isRejected=$statusLabel==='Ditolak'; ?><article class="validation-card"><div class="d-flex justify-content-between gap-2"><div><strong><?= esc($row['nama'] ?? '-'); ?></strong><div class="text-muted small"><?= esc($row['email'] ?? '-'); ?></div></div><span class="badge bg-<?= $statusClass; ?> badge-status align-self-start"><?= esc($statusLabel); ?></span></div><div class="card-row"><span>NIS</span><span><?= esc($row['nis'] ?: 'Belum dibuat'); ?></span></div><div class="card-row"><span>Kelas</span><span><?= esc($row['nama_kelas'] ?? $row['pilihan_kelas'] ?? '-'); ?></span></div><div class="card-row"><span>Tanggal Daftar</span><span><?= esc(validasi_tanggal($row['created_at'] ?? null)); ?></span></div><div class="actions mt-3"><button class="btn btn-soft" data-bs-toggle="modal" data-bs-target="#<?= $modalId; ?>">Detail</button><?php if (!$isApproved): ?><a class="btn btn-success" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('Setujui pendaftaran ini dan buat NIS otomatis?')">Setujui</a><?php endif; ?><?php if (!$isRejected): ?><a class="btn btn-danger" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" onclick="return confirm('Tolak pendaftaran ini?')">Tolak</a><?php endif; ?></div></article><?php endforeach; ?><?php else: ?><div class="empty-state"><i class="fas fa-inbox fa-2x mb-3"></i><div>Belum ada data validasi.</div></div><?php endif; ?></div></section>
+</main>
 
-                                    <?php elseif ($statusBayar == 'rejected'): ?>
-                                        <span class="badge bg-danger rounded-pill px-3 py-2 shadow-sm" title="<?= esc($item['alasan_penolakan'] ?? '') ?>">
-                                            <i class="bi bi-x-circle-fill me-1"></i> Ditolak
-                                        </span>
+<div class="offcanvas offcanvas-start" tabindex="-1" id="mobileSidebar"><div class="offcanvas-header"><img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" style="width:180px;height:70px;object-fit:cover;border-radius:10px"><button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button></div><div class="offcanvas-body"><nav class="nav flex-column gap-1"><a href="<?= base_url('admin/dashboard'); ?>" class="nav-link">Dashboard</a><a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link">Data Peserta</a><a href="<?= base_url('admin/validasi'); ?>" class="nav-link active">Validasi</a><a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link">Master Kelas</a><a href="<?= base_url('admin/mentor'); ?>" class="nav-link">Instruktur</a><a href="<?= base_url('admin/laporan'); ?>" class="nav-link">Laporan</a><a href="<?= base_url('logout'); ?>" class="nav-link text-danger">Logout</a></nav></div></div>
 
-                                    <?php else: ?>
-                                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2 shadow-sm">
-                                            <i class="bi bi-clock-history me-1"></i> Menunggu
-                                        </span>
-                                    <?php endif; ?>
-                                </td>
+<?php foreach (($pendaftaran ?? []) as $row): ?><?php foreach (['validasiDetail','validasiMobile'] as $prefix): ?><?php $modalId=$prefix.(int)$row['id_pendaftaran']; [$statusLabel,$statusClass]=validasi_status_badge($row); ?><div class="modal fade" id="<?= $modalId; ?>" tabindex="-1"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><div><h5 class="modal-title fw-bold">Detail Validasi Pendaftaran</h5><div class="text-muted small"><?= esc($row['nama'] ?? '-'); ?> | <?= esc($row['nama_kelas'] ?? $row['pilihan_kelas'] ?? '-'); ?></div></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="detail-section"><h6>Data Peserta</h6><div class="detail-grid"><div class="detail-item"><div class="detail-label">Nama</div><div class="detail-value"><?= esc($row['nama'] ?? '-'); ?></div></div><div class="detail-item"><div class="detail-label">NIS</div><div class="detail-value"><?= esc($row['nis'] ?: 'Belum dibuat'); ?></div></div><div class="detail-item"><div class="detail-label">Email</div><div class="detail-value"><?= esc($row['email'] ?? '-'); ?></div></div><div class="detail-item"><div class="detail-label">No. WhatsApp</div><div class="detail-value"><?= esc($row['no_hp'] ?? '-'); ?></div></div><div class="detail-item"><div class="detail-label">Jenis Kelamin</div><div class="detail-value"><?= esc($row['jenis_kelamin'] ?? '-'); ?></div></div><div class="detail-item"><div class="detail-label">Pendidikan</div><div class="detail-value"><?= esc($row['pendidikan_terakhir'] ?? '-'); ?></div></div><div class="detail-item"><div class="detail-label">Alamat</div><div class="detail-value"><?= esc($row['alamat'] ?? '-'); ?></div></div></div></div><div class="detail-section"><h6>Data Pendaftaran</h6><div class="detail-grid"><div class="detail-item"><div class="detail-label">Kelas</div><div class="detail-value"><?= esc($row['nama_kelas'] ?? $row['pilihan_kelas'] ?? '-'); ?></div></div><div class="detail-item"><div class="detail-label">Jenis Kelas</div><div class="detail-value"><?= esc($row['jenis_kelas'] ?? '-'); ?></div></div><div class="detail-item"><div class="detail-label">Metode Pembelajaran</div><div class="detail-value"><?= esc($row['metode_pembelajaran'] ?? '-'); ?></div></div><div class="detail-item"><div class="detail-label">Lokasi</div><div class="detail-value"><?= esc($row['lokasi_pelatihan'] ?? $row['lokasi_media'] ?? '-'); ?></div></div><div class="detail-item"><div class="detail-label">Tanggal Mulai</div><div class="detail-value"><?= esc(validasi_tanggal($row['tanggal_mulai_kelas'] ?? $row['tanggal_mulai_master'] ?? null)); ?></div></div><div class="detail-item"><div class="detail-label">Tanggal Daftar</div><div class="detail-value"><?= esc(validasi_tanggal($row['created_at'] ?? null)); ?></div></div><div class="detail-item"><div class="detail-label">Bukti Pembayaran</div><div class="detail-value"><?php if (!empty($row['bukti_pembayaran'])): ?><a href="<?= base_url('uploads/bukti/' . $row['bukti_pembayaran']); ?>" target="_blank">Lihat bukti</a><?php else: ?>Tidak ada<?php endif; ?></div></div><div class="detail-item"><div class="detail-label">Status Validasi</div><div class="detail-value"><span class="badge bg-<?= $statusClass; ?>"><?= esc($statusLabel); ?></span></div></div></div></div></div><div class="modal-footer"><button class="btn btn-soft" data-bs-dismiss="modal">Tutup</button><?php if ($statusLabel !== 'Disetujui'): ?><a class="btn btn-success" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('Setujui pendaftaran ini dan buat NIS otomatis?')">Setujui</a><?php endif; ?><?php if ($statusLabel !== 'Ditolak'): ?><a class="btn btn-danger" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" onclick="return confirm('Tolak pendaftaran ini?')">Tolak</a><?php endif; ?></div></div></div></div><?php endforeach; ?><?php endforeach; ?>
 
-                                <!-- TOMBOL AKSI & MODAL -->
-                                <td class="text-center">
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <!-- Tombol Pemicu Modal Validasi -->
-                                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalValidasi<?= $item['id_pendaftaran'] ?>" title="Validasi">
-                                            <i class="bi bi-gear-fill me-1"></i> Validasi
-                                        </button>
-                                    </div>
-
-                                    <!-- Modal Validasi Admin di dalam baris iterasi -->
-                                    <div class="modal fade text-start" id="modalValidasi<?= $item['id_pendaftaran'] ?>" tabindex="-1" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content rounded-4 border-0 shadow">
-                                                <form action="<?= base_url('admin/pendaftaran/proses_validasi/' . $item['id_pendaftaran']) ?>" method="post">
-                                                    <?= csrf_field() ?>
-                                                    <div class="modal-header border-0">
-                                                        <h5 class="fw-bold fs-6">Validasi Pendaftaran: <?= esc($item['nama']) ?></h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        
-                                                        <!-- Pilihan Status -->
-                                                        <div class="mb-3">
-                                                            <label class="form-label fw-semibold">Ubah Status</label>
-                                                            <select name="status_pembayaran" class="form-select status-select" data-id="<?= $item['id_pendaftaran'] ?>" required>
-                                                                <option value="valid" <?= ($statusBayar == 'valid') ? 'selected' : '' ?>>Terima / Valid</option>
-                                                                <option value="rejected" <?= ($statusBayar == 'rejected') ? 'selected' : '' ?>>Tolak (Rejected)</option>
-                                                            </select>
-                                                        </div>
-
-                                                        <!-- Input Alasan Penolakan -->
-                                                        <div class="mb-3 alasan-wrapper" id="wrapperAlasan<?= $item['id_pendaftaran'] ?>" style="display: <?= ($statusBayar == 'rejected') ? 'block' : 'none' ?>;">
-                                                            <label class="form-label fw-semibold text-danger">Alasan Penolakan <span class="text-danger">*</span></label>
-                                                            <textarea name="alasan_penolakan" class="form-control" rows="3" placeholder="Contoh: Bukti transfer tidak jelas, nominal kurang, atau salah rekening tujuan."><?= esc($item['alasan_penolakan'] ?? '') ?></textarea>
-                                                            <div class="form-text small">Alasan ini akan dibaca oleh peserta saat mereka mengecek status pendaftarannya.</div>
-                                                        </div>
-
-                                                    </div>
-                                                    <div class="modal-footer border-0">
-                                                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-                                                        <button type="submit" class="btn btn-primary rounded-pill px-4">Simpan Perubahan</button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-    </div>
-
-<!-- Script JavaScript untuk memunculkan textarea alasan saat opsi 'rejected' dipilih -->
-<script>
-document.querySelectorAll('.status-select').forEach(function(select) {
-    // Jalankan pengecekan awal saat modal dimuat jika statusnya sudah rejected
-    let id = select.getAttribute('data-id');
-    let wrapper = document.getElementById('wrapperAlasan' + id);
-    let textarea = wrapper ? wrapper.querySelector('textarea') : null;
-
-    if (select.value === 'rejected') {
-        if(wrapper) wrapper.style.display = 'block';
-        if(textarea) textarea.setAttribute('required', 'required');
-    }
-
-    select.addEventListener('change', function() {
-        let currentId = this.getAttribute('data-id');
-        let currentWrapper = document.getElementById('wrapperAlasan' + currentId);
-        let currentTextarea = currentWrapper ? currentWrapper.querySelector('textarea') : null;
-        
-        if (this.value === 'rejected') {
-            if(currentWrapper) currentWrapper.style.display = 'block';
-            if(currentTextarea) currentTextarea.setAttribute('required', 'required');
-        } else {
-            if(currentWrapper) currentWrapper.style.display = 'none';
-            if(currentTextarea) currentTextarea.removeAttribute('required');
-        }
-    });
-});
-</script>
-
-<!-- Bootstrap JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

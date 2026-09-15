@@ -1,0 +1,287 @@
+{
+    "modules": {
+        "dashboard": {
+            "label": "Dashboard Overview",
+            "icon": "fa-chart-pie",
+            "desc": "Ringkasan statistik dan aktivitas sistem"
+        },
+        "master_kelas": {
+            "label": "Master Kelas Pelatihan",
+            "icon": "fa-book-bookmark",
+            "desc": "Manajemen kelas, kurikulum, dan sesi jadwal"
+        },
+        "mentor": {
+            "label": "Instruktur",
+            "icon": "fa-chalkboard-user",
+            "desc": "Manajemen data pengampu dan penugasan kelas"
+        },
+        "data_peserta": {
+            "label": "Data Peserta",
+            "icon": "fa-users",
+            "desc": "Pengelolaan data profil siswa dan status keaktifan"
+        },
+        "validasi": {
+            "label": "Validasi Pendaftaran",
+            "icon": "fa-clipboard-check",
+            "desc": "Pemeriksaan bukti bayar dan verifikasi berkas"
+        },
+        "buku_induk": {
+            "label": "Buku Induk Peserta",
+            "icon": "fa-book-open",
+            "desc": "Dokumentasi induk, sertifikasi, dan NIS resmi"
+        },
+        "angket": {
+            "label": "Angket & Kuesioner",
+            "icon": "fa-poll",
+            "desc": "Instrumen evaluasi kepuasan peserta dan instruktur"
+        },
+        "sertifikat": {
+            "label": "Manajemen Sertifikat",
+            "icon": "fa-award",
+            "desc": "Penerbitan, penomoran, dan arsip sertifikat kelulusan"
+        },
+        "laporan": {
+            "label": "Laporan & Rekapitulasi",
+            "icon": "fa-file-lines",
+            "desc": "Laporan peserta, instruktur, angket, dan presensi"
+        },
+        "pengaturan": {
+            "label": "Pengaturan Sistem",
+            "icon": "fa-gear",
+            "desc": "Konfigurasi akun administrator dan preferensi sistem"
+        }
+    },
+    "roles": {
+        "admin": {
+            "title": "Administrator",
+            "badge": "Super Admin",
+            "color": "#794bc4",
+            "permissions": {
+                "dashboard": {
+                    "lihat": true,
+                    "tambah": true,
+                    "edit": true,
+                    "hapus": true,
+                    "export": true
+                },
+                "master_kelas": {
+                    "lihat": true,
+                    "tambah": true,
+                    "edit": true,
+                    "hapus": true,
+                    "export": true
+                },
+                "mentor": {
+                    "lihat": true,
+                    "tambah": true,
+                    "edit": true,
+                    "hapus": true,
+                    "export": true
+                },
+                "data_peserta": {
+                    "lihat": true,
+                    "tambah": true,
+                    "edit": true,
+                    "hapus": true,
+                    "export": true
+                },
+                "validasi": {
+                    "lihat": true,
+                    "tambah": true,
+                    "edit": true,
+                    "hapus": true,
+                    "export": true
+                },
+                "buku_induk": {
+                    "lihat": true,
+                    "tambah": true,
+                    "edit": true,
+                    "hapus": true,
+                    "export": true
+                },
+                "angket": {
+                    "lihat": true,
+                    "tambah": true,
+                    "edit": true,
+                    "hapus": true,
+                    "export": true
+                },
+                "sertifikat": {
+                    "lihat": true,
+                    "tambah": true,
+                    "edit": true,
+                    "hapus": true,
+                    "export": true
+                },
+                "laporan": {
+                    "lihat": true,
+                    "tambah": true,
+                    "edit": true,
+                    "hapus": true,
+                    "export": true
+                },
+                "pengaturan": {
+                    "lihat": true,
+                    "tambah": true,
+                    "edit": true,
+                    "hapus": true,
+                    "export": true
+                }
+            }
+        },
+        "mentor": {
+            "title": "Instruktur",
+            "badge": "Pengajar",
+            "color": "#2563eb",
+            "permissions": {
+                "dashboard": {
+                    "lihat": true,
+                    "tambah": false,
+                    "edit": false,
+                    "hapus": false,
+                    "export": false
+                },
+                "master_kelas": {
+                    "lihat": true,
+                    "tambah": false,
+                    "edit": true,
+                    "hapus": false,
+                    "export": false
+                },
+                "mentor": {
+                    "lihat": true,
+                    "tambah": false,
+                    "edit": true,
+                    "hapus": false,
+                    "export": false
+                },
+                "data_peserta": {
+                    "lihat": true,
+                    "tambah": false,
+                    "edit": false,
+                    "hapus": false,
+                    "export": false
+                },
+                "validasi": {
+                    "lihat": false,
+                    "tambah": false,
+                    "edit": false,
+                    "hapus": false,
+                    "export": false
+                },
+                "buku_induk": {
+                    "lihat": true,
+                    "tambah": false,
+                    "edit": false,
+                    "hapus": false,
+                    "export": false
+                },
+                "angket": {
+                    "lihat": true,
+                    "tambah": false,
+                    "edit": false,
+                    "hapus": false,
+                    "export": false
+                },
+                "sertifikat": {
+                    "lihat": true,
+                    "tambah": false,
+                    "edit": false,
+                    "hapus": false,
+                    "export": false
+                },
+                "laporan": {
+                    "lihat": true,
+                    "tambah": false,
+                    "edit": false,
+                    "hapus": false,
+                    "export": true
+                },
+                "pengaturan": {
+                    "lihat": true,
+                    "tambah": false,
+                    "edit": false,
+                    "hapus": false,
+                    "export": false
+                }
+            }
+        },
+        "peserta": {
+            "title": "Peserta Pelatihan",
+            "badge": "Siswa",
+            "color": "#16a34a",
+            "permissions": {
+                "dashboard": {
+                    "lihat": true,
+                    "tambah": false,
+                    "edit": false,
+                    "hapus": false,
+                    "export": false
+                },
+                "master_kelas": {
+                    "lihat": true,
+                    "tambah": false,
+                    "edit": false,
+                    "hapus": false,
+                    "export": false
+                },
+                "mentor": {
+                    "lihat": false,
+                    "tambah": false,
+                    "edit": false,
+                    "hapus": false,
+                    "export": false
+                },
+                "data_peserta": {
+                    "lihat": false,
+                    "tambah": false,
+                    "edit": false,
+                    "hapus": false,
+                    "export": false
+                },
+                "validasi": {
+                    "lihat": false,
+                    "tambah": false,
+                    "edit": false,
+                    "hapus": false,
+                    "export": false
+                },
+                "buku_induk": {
+                    "lihat": true,
+                    "tambah": false,
+                    "edit": false,
+                    "hapus": false,
+                    "export": false
+                },
+                "angket": {
+                    "lihat": true,
+                    "tambah": true,
+                    "edit": false,
+                    "hapus": false,
+                    "export": false
+                },
+                "sertifikat": {
+                    "lihat": true,
+                    "tambah": false,
+                    "edit": false,
+                    "hapus": false,
+                    "export": true
+                },
+                "laporan": {
+                    "lihat": false,
+                    "tambah": false,
+                    "edit": false,
+                    "hapus": false,
+                    "export": false
+                },
+                "pengaturan": {
+                    "lihat": true,
+                    "tambah": false,
+                    "edit": true,
+                    "hapus": false,
+                    "export": false
+                }
+            }
+        }
+    }
+}

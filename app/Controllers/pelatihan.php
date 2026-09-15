@@ -29,18 +29,16 @@ class Pelatihan extends BaseController
 {
     $pendaftaranModel = new PendaftaranModel();
 
-    // 1. Ambil format NIS otomatis: Tahun + Bulan + Urutan (YYYYMMXXX, contoh: 202609001)
-    $bukuIndukModel = new \App\Models\BukuIndukModel();
-    $nisBaru = $bukuIndukModel->generateNis(date('Ym'));
+    // NIS dibuat saat admin menyetujui pendaftaran, bukan saat peserta mengisi form.
 
-    // 4. Masukkan data ke database termasuk NIS baru
+    // 4. Masukkan data ke database tanpa NIS
     $dataSimpan = [
         'id_kelas'          => $this->request->getPost('id_kelas'),
         'nama'              => $this->request->getPost('nama'),
         'email'             => $this->request->getPost('email'),
         'lokasi_pelatihan' => $this->request->getPost('lokasi_pelatihan'), // Pastikan ini ad
         'no_hp'             => $this->request->getPost('no_hp'),
-        'nis'               => $nisBaru, // <--- NIS otomatis masuk di sini
+        'nis'               => null,
         'status_pembayaran' => 'pending',
         // Sesuaikan input form lainnya di bawah ini...
     ];
@@ -48,7 +46,7 @@ class Pelatihan extends BaseController
 
     $pendaftaranModel->insert($dataSimpan);
 
-    return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('success', 'Pendaftaran berhasil! NIS Anda: ' . $nisBaru);
+    return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('success', 'Pendaftaran berhasil! Silakan menunggu validasi admin.');
 }
 
     public function sukses()
@@ -640,63 +638,57 @@ public function setujuiPendaftaran($id_pendaftaran)
 {
     $pendaftaranModel = new \App\Models\PendaftaranModel();
     $db = \Config\Database::connect();
-    
-    $pendaftaran = $pendaftaranModel->find($id_pendaftaran);
 
-    if ($pendaftaran) {
-        // 1. Cek apakah peserta sudah punya akun users berdasarkan emailnya
+    $db->transBegin();
+    try {
+        $pendaftaran = $db->query(
+            'SELECT * FROM pendaftaran WHERE id_pendaftaran = ? FOR UPDATE',
+            [(int) $id_pendaftaran]
+        )->getRowArray();
+
+        if (!$pendaftaran) {
+            $db->transRollback();
+            return redirect()->back()->with('error', 'Data pendaftaran tidak ditemukan.');
+        }
+
         $existingUser = $db->table('users')->where('email', $pendaftaran['email'])->get()->getRowArray();
-        
         if ($existingUser) {
             $userId = $existingUser['id_users'];
         } else {
-            // Jika belum punya akun, buatkan akun baru secara otomatis
-            // Password default diset '123456' (peserta bisa mengganti nanti melalui menu pengaturan)
-            $userData = [
+            $db->table('users')->insert([
                 'nama'          => $pendaftaran['nama'],
                 'email'         => $pendaftaran['email'],
                 'no_hp'         => $pendaftaran['no_hp'],
                 'jenis_kelamin' => $pendaftaran['jenis_kelamin'],
-                'password'      => password_hash('123456', PASSWORD_DEFAULT), 
-            ];
-            
-            $db->table('users')->insert($userData);
-            $userId = $db->insertID(); // Ambil ID user yang baru saja dibuat
+                'password'      => password_hash('123456', PASSWORD_DEFAULT),
+                'role'          => 'peserta',
+                'created_at'    => date('Y-m-d H:i:s'),
+                'updated_at'    => date('Y-m-d H:i:s'),
+            ]);
+            $userId = $db->insertID();
         }
 
-        // 2. Generate NIS jika belum ada
-        if (empty($pendaftaran['nis'])) {
-            $tanggalHariIni = date('Ymd');
+        $nisBaru = $pendaftaran['nis'] ?: (new \App\Models\BukuIndukModel())->generateNis(date('ym', strtotime($pendaftaran['created_at'] ?? 'now')));
 
-            $pendaftaranTerakhir = $pendaftaranModel
-                ->like('nis', $tanggalHariIni, 'after')
-                ->orderBy('id_pendaftaran', 'DESC')
-                ->first();
-
-            if ($pendaftaranTerakhir && !empty($pendaftaranTerakhir['nis'])) {
-                $urutanTerakhir = (int) substr($pendaftaranTerakhir['nis'], -3);
-                $urutanBaru = $urutanTerakhir + 1;
-            } else {
-                $urutanBaru = 1;
-            }
-
-            $nisBaru = $tanggalHariIni . str_pad($urutanBaru, 3, '0', STR_PAD_LEFT);
-        } else {
-            $nisBaru = $pendaftaran['nis'];
-        }
-
-        // 3. Update data pendaftaran: masukkan id_users yang baru terhubung, ubah status jadi disetujui & simpan NIS
         $pendaftaranModel->update($id_pendaftaran, [
             'id_users'            => $userId,
             'status_pembayaran'   => 'valid',
+            'status_pendaftaran'  => 'Disetujui',
             'status'              => 'Disetujui',
-            'nis'                 => $nisBaru
+            'nis'                 => $nisBaru,
         ]);
 
-        return redirect()->back()->with('success', 'Pendaftaran disetujui, Akun peserta aktif, dan NIS berhasil dibuat: ' . $nisBaru);
-    }
+        if ($db->transStatus() === false) {
+            $db->transRollback();
+            return redirect()->back()->with('error', 'Pendaftaran gagal disetujui.');
+        }
 
-    return redirect()->back()->with('error', 'Data pendaftaran tidak ditemukan.');
+        $db->transCommit();
+        return redirect()->back()->with('success', 'Pendaftaran disetujui, akun peserta aktif, dan NIS berhasil dibuat: ' . $nisBaru);
+    } catch (\Throwable $e) {
+        $db->transRollback();
+        return redirect()->back()->with('error', 'Pendaftaran gagal disetujui: ' . $e->getMessage());
+    }
 }
 
     public function status()

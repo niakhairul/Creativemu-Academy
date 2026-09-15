@@ -49,27 +49,50 @@ class BukuIndukModel extends Model
      */
     public function generateNis(?string $yearMonth = null): string
     {
-        if (empty($yearMonth) || strlen($yearMonth) !== 6) {
-            $yearMonth = date('Ym');
-        }
+        $prefix = $this->normalisasiPrefixNis($yearMonth);
 
-        // Cari NIS tertinggi yang diawali dengan $yearMonth
         $row = $this->db->table('pendaftaran')
             ->select('nis')
-            ->where("nis LIKE '{$yearMonth}%'")
-            ->where('LENGTH(nis) >=', 9)
+            ->like('nis', $prefix, 'after')
+            ->where('LENGTH(nis)', 8)
             ->orderBy('nis', 'DESC')
-            ->get()
+            ->get(1)
             ->getRowArray();
 
-        if ($row && !empty($row['nis'])) {
-            $lastSequence = (int) substr($row['nis'], 6);
-            $nextSequence = $lastSequence + 1;
-        } else {
-            $nextSequence = 1;
+        $nextSequence = 1;
+        if (!empty($row['nis'])) {
+            $nextSequence = ((int) substr($row['nis'], 4, 4)) + 1;
         }
 
-        return $yearMonth . str_pad((string) $nextSequence, 3, '0', STR_PAD_LEFT);
+        do {
+            $nis = $prefix . str_pad((string) $nextSequence, 4, '0', STR_PAD_LEFT);
+            $exists = $this->db->table('pendaftaran')
+                ->where('nis', $nis)
+                ->countAllResults() > 0;
+            $nextSequence++;
+        } while ($exists);
+
+        return $nis;
+    }
+
+    private function normalisasiPrefixNis(?string $yearMonth = null): string
+    {
+        if (empty($yearMonth)) {
+            return date('ym');
+        }
+
+        $yearMonth = preg_replace('/[^0-9]/', '', $yearMonth);
+        if (strlen($yearMonth) === 4) {
+            return $yearMonth;
+        }
+        if (strlen($yearMonth) === 6) {
+            return substr($yearMonth, 2, 2) . substr($yearMonth, 4, 2);
+        }
+        if (strlen($yearMonth) >= 8) {
+            return date('ym', strtotime(substr($yearMonth, 0, 8)));
+        }
+
+        return date('ym');
     }
 
     /**

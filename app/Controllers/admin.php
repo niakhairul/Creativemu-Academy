@@ -647,85 +647,120 @@ $data = [
     {
         $db = \Config\Database::connect();
 
-        $keyword        = trim((string) ($this->request->getGet('keyword') ?? ''));
-        $idKelas        = trim((string) ($this->request->getGet('id_kelas') ?? ''));
-        $filterStatus   = strtolower(trim((string) ($this->request->getGet('status') ?? '')));
+        $keyword      = trim((string) ($this->request->getGet('keyword') ?? ''));
+        $idKelas      = trim((string) ($this->request->getGet('id_kelas') ?? ''));
+        $filterStatus = strtolower(trim((string) ($this->request->getGet('status') ?? '')));
+        $perPage      = 10;
+        $page         = max(1, (int) ($this->request->getGet('page') ?? 1));
+        $offset       = ($page - 1) * $perPage;
 
-        $builder = $db->table('pendaftaran')
-            ->select('
-                pendaftaran.*,
-                COALESCE(NULLIF(pendaftaran.nama, ""), users.nama) AS nama_lengkap,
-                COALESCE(NULLIF(pendaftaran.no_hp, ""), users.no_hp) AS no_hp_terbaru,
-                COALESCE(NULLIF(pendaftaran.jenis_kelamin, ""), users.jenis_kelamin) AS gender_terbaru,
-                COALESCE(NULLIF(pendaftaran.email, ""), users.email) AS email_terbaru,
-                COALESCE(
-                    NULLIF(pendaftaran.nis, ""),
-                    (SELECT p2.nis FROM pendaftaran p2 WHERE p2.id_users = pendaftaran.id_users AND p2.nis IS NOT NULL AND p2.nis != "" ORDER BY p2.id_pendaftaran DESC LIMIT 1)
-                ) AS resolved_nis,
-                kelas.nama_kelas,
-                kelas.kategori AS kategori_kelas_master
-            ')
-            ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
-            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left');
+        $buildQuery = function () use ($db, $keyword, $idKelas, $filterStatus) {
+            $builder = $db->table('pendaftaran')
+                ->select('
+                    pendaftaran.*,
+                    COALESCE(NULLIF(pendaftaran.nama, ""), users.nama) AS nama_lengkap,
+                    COALESCE(NULLIF(pendaftaran.no_hp, ""), users.no_hp) AS no_hp_terbaru,
+                    COALESCE(NULLIF(pendaftaran.jenis_kelamin, ""), users.jenis_kelamin) AS gender_terbaru,
+                    COALESCE(NULLIF(pendaftaran.email, ""), users.email) AS email_terbaru,
+                    pendaftaran.nis AS resolved_nis,
+                    kelas.nama_kelas,
+                    kelas.kategori AS kategori_kelas_master
+                ')
+                ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
+                ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left');
 
-        // Filter pencarian berdasarkan NIS, Nama, No HP, Email, atau Kelas
-        if (!empty($keyword)) {
-            $builder->groupStart()
-                ->like('pendaftaran.nama', $keyword)
-                ->orLike('users.nama', $keyword)
-                ->orLike('pendaftaran.nis', $keyword)
-                ->orLike('pendaftaran.no_hp', $keyword)
-                ->orLike('users.no_hp', $keyword)
-                ->orLike('pendaftaran.email', $keyword)
-                ->orLike('kelas.nama_kelas', $keyword)
-            ->groupEnd();
-        }
-
-        // Filter berdasarkan kelas pelatihan
-        if (!empty($idKelas)) {
-            $builder->where('pendaftaran.id_kelas', $idKelas);
-        }
-
-        // Filter status keaktifan / pendaftaran
-        if (!empty($filterStatus)) {
-            if (in_array($filterStatus, ['aktif', 'valid', 'disetujui'], true)) {
+            if ($keyword !== '') {
                 $builder->groupStart()
-                    ->where('pendaftaran.status_pembayaran', 'valid')
-                    ->orWhere('pendaftaran.status_pendaftaran', 'Disetujui')
-                    ->orWhere('pendaftaran.status', 'Disetujui')
-                ->groupEnd();
-            } elseif (in_array($filterStatus, ['menunggu', 'pending'], true)) {
-                $builder->groupStart()
-                    ->where('pendaftaran.status_pembayaran', 'pending')
-                    ->orWhere('pendaftaran.status_pendaftaran', 'Menunggu')
-                    ->orWhere('pendaftaran.status', 'Pending')
-                ->groupEnd();
-                $builder->where('pendaftaran.status_pembayaran !=', 'rejected');
-                $builder->where('pendaftaran.status_pendaftaran !=', 'Ditolak');
-            } elseif (in_array($filterStatus, ['ditolak', 'rejected'], true)) {
-                $builder->groupStart()
-                    ->where('pendaftaran.status_pembayaran', 'rejected')
-                    ->orWhere('pendaftaran.status_pendaftaran', 'Ditolak')
+                    ->like('pendaftaran.nama', $keyword)
+                    ->orLike('users.nama', $keyword)
+                    ->orLike('pendaftaran.nis', $keyword)
+                    ->orLike('pendaftaran.no_hp', $keyword)
+                    ->orLike('users.no_hp', $keyword)
+                    ->orLike('pendaftaran.email', $keyword)
+                    ->orLike('kelas.nama_kelas', $keyword)
                 ->groupEnd();
             }
+
+            if ($idKelas !== '') {
+                $builder->where('pendaftaran.id_kelas', $idKelas);
+            }
+
+            if ($filterStatus !== '') {
+                if (in_array($filterStatus, ['aktif', 'valid', 'disetujui'], true)) {
+                    $builder->groupStart()
+                        ->where('pendaftaran.status_pembayaran', 'valid')
+                        ->orWhere('pendaftaran.status_pendaftaran', 'Disetujui')
+                        ->orWhere('pendaftaran.status', 'Disetujui')
+                    ->groupEnd();
+                } elseif (in_array($filterStatus, ['menunggu', 'pending'], true)) {
+                    $builder->groupStart()
+                        ->where('pendaftaran.status_pembayaran', 'pending')
+                        ->orWhere('pendaftaran.status_pendaftaran', 'Menunggu')
+                        ->orWhere('pendaftaran.status', 'Pending')
+                    ->groupEnd();
+                } elseif (in_array($filterStatus, ['ditolak', 'rejected'], true)) {
+                    $builder->groupStart()
+                        ->where('pendaftaran.status_pembayaran', 'rejected')
+                        ->orWhere('pendaftaran.status_pendaftaran', 'Ditolak')
+                        ->orWhere('pendaftaran.status', 'Ditolak')
+                    ->groupEnd();
+                }
+            }
+
+            return $builder;
+        };
+
+        $totalRows = $buildQuery()->countAllResults();
+        $totalPages = max(1, (int) ceil($totalRows / $perPage));
+        if ($page > $totalPages) {
+            $page = $totalPages;
+            $offset = ($page - 1) * $perPage;
         }
 
-        $peserta = $builder->orderBy('pendaftaran.id_pendaftaran', 'DESC')->get()->getResultArray();
+        $peserta = $buildQuery()
+            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+            ->limit($perPage, $offset)
+            ->get()
+            ->getResultArray();
 
-        // Ambil daftar kelas untuk dropdown filter
         $kelasList = $db->table('kelas')
             ->select('id_kelas, nama_kelas')
             ->orderBy('nama_kelas', 'ASC')
             ->get()
             ->getResultArray();
 
+        $summaryRows = $db->table('pendaftaran')
+            ->select('status_pembayaran, status_pendaftaran, status')
+            ->get()
+            ->getResultArray();
+
+        $summary = ['total' => count($summaryRows), 'disetujui' => 0, 'menunggu' => 0, 'ditolak' => 0];
+        foreach ($summaryRows as $row) {
+            $statusGabungan = strtolower(($row['status_pembayaran'] ?? '') . ' ' . ($row['status_pendaftaran'] ?? '') . ' ' . ($row['status'] ?? ''));
+            if (str_contains($statusGabungan, 'valid') || str_contains($statusGabungan, 'disetujui')) {
+                $summary['disetujui']++;
+            } elseif (str_contains($statusGabungan, 'rejected') || str_contains($statusGabungan, 'ditolak')) {
+                $summary['ditolak']++;
+            } else {
+                $summary['menunggu']++;
+            }
+        }
+
         $data = [
-            'title'          => 'Daftar Peserta - Panel Admin',
+            'title'          => 'Data Peserta - Panel Admin',
             'peserta'        => $peserta,
             'kelasList'      => $kelasList,
             'keyword'        => $keyword,
             'selectedKelas'  => $idKelas,
             'selectedStatus' => $filterStatus,
+            'summary'        => $summary,
+            'pagination'     => [
+                'page'       => $page,
+                'perPage'    => $perPage,
+                'totalRows'  => $totalRows,
+                'totalPages' => $totalPages,
+                'offset'     => $offset,
+            ],
         ];
 
         return view('admin/data_peserta/index', $data);
@@ -750,15 +785,82 @@ $data = [
 
     public function validasi()
     {
-        $pendaftaranModel = new \App\Models\PendaftaranModel();
+        $db = \Config\Database::connect();
+        $keyword = trim((string) ($this->request->getGet('keyword') ?? ''));
+        $status = strtolower(trim((string) ($this->request->getGet('status') ?? '')));
+        $idKelas = trim((string) ($this->request->getGet('id_kelas') ?? ''));
+
+        $builder = $db->table('pendaftaran')
+            ->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas AS tanggal_mulai_master, kelas.lokasi_media')
+            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left');
+
+        if ($keyword !== '') {
+            $builder->groupStart()
+                ->like('pendaftaran.nama', $keyword)
+                ->orLike('pendaftaran.email', $keyword)
+                ->orLike('pendaftaran.no_hp', $keyword)
+                ->orLike('pendaftaran.nis', $keyword)
+                ->orLike('kelas.nama_kelas', $keyword)
+            ->groupEnd();
+        }
+
+        if ($idKelas !== '') {
+            $builder->where('pendaftaran.id_kelas', $idKelas);
+        }
+
+        if ($status !== '') {
+            if (in_array($status, ['disetujui', 'valid'], true)) {
+                $builder->groupStart()
+                    ->where('pendaftaran.status_pembayaran', 'valid')
+                    ->orWhere('pendaftaran.status_pendaftaran', 'Disetujui')
+                ->groupEnd();
+            } elseif (in_array($status, ['ditolak', 'rejected'], true)) {
+                $builder->groupStart()
+                    ->where('pendaftaran.status_pembayaran', 'rejected')
+                    ->orWhere('pendaftaran.status_pendaftaran', 'Ditolak')
+                ->groupEnd();
+            } elseif (in_array($status, ['menunggu', 'pending'], true)) {
+                $builder->groupStart()
+                    ->where('pendaftaran.status_pembayaran', 'pending')
+                    ->orWhere('pendaftaran.status_pendaftaran', 'Menunggu')
+                    ->orWhere('pendaftaran.status_pendaftaran IS NULL', null, false)
+                ->groupEnd();
+            }
+        }
+
+        $pendaftaran = $builder
+            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+            ->get()
+            ->getResultArray();
+
+        $kelasList = $db->table('kelas')
+            ->select('id_kelas, nama_kelas')
+            ->orderBy('nama_kelas', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $summary = ['total' => count($pendaftaran), 'menunggu' => 0, 'disetujui' => 0, 'ditolak' => 0];
+        foreach ($pendaftaran as $row) {
+            $statusGabungan = strtolower(($row['status_pembayaran'] ?? '') . ' ' . ($row['status_pendaftaran'] ?? '') . ' ' . ($row['status'] ?? ''));
+            if (str_contains($statusGabungan, 'valid') || str_contains($statusGabungan, 'disetujui')) {
+                $summary['disetujui']++;
+            } elseif (str_contains($statusGabungan, 'rejected') || str_contains($statusGabungan, 'ditolak')) {
+                $summary['ditolak']++;
+            } else {
+                $summary['menunggu']++;
+            }
+        }
 
         $data = [
-            'title' => 'Validasi Pendaftaran - Panel Admin',
-            'pendaftaran' => $pendaftaranModel
-                ->select('pendaftaran.*, kelas.nama_kelas')
-                ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-                ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
-                ->findAll()
+            'title'       => 'Validasi Pendaftaran - Panel Admin',
+            'pendaftaran' => $pendaftaran,
+            'kelasList'   => $kelasList,
+            'filters'     => [
+                'keyword'  => $keyword,
+                'status'   => $status,
+                'id_kelas' => $idKelas,
+            ],
+            'summary'     => $summary,
         ];
 
         return view('admin/validasi/index', $data);
@@ -766,115 +868,109 @@ $data = [
 
     public function updateValidasi($id_pendaftaran, $aksi)
     {
-        $pendaftaranModel = new \App\Models\PendaftaranModel();
-
-        if ($aksi === 'setuju') {
-            $statusBaru = 'valid';
-            $statusPendaftaranBaru = 'Disetujui';
-        } elseif ($aksi === 'tolak') {
-            $statusBaru = 'rejected';
-            $statusPendaftaranBaru = 'Ditolak';
-        } else {
+        if (!in_array($aksi, ['setuju', 'tolak'], true)) {
             return redirect()->to(base_url('admin/validasi'))
                 ->with('error', 'Aksi tidak valid: ' . $aksi);
         }
 
-        $pendaftaran = $pendaftaranModel->find($id_pendaftaran);
+        $db = \Config\Database::connect();
+        $db->transBegin();
 
-        if (!$pendaftaran) {
+        try {
+            $pendaftaran = $db->query(
+                'SELECT * FROM pendaftaran WHERE id_pendaftaran = ? FOR UPDATE',
+                [(int) $id_pendaftaran]
+            )->getRowArray();
+
+            if (!$pendaftaran) {
+                $db->transRollback();
+                return redirect()->to(base_url('admin/validasi'))
+                    ->with('error', 'Data pendaftaran tidak ditemukan.');
+            }
+
+            $nisBaru = $pendaftaran['nis'] ?? null;
+            $dataUpdate = [
+                'status_pembayaran'  => $aksi === 'setuju' ? 'valid' : 'rejected',
+                'status_pendaftaran' => $aksi === 'setuju' ? 'Disetujui' : 'Ditolak',
+                'status'             => $aksi === 'setuju' ? 'Disetujui' : 'Ditolak',
+            ];
+
+            if ($aksi === 'setuju' && empty($nisBaru)) {
+                $nisBaru = $this->generateNisPendaftaran($db, $pendaftaran);
+                $dataUpdate['nis'] = $nisBaru;
+            }
+
+            $db->table('pendaftaran')
+                ->where('id_pendaftaran', $id_pendaftaran)
+                ->update($dataUpdate);
+
+            if ($db->transStatus() === false) {
+                $db->transRollback();
+                return redirect()->to(base_url('admin/validasi'))
+                    ->with('error', 'Database gagal diperbarui.');
+            }
+
+            $db->transCommit();
+        } catch (\Throwable $e) {
+            $db->transRollback();
             return redirect()->to(base_url('admin/validasi'))
-                ->with('error', 'Data pendaftaran tidak ditemukan.');
+                ->with('error', 'Validasi gagal diproses: ' . $e->getMessage());
         }
 
-        $nisBaru = $pendaftaran['nis'];
+        if (!empty($pendaftaran['email'])) {
+            $email = \Config\Services::email();
+            $email->setTo($pendaftaran['email']);
+            $email->setFrom('email_anda@gmail.com', 'Creativemu Academy');
 
-        if ($aksi === 'setuju' && empty($nisBaru)) {
-            $bukuIndukModel = new \App\Models\BukuIndukModel();
-            $nisBaru = $bukuIndukModel->generateNis(date('Ym'));
-        }
-
-        $dataUpdate = [
-            'status_pembayaran'   => $statusBaru,
-            'status_pendaftaran'  => $statusPendaftaranBaru,
-        ];
-
-        if ($aksi === 'setuju') {
-            $dataUpdate['nis'] = $nisBaru;
-        }
-
-        $hasil = $pendaftaranModel->update($id_pendaftaran, $dataUpdate);
-
-        if (!$hasil) {
-            return redirect()->to(base_url('admin/validasi'))
-                ->with('error', 'Database gagal diperbarui.');
-        }
-
-        $email = \Config\Services::email();
-        $email->setTo($pendaftaran['email']);
-        $email->setFrom('email_anda@gmail.com', 'Creativemu Academy');
-
-        if ($aksi === 'setuju') {
-            $email->setSubject('Selamat! Pendaftaran Kelas Anda di Creativemu Academy Telah Diterima');
-            $email->setMessage('
-                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background-color: #faf5ff; border-radius: 10px;">
-                    <h2 style="color: #7c3aed;">Halo, ' . esc($pendaftaran['nama'] ?? 'Peserta') . '</h2>
-                    <p>Kabar gembira! Pendaftaran Anda untuk mengikuti pelatihan di <strong>Creativemu Academy</strong> telah <strong>DISETUJUI</strong>.</p>
-                    <p>NIS Anda adalah: <strong>' . $nisBaru . '</strong></p>
-                    <p>Silakan lanjutkan proses registrasi atau login akun Anda melalui tautan di bawah ini:</p>
-                    <div style="margin: 30px 0;">
-                        <a href="' . base_url('pelatihan/login') . '" style="background-color: #7c3aed; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Login ke Akun</a>
+            if ($aksi === 'setuju') {
+                $email->setSubject('Selamat! Pendaftaran Kelas Anda di Creativemu Academy Telah Diterima');
+                $email->setMessage('
+                    <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background-color: #faf5ff; border-radius: 10px;">
+                        <h2 style="color: #7c3aed;">Halo, ' . esc($pendaftaran['nama'] ?? 'Peserta') . '</h2>
+                        <p>Kabar gembira! Pendaftaran Anda untuk mengikuti pelatihan di <strong>Creativemu Academy</strong> telah <strong>DISETUJUI</strong>.</p>
+                        <p>NIS Anda adalah: <strong>' . esc($nisBaru) . '</strong></p>
+                        <p>Silakan login dan lengkapi aktivitas pelatihan Anda melalui akun peserta.</p>
+                        <p>Salam hangat,<br><strong>Tim Akademik Creativemu</strong></p>
                     </div>
-                    <p>Salam hangat,<br><strong>Tim Akademik Creativemu</strong></p>
-                </div>
-            ');
-        } else {
-            $email->setSubject('Informasi Status Pendaftaran Kelas Creativemu Academy');
-            $email->setMessage('
-                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background-color: #fff1f2; border-radius: 10px;">
-                    <h2 style="color: #e11d48;">Halo, ' . esc($pendaftaran['nama'] ?? 'Peserta') . '</h2>
-                    <p>Mohon maaf, pendaftaran Anda di <strong>Creativemu Academy</strong> belum dapat kami setujui saat ini.</p>
-                    <p>Salam hangat,<br><strong>Tim Akademik Creativemu</strong></p>
-                </div>
-            ');
+                ');
+            } else {
+                $email->setSubject('Informasi Status Pendaftaran Kelas Creativemu Academy');
+                $email->setMessage('
+                    <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background-color: #fff1f2; border-radius: 10px;">
+                        <h2 style="color: #e11d48;">Halo, ' . esc($pendaftaran['nama'] ?? 'Peserta') . '</h2>
+                        <p>Mohon maaf, pendaftaran Anda di <strong>Creativemu Academy</strong> belum dapat kami setujui saat ini.</p>
+                        <p>Salam hangat,<br><strong>Tim Akademik Creativemu</strong></p>
+                    </div>
+                ');
+            }
+
+            if (!$email->send()) {
+                return redirect()->to(base_url('admin/validasi'))
+                    ->with('warning', 'Status pendaftaran berhasil diperbarui, tetapi email notifikasi gagal dikirim.');
+            }
         }
 
-        if (!$email->send()) {
-            print_r($email->printDebugger(['headers', 'subject', 'body']));
-            exit;
-        }
+        $pesan = $aksi === 'setuju'
+            ? 'Pendaftaran berhasil disetujui. NIS: ' . $nisBaru
+            : 'Pendaftaran berhasil ditolak.';
+
+        return redirect()->to(base_url('admin/validasi'))->with('success', $pesan);
     }
 
     public function proses_validasi($id_pendaftaran)
 {
-    $status = $this->request->getPost('status_pembayaran'); 
+    $status = (string) $this->request->getPost('status_pembayaran');
     $alasan = $this->request->getPost('alasan_penolakan');
+    $isDisetujui = in_array($status, ['valid', 'Disetujui', 'approved'], true);
+    $isDitolak = in_array($status, ['rejected', 'Ditolak'], true);
 
     $dataUpdate = [
-    'status_pembayaran'  => $status,
-    'status_pendaftaran' => ($status === 'valid' || $status === 'Disetujui' || $status === 'approved')
-        ? 'Disetujui'
-        : 'Pending',
-    'status'             => ($status === 'valid' || $status === 'Disetujui' || $status === 'approved')
-        ? 'Disetujui'
-        : 'Ditolak'
-];
+        'status_pembayaran'  => $isDisetujui ? 'valid' : ($isDitolak ? 'rejected' : 'pending'),
+        'status_pendaftaran' => $isDisetujui ? 'Disetujui' : ($isDitolak ? 'Ditolak' : 'Menunggu'),
+        'status'             => $isDisetujui ? 'Disetujui' : ($isDitolak ? 'Ditolak' : 'Pending'),
+        'alasan_penolakan'   => $isDitolak ? $alasan : null,
+    ];
 
-    if ($status === 'rejected' || $status === 'Ditolak') {
-        $dataUpdate['alasan_penolakan'] = $alasan;
-    } else {
-        $dataUpdate['alasan_penolakan'] = null; 
-    }
-
-    $pendaftaranModel = new \App\Models\PendaftaranModel(); 
-    $pendaftaranLama = $pendaftaranModel->find($id_pendaftaran);
-
-    $nisBaru = $pendaftaranLama['nis'] ?? null;
-
-   if (($status === 'valid' || $status === 'Disetujui' || $status === 'approved') && empty($nisBaru)) {
-        $bukuIndukModel = new \App\Models\BukuIndukModel();
-        $nisBaru = $bukuIndukModel->generateNis(date('Ym'));
-        $dataUpdate['nis'] = $nisBaru;
-    }
     $fileBukti = $this->request->getFile('bukti_pembayaran');
     if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
         $newName = $fileBukti->getRandomName();
@@ -885,22 +981,48 @@ $data = [
         $fileBukti->move($folderTujuan, $newName);
         $dataUpdate['bukti_pembayaran'] = $newName;
     }
-$db = \Config\Database::connect();
 
-$berhasilUpdate = $db->table('pendaftaran')
-    ->where('id_pendaftaran', $id_pendaftaran)
-    ->update($dataUpdate);
+    $db = \Config\Database::connect();
+    $db->transBegin();
 
-if (!$berhasilUpdate) {
-    return redirect()->to(base_url('admin/validasi'))
-        ->with('error', 'Database gagal diperbarui.');
-}
+    try {
+        $pendaftaranLama = $db->query(
+            'SELECT * FROM pendaftaran WHERE id_pendaftaran = ? FOR UPDATE',
+            [(int) $id_pendaftaran]
+        )->getRowArray();
+
+        if (!$pendaftaranLama) {
+            $db->transRollback();
+            return redirect()->to(base_url('admin/validasi'))->with('error', 'Data pendaftaran tidak ditemukan.');
+        }
+
+        $nisBaru = $pendaftaranLama['nis'] ?? null;
+        if ($isDisetujui && empty($nisBaru)) {
+            $nisBaru = $this->generateNisPendaftaran($db, $pendaftaranLama);
+            $dataUpdate['nis'] = $nisBaru;
+        }
+
+        $berhasilUpdate = $db->table('pendaftaran')
+            ->where('id_pendaftaran', $id_pendaftaran)
+            ->update($dataUpdate);
+
+        if (!$berhasilUpdate || $db->transStatus() === false) {
+            $db->transRollback();
+            return redirect()->to(base_url('admin/validasi'))
+                ->with('error', 'Database gagal diperbarui.');
+        }
+
+        $db->transCommit();
+    } catch (\Throwable $e) {
+        $db->transRollback();
+        return redirect()->to(base_url('admin/validasi'))
+            ->with('error', 'Validasi gagal diproses: ' . $e->getMessage());
+    }
+
     if ($pendaftaranLama && !empty($pendaftaranLama['email'])) {
         $email = \Config\Services::email();
         $email->setTo($pendaftaranLama['email']);
         $email->setFrom('email_anda@gmail.com', 'Creativemu Academy');
-
-        $isDisetujui = ($status === 'valid' || $status === 'Disetujui' || $status === 'approved');
 
         if ($isDisetujui) {
             $email->setSubject('Selamat! Pendaftaran Kelas Anda di Creativemu Academy Telah Diterima');
@@ -908,49 +1030,8 @@ if (!$berhasilUpdate) {
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; color: #333; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
                     <h2 style="color: #7c3aed; margin-top: 0;">Halo, ' . esc($pendaftaranLama['nama'] ?? 'Peserta') . '</h2>
                     <p>Kabar gembira! Pendaftaran Anda untuk mengikuti pelatihan di <strong>Creativemu Academy</strong> telah resmi <strong>DISETUJUI</strong>.</p>
-                    
-                    <p>Berikut adalah detail informasi pendaftaran Anda:</p>
-                    <table style="width: 100%; border-collapse: collapse; background-color: #faf5ff; border-radius: 6px; overflow: hidden; margin: 15px 0;">
-                        <tr>
-                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff; font-weight: bold; width: 40%;">Nama Lengkap</td>
-                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff;">' . esc($pendaftaranLama['nama'] ?? '-') . '</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff; font-weight: bold;">No HP / WhatsApp</td>
-                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff;">' . esc($pendaftaranLama['no_hp'] ?? '-') . '</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff; font-weight: bold;">Kelas yang Diambil</td>
-                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff;">' . esc($pendaftaranLama['pilihan_pelatihan'] ?? '-') . '</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff; font-weight: bold;">Tempat Pelatihan</td>
-                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff;">' . esc($pendaftaranLama['lokasi_pelatihan'] ?? '-') . '</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff; font-weight: bold;">Jenis Kelas</td>
-                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff;">' . esc($pendaftaranLama['jenis_kelas'] ?? '-') . '</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff; font-weight: bold;">Metode Pelatihan</td>
-                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff;">' . esc($pendaftaranLama['metode_pembelajaran'] ?? '-') . '</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff; font-weight: bold;">Kategori Kelas</td>
-                            <td style="padding: 10px 15px; border-bottom: 1px solid #e9d5ff;">' . esc($pendaftaranLama['kategori_kelas'] ?? '-') . '</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 10px 15px; font-weight: bold;">Tanggal Mulai</td>
-                            <td style="padding: 10px 15px;">' . esc($pendaftaranLama['tanggal_mulai_kelas'] ?? '-') . '</td>
-                        </tr>
-                    </table>
-
-                    <p>Langkah selanjutnya, silakan melakukan registrasi akun peserta Anda melalui tautan di bawah ini:</p>
-                    
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="' . base_url('pelatihan/register') . '" style="background-color: #7c3aed; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Registrasi Akun Sekarang</a>
-                    </div>
-                    
+                    <p>NIS Anda adalah: <strong>' . esc($nisBaru ?? '-') . '</strong></p>
+                    <p>Silakan login dan mengikuti informasi pelatihan melalui akun peserta Anda.</p>
                     <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
                     <p style="font-size: 13px; color: #94a3b8; margin-bottom: 0;">Salam hangat,<br><strong>Tim Akademik Creativemu Academy</strong></p>
                 </div>
@@ -961,53 +1042,138 @@ if (!$berhasilUpdate) {
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; color: #333; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
                     <h2 style="color: #e11d48; margin-top: 0;">Halo, ' . esc($pendaftaranLama['nama'] ?? 'Peserta') . '</h2>
                     <p>Terima kasih telah mendaftar di <strong>Creativemu Academy</strong>. Mohon maaf, pendaftaran Anda saat ini <strong>belum dapat kami setujui</strong>.</p>
-                    
                     <div style="background-color: #fff1f2; border-left: 4px solid #e11d48; padding: 15px; margin: 20px 0; border-radius: 4px;">
                         <p style="margin: 0 0 5px 0; font-weight: bold; color: #9f1239;">Catatan / Alasan Penolakan:</p>
                         <p style="margin: 0; color: #881337;">' . esc($alasan ?? 'Tidak ada catatan khusus.') . '</p>
                     </div>
-
-                    <p>Anda dapat memperbarui data atau mengunggah ulang bukti pembayaran melalui halaman cek status:</p>
-                    
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="' . base_url('pelatihan/cek-status') . '" style="background-color: #e11d48; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Cek Status & Upload Ulang</a>
-                    </div>
-
-                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
                     <p style="font-size: 13px; color: #94a3b8; margin-bottom: 0;">Salam hangat,<br><strong>Tim Akademik Creativemu Academy</strong></p>
                 </div>
             ');
         }
 
         if (!$email->send()) {
-            print_r($email->printDebugger(['headers', 'subject', 'body']));
-            exit;
+            return redirect()->to(base_url('admin/validasi'))
+                ->with('warning', 'Status pendaftaran berhasil diperbarui, tetapi email notifikasi gagal dikirim.');
         }
     }
 
-    if ($status === 'rejected' || $status === 'Ditolak') {
-        $pesan = 'Pendaftaran berhasil ditolak.';
-    } else {
-        $pesan = 'Pendaftaran berhasil disetujui.';
+    $pesan = $isDitolak ? 'Pendaftaran berhasil ditolak.' : 'Pendaftaran berhasil disetujui.';
+    if ($isDisetujui && !empty($nisBaru)) {
+        $pesan .= ' NIS: ' . $nisBaru;
     }
 
-    return redirect()->to(base_url('admin/validasi'))
-                     ->with('success', $pesan);
+    return redirect()->to(base_url('admin/validasi'))->with('success', $pesan);
 }
 
+
+private function generateNisPendaftaran($db, array $pendaftaran): string
+{
+    $tanggalDaftar = !empty($pendaftaran['created_at']) ? $pendaftaran['created_at'] : date('Y-m-d H:i:s');
+    $timestamp = strtotime($tanggalDaftar) ?: time();
+    $prefix = date('ym', $timestamp);
+
+    $row = $db->query(
+        'SELECT nis FROM pendaftaran WHERE nis LIKE ? AND CHAR_LENGTH(nis) = 8 ORDER BY nis DESC LIMIT 1 FOR UPDATE',
+        [$prefix . '%']
+    )->getRowArray();
+
+    $nextSequence = 1;
+    if (!empty($row['nis'])) {
+        $nextSequence = ((int) substr($row['nis'], 4, 4)) + 1;
+    }
+
+    do {
+        if ($nextSequence > 9999) {
+            throw new \RuntimeException('Nomor urut NIS untuk periode ' . $prefix . ' sudah penuh.');
+        }
+
+        $nis = $prefix . str_pad((string) $nextSequence, 4, '0', STR_PAD_LEFT);
+        $exists = $db->table('pendaftaran')
+            ->where('nis', $nis)
+            ->countAllResults() > 0;
+        $nextSequence++;
+    } while ($exists);
+
+    return $nis;
+}
    public function angket()
 {
     $db = \Config\Database::connect();
-    
-    $data['angket'] = $db->table('angket_pertanyaan')
-                         ->select('angket_pertanyaan.*, kelas.nama_kelas, mentor.nama_mentor')
-                         ->join('kelas', 'kelas.id_kelas = angket_pertanyaan.id_kelas', 'left')
-                         ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-                         ->groupBy('angket_pertanyaan.judul_angket') 
-                         ->get()
-                         ->getResultArray();
 
-    $data['title'] = 'Monitoring Angket';
+    $filters = [
+        'search'  => trim((string) $this->request->getGet('search')),
+        'mentor'  => trim((string) $this->request->getGet('mentor')),
+        'kelas'   => trim((string) $this->request->getGet('kelas')),
+        'tanggal' => trim((string) $this->request->getGet('tanggal')),
+    ];
+
+    $builder = $db->table('angket_pertanyaan aq')
+        ->select('MIN(aq.id_angket_pertanyaan) AS id_angket_pertanyaan', false)
+        ->select('aq.judul_angket, aq.id_kelas')
+        ->select('kelas.nama_kelas, kelas.tanggal_mulai_kelas, kelas.lokasi_media')
+        ->select('mentor.nama_mentor')
+        ->select('COUNT(aq.id_angket_pertanyaan) AS jumlah_pertanyaan', false)
+        ->join('kelas', 'kelas.id_kelas = aq.id_kelas', 'left')
+        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+        ->groupBy('aq.judul_angket, aq.id_kelas, kelas.nama_kelas, kelas.tanggal_mulai_kelas, kelas.lokasi_media, mentor.nama_mentor');
+
+    if ($filters['search'] !== '') {
+        $builder->groupStart()
+            ->like('aq.judul_angket', $filters['search'])
+            ->orLike('kelas.nama_kelas', $filters['search'])
+            ->orLike('mentor.nama_mentor', $filters['search'])
+            ->groupEnd();
+    }
+    if ($filters['mentor'] !== '') {
+        $builder->like('mentor.nama_mentor', $filters['mentor']);
+    }
+    if ($filters['kelas'] !== '') {
+        $builder->like('kelas.nama_kelas', $filters['kelas']);
+    }
+    if ($filters['tanggal'] !== '' && $db->fieldExists('tanggal_mulai_kelas', 'kelas')) {
+        $builder->where('DATE(kelas.tanggal_mulai_kelas)', $filters['tanggal']);
+    }
+
+    $angket = $builder->orderBy('MAX(aq.created_at)', 'DESC', false)->get()->getResultArray();
+    $angket = $this->lengkapiRingkasanAngket($angket, $db);
+
+    $mentorOptions = $db->table('mentor')
+        ->select('nama_mentor')
+        ->where('nama_mentor IS NOT NULL')
+        ->where('nama_mentor !=', '')
+        ->groupBy('nama_mentor')
+        ->orderBy('nama_mentor', 'ASC')
+        ->get()
+        ->getResultArray();
+
+    $kelasOptions = $db->table('kelas')
+        ->select('nama_kelas')
+        ->where('nama_kelas IS NOT NULL')
+        ->where('nama_kelas !=', '')
+        ->groupBy('nama_kelas')
+        ->orderBy('nama_kelas', 'ASC')
+        ->get()
+        ->getResultArray();
+
+    $ratedRows = array_values(array_filter($angket, static fn ($row) => (float) ($row['rata_rata'] ?? 0) > 0));
+    $avgNilai = !empty($ratedRows)
+        ? round(array_sum(array_column($ratedRows, 'rata_rata')) / count($ratedRows), 2)
+        : 0;
+
+    $data = [
+        'title'         => 'Monitoring Angket',
+        'angket'        => $angket,
+        'filters'       => $filters,
+        'mentorOptions' => $mentorOptions,
+        'kelasOptions'  => $kelasOptions,
+        'summary'       => [
+            'total_angket'    => count($angket),
+            'total_responden' => array_sum(array_column($angket, 'jumlah_responden')),
+            'rata_rata'       => $avgNilai,
+            'kepuasan'        => $avgNilai > 0 ? round(($avgNilai / 5) * 100, 1) : 0,
+        ],
+    ];
+
     return view('admin/angket/index', $data);
 }
 
@@ -1132,27 +1298,183 @@ public function update($id)
 {
     $db = \Config\Database::connect();
 
-    $data['angket'] = $db->table('angket_pertanyaan')
-                         ->select('angket_pertanyaan.*, kelas.nama_kelas, mentor.nama_mentor')
-                         ->join('kelas', 'kelas.id_kelas = angket_pertanyaan.id_kelas', 'left')
-                         ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-                         ->where('angket_pertanyaan.id_angket_pertanyaan', $id)
-                         ->get()
-                         ->getRowArray();
+    $angket = $db->table('angket_pertanyaan aq')
+        ->select('aq.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas, kelas.lokasi_media, mentor.nama_mentor')
+        ->join('kelas', 'kelas.id_kelas = aq.id_kelas', 'left')
+        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+        ->where('aq.id_angket_pertanyaan', $id)
+        ->get()
+        ->getRowArray();
 
-    if (empty($data['angket'])) {
+    if (empty($angket)) {
         return redirect()->to('admin/angket')->with('error', 'Data angket tidak ditemukan.');
     }
 
-    $judulTarget = $data['angket']['judul_angket'];
+    $semuaPertanyaan = $db->table('angket_pertanyaan')
+        ->where('judul_angket', $angket['judul_angket'])
+        ->where('id_kelas', $angket['id_kelas'])
+        ->orderBy('id_angket_pertanyaan', 'ASC')
+        ->get()
+        ->getResultArray();
 
-    $data['semua_pertanyaan'] = $db->table('angket_pertanyaan')
-                                   ->where('judul_angket', $judulTarget)
-                                   ->get()
-                                   ->getResultArray();
+    $ringkasan = $this->ambilNilaiAngket($db, (int) $angket['id_kelas'], $angket['judul_angket']);
+    $angket = array_merge($angket, $ringkasan);
+    $angket['tempat_pelatihan'] = $this->ambilTempatPelatihan($db, (int) $angket['id_kelas'], $angket);
 
-    $data['title'] = 'Detail Angket';
+    $data = [
+        'title'            => 'Detail Angket',
+        'angket'           => $angket,
+        'semua_pertanyaan' => $semuaPertanyaan,
+        'saranPeserta'     => $this->ambilSaranAngket($db, (int) $angket['id_kelas'], $angket['judul_angket']),
+    ];
+
     return view('admin/angket/detail', $data);
+}
+
+private function lengkapiRingkasanAngket(array $angket, $db): array
+{
+    foreach ($angket as &$item) {
+        $nilai = $this->ambilNilaiAngket($db, (int) ($item['id_kelas'] ?? 0), (string) ($item['judul_angket'] ?? ''));
+        $item = array_merge($item, $nilai);
+        $item['tempat_pelatihan'] = $this->ambilTempatPelatihan($db, (int) ($item['id_kelas'] ?? 0), $item);
+    }
+    unset($item);
+
+    return $angket;
+}
+
+private function ambilNilaiAngket($db, int $idKelas, string $judulAngket = ''): array
+{
+    $default = [
+        'nilai_instruktur_1' => 0,
+        'nilai_instruktur_2' => 0,
+        'nilai_tempat'       => 0,
+        'rata_rata'          => 0,
+        'jumlah_responden'   => 0,
+    ];
+
+    if (!$db->tableExists('angket_penilaian') || $idKelas <= 0) {
+        return $default;
+    }
+
+    $fields = $db->getFieldNames('angket_penilaian');
+    $has = static fn (string $field): bool => in_array($field, $fields, true);
+    $avg = static function (array $candidates) use ($has): ?string {
+        foreach ($candidates as $candidate) {
+            if ($has($candidate)) {
+                return $candidate;
+            }
+        }
+        return null;
+    };
+
+    $instruktur1 = $avg(['nilai_instruktur_1', 'rating_instruktur_1', 'instruktur_1', 'rating_mentor_1', 'rating']);
+    $instruktur2 = $avg(['nilai_instruktur_2', 'rating_instruktur_2', 'instruktur_2', 'rating_mentor_2']);
+    $tempat      = $avg(['nilai_tempat', 'rating_tempat', 'tempat_pelatihan', 'rating_fasilitas', 'rating_lokasi']);
+
+    $select = ['COUNT(*) AS jumlah_responden'];
+    if ($instruktur1) {
+        $select[] = "AVG({$instruktur1}) AS nilai_instruktur_1";
+    }
+    if ($instruktur2) {
+        $select[] = "AVG({$instruktur2}) AS nilai_instruktur_2";
+    }
+    if ($tempat) {
+        $select[] = "AVG({$tempat}) AS nilai_tempat";
+    }
+
+    $builder = $db->table('angket_penilaian')
+        ->select(implode(', ', $select), false)
+        ->where('id_kelas', $idKelas);
+
+    if ($has('judul_angket') && $judulAngket !== '') {
+        $builder->where('judul_angket', $judulAngket);
+    }
+
+    $row = $builder->get()->getRowArray() ?: [];
+    $nilai1 = round((float) ($row['nilai_instruktur_1'] ?? 0), 2);
+    $nilai2 = round((float) ($row['nilai_instruktur_2'] ?? 0), 2);
+    $nilaiTempat = round((float) ($row['nilai_tempat'] ?? 0), 2);
+
+    $nilaiTersedia = array_values(array_filter([$nilai1, $nilai2, $nilaiTempat], static fn ($nilai) => $nilai > 0));
+    $rataRata = !empty($nilaiTersedia) ? round(array_sum($nilaiTersedia) / count($nilaiTersedia), 2) : 0;
+
+    return [
+        'nilai_instruktur_1' => $nilai1,
+        'nilai_instruktur_2' => $nilai2,
+        'nilai_tempat'       => $nilaiTempat,
+        'rata_rata'          => $rataRata,
+        'jumlah_responden'   => (int) ($row['jumlah_responden'] ?? 0),
+    ];
+}
+
+private function ambilSaranAngket($db, int $idKelas, string $judulAngket = ''): array
+{
+    if (!$db->tableExists('angket_penilaian') || $idKelas <= 0) {
+        return [];
+    }
+
+    $fields = $db->getFieldNames('angket_penilaian');
+    $has = static fn (string $field): bool => in_array($field, $fields, true);
+    $saranField = null;
+    foreach (['saran', 'masukan', 'ulasan', 'komentar'] as $candidate) {
+        if ($has($candidate)) {
+            $saranField = $candidate;
+            break;
+        }
+    }
+
+    if ($saranField === null) {
+        return [];
+    }
+
+    $builder = $db->table('angket_penilaian ap')
+        ->select("ap.{$saranField} AS saran", false)
+        ->where('ap.id_kelas', $idKelas)
+        ->where("ap.{$saranField} IS NOT NULL", null, false)
+        ->where("ap.{$saranField} !=", '');
+
+    if ($has('id_peserta')) {
+        $builder->select('users.nama AS nama_peserta')
+            ->join('users', 'users.id_users = ap.id_peserta', 'left');
+    }
+    if ($has('rating')) {
+        $builder->select('ap.rating');
+    }
+    if ($has('created_at')) {
+        $builder->select('ap.created_at')->orderBy('ap.created_at', 'DESC');
+    }
+    if ($has('judul_angket') && $judulAngket !== '') {
+        $builder->where('ap.judul_angket', $judulAngket);
+    }
+
+    return $builder->get()->getResultArray();
+}
+
+private function ambilTempatPelatihan($db, int $idKelas, array $angket): string
+{
+    if (!empty($angket['tempat_pelatihan'])) {
+        return (string) $angket['tempat_pelatihan'];
+    }
+    if (!empty($angket['lokasi_media'])) {
+        return (string) $angket['lokasi_media'];
+    }
+    if ($db->tableExists('pendaftaran') && $db->fieldExists('lokasi_pelatihan', 'pendaftaran') && $idKelas > 0) {
+        $row = $db->table('pendaftaran')
+            ->select('lokasi_pelatihan')
+            ->where('id_kelas', $idKelas)
+            ->where('lokasi_pelatihan IS NOT NULL', null, false)
+            ->where('lokasi_pelatihan !=', '')
+            ->orderBy('id_pendaftaran', 'DESC')
+            ->get(1)
+            ->getRowArray();
+
+        if (!empty($row['lokasi_pelatihan'])) {
+            return (string) $row['lokasi_pelatihan'];
+        }
+    }
+
+    return '-';
 }
 public function delete($id)
 {
