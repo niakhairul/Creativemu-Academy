@@ -95,23 +95,90 @@ if (!function_exists('rating_stars_admin_angket')) {
         }
         @media (max-width: 430px) { #sidebar .nav { grid-template-columns: 1fr; } .filter-actions { grid-template-columns: 1fr; } .metric-value { font-size: 1.35rem; } }
     </style>
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
+    <script defer src="<?= base_url('assets/js/admin-responsive.js'); ?>"></script>
 </head>
 <body>
     <nav id="sidebar">
-        <div class="sidebar-header"><img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy"></div>
-        <ul class="nav flex-column">
-            <li class="nav-item"><a href="<?= base_url('admin/dashboard'); ?>" class="nav-link"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link"><i class="fas fa-book"></i><span>Master Kelas</span></a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/mentor'); ?>" class="nav-link"><i class="fas fa-chalkboard-user"></i><span>Instruktur</span></a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link"><i class="fas fa-users"></i><span>Data Peserta</span></a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/validasi'); ?>" class="nav-link"><i class="fas fa-clipboard-check"></i><span>Validasi</span></a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link"><i class="fas fa-book-open"></i><span>Buku Induk</span></a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/angket'); ?>" class="nav-link active"><i class="fas fa-award"></i><span>Angket</span></a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link"><i class="fas fa-certificate"></i><span>Sertifikat</span></a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/laporan'); ?>" class="nav-link"><i class="fas fa-file-lines"></i><span>Laporan</span></a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link"><i class="fas fa-user-shield"></i><span>Hak Akses</span></a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link"><i class="fas fa-gear"></i><span>Pengaturan</span></a></li>
-            <li class="nav-item mt-2"><a href="<?= base_url('logout'); ?>" class="nav-link text-danger"><i class="fas fa-right-from-bracket"></i><span>Logout</span></a></li>
+        <div class="sidebar-header">
+            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
+        </div>
+
+        <ul class="nav flex-column mt-3">
+            <li class="nav-item">
+                <a href="<?= base_url('admin/dashboard'); ?>" class="nav-link">
+                    <i class="fas fa-chart-pie me-3"></i> Dashboard
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link">
+                    <i class="fas fa-book me-3"></i> Master Kelas
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="<?= base_url('admin/mentor'); ?>" class="nav-link">
+                    <i class="fas fa-chalkboard-user me-3"></i> Instruktur
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link">
+                    <i class="fas fa-users me-3"></i> Data Peserta
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="<?= base_url('admin/validasi'); ?>" class="nav-link">
+                    <i class="fas fa-clipboard-check me-3"></i> Validasi Pendaftaran
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
+                    <i class="fas fa-book-open me-3"></i> Buku Induk
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="<?= base_url('admin/angket'); ?>" class="nav-link active">
+                    <i class="fas fa-award me-3"></i> Angket
+                </a>
+
+                <ul class="nav flex-column ms-3 mt-1">
+                    <li class="nav-item">
+                        <a href="<?= base_url('admin/hasil_angket'); ?>" class="nav-link py-2" style="font-size: 0.9rem;">
+                            <i class="fas fa-poll-h me-2"></i> Hasil Angket
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="nav-item">
+                <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link">
+                    <i class="fas fa-certificate me-3"></i> Sertifikat
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="<?= base_url('admin/laporan'); ?>" class="nav-link">
+                    <i class="fas fa-file-lines me-3"></i> Laporan
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link">
+                    <i class="fas fa-gear me-3"></i> Pengaturan
+                </a>
+            </li>
+
+            <li class="nav-item mt-4">
+                <a href="<?= base_url('logout'); ?>" class="nav-link text-danger">
+                    <i class="fas fa-right-from-bracket me-3"></i> Logout
+                </a>
+            </li>
+        </ul>
         </ul>
     </nav>
 

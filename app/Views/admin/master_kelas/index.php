@@ -291,7 +291,135 @@
             from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* =========================
+   RESPONSIVE MOBILE
+   ========================= */
+@media (max-width: 992px) {
+    #sidebar {
+        width: 80px;
+    }
+
+    #sidebar .sidebar-header img,
+    #sidebar span {
+        display: none;
+    }
+
+    #sidebar .sidebar-header {
+        padding: 20px 10px;
+    }
+
+    #sidebar .nav {
+        padding: 20px 10px;
+    }
+
+    #sidebar .nav-link {
+        justify-content: center;
+        padding: 12px 10px;
+    }
+
+    #sidebar .nav-link i {
+        margin-right: 0;
+    }
+
+    #main-content {
+        margin-left: 80px;
+        padding: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    #main-content {
+        padding: 12px;
+    }
+
+    .top-navbar {
+    padding: 16px;
+    margin-bottom: 20px;
+    gap: 15px;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.top-navbar > .d-flex {
+    width: 100%;
+    justify-content: flex-end;
+}
+
+    .dash-header h3 {
+        font-size: 1.25rem;
+    }
+
+    .dash-header p {
+        font-size: 0.78rem;
+    }
+
+    .admin-profile {
+        gap: 8px;
+    }
+
+    .admin-profile img {
+        width: 42px;
+        height: 42px;
+    }
+
+    .admin-info h6 {
+        font-size: 0.85rem;
+    }
+
+    .admin-info small {
+        font-size: 0.7rem;
+    }
+
+    .content-card {
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .card-title-custom {
+        font-size: 1rem;
+    }
+
+    .content-card > .d-flex {
+        align-items: stretch !important;
+    }
+
+    .content-card > .d-flex > .d-flex {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+
+    .content-card > .d-flex > .d-flex .btn-purple,
+    .content-card > .d-flex > .d-flex .badge {
+        width: 100%;
+        text-align: center;
+    }
+
+    .class-card-img-wrapper {
+        height: 160px !important;
+    }
+
+    .modal-dialog {
+        margin: 10px;
+    }
+
+    .modal-body {
+        padding: 16px !important;
+    }
+
+    .modal-footer {
+        padding: 12px 16px;
+    }
+
+    .modal-footer .btn {
+        width: 100%;
+    }
+}
     </style>
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
+    <script defer src="<?= base_url('assets/js/admin-responsive.js'); ?>"></script>
 </head>
 <body>
 
@@ -346,11 +474,7 @@
                     <i class="fas fa-file-lines"></i> <span>Laporan</span>
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link">
-                    <i class="fas fa-user-shield"></i> <span>Hak Akses</span>
-                </a>
-            </li>
+           
             <li class="nav-item">
                 <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link">
                     <i class="fas fa-gear"></i> <span>Pengaturan</span>

@@ -1,0 +1,177 @@
+/*
+ * Shared mobile safeguards for the existing Admin interface.
+ * These rules only apply below the desktop breakpoint.
+ */
+@media (max-width: 991.98px) {
+    html,
+    body {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    #sidebar,
+    .sidebar {
+        width: min(82vw, 290px) !important;
+        max-width: 290px;
+        transform: translateX(-105%) !important;
+        transition: transform .25s ease !important;
+        z-index: 1050 !important;
+        overscroll-behavior: contain;
+    }
+
+    #sidebar.show,
+    .sidebar.show {
+        transform: translateX(0) !important;
+    }
+
+    /* Keep the existing full navigation intact on mobile. Some legacy views
+       hide the brand and menu labels when their sidebar is narrowed. */
+    #sidebar .sidebar-header img {
+        display: block !important;
+        width: 100% !important;
+        max-width: 240px;
+        height: 95px !important;
+        object-fit: cover;
+        border-radius: 10px;
+        margin-inline: auto;
+    }
+
+    #sidebar .nav-link span,
+    #sidebar .sidebar-header span {
+        display: inline !important;
+    }
+
+    #main-content,
+    .main-content,
+    .content {
+        width: 100% !important;
+        max-width: 100%;
+        min-width: 0;
+        margin-left: 0 !important;
+        padding: 16px !important;
+    }
+
+    #main-content > *,
+    .main-content > *,
+    .content > * {
+        max-width: 100%;
+    }
+
+    body.admin-generated-menu #main-content,
+    body.admin-generated-menu .main-content,
+    body.admin-generated-menu .content {
+        padding-top: 68px !important;
+    }
+
+    .admin-mobile-menu {
+        position: fixed;
+        top: max(16px, env(safe-area-inset-top));
+        left: 16px;
+        z-index: 1060;
+        width: 44px;
+        height: 44px;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 12px;
+        color: #fff;
+        background: var(--primary-purple, #794bc4);
+        box-shadow: 0 5px 16px rgba(34, 19, 60, .25);
+    }
+
+    /* Legacy views place their own toggle inside different headers.
+       Use the single shared toggle above so every Admin page matches. */
+    .mobile-toggle-btn {
+        display: none !important;
+    }
+
+    .admin-sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1045;
+        background: rgba(15, 23, 42, .38);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .25s ease;
+    }
+
+    .admin-sidebar-backdrop.is-visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .table-responsive {
+        max-width: 100%;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .card,
+    .chart-card,
+    .flow-card {
+        max-width: 100%;
+    }
+
+    .card-body,
+    .chart-card,
+    .flow-card {
+        padding-left: clamp(14px, 4vw, 24px);
+        padding-right: clamp(14px, 4vw, 24px);
+    }
+
+    .modal-dialog {
+        width: auto;
+        max-width: calc(100% - 1.5rem);
+        margin: .75rem auto;
+    }
+
+    .modal-body {
+        overflow-wrap: anywhere;
+    }
+
+    input,
+    select,
+    textarea,
+    .form-control,
+    .form-select {
+        max-width: 100%;
+    }
+
+    .input-group {
+        flex-wrap: wrap;
+    }
+
+    .input-group > .form-control,
+    .input-group > .form-select {
+        min-width: 0;
+    }
+
+    canvas {
+        max-width: 100% !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+    #main-content,
+    .main-content,
+    .content {
+        padding: 12px !important;
+    }
+
+    .d-flex.gap-2,
+    .d-flex.gap-3,
+    .d-flex.gap-4 {
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        max-width: 100%;
+    }
+}
+
+@media print {
+    .admin-mobile-menu,
+    .admin-sidebar-backdrop {
+        display: none !important;
+    }
+}

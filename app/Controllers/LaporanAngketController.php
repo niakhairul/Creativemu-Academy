@@ -140,7 +140,7 @@ class LaporanAngketController extends BaseController
             : 'Tahun ' . $filters['tahun'];
 
         $data = [
-            'title'         => 'Laporan Angket Mentor & Evaluasi Kepuasan',
+            'title'         => 'Laporan Angket Instruktur & Evaluasi Kepuasan',
             'role'          => $role,
             'isMentor'      => ($role === 'mentor'),
             'mentorLogin'   => $mentorLogin,
@@ -217,15 +217,15 @@ class LaporanAngketController extends BaseController
             ? ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun']
             : 'Tahun ' . $filters['tahun'];
 
-        $filename = 'Laporan_Angket_Mentor_CreativeMU_' . str_replace(' ', '_', $periodeText) . '_' . date('Ymd_His') . '.xlsx';
+        $filename = 'Laporan_Angket_Instruktur_CreativeMU_' . str_replace(' ', '_', $periodeText) . '_' . date('Ymd_His') . '.xlsx';
 
         if (class_exists('PhpOffice\PhpSpreadsheet\Spreadsheet')) {
             $spreadsheet = new Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
-            $sheet->setTitle('Laporan Angket Mentor');
+            $sheet->setTitle('Laporan Angket Instruktur');
 
             // 1. Judul Laporan (Header Lembaga)
-            $sheet->setCellValue('A1', 'LAPORAN HASIL ANGKET & EVALUASI KEPUASAN MENTOR');
+            $sheet->setCellValue('A1', 'LAPORAN HASIL ANGKET & EVALUASI KEPUASAN INSTRUKTUR');
             $sheet->setCellValue('A2', 'CreativeMU Academy - Lembaga Pendidikan & Pelatihan Kejuruan Terpadu');
             $sheet->setCellValue('A3', 'Periode Evaluasi: ' . $periodeText . ' | Tanggal Ekspor: ' . date('d-m-Y H:i') . ' WIB');
 
@@ -242,7 +242,7 @@ class LaporanAngketController extends BaseController
             $sheet->setCellValue('A5', 'RINGKASAN METRIK EVALUASI ANGKET');
             $sheet->getStyle('A5')->getFont()->setSize(11)->setBold(true)->getColor()->setRGB('22133C');
 
-            $summaryHeaders = ['Total Mentor Dinilai', 'Total Responden Peserta', 'Rata-rata Nilai Angket', 'Persentase Kepuasan'];
+            $summaryHeaders = ['Total Instruktur Dinilai', 'Total Responden Peserta', 'Rata-rata Nilai Angket', 'Persentase Kepuasan'];
             $cols = ['A', 'C', 'E', 'G'];
             $colEnds = ['B', 'D', 'F', 'H'];
 
@@ -252,7 +252,7 @@ class LaporanAngketController extends BaseController
                 $sheet->setCellValue($cols[$i] . '6', $summaryHeaders[$i]);
             }
 
-            $sheet->setCellValue('A7', $stats['total_mentor_dinilai'] . ' Mentor');
+            $sheet->setCellValue('A7', $stats['total_mentor_dinilai'] . ' Instruktur');
             $sheet->setCellValue('C7', $stats['total_responden'] . ' Peserta Responden');
             $sheet->setCellValue('E7', number_format($stats['avg_nilai_angket'], 2) . ' / 5.00');
             $sheet->setCellValue('G7', number_format($stats['persen_kepuasan'], 1) . '%');
@@ -298,11 +298,11 @@ class LaporanAngketController extends BaseController
 
             // 4. Tabel Utama Rekap Penilaian Mentor
             $rowTableStart = $currIndRow + 2;
-            $sheet->setCellValue('A' . ($rowTableStart - 1), 'TABEL REKAPITULASI PENILAIAN ANGKET MENTOR');
+            $sheet->setCellValue('A' . ($rowTableStart - 1), 'TABEL REKAPITULASI PENILAIAN ANGKET INSTRUKTUR');
             $sheet->getStyle('A' . ($rowTableStart - 1))->getFont()->setSize(11)->setBold(true)->getColor()->setRGB('22133C');
 
             $mainHeaders = [
-                'No', 'Nama Mentor', 'Kategori Pelatihan', 'Kelas Diampu',
+                'No', 'Nama Instruktur', 'Kategori Pelatihan', 'Kelas Diampu',
                 'Jml Responden', 'Nilai Rata-rata', 'Persentase Kepuasan', 'Predikat'
             ];
 

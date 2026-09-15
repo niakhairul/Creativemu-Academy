@@ -222,6 +222,8 @@
             to { opacity: 1; transform: translateY(0); }
         }
     </style>
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
+    <script defer src="<?= base_url('assets/js/admin-responsive.js'); ?>"></script>
 </head>
 <body>
 
@@ -276,11 +278,7 @@
                     <i class="fas fa-file-lines"></i> <span>Laporan</span>
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link">
-                    <i class="fas fa-user-shield"></i> <span>Hak Akses</span>
-                </a>
-            </li>
+            
             <li class="nav-item">
                 <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link">
                     <i class="fas fa-gear"></i> <span>Pengaturan</span>

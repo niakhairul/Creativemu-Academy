@@ -317,6 +317,8 @@
             margin-right: 15px;
         }
     </style>
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
+    <script defer src="<?= base_url('assets/js/admin-responsive.js'); ?>"></script>
 </head>
 <body>
 
@@ -397,11 +399,7 @@
                 </div>
             </li>
 
-            <li class="nav-item">
-                <a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link">
-                    <i class="fas fa-user-shield"></i> <span>Hak Akses</span>
-                </a>
-            </li>
+            
             <li class="nav-item">
                 <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link">
                     <i class="fas fa-gear"></i> <span>Pengaturan</span>

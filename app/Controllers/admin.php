@@ -536,12 +536,12 @@ public function simpan()
     if (! $db->transStatus()) {
         return redirect()->back()
             ->withInput()
-            ->with('error', 'Akun mentor gagal dibuat. Silakan coba kembali.');
+            ->with('error', 'Akun instruktur gagal dibuat. Silakan coba kembali.');
     }
 
     return redirect()
         ->to(base_url('admin/mentor'))
-        ->with('success', 'Akun login dan profil mentor berhasil ditambahkan.');
+        ->with('success', 'Akun login dan profil instruktur berhasil ditambahkan.');
 }
 
     public function updateMentor($id)
@@ -550,7 +550,7 @@ public function simpan()
         $db = \Config\Database::connect();
         $mentor = $mentorModel->find($id);
         if (! $mentor) {
-            return redirect()->to(base_url('admin/mentor'))->with('error', 'Data mentor tidak ditemukan.');
+            return redirect()->to(base_url('admin/mentor'))->with('error', 'Data instruktur tidak ditemukan.');
         }
 
         $nama = trim((string) $this->request->getPost('nama_mentor'));
@@ -575,7 +575,7 @@ public function simpan()
             return redirect()->back()->withInput()->with('error', 'Email tersebut sudah dipakai akun lain.');
         }
         if (! $akunMentor && $password === '') {
-            return redirect()->back()->withInput()->with('error', 'Password baru wajib diisi untuk membuat akun login mentor ini.');
+            return redirect()->back()->withInput()->with('error', 'Password baru wajib diisi untuk membuat akun login instruktur ini.');
         }
 
        
@@ -611,20 +611,46 @@ $data = [
         }
         $db->table('mentor')->where('id_mentor', $id)->update($data);
         $db->transComplete();
-        if (! $db->transStatus()) return redirect()->back()->withInput()->with('error', 'Perubahan mentor gagal disimpan.');
+        if (! $db->transStatus()) return redirect()->back()->withInput()->with('error', 'Perubahan instruktur gagal disimpan.');
 
-        return redirect()->to(base_url('admin/mentor'))->with('success', 'Data profil dan akun login mentor berhasil diperbarui.');
+        return redirect()->to(base_url('admin/mentor'))->with('success', 'Data profil dan akun login instruktur berhasil diperbarui.');
     }
+
     public function editMentor($id)
     {
         $mentorModel = new MentorModel();
         
         $data = [
-            'title'  => 'Edit Mentor',
+            'title'  => 'Edit Instruktur',
             'mentor' => $mentorModel->find($id)
         ];
 
         return view('admin/mentor/edit', $data);
+    }
+
+    public function deleteMentor($id)
+    {
+        $mentorModel = new MentorModel();
+        $db = \Config\Database::connect();
+        $mentor = $mentorModel->find($id);
+        if (!$mentor) {
+            return redirect()->to(base_url('admin/mentor'))->with('error', 'Data instruktur tidak ditemukan.');
+        }
+
+        if (!empty($mentor['cv']) && file_exists(FCPATH . 'uploads/cv/' . $mentor['cv'])) {
+            @unlink(FCPATH . 'uploads/cv/' . $mentor['cv']);
+        }
+
+        if (!empty($mentor['id_users'])) {
+            $user = $db->table('users')->where('id_users', $mentor['id_users'])->get()->getRowArray();
+            if ($user && $user['role'] === 'mentor') {
+                $db->table('users')->where('id_users', $mentor['id_users'])->delete();
+            }
+        }
+
+        $mentorModel->delete($id);
+
+        return redirect()->to(base_url('admin/mentor'))->with('success', 'Data instruktur berhasil dihapus.');
     }
 
     public function absen()

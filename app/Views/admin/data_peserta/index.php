@@ -31,13 +31,15 @@ if (!function_exists('admin_status_badge')) {
         :root { --sidebar-bg:#22133c; --sidebar-text:#c8bfe7; --primary:#794bc4; --primary-dark:#5931a0; --dark:#1e0f33; --soft:#f4f0fc; --border:#eadffb; --muted:#817796; }
         *{box-sizing:border-box} body{margin:0;font-family:'Poppins',sans-serif;background:#f7f5fd;color:#2f2442;overflow-x:hidden}.admin-shell{display:flex;min-height:100vh}.sidebar{width:275px;background:var(--sidebar-bg);color:var(--sidebar-text);position:fixed;inset:0 auto 0 0;z-index:1040;overflow-y:auto;box-shadow:8px 0 28px rgba(34,19,60,.12)}.sidebar-header{padding:22px 18px;background:rgba(0,0,0,.22);text-align:center}.sidebar-header img{width:230px;max-width:100%;height:92px;object-fit:cover;border-radius:10px}.sidebar .nav{padding:18px 12px 28px}.sidebar .nav-link{display:flex;align-items:center;gap:12px;color:var(--sidebar-text);border-radius:12px;padding:12px 16px;margin-bottom:6px;font-weight:500;font-size:.9rem}.sidebar .nav-link i{width:21px;text-align:center}.sidebar .nav-link:hover,.sidebar .nav-link.active{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff}.main{margin-left:275px;width:calc(100% - 275px);padding:30px}.topbar,.panel,.metric,.participant-card{background:#fff;border:1px solid rgba(121,75,196,.08);box-shadow:0 14px 34px rgba(64,36,105,.06)}.topbar{border-radius:18px;padding:22px 26px;display:flex;justify-content:space-between;gap:18px;align-items:center;margin-bottom:20px}.mobile-menu{display:none}.page-title{margin:0;color:var(--dark);font-weight:800;font-size:clamp(1.25rem,2vw,1.75rem)}.page-subtitle{color:var(--muted);font-size:.9rem;margin:6px 0 0}.admin-profile{display:flex;gap:12px;align-items:center;min-width:max-content}.admin-profile img{width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid var(--primary)}.admin-profile h6{margin:0;color:var(--dark);font-weight:700;font-size:.9rem}.admin-profile small{color:var(--muted)}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.metric{border-radius:16px;padding:17px}.metric-icon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary-dark));margin-bottom:12px}.metric-label{color:var(--muted);font-size:.78rem;font-weight:700}.metric-value{font-size:1.45rem;font-weight:800;color:var(--dark)}.panel{border-radius:18px;padding:20px;margin-bottom:18px}.filter-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:12px;align-items:end}.form-label{font-size:.78rem;font-weight:800;color:var(--dark)}.form-control,.form-select{border-radius:12px;border-color:var(--border);min-height:44px}.form-control:focus,.form-select:focus{border-color:var(--primary);box-shadow:0 0 0 .2rem rgba(121,75,196,.14)}.btn-purple{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:0;border-radius:12px;min-height:42px;padding:10px 16px;font-weight:700}.btn-purple:hover{color:#fff;filter:brightness(.98)}.btn-soft{background:var(--soft);color:var(--primary);border:1px solid var(--border);border-radius:12px;min-height:42px;padding:10px 15px;font-weight:700}.table-wrap{overflow-x:auto}.table{margin:0;vertical-align:middle}.table thead th{background:#faf8ff;color:var(--primary-dark);border-bottom:1px solid var(--border);padding:14px;font-size:.78rem;text-transform:uppercase;white-space:nowrap}.table tbody td{padding:15px;border-bottom:1px solid #f0eafb;color:#443652}.nis-badge{display:inline-flex;align-items:center;gap:7px;border-radius:999px;background:#f4f0fc;color:#5931a0;border:1px solid #ded0f7;padding:7px 11px;font-weight:800;letter-spacing:.04em;font-family:Consolas,monospace}.badge-status{border-radius:999px;padding:7px 11px;font-weight:800}.mobile-list{display:none}.participant-card{border-radius:16px;padding:16px;margin-bottom:13px}.card-row{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #f0eafb;margin-top:10px;padding-top:10px}.card-row span:first-child{color:var(--muted);font-size:.78rem;font-weight:800}.card-row span:last-child{text-align:right;font-weight:700;color:var(--dark)}.pagination .page-link{border-color:var(--border);color:var(--primary);border-radius:10px;margin:0 3px}.pagination .active .page-link{background:var(--primary);border-color:var(--primary)}.empty-state{text-align:center;color:var(--muted);padding:38px 10px}.modal-content{border:0;border-radius:18px}.detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.detail-item{background:#fcfbff;border:1px solid #f0eafb;border-radius:12px;padding:12px}.detail-label{font-size:.73rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);font-weight:800}.detail-value{color:var(--dark);font-weight:700;overflow-wrap:anywhere}.offcanvas{background:var(--sidebar-bg);color:var(--sidebar-text)}
         @media(max-width:1100px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.filter-actions{grid-column:1/-1;display:flex;gap:10px}}
-        @media(max-width:768px){.sidebar{display:none}.mobile-menu{display:inline-flex}.main{margin-left:0;width:100%;padding:16px}.topbar{align-items:flex-start;flex-direction:column;border-radius:14px;padding:16px}.admin-profile{width:100%}.metrics,.filter-grid{grid-template-columns:1fr}.filter-actions{display:grid;grid-template-columns:1fr 1fr}.desktop-table{display:none}.mobile-list{display:block}.panel{padding:15px;border-radius:14px}.detail-grid{grid-template-columns:1fr}.offcanvas .nav-link{color:var(--sidebar-text)}}
+        @media(max-width:768px){.sidebar{display:none}.sidebar.show{display:block}.mobile-menu{display:inline-flex}.main{margin-left:0;width:100%;padding:16px}.topbar{align-items:flex-start;flex-direction:column;border-radius:14px;padding:16px;padding-top:58px;position:relative}.admin-profile{width:100%}.metrics,.filter-grid{grid-template-columns:1fr}.filter-actions{display:grid;grid-template-columns:1fr 1fr}.desktop-table{display:none}.mobile-list{display:block}.panel{padding:15px;border-radius:14px}.detail-grid{grid-template-columns:1fr}.offcanvas .nav-link{color:var(--sidebar-text)}}
         @media(max-width:430px){.filter-actions{grid-template-columns:1fr}.metrics{gap:10px}.metric-value{font-size:1.25rem}}
     </style>
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
+    <script defer src="<?= base_url('assets/js/admin-responsive.js'); ?>"></script>
 </head>
 <body>
 <div class="admin-shell">
-    <aside class="sidebar">
+    <nav id="sidebar" class="sidebar">
         <div class="sidebar-header"><img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy"></div>
         <nav class="nav flex-column">
             <a href="<?= base_url('admin/dashboard'); ?>" class="nav-link"><i class="fas fa-chart-pie"></i>Dashboard</a>
@@ -49,20 +51,24 @@ if (!function_exists('admin_status_badge')) {
             <a href="<?= base_url('admin/angket'); ?>" class="nav-link"><i class="fas fa-poll"></i>Angket</a>
             <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link"><i class="fas fa-certificate"></i>Sertifikat</a>
             <a href="<?= base_url('admin/laporan'); ?>" class="nav-link"><i class="fas fa-file-lines"></i>Laporan</a>
-            <a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link"><i class="fas fa-user-shield"></i>Hak Akses</a>
+            
             <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link"><i class="fas fa-gear"></i>Pengaturan</a>
             <a href="<?= base_url('logout'); ?>" class="nav-link text-danger mt-2"><i class="fas fa-right-from-bracket"></i>Logout</a>
         </nav>
-    </aside>
+    </nav>
 
-    <main class="main">
-        <section class="topbar">
-            <div class="d-flex align-items-start gap-3">
-                <button class="btn btn-soft mobile-menu" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar" aria-label="Menu"><i class="fas fa-bars"></i></button>
-                <div><h1 class="page-title">Data Peserta</h1><p class="page-subtitle">Kelola NIS, status validasi, kelas, dan data kontak peserta.</p></div>
+    <!-- === MAIN CONTENT === -->
+   <main class="main">
+        
+        <!-- === TOP NAVBAR === -->
+        <div class="topbar">
+            <div class="dash-header">
+                <h3>Daftar Peserta</h3>
+                <p>Data peserta pelatihan terintegrasi langsung dengan pendaftaran kelas Creativemu Academy.</p>
+
             </div>
             <div class="admin-profile"><img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil"><div><h6><?= esc(session()->get('nama') ?: 'Administrator'); ?></h6><small>Administrator</small></div></div>
-        </section>
+        </div>
 
         <?php foreach (['success' => 'success', 'error' => 'danger', 'warning' => 'warning'] as $flash => $type): ?>
             <?php if (session()->getFlashdata($flash)): ?><div class="alert alert-<?= $type; ?> border-0 rounded-4"><?= session()->getFlashdata($flash); ?></div><?php endif; ?>

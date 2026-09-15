@@ -132,7 +132,7 @@ class LaporanMentorController extends BaseController
             : 'Tahun ' . $filters['tahun'];
 
         $data = [
-            'title'        => 'Laporan Mentor & Kinerja Pengajar',
+            'title'        => 'Laporan Instruktur & Kinerja Pengajar',
             'role'         => $role,
             'isMentor'     => ($role === 'mentor'),
             'mentorLogin'  => $mentorLogin,
@@ -164,7 +164,7 @@ class LaporanMentorController extends BaseController
         $detail = $this->laporanMentorModel->getDetailMentor((int) $id, $filters);
 
         if (!$detail) {
-            return $this->response->setStatusCode(404)->setJSON(['error' => 'Data mentor tidak ditemukan']);
+            return $this->response->setStatusCode(404)->setJSON(['error' => 'Data instruktur tidak ditemukan']);
         }
 
         return $this->response->setJSON($detail);
@@ -193,16 +193,16 @@ class LaporanMentorController extends BaseController
             ? ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun']
             : 'Tahun ' . $filters['tahun'];
 
-        $filename = 'Laporan_Mentor_CreativeMU_' . str_replace(' ', '_', $periodeText) . '_' . date('Ymd_His') . '.xlsx';
+        $filename = 'Laporan_Instruktur_CreativeMU_' . str_replace(' ', '_', $periodeText) . '_' . date('Ymd_His') . '.xlsx';
 
         // Gunakan PhpSpreadsheet jika tersedia
         if (class_exists('PhpOffice\PhpSpreadsheet\Spreadsheet')) {
             $spreadsheet = new Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
-            $sheet->setTitle('Laporan Mentor');
+            $sheet->setTitle('Laporan Instruktur');
 
             // 1. Judul Laporan (Header Resmi)
-            $sheet->setCellValue('A1', 'LAPORAN MENTOR & KINERJA PENGAJAR');
+            $sheet->setCellValue('A1', 'LAPORAN INSTRUKTUR & KINERJA PENGAJAR');
             $sheet->setCellValue('A2', 'CreativeMU Academy - Lembaga Pendidikan & Pelatihan Kejuruan Terpadu');
             $sheet->setCellValue('A3', 'Periode Laporan: ' . $periodeText . ' | Tanggal Ekspor: ' . date('d-m-Y H:i'));
 
@@ -217,10 +217,10 @@ class LaporanMentorController extends BaseController
             $sheet->getStyle('A1:A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
             // 2. Ringkasan Statistik
-            $sheet->setCellValue('A5', 'RINGKASAN STATISTIK MENTOR');
+            $sheet->setCellValue('A5', 'RINGKASAN STATISTIK INSTRUKTUR');
             $sheet->getStyle('A5')->getFont()->setSize(11)->setBold(true)->getColor()->setRGB('22133C');
 
-            $summaryHeaders = ['Total Mentor', 'Rata-rata Keaktifan', 'Rata-rata Kehadiran', 'Rata-rata Keterlambatan', 'Rata-rata Angket'];
+            $summaryHeaders = ['Total Instruktur', 'Rata-rata Keaktifan', 'Rata-rata Kehadiran', 'Rata-rata Keterlambatan', 'Rata-rata Angket'];
             $colLetter = 'A';
             foreach ($summaryHeaders as $h) {
                 $sheet->setCellValue($colLetter . '6', $h);
@@ -239,10 +239,10 @@ class LaporanMentorController extends BaseController
             $sheet->getStyle('A6:E7')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle('A6:E7')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('CCCCCC');
 
-            // 3. Tabel Utama Laporan Mentor
+            // 3. Tabel Utama Laporan Instruktur
             $rowStart = 10;
             $tableHeaders = [
-                'No', 'Nama Mentor', 'Kategori Pelatihan', 'Kelas Diampu', 
+                'No', 'Nama Instruktur', 'Kategori Pelatihan', 'Kelas Diampu', 
                 'Keaktifan (%)', 'Kehadiran (%)', 'Keterlambatan (%)', 'Nilai Angket', 'Predikat'
             ];
 
@@ -401,13 +401,13 @@ class LaporanMentorController extends BaseController
             : 'Tahun ' . $filters['tahun'];
 
         $data = [
-            'title'        => 'Cetak Laporan Mentor - CreativeMU Academy',
+            'title'        => 'Cetak Laporan Instruktur - CreativeMU Academy',
             'periodeText'  => $periodeText,
             'filters'      => $filters,
             'stats'        => $stats,
             'mentorList'   => $mentorList,
             'rankingList'  => $rankingList,
-            'printedBy'    => session()->get('nama') ?: (session()->get('role') === 'admin' ? 'Administrator' : 'Mentor'),
+            'printedBy'    => session()->get('nama') ?: (session()->get('role') === 'admin' ? 'Administrator' : 'Instruktur'),
             'printDate'    => date('d F Y, H:i'),
         ];
 

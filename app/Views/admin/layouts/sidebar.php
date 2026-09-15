@@ -190,6 +190,8 @@
             font-size: 0.85rem;
         }
     </style>
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
+    <script defer src="<?= base_url('assets/js/admin-responsive.js'); ?>"></script>
 </head>
 <body>
 
@@ -232,9 +234,7 @@
                 <a href="<?= base_url('admin/monitoring-absensi'); ?>" class="nav-link-custom <?= (url_is('admin/monitoring-absensi*')) ? 'active' : ''; ?>">
                     <i class="fa-solid fa-calendar-check"></i> Absensi Instruktur
                 </a>
-                <a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link-custom <?= (url_is('admin/hak-akses*')) ? 'active' : ''; ?>">
-                    <i class="fa-solid fa-user-shield"></i> Hak Akses
-                </a>
+                
                 <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link-custom <?= (url_is('admin/pengaturan*')) ? 'active' : ''; ?>">
                     <i class="fa-solid fa-gear"></i> Pengaturan
                 </a>
