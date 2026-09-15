@@ -313,7 +313,7 @@
             </li>
             <li class="nav-item">
                 <a href="<?= base_url('admin/mentor'); ?>" class="nav-link">
-                    <i class="fas fa-chalkboard-user"></i> <span>Mentor</span>
+                    <i class="fas fa-chalkboard-user"></i> <span>Instruktur</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -326,9 +326,14 @@
                     <i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
+                    <i class="fas fa-book-open"></i> <span>Buku Induk</span>
+                </a>
+            </li>
              <li class="nav-item">
                 <a href="<?= base_url('admin/angket'); ?>" class="nav-link">
-                    <i class="fas fa-award"></i> <span>Angket</span>
+                    <i class="fas fa-poll"></i> <span>Angket</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -339,6 +344,11 @@
             <li class="nav-item">
                 <a href="<?= base_url('admin/laporan'); ?>" class="nav-link">
                     <i class="fas fa-file-lines"></i> <span>Laporan</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link">
+                    <i class="fas fa-user-shield"></i> <span>Hak Akses</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -420,11 +430,11 @@
                                 <input type="text" name="nama_kelas" class="form-control" required>
                             </div>
                             
-                            <!-- Pilih Mentor -->
+                            <!-- Pilih Instruktur -->
                             <div class="col-md-6">
-                                <label for="id_mentor" class="form-label">Pilih Mentor</label>
+                                <label for="id_mentor" class="form-label">Pilih Instruktur</label>
                                 <select name="id_mentor" id="id_mentor" class="form-control" required>
-                                    <option value="">-- Pilih Mentor --</option>
+                                    <option value="">-- Pilih Instruktur --</option>
                                     <?php if (!empty($mentor)) : ?>
                                         <?php foreach ($mentor as $m) : ?>
                                             <option value="<?= $m['id_mentor']; ?>"><?= $m['nama_mentor']; ?></option>
@@ -550,7 +560,7 @@
 
                             <div class="border-top pt-3 mt-2">
                                 <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 0.82rem;">
-                                    <span class="text-muted text-truncate" style="max-width: 55%;" title="<?= esc($row['nama_mentor'] ?? 'Belum ada mentor'); ?>">
+                                    <span class="text-muted text-truncate" style="max-width: 55%;" title="<?= esc($row['nama_mentor'] ?? 'Belum ada instruktur'); ?>">
                                         <i class="fas fa-chalkboard-user me-1 text-primary"></i> <?= esc($row['nama_mentor'] ?? 'Belum ditentukan'); ?>
                                     </span>
                                     <span class="fw-bold text-dark"><i class="fas fa-rotate text-purple me-1"></i> <?= esc($row['jumlah_pertemuan']); ?>x Pertemuan</span>
@@ -561,10 +571,10 @@
                                     
                                     <!-- Harga Format Rupiah Lengkap Menggunakan $row -->
                                     <span class="fw-bold text-success fs-6">
-                                        <div class="pricing-info">
-                                            <p class="mb-1"><strong>Reg:</strong> Rp <?= number_format($row['harga_reguler'] ?? 0, 0, ',', '.'); ?></p>
-                                            <p class="mb-0"><strong>Priv:</strong> Rp <?= number_format($row['harga_privat'] ?? 0, 0, ',', '.'); ?></p>
-                                        </div>
+                                         <div class="pricing-info">
+                                             <p class="mb-1"><strong>Reg:</strong> Rp <?= number_format($row['harga_reguler'] ?? 0, 0, ',', '.'); ?></p>
+                                             <p class="mb-0"><strong>Priv:</strong> Rp <?= number_format($row['harga_privat'] ?? 0, 0, ',', '.'); ?></p>
+                                         </div>
                                     </span>
                                 </div>
 
@@ -624,7 +634,7 @@
                                                 <td>: <?= esc($row['nama_kelas']); ?></td>
                                             </tr>
                                             <tr>
-                                                <td class="fw-semibold text-muted">Mentor Pengampu</td>
+                                                <td class="fw-semibold text-muted">Instruktur Pengampu</td>
                                                 <td>: <?= esc($row['nama_mentor'] ?? '-'); ?> <?= !empty($row['keahlian']) ? '(' . esc($row['keahlian']) . ')' : ''; ?></td>
                                             </tr>
                                             <tr>

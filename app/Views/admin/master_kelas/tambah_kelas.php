@@ -243,7 +243,7 @@
             </li>
             <li class="nav-item">
                 <a href="<?= base_url('admin/mentor'); ?>" class="nav-link">
-                    <i class="fas fa-chalkboard-user"></i> <span>Mentor</span>
+                    <i class="fas fa-chalkboard-user"></i> <span>Instruktur</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -257,6 +257,16 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
+                    <i class="fas fa-book-open"></i> <span>Buku Induk</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/angket'); ?>" class="nav-link">
+                    <i class="fas fa-poll"></i> <span>Angket</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link">
                     <i class="fas fa-award"></i> <span>Sertifikat</span>
                 </a>
@@ -264,6 +274,11 @@
             <li class="nav-item">
                 <a href="<?= base_url('admin/laporan'); ?>" class="nav-link">
                     <i class="fas fa-file-lines"></i> <span>Laporan</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link">
+                    <i class="fas fa-user-shield"></i> <span>Hak Akses</span>
                 </a>
             </li>
             <li class="nav-item">

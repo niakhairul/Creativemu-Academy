@@ -208,11 +208,20 @@
                 <a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link-custom <?= (url_is('admin/master-kelas*')) ? 'active' : ''; ?>">
                     <i class="fa-solid fa-book-bookmark"></i> Master Kelas
                 </a>
+                <a href="<?= base_url('admin/mentor'); ?>" class="nav-link-custom <?= (url_is('admin/mentor*')) ? 'active' : ''; ?>">
+                    <i class="fa-solid fa-chalkboard-user"></i> Instruktur
+                </a>
                 <a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link-custom <?= (url_is('admin/data-peserta*')) ? 'active' : ''; ?>">
                     <i class="fa-solid fa-users"></i> Data Peserta
                 </a>
                 <a href="<?= base_url('admin/validasi'); ?>" class="nav-link-custom <?= (url_is('admin/validasi*')) ? 'active' : ''; ?>">
                     <i class="fa-solid fa-user-check"></i> Validasi Pendaftaran
+                </a>
+                <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link-custom <?= (url_is('admin/buku-induk*')) ? 'active' : ''; ?>">
+                    <i class="fa-solid fa-book-open"></i> Buku Induk
+                </a>
+                <a href="<?= base_url('admin/angket'); ?>" class="nav-link-custom <?= (url_is('admin/angket*')) ? 'active' : ''; ?>">
+                    <i class="fa-solid fa-poll"></i> Angket
                 </a>
                 <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link-custom <?= (url_is('admin/sertifikat*')) ? 'active' : ''; ?>">
                     <i class="fa-solid fa-award"></i> Sertifikat
@@ -221,7 +230,10 @@
                     <i class="fa-solid fa-file-lines"></i> Laporan
                 </a>
                 <a href="<?= base_url('admin/monitoring-absensi'); ?>" class="nav-link-custom <?= (url_is('admin/monitoring-absensi*')) ? 'active' : ''; ?>">
-                    <i class="fa-solid fa-calendar-check"></i> Absensi Mentor
+                    <i class="fa-solid fa-calendar-check"></i> Absensi Instruktur
+                </a>
+                <a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link-custom <?= (url_is('admin/hak-akses*')) ? 'active' : ''; ?>">
+                    <i class="fa-solid fa-user-shield"></i> Hak Akses
                 </a>
                 <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link-custom <?= (url_is('admin/pengaturan*')) ? 'active' : ''; ?>">
                     <i class="fa-solid fa-gear"></i> Pengaturan

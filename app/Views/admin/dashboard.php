@@ -321,7 +321,7 @@
             </li>
             <li class="nav-item">
                 <a href="<?= base_url('admin/mentor'); ?>" class="nav-link">
-                    <i class="fas fa-chalkboard-user"></i> <span>Mentor</span>
+                    <i class="fas fa-chalkboard-user"></i> <span>Instruktur</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -332,6 +332,11 @@
             <li class="nav-item">
                 <a href="<?= base_url('admin/validasi'); ?>" class="nav-link">
                     <i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
+                    <i class="fas fa-book-open"></i> <span>Buku Induk</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -347,6 +352,11 @@
             <li class="nav-item">
                 <a href="<?= base_url('admin/laporan'); ?>" class="nav-link">
                     <i class="fas fa-file-lines"></i> <span>Laporan</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link">
+                    <i class="fas fa-user-shield"></i> <span>Hak Akses</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -399,7 +409,7 @@
             <div class="col-xl-3 col-md-6">
                 <div class="stat-card d-flex align-items-center justify-content-between">
                     <div>
-                        <small>TOTAL MENTOR</small>
+                        <small>TOTAL INSTRUKTUR</small>
                         <h3><?= $total_mentor ?? 0; ?></h3>
                     </div>
                     <div class="stat-icon"><i class="fas fa-user-tie"></i></div>
@@ -438,7 +448,7 @@
             <div class="col-lg-6">
                 <div class="chart-box">
                     <div class="chart-title">
-                        <i class="fas fa-chart-line"></i> Absensi Kehadiran Mentor (Per Bulan)
+                        <i class="fas fa-chart-line"></i> Absensi Kehadiran Instruktur (Per Bulan)
                     </div>
                     <canvas id="absensiChart" height="140"></canvas>
                 </div>
@@ -472,8 +482,8 @@
                 <div class="col-6 col-md-3">
                     <a href="<?= base_url('admin/mentor'); ?>" class="p-3 bg-light rounded-4 text-decoration-none d-block text-center border border-light transition-hover">
                         <i class="fas fa-chalkboard-user text-success fs-3 mb-2"></i>
-                        <h6 class="fw-bold text-dark mb-1 small">Mentor</h6>
-                        <small class="text-muted" style="font-size: 0.7rem;">Daftar Pengajar</small>
+                        <h6 class="fw-bold text-dark mb-1 small">Instruktur</h6>
+                        <small class="text-muted" style="font-size: 0.7rem;">Daftar Instruktur</small>
                     </a>
                 </div>
                 <div class="col-6 col-md-3">
@@ -593,7 +603,7 @@
             data: {
                 labels: <?= json_encode($absensi_labels ?? []) ?>,
                 datasets: [{
-                    label: 'Jumlah Absensi Mentor',
+                    label: 'Jumlah Absensi Instruktur',
                     data: <?= json_encode($absensi_data ?? []) ?>,
                     borderColor: '#cbd5e1',
                     backgroundColor: 'rgba(203, 213, 225, 0.1)',

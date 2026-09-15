@@ -209,7 +209,7 @@
             </li>
             <li class="nav-item">
                 <a href="<?= base_url('admin/mentor'); ?>" class="nav-link">
-                    <i class="fas fa-chalkboard-user"></i> <span>Mentor</span>
+                    <i class="fas fa-chalkboard-user"></i> <span>Instruktur</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -220,6 +220,11 @@
             <li class="nav-item">
                 <a href="<?= base_url('admin/validasi'); ?>" class="nav-link">
                     <i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
+                    <i class="fas fa-book-open"></i> <span>Buku Induk</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -235,6 +240,11 @@
             <li class="nav-item">
                 <a href="<?= base_url('admin/laporan'); ?>" class="nav-link">
                     <i class="fas fa-file-lines"></i> <span>Laporan</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link">
+                    <i class="fas fa-user-shield"></i> <span>Hak Akses</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -257,7 +267,7 @@
         <div class="top-navbar">
             <div class="dash-header">
                 <h3>Detail Angket</h3>
-                <p>Informasi lengkap judul, kelas, mentor, dan rincian pertanyaan angket.</p>
+                <p>Informasi lengkap judul, kelas, instruktur, dan rincian pertanyaan angket.</p>
             </div>
             <div class="d-flex align-items-center gap-4">
                 <div class="admin-profile">
@@ -282,7 +292,7 @@
                     <p class="fs-6 fw-semibold text-dark mb-0"><?= esc($angket['nama_kelas'] ?? '-'); ?></p>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label class="text-muted small fw-bold">Nama Mentor:</label>
+                    <label class="text-muted small fw-bold">Nama Instruktur:</label>
                     <p class="fs-6 text-dark mb-0"><?= esc($angket['nama_mentor'] ?? '-'); ?></p>
                 </div>
                 <div class="col-md-6 mb-3">

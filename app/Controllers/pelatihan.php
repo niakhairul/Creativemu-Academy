@@ -29,26 +29,9 @@ class Pelatihan extends BaseController
 {
     $pendaftaranModel = new PendaftaranModel();
 
-    // 1. Ambil tanggal hari ini dalam format YYYYMMDD (Contoh: 20260831)
-    $tanggalHariIni = date('Ymd');
-
-    // 2. Cari pendaftaran terakhir pada hari yang sama untuk menentukan nomor urut
-    $pendaftaranTerakhir = $pendaftaranModel
-        ->like('nis', $tanggalHariIni, 'after') // Mencari NIS berawalan tanggal hari ini
-        ->orderBy('id_pendaftaran', 'DESC')
-        ->first();
-
-    if ($pendaftaranTerakhir && !empty($pendaftaranTerakhir['nis'])) {
-        // Ambil 3 digit terakhir dari NIS sebelumnya, lalu ubah ke integer dan tambahkan 1
-        $urutanTerakhir = (int) substr($pendaftaranTerakhir['nis'], -3);
-        $urutanBaru = $urutanTerakhir + 1;
-    } else {
-        // Jika belum ada pendaftaran di hari ini, mulai dari 1
-        $urutanBaru = 1;
-    }
-
-    // 3. Gabungkan menjadi format: TahunBulanTanggal + 3 digit nomor urut (contoh: 20260831001)
-    $nisBaru = $tanggalHariIni . str_pad($urutanBaru, 3, '0', STR_PAD_LEFT);
+    // 1. Ambil format NIS otomatis: Tahun + Bulan + Urutan (YYYYMMXXX, contoh: 202609001)
+    $bukuIndukModel = new \App\Models\BukuIndukModel();
+    $nisBaru = $bukuIndukModel->generateNis(date('Ym'));
 
     // 4. Masukkan data ke database termasuk NIS baru
     $dataSimpan = [

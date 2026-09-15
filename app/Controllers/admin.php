@@ -789,20 +789,9 @@ $data = [
         $nisBaru = $pendaftaran['nis'];
 
         if ($aksi === 'setuju' && empty($nisBaru)) {
-    $tanggalHariIni = date('Ymd');
-
-    $pendaftaranTerakhir = $pendaftaranModel
-        ->where('nis IS NOT NULL', null, false)
-        ->where('nis !=', '')
-        ->orderBy('nis', 'DESC')
-        ->first();
-
-    $urutanBaru = ($pendaftaranTerakhir && !empty($pendaftaranTerakhir['nis']))
-        ? (int) substr($pendaftaranTerakhir['nis'], -3) + 1
-        : 1;
-
-    $nisBaru = $tanggalHariIni . str_pad($urutanBaru, 3, '0', STR_PAD_LEFT);
-}
+            $bukuIndukModel = new \App\Models\BukuIndukModel();
+            $nisBaru = $bukuIndukModel->generateNis(date('Ym'));
+        }
 
         $dataUpdate = [
             'status_pembayaran'   => $statusBaru,
@@ -882,21 +871,10 @@ $data = [
     $nisBaru = $pendaftaranLama['nis'] ?? null;
 
    if (($status === 'valid' || $status === 'Disetujui' || $status === 'approved') && empty($nisBaru)) {
-    $tanggalHariIni = date('Ymd');
-
-    $pendaftaranTerakhir = $pendaftaranModel
-        ->where('nis IS NOT NULL', null, false)
-        ->where('nis !=', '')
-        ->orderBy('nis', 'DESC')
-        ->first();
-
-    $urutanBaru = ($pendaftaranTerakhir && !empty($pendaftaranTerakhir['nis']))
-        ? (int) substr($pendaftaranTerakhir['nis'], -3) + 1
-        : 1;
-
-    $nisBaru = $tanggalHariIni . str_pad($urutanBaru, 3, '0', STR_PAD_LEFT);
-    $dataUpdate['nis'] = $nisBaru;
-}
+        $bukuIndukModel = new \App\Models\BukuIndukModel();
+        $nisBaru = $bukuIndukModel->generateNis(date('Ym'));
+        $dataUpdate['nis'] = $nisBaru;
+    }
     $fileBukti = $this->request->getFile('bukti_pembayaran');
     if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
         $newName = $fileBukti->getRandomName();

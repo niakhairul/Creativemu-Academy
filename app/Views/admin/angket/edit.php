@@ -312,7 +312,7 @@
             </li>
             <li class="nav-item">
                 <a href="<?= base_url('admin/mentor'); ?>" class="nav-link">
-                    <i class="fas fa-chalkboard-user"></i> <span>Mentor</span>
+                    <i class="fas fa-chalkboard-user"></i> <span>Instruktur</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -323,6 +323,11 @@
             <li class="nav-item">
                 <a href="<?= base_url('admin/validasi'); ?>" class="nav-link">
                     <i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
+                    <i class="fas fa-book-open"></i> <span>Buku Induk</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -338,6 +343,11 @@
             <li class="nav-item">
                 <a href="<?= base_url('admin/laporan'); ?>" class="nav-link">
                     <i class="fas fa-file-lines"></i> <span>Laporan</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link">
+                    <i class="fas fa-user-shield"></i> <span>Hak Akses</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -405,13 +415,13 @@
                             </div>
 
                             <div class="mb-3">
-    <label class="form-label">Kelas & Mentor</label>
+    <label class="form-label">Kelas & Instruktur</label>
     <select name="id_kelas" class="form-select" required>
         <?php foreach ($kelas as $k) : ?>
             <option value="<?= $k['id_kelas']; ?>" <?= ($k['id_kelas'] == $angket['id_kelas']) ? 'selected' : ''; ?>>
                 <?= $k['nama_kelas']; ?> 
                 <?php 
-                    // Mencari nama mentor berdasarkan id_mentor dari kelas tersebut
+                    // Mencari nama instruktur berdasarkan id_mentor dari kelas tersebut
                     $namaMentor = '-';
                     foreach ($mentor as $m) {
                         if ($m['id_mentor'] == $k['id_mentor']) {
@@ -420,7 +430,7 @@
                         }
                     }
                 ?>
-                (Mentor: <?= $namaMentor; ?>)
+                (Instruktur: <?= $namaMentor; ?>)
             </option>
         <?php endforeach; ?>
     </select>

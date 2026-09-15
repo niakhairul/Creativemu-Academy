@@ -310,7 +310,7 @@
             </li>
             <li class="nav-item">
                 <a href="<?= base_url('admin/mentor'); ?>" class="nav-link active">
-                    <i class="fas fa-chalkboard-user"></i> <span>Mentor</span>
+                    <i class="fas fa-chalkboard-user"></i> <span>Instruktur</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -323,9 +323,14 @@
                     <i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
+                    <i class="fas fa-book-open"></i> <span>Buku Induk</span>
+                </a>
+            </li>
              <li class="nav-item">
                 <a href="<?= base_url('admin/angket'); ?>" class="nav-link">
-                    <i class="fas fa-award"></i> <span>Angket</span>
+                    <i class="fas fa-poll"></i> <span>Angket</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -336,6 +341,11 @@
             <li class="nav-item">
                 <a href="<?= base_url('admin/laporan'); ?>" class="nav-link">
                     <i class="fas fa-file-lines"></i> <span>Laporan</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link">
+                    <i class="fas fa-user-shield"></i> <span>Hak Akses</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -357,8 +367,8 @@
         <!-- === TOP NAVBAR === -->
         <div class="top-navbar">
             <div class="dash-header">
-                <h3>Kelas</h3>
-                <p>Kelola data pelatihan, tambah kelas baru, dan atur jadwal dengan mudah.</p>
+                <h3>Data Instruktur</h3>
+                <p>Kelola profil instruktur, data keahlian, dan penugasan mengajar di Creativemu Academy.</p>
             </div>
             <div class="d-flex align-items-center gap-4">
                 <div class="text-muted d-none d-md-block px-3 py-2 rounded-pill bg-light" id="current-date" style="font-size: 0.82rem; font-weight: 600; color: #794bc4 !important;">
@@ -384,14 +394,14 @@
         <div class="content-card">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
                 <div class="fw-bold" style="font-size: 1.05rem; color: #1e1e2d;">
-                    <i class="fas fa-list-check me-2"></i> Daftar Mentor Terdaftar
+                    <i class="fas fa-list-check me-2"></i> Daftar Instruktur Terdaftar
                 </div>
                 <div class="d-flex align-items-center gap-3">
                     <span class="badge px-3 py-2 rounded-pill fw-semibold" style="background-color: var(--light-purple); color: var(--primary-purple) !important;">
-                        Total: <?= isset($total_aktif) ? $total_aktif : 0; ?> Mentor Aktif
+                        Total: <?= isset($total_aktif) ? $total_aktif : 0; ?> Instruktur Aktif
                     </span>
                     <button type="button" class="btn btn-purple rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalTambahMentor">
-                        <i class="fas fa-plus me-2"></i> Tambah Mentor
+                        <i class="fas fa-plus me-2"></i> Tambah Instruktur
                     </button>
                 </div>
             </div>
@@ -450,7 +460,7 @@
                             <a href="<?= base_url('admin/mentor/edit/' . ($m['id_mentor'] ?? $m['id'])); ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3 me-1" title="Edit">
                                 <i class="fas fa-pen-to-square"></i>
                             </a>
-                            <a href="<?= base_url('admin/mentor/delete/' . ($m['id_mentor'] ?? $m['id'])); ?>" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Hapus" onclick="return confirm('Yakin ingin menghapus mentor ini?')">
+                            <a href="<?= base_url('admin/mentor/delete/' . ($m['id_mentor'] ?? $m['id'])); ?>" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Hapus" onclick="return confirm('Yakin ingin menghapus instruktur ini?')">
                                 <i class="fas fa-trash-can"></i>
                             </a>
                         </td>
@@ -458,7 +468,7 @@
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="8" class="text-center py-4 text-muted">Belum ada data mentor yang tersedia.</td>
+                    <td colspan="8" class="text-center py-4 text-muted">Belum ada data instruktur yang tersedia.</td>
                 </tr>
             <?php endif; ?>
         </tbody>
@@ -468,13 +478,13 @@
 
     </div>
 
-    <!-- === MODAL TAMBAH MENTOR === -->
+    <!-- === MODAL TAMBAH INSTRUKTUR === -->
     <div class="modal fade" id="modalTambahMentor" tabindex="-1" aria-labelledby="modalTambahMentorLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold" id="modalTambahMentorLabel" style="color: var(--dark-purple);">
-                        <i class="fas fa-circle-plus me-2"></i> Form Tambah Mentor Baru
+                        <i class="fas fa-circle-plus me-2"></i> Form Tambah Instruktur Baru
                     </h5>
                     <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -516,7 +526,7 @@
                             </div>
                             <div class="col-12">
                                 <label class="form-label">Bio / Biografi Singkat</label>
-                                <textarea name="bio" class="form-control" rows="3" placeholder="Masukkan bio singkat mentor..."><?= isset($mentor['bio']) ? esc($mentor['bio']) : ''; ?></textarea>
+                                <textarea name="bio" class="form-control" rows="3" placeholder="Masukkan bio singkat instruktur..."><?= isset($mentor['bio']) ? esc($mentor['bio']) : ''; ?></textarea>
                             </div>
                             <div class="col-12">
                                 <label class="form-label">Unggah Dokumen CV (Format PDF / DOCX)</label>
@@ -528,7 +538,7 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light px-4 rounded-pill text-muted fw-semibold" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-purple px-4 rounded-pill">
-                            <i class="fas fa-save me-2"></i> Simpan Mentor
+                            <i class="fas fa-save me-2"></i> Simpan Instruktur
                         </button>
                     </div>
                 </form>

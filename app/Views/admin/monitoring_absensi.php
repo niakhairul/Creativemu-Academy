@@ -4,12 +4,12 @@
 
 <div class="container-fluid">
 
-    <h2 class="mb-4">Monitoring Absensi Mentor</h2>
+    <h2 class="mb-4">Monitoring Absensi Instruktur</h2>
 
     <div class="card">
 
         <div class="card-header">
-            <h5 class="mb-0">Data Absensi Mentor</h5>
+            <h5 class="mb-0">Data Absensi Instruktur</h5>
         </div>
 
         <div class="card-body">
@@ -21,7 +21,7 @@
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>Mentor</th>
+                            <th>Instruktur</th>
                             <th>Kelas</th>
                             <th>Pertemuan</th>
                             <th>Materi</th>
@@ -91,7 +91,7 @@
 
                             <tr>
                                 <td colspan="8" class="text-center">
-                                    Belum ada data absensi mentor.
+                                    Belum ada data absensi instruktur.
                                 </td>
                             </tr>
 

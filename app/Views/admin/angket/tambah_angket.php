@@ -68,12 +68,14 @@
         <ul class="nav flex-column mt-3">
             <li class="nav-item"><a href="<?= base_url('admin/dashboard'); ?>" class="nav-link"><i class="fas fa-chart-pie me-3"></i> Dashboard</a></li>
             <li class="nav-item"><a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link"><i class="fas fa-book me-3"></i> Master Kelas</a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/mentor'); ?>" class="nav-link"><i class="fas fa-chalkboard-user me-3"></i> Mentor</a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/mentor'); ?>" class="nav-link"><i class="fas fa-chalkboard-user me-3"></i> Instruktur</a></li>
             <li class="nav-item"><a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link"><i class="fas fa-users me-3"></i> Data Peserta</a></li>
             <li class="nav-item"><a href="<?= base_url('admin/validasi'); ?>" class="nav-link"><i class="fas fa-clipboard-check me-3"></i> Validasi</a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link"><i class="fas fa-book-open me-3"></i> Buku Induk</a></li>
             <li class="nav-item"><a href="<?= base_url('admin/angket'); ?>" class="nav-link active"><i class="fas fa-award me-3"></i> Angket</a></li>
             <li class="nav-item"><a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link"><i class="fas fa-certificate me-3"></i> Sertifikat</a></li>
             <li class="nav-item"><a href="<?= base_url('admin/laporan'); ?>" class="nav-link"><i class="fas fa-file-lines me-3"></i> Laporan</a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link"><i class="fas fa-user-shield me-3"></i> Hak Akses</a></li>
             <li class="nav-item"><a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link"><i class="fas fa-gear me-3"></i> Pengaturan</a></li>
             <li class="nav-item mt-4"><a href="<?= base_url('logout'); ?>" class="nav-link text-danger"><i class="fas fa-right-from-bracket me-3"></i> Logout</a></li>
         </ul>
@@ -84,7 +86,7 @@
         <div class="top-navbar">
             <div>
                 <h3 class="fw-bold text-dark mb-1">Buat Konfigurasi Angket Baru</h3>
-                <p class="text-muted mb-0">Tentukan daftar pertanyaan untuk menilai kinerja mentor maupun fasilitas tempat.</p>
+                <p class="text-muted mb-0">Tentukan daftar pertanyaan untuk menilai kinerja instruktur maupun fasilitas tempat.</p>
             </div>
             <a href="<?= base_url('admin/angket'); ?>" class="btn btn-light border px-3 py-2 rounded-pill">
                 <i class="fas fa-arrow-left me-2"></i> Kembali
@@ -95,21 +97,17 @@
             <form action="<?= base_url('admin/angket/simpan'); ?>" method="POST">
                 <?= csrf_field(); ?>
 
-                <div class="card p-4 shadow-sm border-0">
-    <form action="<?= base_url('admin/angket/simpan'); ?>" method="POST">
-        <?= csrf_field(); ?>
+                <!-- TAMBAHKAN INPUT JUDUL ANGKET DI SINI -->
+                <div class="form-group mb-3">
+                    <label class="form-label fw-bold">Judul Angket</label>
+                    <input type="text" name="judul_angket" class="form-control" placeholder="Contoh: Evaluasi Belajar Kelas Web" required>
+                </div>
 
-        <!-- TAMBAHKAN INPUT JUDUL ANGKET DI SINI -->
-        <div class="form-group">
-    <label>Judul Angket</label>
-    <input type="text" name="judul_angket" class="form-control" placeholder="Contoh: Evaluasi Belajar Kelas Web" required>
-</div>
-
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <label class="form-label fw-bold">Pilih Mentor Terkait</label>
-                <select name="id_mentor" class="form-select" required>
-                    <option value="">-- Pilih Mentor --</option>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Pilih Instruktur Terkait</label>
+                        <select name="id_mentor" class="form-select" required>
+                            <option value="">-- Pilih Instruktur --</option>
                     <?php if (!empty($mentor)) : foreach ($mentor as $m) : ?>
                         <option value="<?= $m['id_mentor']; ?>"><?= esc($m['nama_mentor']); ?></option>
                     <?php endforeach; endif; ?>
@@ -152,13 +150,13 @@
                             <div class="col-md-4 mb-2">
                                 <label class="form-label small fw-bold text-muted">Kategori Penilaian:</label>
                                 <select name="kategori[]" class="form-select form-select-sm" required>
-                                    <option value="mentor">Kinerja Mentor</option>
+                                    <option value="mentor">Kinerja Instruktur</option>
                                     <option value="tempat">Tempat / Fasilitas</option>
                                 </select>
                             </div>
                             <div class="col-md-8 mb-2">
                                 <label class="form-label small fw-bold text-muted">Isi Pertanyaan:</label>
-                                <input type="text" name="pertanyaan[]" class="form-control form-control-sm" placeholder="Contoh: Ketepatan waktu mentor / Kebersihan kelas..." required>
+                                <input type="text" name="pertanyaan[]" class="form-control form-control-sm" placeholder="Contoh: Ketepatan waktu instruktur / Kebersihan kelas..." required>
                             </div>
                         </div>
                         <small class="text-muted" style="font-size: 0.78rem;"><i class="fas fa-info-circle me-1"></i> Peserta akan menjawab poin ini menggunakan skala 1 - 5 bintang.</small>
@@ -196,7 +194,7 @@
                     <div class="col-md-4 mb-2">
                         <label class="form-label small fw-bold text-muted">Kategori Penilaian:</label>
                         <select name="kategori[]" class="form-select form-select-sm" required>
-                            <option value="mentor">Kinerja Mentor</option>
+                            <option value="mentor">Kinerja Instruktur</option>
                             <option value="tempat">Tempat / Fasilitas</option>
                         </select>
                     </div>

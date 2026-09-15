@@ -342,7 +342,7 @@
             </li>
             <li class="nav-item">
                 <a href="<?= base_url('admin/mentor'); ?>" class="nav-link">
-                    <i class="fas fa-chalkboard-user"></i> <span>Mentor</span>
+                    <i class="fas fa-chalkboard-user"></i> <span>Instruktur</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -355,9 +355,14 @@
                     <i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
+                    <i class="fas fa-book-open"></i> <span>Buku Induk</span>
+                </a>
+            </li>
              <li class="nav-item">
                 <a href="<?= base_url('admin/angket'); ?>" class="nav-link">
-                    <i class="fas fa-award"></i> <span>Angket</span>
+                    <i class="fas fa-poll"></i> <span>Angket</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -368,6 +373,11 @@
             <li class="nav-item">
                 <a href="<?= base_url('admin/laporan'); ?>" class="nav-link">
                     <i class="fas fa-file-lines"></i> <span>Laporan</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link">
+                    <i class="fas fa-user-shield"></i> <span>Hak Akses</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -424,11 +434,11 @@
                             <input type="text" name="nama_kelas" class="form-control" value="<?= esc($kelas['nama_kelas'] ?? ''); ?>" required>
                         </div>
 
-                        <!-- Mentor Pengampu -->
+                        <!-- Instruktur Pengampu -->
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Mentor Pengampu</label>
+                            <label class="form-label fw-semibold">Instruktur Pengampu</label>
                             <select name="id_mentor" class="form-select" required>
-                                <option value="">-- Pilih Mentor Pengajar --</option>
+                                <option value="">-- Pilih Instruktur Pengajar --</option>
                                 <?php if (!empty($mentor)) : ?>
                                     <?php foreach ($mentor as $m) : ?>
                                         <option value="<?= $m['id_mentor']; ?>" <?= (isset($kelas['id_mentor']) && $kelas['id_mentor'] == $m['id_mentor']) ? 'selected' : ''; ?>>

@@ -162,9 +162,10 @@
         <ul class="nav flex-column mt-3">
             <li class="nav-item"><a href="<?= base_url('admin/dashboard'); ?>" class="nav-link"><i class="fas fa-chart-pie me-3"></i> Dashboard</a></li>
             <li class="nav-item"><a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link"><i class="fas fa-book me-3"></i> Master Kelas</a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/mentor'); ?>" class="nav-link"><i class="fas fa-chalkboard-user me-3"></i> Mentor</a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/mentor'); ?>" class="nav-link"><i class="fas fa-chalkboard-user me-3"></i> Instruktur</a></li>
             <li class="nav-item"><a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link"><i class="fas fa-users me-3"></i> Data Peserta</a></li>
             <li class="nav-item"><a href="<?= base_url('admin/validasi'); ?>" class="nav-link"><i class="fas fa-clipboard-check me-3"></i> Validasi</a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link"><i class="fas fa-book-open me-3"></i> Buku Induk</a></li>
             <li class="nav-item">
                 <a href="<?= base_url('admin/angket'); ?>" class="nav-link active"><i class="fas fa-award me-3"></i> Angket</a>
                 <ul class="nav flex-column ms-3 mt-1">
@@ -177,6 +178,7 @@
             </li>
             <li class="nav-item"><a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link"><i class="fas fa-certificate me-3"></i> Sertifikat</a></li>
             <li class="nav-item"><a href="<?= base_url('admin/laporan'); ?>" class="nav-link"><i class="fas fa-file-lines me-3"></i> Laporan</a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link"><i class="fas fa-user-shield me-3"></i> Hak Akses</a></li>
             <li class="nav-item"><a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link"><i class="fas fa-gear me-3"></i> Pengaturan</a></li>
             <li class="nav-item mt-4"><a href="<?= base_url('logout'); ?>" class="nav-link text-danger"><i class="fas fa-right-from-bracket me-3"></i> Logout</a></li>
         </ul>
@@ -188,7 +190,7 @@
         <div class="top-navbar">
             <div>
                 <h3 class="fw-bold text-dark mb-1">Daftar Konfigurasi Angket</h3>
-                <p class="text-muted mb-0">Kelola formulir penilaian evaluasi mentor dan fasilitas pelatihan.</p>
+                <p class="text-muted mb-0">Kelola formulir penilaian evaluasi instruktur dan fasilitas pelatihan.</p>
             </div>
             <div class="d-flex align-items-center gap-4">
                 <div class="text-muted d-none d-md-block px-3 py-2 rounded-pill bg-light" id="current-date" style="font-size: 0.82rem; font-weight: 600; color: #794bc4 !important;">

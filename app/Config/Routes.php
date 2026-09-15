@@ -135,6 +135,15 @@ $routes->group('admin', function($routes) {
     $routes->get('validasi', 'Admin::validasi');
     $routes->get('validasi/update/(:num)/(:segment)', 'Admin::updateValidasi/$1/$2');
 
+    // Buku Induk Admin
+    $routes->get('buku-induk', 'BukuIndukController::index');
+    $routes->get('buku-induk/detail/(:num)', 'BukuIndukController::detailAjax/$1');
+    $routes->post('buku-induk/update/(:num)', 'BukuIndukController::updateAjax/$1');
+    $routes->post('buku-induk/store', 'BukuIndukController::storeAjax');
+    $routes->get('buku-induk/export-excel', 'BukuIndukController::exportExcel');
+    $routes->get('buku-induk/cetak', 'BukuIndukController::cetak');
+    $routes->get('buku-induk/export-pdf', 'BukuIndukController::cetak');
+
     // Angket Admin
     $routes->get('angket', 'Admin::angket');
     $routes->get('angket/tambah_angket', 'Admin::tambahAngket');
@@ -164,8 +173,28 @@ $routes->group('admin', function($routes) {
     $routes->get('laporan-mentor/cetak', 'LaporanMentorController::cetak');
     $routes->get('laporan-mentor/export-pdf', 'LaporanMentorController::cetak');
     $routes->get('laporan-mentor/detail/(:num)', 'LaporanMentorController::detailAjax/$1');
-    $routes->get('laporan-kehadiran', 'Admin::monitoringAbsensi');
+
+    // Submenu Laporan Angket Mentor
+    $routes->get('laporan-angket', 'LaporanAngketController::index');
+    $routes->get('laporan-angket/export-excel', 'LaporanAngketController::exportExcel');
+    $routes->get('laporan-angket/cetak', 'LaporanAngketController::cetak');
+    $routes->get('laporan-angket/export-pdf', 'LaporanAngketController::cetak');
+    $routes->get('laporan-angket/detail-komentar/(:num)', 'LaporanAngketController::detailKomentarAjax/$1');
+    $routes->get('laporan-angket/detail-komentar', 'LaporanAngketController::detailKomentarAjax');
+
+    // Submenu Laporan Kehadiran Peserta
+    $routes->get('laporan-kehadiran', 'LaporanKehadiranController::index');
+    $routes->get('laporan-kehadiran/export-excel', 'LaporanKehadiranController::exportExcel');
+    $routes->get('laporan-kehadiran/cetak', 'LaporanKehadiranController::cetak');
+    $routes->get('laporan-kehadiran/export-pdf', 'LaporanKehadiranController::cetak');
+    $routes->get('laporan-kehadiran/detail/(:num)', 'LaporanKehadiranController::detailAjax/$1');
+    $routes->get('laporan-kehadiran/detail', 'LaporanKehadiranController::detailAjax');
     $routes->get('monitoring-absensi', 'Admin::monitoringAbsensi');
+
+    // Hak Akses Admin
+    $routes->get('hak-akses', 'HakAksesController::index');
+    $routes->post('hak-akses/update', 'HakAksesController::update');
+    $routes->get('hak-akses/reset', 'HakAksesController::reset');
 
     // Pengaturan Admin
     $routes->get('pengaturan', 'Admin::pengaturan');
@@ -208,6 +237,21 @@ $routes->group('mentor', function($routes) {
     $routes->get('laporan-mentor/cetak', 'LaporanMentorController::cetak');
     $routes->get('laporan-mentor/export-pdf', 'LaporanMentorController::cetak');
     $routes->get('laporan-mentor/detail/(:num)', 'LaporanMentorController::detailAjax/$1');
-    $routes->get('laporan-kehadiran', 'Mentor::kelas');
+
+    // Submenu Laporan Angket Mentor
+    $routes->get('laporan-angket', 'LaporanAngketController::index');
+    $routes->get('laporan-angket/export-excel', 'LaporanAngketController::exportExcel');
+    $routes->get('laporan-angket/cetak', 'LaporanAngketController::cetak');
+    $routes->get('laporan-angket/export-pdf', 'LaporanAngketController::cetak');
+    $routes->get('laporan-angket/detail-komentar/(:num)', 'LaporanAngketController::detailKomentarAjax/$1');
+    $routes->get('laporan-angket/detail-komentar', 'LaporanAngketController::detailKomentarAjax');
+
+    // Submenu Laporan Kehadiran Peserta
+    $routes->get('laporan-kehadiran', 'LaporanKehadiranController::index');
+    $routes->get('laporan-kehadiran/export-excel', 'LaporanKehadiranController::exportExcel');
+    $routes->get('laporan-kehadiran/cetak', 'LaporanKehadiranController::cetak');
+    $routes->get('laporan-kehadiran/export-pdf', 'LaporanKehadiranController::cetak');
+    $routes->get('laporan-kehadiran/detail/(:num)', 'LaporanKehadiranController::detailAjax/$1');
+    $routes->get('laporan-kehadiran/detail', 'LaporanKehadiranController::detailAjax');
     $routes->get('profil', 'Mentor::profil');
 });

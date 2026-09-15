@@ -312,7 +312,7 @@
             </li>
             <li class="nav-item">
                 <a href="<?= base_url('admin/mentor'); ?>" class="nav-link active">
-                    <i class="fas fa-chalkboard-user"></i> <span>Mentor</span>
+                    <i class="fas fa-chalkboard-user"></i> <span>Instruktur</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -325,9 +325,14 @@
                     <i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
+                    <i class="fas fa-book-open"></i> <span>Buku Induk</span>
+                </a>
+            </li>
              <li class="nav-item">
                 <a href="<?= base_url('admin/angket'); ?>" class="nav-link">
-                    <i class="fas fa-award"></i> <span>Angket</span>
+                    <i class="fas fa-poll"></i> <span>Angket</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -338,6 +343,11 @@
             <li class="nav-item">
                 <a href="<?= base_url('admin/laporan'); ?>" class="nav-link">
                     <i class="fas fa-file-lines"></i> <span>Laporan</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link">
+                    <i class="fas fa-user-shield"></i> <span>Hak Akses</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -359,8 +369,8 @@
         <!-- === TOP NAVBAR === -->
         <div class="top-navbar">
             <div class="dash-header">
-                <h3>Master Kelas</h3>
-                <p>Kelola data pelatihan, tambah kelas baru, dan atur jadwal dengan mudah.</p>
+                <h3>Edit Instruktur</h3>
+                <p>Perbarui informasi profil, keahlian, dan status instruktur Creativemu Academy.</p>
             </div>
             <div class="d-flex align-items-center gap-4">
                 <div class="text-muted d-none d-md-block px-3 py-2 rounded-pill bg-light" id="current-date" style="font-size: 0.82rem; font-weight: 600; color: #794bc4 !important;">
@@ -389,7 +399,7 @@
                     <div class="rounded-circle p-2 bg-light text-primary me-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
                         <i class="fas fa-pen-to-square text-purple" style="color: var(--primary-purple);"></i>
                     </div>
-                    <span>Formulir Perubahan Data Mentor</span>
+                    <span>Formulir Perubahan Data Instruktur</span>
                 </div>
                 <a href="<?= base_url('admin/mentor'); ?>" class="btn btn-light-custom text-decoration-none">
                     <i class="fas fa-arrow-left me-2"></i> Kembali
@@ -411,7 +421,7 @@
                     <div class="col-md-6">
                         <label class="form-label">Alamat Email Aktif</label>
                         <input type="email" name="email" class="form-control" value="<?= esc($mentor['email']); ?>" required>
-                        <div class="form-text">Email ini juga dipakai untuk login mentor.</div>
+                        <div class="form-text">Email ini juga dipakai untuk login instruktur.</div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Password Baru</label>
@@ -436,7 +446,7 @@
                     </div>
                     <div class="col-12">
     <label class="form-label">Bio / Biografi Singkat</label>
-    <textarea name="bio" class="form-control" rows="3" placeholder="Masukkan bio singkat mentor..."><?= isset($mentor['bio']) ? esc($mentor['bio']) : ''; ?></textarea>
+    <textarea name="bio" class="form-control" rows="3" placeholder="Masukkan bio singkat instruktur..."><?= isset($mentor['bio']) ? esc($mentor['bio']) : ''; ?></textarea>
 </div>
                     <div class="col-md-6">
                         <label class="form-label">Status Keaktifan</label>

@@ -142,7 +142,7 @@
                         <i class="fas fa-user-tie fa-lg"></i>
                     </div>
                     <div>
-                        <span class="text-muted small text-uppercase fw-bold">Mentor Pengampu</span>
+                        <span class="text-muted small text-uppercase fw-bold">Instruktur Pengampu</span>
                         <h5 class="mb-0 fw-bold text-dark"><?= esc($detail_kelas['nama_mentor'] ?? '-'); ?></h5>
                     </div>
                 </div>
@@ -193,8 +193,8 @@
                             <th class="py-3">Pertemuan</th>
                             <th class="py-3">Tanggal & Jam</th>
                             <th class="py-3">Ruangan / Link GMeet <br><span class="badge bg-info text-dark font-monospace" style="font-size: 10px;">Diisi Admin</span></th>
-                            <th class="py-3">Materi Pokok <span class="badge bg-secondary font-monospace" style="font-size: 10px;">Diisi Mentor</span></th>
-                            <th class="py-3">Berkas & Link <span class="badge bg-secondary font-monospace" style="font-size: 10px;">Diisi Mentor</span></th>
+                            <th class="py-3">Materi Pokok <span class="badge bg-secondary font-monospace" style="font-size: 10px;">Diisi Instruktur</span></th>
+                            <th class="py-3">Berkas & Link <span class="badge bg-secondary font-monospace" style="font-size: 10px;">Diisi Instruktur</span></th>
                             <th width="12%" class="text-center py-3 pe-4">Aksi</th>
                         </tr>
                     </thead>
@@ -230,7 +230,7 @@
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <?= !empty($row['materi']) ? esc($row['materi']) : '<span class="text-muted fst-italic small">Belum diisi Mentor</span>'; ?>
+                                        <?= !empty($row['materi']) ? esc($row['materi']) : '<span class="text-muted fst-italic small">Belum diisi Instruktur</span>'; ?>
                                     </td>
                                     <td>
                                         <div class="d-flex gap-1">
@@ -254,8 +254,8 @@
                                         <button type="button" class="btn btn-warning btn-sm text-white shadow-sm" data-bs-toggle="modal" data-bs-target="#modalEditJadwal<?= $row['id_jadwal'] ?? ''; ?>" title="Edit Jadwal (Admin)">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <!-- Tombol Input Materi Mentor -->
-                                        <button type="button" class="btn btn-info btn-sm text-white shadow-sm" data-bs-toggle="modal" data-bs-target="#modalInputMateri<?= $row['id_jadwal'] ?? ''; ?>" title="Input Materi (Mentor)">
+                                        <!-- Tombol Input Materi Instruktur -->
+                                        <button type="button" class="btn btn-info btn-sm text-white shadow-sm" data-bs-toggle="modal" data-bs-target="#modalInputMateri<?= $row['id_jadwal'] ?? ''; ?>" title="Input Materi (Instruktur)">
                                             <i class="fas fa-chalkboard"></i>
                                         </button>
                                         <!-- Tombol Hapus Admin -->
@@ -369,7 +369,7 @@
                         </div>
 
                          <div class="alert alert-warning py-2 small mb-0">
-                            <i class="fas fa-exclamation-triangle me-1"></i> Data materi dan berkas (di bawah) dikelola terpisah oleh mentor.
+                            <i class="fas fa-exclamation-triangle me-1"></i> Data materi dan berkas (di bawah) dikelola terpisah oleh instruktur.
                         </div>
                     </div>
                     <div class="modal-footer bg-light">
@@ -383,7 +383,7 @@
     <?php endforeach; ?>
 <?php endif; ?>
 
-<!-- 3. Modal Input Materi (Oleh Mentor) -->
+<!-- 3. Modal Input Materi (Oleh Instruktur) -->
 <?php if (!empty($jadwal) && is_array($jadwal)): ?>
     <?php foreach ($jadwal as $row): ?>
     <div class="modal fade" id="modalInputMateri<?= $row['id_jadwal']; ?>" tabindex="-1" aria-hidden="true">
@@ -392,7 +392,7 @@
                 <form action="<?= base_url('mentor/jadwal/update-materi/' . $row['id_jadwal']); ?>" method="post" enctype="multipart/form-data">
                     <?= csrf_field(); ?>
                     <div class="modal-header text-white bg-info">
-                        <h5 class="modal-title text-white"><i class="fas fa-chalkboard me-2"></i> Input Materi & Berkas (Area Mentor)</h5>
+                        <h5 class="modal-title text-white"><i class="fas fa-chalkboard me-2"></i> Input Materi & Berkas (Area Instruktur)</h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body p-4">
