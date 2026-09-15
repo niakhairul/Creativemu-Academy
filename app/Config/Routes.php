@@ -50,6 +50,7 @@ $routes->match(['get', 'post'], 'pelatihan/upload[-_]ulang/(:num)', 'Pelatihan::
 $routes->post('pelatihan/register', 'PelatihanController::register');
 
 $routes->get('pelatihan/daftar-kelas-peserta', 'Pelatihan::daftarKelasPeserta');
+$routes->get('pelatihan/tambah-kelas', 'Pelatihan::tambahKelas');
 $routes->get('pelatihan/detail-kelas', 'Pelatihan::detailKelas');
 $routes->get('pelatihan/materi', 'Pelatihan::materi');
 $routes->get('pelatihan/materi/(:num)', 'Pelatihan::materi/$1');
@@ -126,6 +127,7 @@ $routes->group('admin', function($routes) {
     $routes->match(['get', 'post'], 'mentor/delete/(:num)', 'Admin::deleteMentor/$1');
 
     $routes->get('data-peserta', 'Admin::dataPeserta');
+    $routes->get('daftar-peserta', 'Admin::dataPeserta');
     
     // Validasi Pendaftaran Admin
     $routes->get('admin/validasi', 'Admin::validasi');
@@ -150,7 +152,19 @@ $routes->group('admin', function($routes) {
     $routes->get('sertifikat/download/(:num)', 'Admin::downloadSertifikat/$1');
     $routes->get('sertifikat/delete/(:num)', 'Admin::deleteSertifikat/$1');
 
-    $routes->get('laporan', 'Admin::laporan');
+    $routes->get('laporan', 'LaporanPesertaController::index');
+    $routes->get('laporan-peserta', 'LaporanPesertaController::index');
+    $routes->get('laporan/export-excel', 'LaporanPesertaController::exportExcel');
+    $routes->get('laporan/cetak', 'LaporanPesertaController::cetak');
+    $routes->get('laporan/export-pdf', 'LaporanPesertaController::cetak');
+    
+    // Submenu Laporan Mentor
+    $routes->get('laporan-mentor', 'LaporanMentorController::index');
+    $routes->get('laporan-mentor/export-excel', 'LaporanMentorController::exportExcel');
+    $routes->get('laporan-mentor/cetak', 'LaporanMentorController::cetak');
+    $routes->get('laporan-mentor/export-pdf', 'LaporanMentorController::cetak');
+    $routes->get('laporan-mentor/detail/(:num)', 'LaporanMentorController::detailAjax/$1');
+    $routes->get('laporan-kehadiran', 'Admin::monitoringAbsensi');
     $routes->get('monitoring-absensi', 'Admin::monitoringAbsensi');
 
     // Pengaturan Admin
@@ -158,7 +172,6 @@ $routes->group('admin', function($routes) {
     $routes->match(['get', 'post'], 'pengaturan/update', 'Admin::updatePengaturan');
 });
 
-// ===== MENU MENTOR =====
 // ===== MENU MENTOR =====
 $routes->group('mentor', function($routes) {
     $routes->get('dashboard', 'Mentor::dashboard');
@@ -183,5 +196,18 @@ $routes->group('mentor', function($routes) {
     $routes->post('kelas/(:num)/materi', 'Mentor::simpanMateri/$1');
     $routes->post('kelas/(:num)/materi/(:num)', 'Mentor::ubahMateri/$1/$2');
     $routes->post('kelas/(:num)/materi/(:num)/hapus', 'Mentor::hapusMateri/$1/$2');
+    
+    // Submenu Laporan Mentor
+    $routes->get('laporan', 'LaporanPesertaController::index');
+    $routes->get('laporan-peserta', 'LaporanPesertaController::index');
+    $routes->get('laporan/export-excel', 'LaporanPesertaController::exportExcel');
+    $routes->get('laporan/cetak', 'LaporanPesertaController::cetak');
+    $routes->get('laporan/export-pdf', 'LaporanPesertaController::cetak');
+    $routes->get('laporan-mentor', 'LaporanMentorController::index');
+    $routes->get('laporan-mentor/export-excel', 'LaporanMentorController::exportExcel');
+    $routes->get('laporan-mentor/cetak', 'LaporanMentorController::cetak');
+    $routes->get('laporan-mentor/export-pdf', 'LaporanMentorController::cetak');
+    $routes->get('laporan-mentor/detail/(:num)', 'LaporanMentorController::detailAjax/$1');
+    $routes->get('laporan-kehadiran', 'Mentor::kelas');
     $routes->get('profil', 'Mentor::profil');
 });

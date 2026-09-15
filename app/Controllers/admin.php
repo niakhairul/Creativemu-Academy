@@ -306,9 +306,9 @@ public function masterKelas()
             'tanggal_kbm'       => $this->request->getPost('tanggal_kbm'),
             'waktu_mulai'       => $this->request->getPost('waktu_mulai'),
             'waktu_selesai'     => $this->request->getPost('waktu_selesai'),
-            'materi'            => $this->request->getPost('materi'),
+            'materi' => '',
             'ruangan_atau_link' => $this->request->getPost('ruangan_atau_link'),
-            'absensi_dibuka'    => 0,
+            
         ];
 
         $db->table('jadwal')->insert($data);
@@ -644,26 +644,92 @@ $data = [
     }
 
     public function dataPeserta()
-{
-    $pendaftaranModel = new PendaftaranModel();
-    
-    $data = [
-        'title'   => 'Data Peserta - Panel Admin',
-        'peserta' => $pendaftaranModel
-            ->select('pendaftaran.*, users.nama, users.email, users.no_hp, kelas.nama_kelas')
+    {
+        $db = \Config\Database::connect();
+
+        $keyword        = trim((string) ($this->request->getGet('keyword') ?? ''));
+        $idKelas        = trim((string) ($this->request->getGet('id_kelas') ?? ''));
+        $filterStatus   = strtolower(trim((string) ($this->request->getGet('status') ?? '')));
+
+        $builder = $db->table('pendaftaran')
+            ->select('
+                pendaftaran.*,
+                COALESCE(NULLIF(pendaftaran.nama, ""), users.nama) AS nama_lengkap,
+                COALESCE(NULLIF(pendaftaran.no_hp, ""), users.no_hp) AS no_hp_terbaru,
+                COALESCE(NULLIF(pendaftaran.jenis_kelamin, ""), users.jenis_kelamin) AS gender_terbaru,
+                COALESCE(NULLIF(pendaftaran.email, ""), users.email) AS email_terbaru,
+                COALESCE(
+                    NULLIF(pendaftaran.nis, ""),
+                    (SELECT p2.nis FROM pendaftaran p2 WHERE p2.id_users = pendaftaran.id_users AND p2.nis IS NOT NULL AND p2.nis != "" ORDER BY p2.id_pendaftaran DESC LIMIT 1)
+                ) AS resolved_nis,
+                kelas.nama_kelas,
+                kelas.kategori AS kategori_kelas_master
+            ')
             ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
-            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-            ->groupStart()
-                ->where('pendaftaran.status_pembayaran', 'valid')
-                ->orWhere('pendaftaran.status_pembayaran', 'Disetujui')
-                ->orWhere('pendaftaran.status_pembayaran', 'approved')
-            ->groupEnd()
-            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
-            ->findAll()
-    ];
-    
-    return view('admin/data_peserta/index', $data); 
-}
+            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left');
+
+        // Filter pencarian berdasarkan NIS, Nama, No HP, Email, atau Kelas
+        if (!empty($keyword)) {
+            $builder->groupStart()
+                ->like('pendaftaran.nama', $keyword)
+                ->orLike('users.nama', $keyword)
+                ->orLike('pendaftaran.nis', $keyword)
+                ->orLike('pendaftaran.no_hp', $keyword)
+                ->orLike('users.no_hp', $keyword)
+                ->orLike('pendaftaran.email', $keyword)
+                ->orLike('kelas.nama_kelas', $keyword)
+            ->groupEnd();
+        }
+
+        // Filter berdasarkan kelas pelatihan
+        if (!empty($idKelas)) {
+            $builder->where('pendaftaran.id_kelas', $idKelas);
+        }
+
+        // Filter status keaktifan / pendaftaran
+        if (!empty($filterStatus)) {
+            if (in_array($filterStatus, ['aktif', 'valid', 'disetujui'], true)) {
+                $builder->groupStart()
+                    ->where('pendaftaran.status_pembayaran', 'valid')
+                    ->orWhere('pendaftaran.status_pendaftaran', 'Disetujui')
+                    ->orWhere('pendaftaran.status', 'Disetujui')
+                ->groupEnd();
+            } elseif (in_array($filterStatus, ['menunggu', 'pending'], true)) {
+                $builder->groupStart()
+                    ->where('pendaftaran.status_pembayaran', 'pending')
+                    ->orWhere('pendaftaran.status_pendaftaran', 'Menunggu')
+                    ->orWhere('pendaftaran.status', 'Pending')
+                ->groupEnd();
+                $builder->where('pendaftaran.status_pembayaran !=', 'rejected');
+                $builder->where('pendaftaran.status_pendaftaran !=', 'Ditolak');
+            } elseif (in_array($filterStatus, ['ditolak', 'rejected'], true)) {
+                $builder->groupStart()
+                    ->where('pendaftaran.status_pembayaran', 'rejected')
+                    ->orWhere('pendaftaran.status_pendaftaran', 'Ditolak')
+                ->groupEnd();
+            }
+        }
+
+        $peserta = $builder->orderBy('pendaftaran.id_pendaftaran', 'DESC')->get()->getResultArray();
+
+        // Ambil daftar kelas untuk dropdown filter
+        $kelasList = $db->table('kelas')
+            ->select('id_kelas, nama_kelas')
+            ->orderBy('nama_kelas', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $data = [
+            'title'          => 'Daftar Peserta - Panel Admin',
+            'peserta'        => $peserta,
+            'kelasList'      => $kelasList,
+            'keyword'        => $keyword,
+            'selectedKelas'  => $idKelas,
+            'selectedStatus' => $filterStatus,
+        ];
+
+        return view('admin/data_peserta/index', $data);
+    }
 
     public function pendaftaran()
     {
@@ -723,22 +789,20 @@ $data = [
         $nisBaru = $pendaftaran['nis'];
 
         if ($aksi === 'setuju' && empty($nisBaru)) {
-            $tanggalHariIni = date('Ymd');
+    $tanggalHariIni = date('Ymd');
 
-            $pendaftaranTerakhir = $pendaftaranModel
-                ->like('nis', $tanggalHariIni, 'after')
-                ->orderBy('id_pendaftaran', 'DESC')
-                ->first();
+    $pendaftaranTerakhir = $pendaftaranModel
+        ->where('nis IS NOT NULL', null, false)
+        ->where('nis !=', '')
+        ->orderBy('nis', 'DESC')
+        ->first();
 
-            if ($pendaftaranTerakhir && !empty($pendaftaranTerakhir['nis'])) {
-                $urutanTerakhir = (int) substr($pendaftaranTerakhir['nis'], -3);
-                $urutanBaru = $urutanTerakhir + 1;
-            } else {
-                $urutanBaru = 1;
-            }
+    $urutanBaru = ($pendaftaranTerakhir && !empty($pendaftaranTerakhir['nis']))
+        ? (int) substr($pendaftaranTerakhir['nis'], -3) + 1
+        : 1;
 
-            $nisBaru = $tanggalHariIni . str_pad($urutanBaru, 3, '0', STR_PAD_LEFT);
-        }
+    $nisBaru = $tanggalHariIni . str_pad($urutanBaru, 3, '0', STR_PAD_LEFT);
+}
 
         $dataUpdate = [
             'status_pembayaran'   => $statusBaru,
@@ -817,21 +881,22 @@ $data = [
 
     $nisBaru = $pendaftaranLama['nis'] ?? null;
 
-    if (($status === 'valid' || $status === 'Disetujui' || $status === 'approved') && empty($nisBaru)) {
-        $tanggalHariIni = date('Ymd');
-        $pendaftaranTerakhir = $pendaftaranModel
-            ->like('nis', $tanggalHariIni, 'after')
-            ->orderBy('id_pendaftaran', 'DESC')
-            ->first();
+   if (($status === 'valid' || $status === 'Disetujui' || $status === 'approved') && empty($nisBaru)) {
+    $tanggalHariIni = date('Ymd');
 
-        $urutanBaru = ($pendaftaranTerakhir && !empty($pendaftaranTerakhir['nis'])) 
-            ? (int) substr($pendaftaranTerakhir['nis'], -3) + 1 
-            : 1;
+    $pendaftaranTerakhir = $pendaftaranModel
+        ->where('nis IS NOT NULL', null, false)
+        ->where('nis !=', '')
+        ->orderBy('nis', 'DESC')
+        ->first();
 
-        $nisBaru = $tanggalHariIni . str_pad($urutanBaru, 3, '0', STR_PAD_LEFT);
-        $dataUpdate['nis'] = $nisBaru;
-    }
+    $urutanBaru = ($pendaftaranTerakhir && !empty($pendaftaranTerakhir['nis']))
+        ? (int) substr($pendaftaranTerakhir['nis'], -3) + 1
+        : 1;
 
+    $nisBaru = $tanggalHariIni . str_pad($urutanBaru, 3, '0', STR_PAD_LEFT);
+    $dataUpdate['nis'] = $nisBaru;
+}
     $fileBukti = $this->request->getFile('bukti_pembayaran');
     if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
         $newName = $fileBukti->getRandomName();
@@ -842,9 +907,16 @@ $data = [
         $fileBukti->move($folderTujuan, $newName);
         $dataUpdate['bukti_pembayaran'] = $newName;
     }
+$db = \Config\Database::connect();
 
-    $pendaftaranModel->update($id_pendaftaran, $dataUpdate);
+$berhasilUpdate = $db->table('pendaftaran')
+    ->where('id_pendaftaran', $id_pendaftaran)
+    ->update($dataUpdate);
 
+if (!$berhasilUpdate) {
+    return redirect()->to(base_url('admin/validasi'))
+        ->with('error', 'Database gagal diperbarui.');
+}
     if ($pendaftaranLama && !empty($pendaftaranLama['email'])) {
         $email = \Config\Services::email();
         $email->setTo($pendaftaranLama['email']);
@@ -1190,16 +1262,9 @@ public function hasilAngket()
 
     public function laporan()
     {
-        $pesertaModel = new PesertaModel();
-        $mentorModel  = new MentorModel();
-
-        $data = [
-            'title'   => 'Laporan Data Peserta & Mentor',
-            'peserta' => $pesertaModel->findAll(),
-            'mentor'  => $mentorModel->findAll(),
-        ];
-
-        return view('admin/laporan/index', $data);
+        $controller = new \App\Controllers\LaporanPesertaController();
+        $controller->initController($this->request, $this->response, $this->logger);
+        return $controller->index();
     }
 
     public function pengaturan()

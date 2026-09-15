@@ -838,28 +838,11 @@
                     </span>
 
                     <?php if (!isset($j['absensi'])): ?>
-
-                        <form
-                            action="<?= base_url('pelatihan/absensi/simpan') ?>"
-                            method="POST"
-                            class="mt-2"
-                        >
-                            <?= csrf_field() ?>
-
-                            <input
-                                type="hidden"
-                                name="id_jadwal"
-                                value="<?= esc($j['id_jadwal']) ?>"
-                            >
-
-                            <button
-                                type="submit"
-                                class="btn btn-sm btn-primary"
-                            >
-                                Hadir
-                            </button>
-                        </form>
-
+                        <div class="mt-2">
+                            <a href="<?= base_url('pelatihan/absensi') ?>" class="btn btn-sm btn-primary">
+                                <i class="bi bi-geo-alt-fill me-1"></i> Absen Sekarang (GPS)
+                            </a>
+                        </div>
                     <?php endif; ?>
 
                 <?php endif; ?>
@@ -987,34 +970,13 @@
                                             <td>
 
                                                 <?php if (!isset($j['absensi'])): ?>
-
-                                                    <form
-                                                        action="<?= base_url('pelatihan/absensi/simpan') ?>"
-                                                        method="POST">
-
-                                                        <?= csrf_field() ?>
-
-                                                        <input
-                                                            type="hidden"
-                                                            name="id_jadwal_kelas"
-                                                            value="<?= esc($j['id_jadwal_kelas']) ?>">
-
-                                                        <button
-                                                            type="submit"
-                                                            class="btn btn-sm btn-primary">
-
-                                                            Hadir
-
-                                                        </button>
-
-                                                    </form>
-
+                                                    <a href="<?= base_url('pelatihan/absensi') ?>" class="btn btn-sm btn-primary">
+                                                        <i class="bi bi-geo-alt-fill me-1"></i> Absen (GPS)
+                                                    </a>
                                                 <?php else: ?>
-
                                                     <span class="text-muted">
-                                                        -
+                                                        <i class="bi bi-check-circle-fill text-success"></i> Selesai
                                                     </span>
-
                                                 <?php endif; ?>
 
                                             </td>

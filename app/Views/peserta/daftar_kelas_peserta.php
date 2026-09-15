@@ -156,6 +156,13 @@
             height: 250px;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .header-banner .row {
+            position: relative;
+            z-index: 2;
         }
 
         /* Course Card Modern Styling */
@@ -256,6 +263,32 @@
             box-shadow: 0 6px 16px rgba(124, 92, 250, 0.35);
         }
 
+        .btn-tambah-kelas {
+            background: #ffffff;
+            color: var(--primary-purple);
+            font-weight: 700;
+            font-size: 0.98rem;
+            padding: 13px 26px;
+            border-radius: 50rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            border: 1.5px solid rgba(255, 255, 255, 0.8);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            letter-spacing: 0.2px;
+            position: relative;
+            z-index: 10;
+            cursor: pointer;
+        }
+
+        .btn-tambah-kelas:hover {
+            background: #f4eeff;
+            color: var(--dark-purple);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+        }
+
         /* Empty State */
         .empty-state-card {
             background: white;
@@ -311,7 +344,7 @@
         <div class="container-fluid px-0">
             
             <!-- Hero Header Banner -->
-            <div class="header-banner mb-5">
+            <div class="header-banner mb-4">
                 <div class="row align-items-center">
                     <div class="col-lg-8">
                         <span class="badge bg-white bg-opacity-25 text-white px-3 py-1 rounded-pill mb-2 fw-semibold" style="font-size: 0.8rem;">
@@ -320,8 +353,30 @@
                         <h1 class="fw-extrabold mb-2" style="font-size: 2.2rem; font-weight: 800; color: #ffffff;">Daftar Kelas Saya</h1>
                         <p class="mb-0 text-white-50" style="font-size: 1.05rem;">Kelola, pantau, dan akses kelas pelatihan interaktif yang sedang Anda ikuti di Creativemu Academy.</p>
                     </div>
+                    <div class="col-lg-4 text-lg-end mt-3 mt-lg-0" style="position: relative; z-index: 10;">
+                        <a href="<?= base_url('pelatihan/pendaftaran') ?>" class="btn btn-tambah-kelas" id="btnTambahKelas">
+                            <i class="bi bi-plus-circle-fill me-2 fs-5"></i> Tambah Kelas
+                        </a>
+                    </div>
                 </div>
             </div>
+
+            <!-- Flash Messages -->
+            <?php if (session()->getFlashdata('success')): ?>
+                <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm border-0 mb-4 d-flex align-items-center" role="alert">
+                    <i class="bi bi-check-circle-fill fs-4 me-3 text-success"></i>
+                    <div><?= session()->getFlashdata('success') ?></div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                </div>
+            <?php endif; ?>
+
+            <?php if (session()->getFlashdata('error')): ?>
+                <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm border-0 mb-4 d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-danger"></i>
+                    <div><?= session()->getFlashdata('error') ?></div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                </div>
+            <?php endif; ?>
 
             <!-- List Card Kelas -->
             <div class="row g-4">
@@ -414,8 +469,8 @@
                             </div>
                             <h4 class="fw-bold" style="color: var(--dark-purple);">Belum Ada Kelas yang Diambil</h4>
                             <p class="text-muted mb-4 mx-auto" style="max-width: 400px;">Anda belum terdaftar di kelas pelatihan apapun. Silakan pilih kelas terlebih dahulu untuk mulai belajar.</p>
-                            <a href="<?= base_url('pelatihan/daftar-kelas') ?>" class="btn btn-kbm px-5 py-3 rounded-pill d-inline-flex align-items-center">
-                                <i class="bi bi-plus-circle-fill me-2"></i> Pilih Kelas Sekarang
+                            <a href="<?= base_url('pelatihan/pendaftaran') ?>" class="btn btn-kbm px-5 py-3 rounded-pill d-inline-flex align-items-center" id="btnPilihKelasEmpty">
+                                <i class="bi bi-plus-circle-fill me-2"></i> Tambah Kelas Sekarang
                             </a>
                         </div>
                     </div>

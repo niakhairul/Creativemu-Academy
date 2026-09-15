@@ -561,9 +561,21 @@
                                                 <span class="materi-badge">Pertemuan <?= esc($item['pertemuan_ke'] ?? '-') ?></span>
                                                 <h5 class="fw-bold mt-3 mb-2 text-dark">Pertemuan <?= esc($item['pertemuan_ke'] ?? '-') ?></h5>
                                                 <p class="text-muted mb-3">
+
                                                     <i class="bi bi-calendar-event me-1 text-primary"></i>
                                                     <?= !empty($item['tanggal_kbm']) ? date('d F Y, H:i', strtotime($item['tanggal_kbm'])) : 'Jadwal belum ditentukan' ?>
                                                 </p>
+
+    <i class="bi bi-calendar-event me-1 text-primary"></i>
+    <?= !empty($item['tanggal_kbm'])
+        ? date('d F Y', strtotime($item['tanggal_kbm']))
+            . ', Pukul '
+            . date('H:i', strtotime($item['waktu_mulai']))
+            . ' - '
+            . date('H:i', strtotime($item['waktu_selesai']))
+        : 'Jadwal belum ditentukan' ?>
+</p>
+
 
                                                 <?php if ($statusAbsensi === 'hadir'): ?>
                                                     <div class="alert alert-success border-0 bg-success bg-opacity-10 text-success mb-0 rounded-3 py-2 small">

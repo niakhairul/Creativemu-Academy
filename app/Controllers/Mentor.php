@@ -159,16 +159,17 @@ class Mentor extends BaseController
         $idUser = (int) session()->get('id_users');
         $jadwal = $this->db->table('jadwal')
             ->select('jadwal.*, absensi.id_absensi, absensi.status AS status_absen, absensi.waktu_absen')
-            ->join('absensi', 'absensi.id_jadwal = jadwal.id_jadwal AND absensi.id_user = ' . $idUser, 'left')
+            ->join('absensi', 'absensi.id_jadwal_kelas = jadwal.id_jadwal AND absensi.id_user = ' . $idUser, 'left')
             ->where('jadwal.id_kelas', $idKelas)
             ->orderBy('jadwal.pertemuan_ke', 'ASC')
             ->get()->getResultArray();
 
         $pesertaAbsensi = $this->db->table('jadwal')
+$pesertaAbsensi = $this->db->table('jadwal')
     ->select('jadwal.id_jadwal, jadwal.pertemuan_ke, users.nama AS nama_peserta, users.email, absensi.status, absensi.waktu_absen')
     ->join('pendaftaran', 'pendaftaran.id_kelas = jadwal.id_kelas AND (pendaftaran.status_pembayaran IN ("valid", "Valid", "Disetujui", "approved") OR pendaftaran.status IN ("disetujui", "Disetujui", "approved"))', 'inner')
     ->join('users', 'users.id_users = pendaftaran.id_users', 'inner')
-    ->join('absensi', 'absensi.id_jadwal = jadwal.id_jadwal AND absensi.id_user = users.id_users', 'left') // Pastikan relasi id_user merujuk ke id_users yang sama
+    ->join('absensi', 'absensi.id_jadwal_kelas = jadwal.id_jadwal AND absensi.id_user = pendaftaran.id_users', 'left')
     ->where('jadwal.id_kelas', $idKelas)
     ->orderBy('jadwal.pertemuan_ke', 'ASC')
     ->orderBy('users.nama', 'ASC')
@@ -199,9 +200,9 @@ class Mentor extends BaseController
 
         // 3. Cek apakah peserta sudah pernah absen di jadwal ini
         $sudahAbsen = $db->table('absensi')
-                         ->where('id_jadwal', $id_jadwal)
-                         ->where('id_user', $id_user)
-                         ->countAllResults();
+                 ->where('id_jadwal_kelas', $id_jadwal)
+                 ->where('id_user', $id_user)
+                 ->countAllResults();
 
         if ($sudahAbsen > 0) {
             return redirect()->back()->with('error', 'Anda sudah melakukan absensi untuk pertemuan ini.');
@@ -209,11 +210,11 @@ class Mentor extends BaseController
 
         // 4. Simpan absensi peserta
         $db->table('absensi')->insert([
-            'id_jadwal'   => $id_jadwal,
-            'id_user'     => $id_user,
-            'status'      => 'hadir', // Sesuaikan dengan format status di tabel Anda ('hadir' / 'Hadir')
-            'waktu_absen' => date('Y-m-d H:i:s')
-        ]);
+    'id_jadwal_kelas' => $id_jadwal,
+    'id_user'         => $id_user,
+    'status'          => 'hadir',
+    'waktu_absen'     => date('Y-m-d H:i:s')
+]);
 
         return redirect()->back()->with('success', 'Berhasil absen! Kehadiran Anda telah dicatat.');
     }
@@ -227,10 +228,17 @@ class Mentor extends BaseController
         if (! $jadwal) return redirect()->back()->with('error', 'Jadwal mengajar tidak ditemukan.');
 
         $idUser = (int) session()->get('id_users');
-        $absensi = $this->db->table('absensi')->where(['id_jadwal' => $idJadwal, 'id_user' => $idUser])->get()->getRowArray();
+        $absensi = $this->db->table('absensi')
+    ->where(['id_jadwal_kelas' => $idJadwal, 'id_user' => $idUser])
+    ->get()->getRowArray();
         if ($absensi) return redirect()->back()->with('error', 'Anda sudah mengisi absensi pada pertemuan ini.');
 
-        $this->db->table('absensi')->insert(['id_jadwal' => $idJadwal, 'id_user' => $idUser, 'status' => 'hadir', 'waktu_absen' => date('Y-m-d H:i:s')]);
+        $this->db->table('absensi')->insert([
+    'id_jadwal_kelas' => $idJadwal,
+    'id_user'         => $idUser,
+    'status'          => 'hadir',
+    'waktu_absen'     => date('Y-m-d H:i:s')
+]);
         return redirect()->to(base_url("mentor/kelas/$idKelas/absensi"))->with('success', 'Absensi mengajar berhasil dicatat.');
     }
 
@@ -449,6 +457,14 @@ public function updateAbsensiManual()
 
     // Method baru untuk update Materi, Link GDrive, & File PDF oleh Mentor berdasarkan Jadwal
     
+
+    public function laporan()
+    {
+        if ($r = $this->requireMentor()) return $r;
+        $controller = new \App\Controllers\LaporanPesertaController();
+        $controller->initController($this->request, $this->response, $this->logger);
+        return $controller->index();
+    }
 
     public function profil()
     {

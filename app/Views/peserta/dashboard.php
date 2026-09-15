@@ -729,12 +729,15 @@
                             <p class="text-muted small mb-1">
                                 <i class="bi bi-calendar-event text-purple-custom me-2"></i><strong>Tanggal:</strong> <?= esc($jdl['tanggal_kbm']); ?>
                             </p>
-                            <p class="text-muted small mb-1">
-                                <i class="bi bi-clock text-purple-custom me-2"></i><strong>Jam mulai:</strong> <?= esc(date('H:i', strtotime($jdl['tanggal_kbm']))); ?>
-                            </p>
-                            <p class="text-muted small mb-1">
-                                <i class="bi bi-clock text-purple-custom me-2"></i><strong>Jam selesai:</strong> <?= esc($jdl['jam_selesai'] ?? '-'); ?>
-                            </p>
+                           <p class="text-muted small mb-1">
+    <i class="bi bi-clock text-purple-custom me-2"></i>
+    <strong>Jam mulai:</strong> <?= esc(!empty($jdl['waktu_mulai']) ? date('H:i', strtotime($jdl['waktu_mulai'])) : '-'); ?>
+</p>
+
+<p class="text-muted small mb-1">
+    <i class="bi bi-clock text-purple-custom me-2"></i>
+    <strong>Jam selesai:</strong> <?= esc(!empty($jdl['waktu_selesai']) ? date('H:i', strtotime($jdl['waktu_selesai'])) : '-'); ?>
+</p>
                             <p class="text-muted small mb-2">
     <i class="bi bi-camera-video text-purple-custom me-2"></i>
     <strong>Tempat / Link Meet:</strong> -

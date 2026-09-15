@@ -27,6 +27,7 @@ class PendaftaranModel extends Model
         'jenis_kelamin',
         'pendidikan_terakhir',
         'status',
+        'status_pendaftaran',
         'lokasi_pelatihan',
         'kategori_kelas',
         'pas_foto',
