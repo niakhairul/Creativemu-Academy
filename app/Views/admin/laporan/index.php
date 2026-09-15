@@ -263,12 +263,14 @@
         <ul class="nav flex-column">
             <li class="nav-item"><a href="<?= base_url('admin/dashboard'); ?>" class="nav-link"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
             <li class="nav-item"><a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link"><i class="fas fa-book"></i> <span>Master Kelas</span></a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/mentor'); ?>" class="nav-link"><i class="fas fa-chalkboard-user"></i> <span>Mentor</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/mentor'); ?>" class="nav-link"><i class="fas fa-chalkboard-user"></i> <span>Instruktur</span></a></li>
             <li class="nav-item"><a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link"><i class="fas fa-users"></i> <span>Data Peserta</span></a></li>
             <li class="nav-item"><a href="<?= base_url('admin/validasi'); ?>" class="nav-link"><i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link"><i class="fas fa-book-open"></i> <span>Buku Induk</span></a></li>
             <li class="nav-item"><a href="<?= base_url('admin/angket'); ?>" class="nav-link"><i class="fas fa-award"></i> <span>Angket</span></a></li>
             <li class="nav-item"><a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link"><i class="fas fa-award"></i> <span>Sertifikat</span></a></li>
             <li class="nav-item"><a href="<?= base_url('admin/laporan'); ?>" class="nav-link active"><i class="fas fa-file-lines"></i> <span>Laporan</span></a></li>
+            <li class="nav-item"><a href="<?= base_url('admin/hak-akses'); ?>" class="nav-link"><i class="fas fa-user-shield"></i> <span>Hak Akses</span></a></li>
             <li class="nav-item"><a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link"><i class="fas fa-gear"></i> <span>Pengaturan</span></a></li>
             <li class="nav-item mt-4"><a href="<?= base_url('logout'); ?>" class="nav-link text-danger"><i class="fas fa-right-from-bracket"></i> <span>Logout</span></a></li>
         </ul>
@@ -299,10 +301,10 @@
                     <i class="fas fa-users"></i> Laporan Peserta
                 </a>
                 <a class="menu-laporan-item" onclick="switchTab(event, 'mentor')">
-                    <i class="fas fa-chalkboard-user"></i> Laporan Mentor
+                    <i class="fas fa-chalkboard-user"></i> Laporan Instruktur
                 </a>
                 <a class="menu-laporan-item" onclick="switchTab(event, 'angket')">
-                    <i class="fas fa-poll"></i> Laporan Angket Mentor
+                    <i class="fas fa-poll"></i> Laporan Angket Instruktur
                 </a>
                 <a class="menu-laporan-item" onclick="switchTab(event, 'absen')">
                     <i class="fas fa-clipboard-user"></i> Laporan Absen Siswa
@@ -352,8 +354,8 @@
                 <div id="section-mentor" class="laporan-section">
                     <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
                         <div>
-                            <h5 class="fw-bold m-0" style="color: var(--dark-purple);"><i class="fas fa-chalkboard-user text-purple me-2"></i> Rekapitulasi Data Mentor</h5>
-                            <small class="text-muted">Daftar mentor ahli yang aktif mengajar di akademi.</small>
+                            <h5 class="fw-bold m-0" style="color: var(--dark-purple);"><i class="fas fa-chalkboard-user text-purple me-2"></i> Rekapitulasi Data Instruktur</h5>
+                            <small class="text-muted">Daftar instruktur ahli yang aktif mengajar di akademi.</small>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -361,7 +363,7 @@
                             <thead>
                                 <tr>
                                     <th width="5%">No</th>
-                                    <th>Nama Mentor</th>
+                                    <th>Nama Instruktur</th>
                                     <th>Keahlian</th>
                                     <th>Email</th>
                                     <th>Telepon</th>
@@ -379,7 +381,7 @@
                                     </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
-                                    <tr><td colspan="5" class="text-center text-muted py-4">Belum ada data mentor.</td></tr>
+                                    <tr><td colspan="5" class="text-center text-muted py-4">Belum ada data instruktur.</td></tr>
                                 <?php endif; ?>
                             </tbody>
                         </table>
@@ -390,13 +392,13 @@
                 <div id="section-angket" class="laporan-section">
                     <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
                         <div>
-                            <h5 class="fw-bold m-0" style="color: var(--dark-purple);"><i class="fas fa-poll text-purple me-2"></i> Laporan Angket / Penilaian Mentor</h5>
-                            <small class="text-muted">Hasil rekap umpan balik dan evaluasi kualitas pengajaran mentor.</small>
+                            <h5 class="fw-bold m-0" style="color: var(--dark-purple);"><i class="fas fa-poll text-purple me-2"></i> Laporan Angket / Penilaian Instruktur</h5>
+                            <small class="text-muted">Hasil rekap umpan balik dan evaluasi kualitas pengajaran instruktur.</small>
                         </div>
                     </div>
                     <div class="text-center py-5 text-muted">
                         <i class="fas fa-folder-open fa-3x mb-3 text-secondary opacity-50"></i>
-                        <p class="m-0">Belum ada data angket atau penilaian mentor yang terekam.</p>
+                        <p class="m-0">Belum ada data angket atau penilaian instruktur yang terekam.</p>
                     </div>
                 </div>
 

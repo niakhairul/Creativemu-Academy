@@ -164,7 +164,6 @@ class Mentor extends BaseController
             ->orderBy('jadwal.pertemuan_ke', 'ASC')
             ->get()->getResultArray();
 
-        $pesertaAbsensi = $this->db->table('jadwal')
 $pesertaAbsensi = $this->db->table('jadwal')
     ->select('jadwal.id_jadwal, jadwal.pertemuan_ke, users.nama AS nama_peserta, users.email, absensi.status, absensi.waktu_absen')
     ->join('pendaftaran', 'pendaftaran.id_kelas = jadwal.id_kelas AND (pendaftaran.status_pembayaran IN ("valid", "Valid", "Disetujui", "approved") OR pendaftaran.status IN ("disetujui", "Disetujui", "approved"))', 'inner')
