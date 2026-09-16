@@ -294,11 +294,45 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        @media (max-width: 992px) {
-            #sidebar { width: 80px; }
-            #sidebar .sidebar-header img, #sidebar span { display: none; }
-            #main-content { margin-left: 80px; padding: 20px; }
-        }
+       @media (max-width: 992px) {
+    #sidebar {
+        width: 80px;
+        display: block;
+    }
+
+    #sidebar .sidebar-header {
+        padding: 20px 10px;
+    }
+
+    #sidebar .sidebar-header img,
+    #sidebar span {
+        display: none;
+    }
+
+    #sidebar .nav {
+        padding: 20px 10px;
+    }
+
+    #sidebar .nav-link {
+        justify-content: center;
+        padding: 12px 10px;
+    }
+
+    #sidebar .nav-link i {
+        margin-right: 0;
+    }
+
+    #main-content {
+        margin-left: 80px;
+        padding: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    #main-content {
+        padding: 12px;
+    }
+}
     </style>
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
     <script defer src="<?= base_url('assets/js/admin-responsive.js'); ?>"></script>

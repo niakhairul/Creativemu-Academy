@@ -1528,64 +1528,439 @@ public function hasilAngket()
 
     public function sertifikat()
 {
-    $sertifikatModel = new SertifikatModel();
-    $data['sertifikat'] = $sertifikatModel->select('sertifikat.*, peserta.nama, peserta.email, peserta.telepon, kelas.nama_kelas')
-        ->join('peserta', 'peserta.id_peserta = sertifikat.id_peserta')
-        ->join('kelas', 'kelas.id_kelas = sertifikat.id_kelas')
-        ->findAll();
+    $db = \Config\Database::connect();
 
-    $data['title'] = 'Manajemen Sertifikat Peserta';
+    // Sertifikat yang sudah diterbitkan
+    $sertifikat = $db->table('sertifikat')
+        ->select('
+            sertifikat.*,
+            users.nama AS nama_peserta,
+            users.email,
+            kelas.nama_kelas,
+            nilai_ujian.nilai,
+            nilai_ujian.status_kelulusan
+        ')
+        ->join(
+            'users',
+            'users.id_users = sertifikat.id_user',
+            'left'
+        )
+        ->join(
+            'kelas',
+            'kelas.id_kelas = sertifikat.id_kelas',
+            'left'
+        )
+        ->join(
+            'nilai_ujian',
+            'nilai_ujian.id_user = sertifikat.id_user
+             AND nilai_ujian.id_kelas = sertifikat.id_kelas',
+            'left'
+        )
+        ->orderBy('sertifikat.id_sertifikat', 'DESC')
+        ->get()
+        ->getResultArray();
+
+    // Peserta yang sudah dinyatakan LULUS
+    $pesertaLulus = $db->table('nilai_ujian')
+        ->select('
+            nilai_ujian.id_user,
+            nilai_ujian.id_kelas,
+            nilai_ujian.nilai,
+            nilai_ujian.status_kelulusan,
+            users.nama AS nama_peserta,
+            users.email,
+            kelas.nama_kelas
+        ')
+        ->join(
+            'users',
+            'users.id_users = nilai_ujian.id_user',
+            'inner'
+        )
+        ->join(
+            'kelas',
+            'kelas.id_kelas = nilai_ujian.id_kelas',
+            'inner'
+        )
+        ->where("LOWER(nilai_ujian.status_kelulusan) = 'lulus'", null, false)
+        ->orderBy('users.nama', 'ASC')
+        ->get()
+        ->getResultArray();
+
+    $data = [
+        'title'        => 'Manajemen Sertifikat Peserta',
+        'sertifikat'   => $sertifikat,
+        'pesertaLulus' => $pesertaLulus,
+    ];
+
     return view('admin/sertifikat/index', $data);
 }
     public function uploadSertifikat()
-    {
-        $pesertaModel = new PesertaModel();
-        $kelasModel   = new KelasModel();
-        
-        $data = [
-            'title'   => 'Upload Sertifikat',
-            'peserta' => $pesertaModel->findAll(),
-            'kelas'   => $kelasModel->findAll()
-        ];
-        
-        return view('admin/sertifikat/upload', $data);
+{
+    $db = \Config\Database::connect();
+
+    $pesertaLulus = $db->table('nilai_ujian')
+        ->select('
+            nilai_ujian.id_user,
+            nilai_ujian.id_kelas,
+            nilai_ujian.nilai,
+            nilai_ujian.status_kelulusan,
+            users.nama AS nama_peserta,
+            users.email,
+            kelas.nama_kelas
+        ')
+        ->join(
+            'users',
+            'users.id_users = nilai_ujian.id_user',
+            'inner'
+        )
+        ->join(
+            'kelas',
+            'kelas.id_kelas = nilai_ujian.id_kelas',
+            'inner'
+        )
+        ->where("LOWER(nilai_ujian.status_kelulusan) = 'lulus'", null, false)
+        ->orderBy('users.nama', 'ASC')
+        ->get()
+        ->getResultArray();
+
+    $data = [
+        'title'        => 'Terbitkan Sertifikat',
+        'pesertaLulus' => $pesertaLulus,
+        'selectedUser' => $this->request->getGet('id_user'),
+        'selectedKelas'=> $this->request->getGet('id_kelas'),
+    ];
+
+    return view('admin/sertifikat/upload', $data);
+}
+
+   public function storeSertifikat()
+{
+    $idUser  = $this->request->getPost('id_users');
+    $idKelas = $this->request->getPost('id_kelas');
+
+    if (empty($idUser) || empty($idKelas)) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Peserta dan kelas wajib dipilih.');
     }
 
-    public function storeSertifikat()
-    {
-        $fileSertifikat = $this->request->getFile('file_sertifikat');
-        if ($fileSertifikat && $fileSertifikat->isValid() && !$fileSertifikat->hasMoved()) {
-            $namaFile = $fileSertifikat->getRandomName();
-            $fileSertifikat->move('uploads/sertifikat', $namaFile);
-            
-            $sertifikatModel = new SertifikatModel();
-            $sertifikatModel->save([
-                'nomor_sertifikat' => $this->request->getPost('nomor_sertifikat'),
-                'id_peserta'       => $this->request->getPost('id_peserta'),
-                'id_kelas'         => $this->request->getPost('id_kelas'),
-                'tanggal_terbit'   => $this->request->getPost('tanggal_terbit'),
-                'file_sertifikat'  => $namaFile
-            ]);
-            
-            return redirect()->to(base_url('admin/sertifikat'))->with('success', 'Sertifikat berhasil diunggah!');
+    $db = \Config\Database::connect();
+
+    // Pastikan peserta memang LULUS pada kelas tersebut
+    $hasilUjian = $db->table('nilai_ujian')
+        ->where('id_user', $idUser)
+        ->where('id_kelas', $idKelas)
+        ->where("LOWER(status_kelulusan) = 'lulus'", null, false)
+        ->get()
+        ->getRowArray();
+
+    if (!$hasilUjian) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Peserta belum dinyatakan lulus pada kelas tersebut.');
+    }
+
+    // Ambil sertifikat yang sudah ada, jika ada
+    $sertifikatModel = new SertifikatModel();
+
+    $sertifikatLama = $sertifikatModel
+        ->where('id_user', $idUser)
+        ->where('id_kelas', $idKelas)
+        ->first();
+
+    // Validasi file
+    $fileSertifikat = $this->request->getFile('file_sertifikat');
+
+    if (
+        !$fileSertifikat ||
+        !$fileSertifikat->isValid() ||
+        $fileSertifikat->hasMoved()
+    ) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'File sertifikat wajib diunggah.');
+    }
+
+    // Pastikan folder upload tersedia
+    $uploadPath = FCPATH . 'uploads/sertifikat/';
+
+    if (!is_dir($uploadPath)) {
+        mkdir($uploadPath, 0775, true);
+    }
+
+    // Buat nama file baru
+    $namaFile = $fileSertifikat->getRandomName();
+
+    if (!$fileSertifikat->move($uploadPath, $namaFile)) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'File sertifikat gagal diunggah.');
+    }
+
+    /*
+     * Jika sertifikat sudah ada:
+     * update file sertifikat lama.
+     */
+    if ($sertifikatLama) {
+
+        $fileLama = $sertifikatLama['file_sertifikat'] ?? null;
+
+        $berhasil = $sertifikatModel->update(
+            $sertifikatLama['id_sertifikat'],
+            [
+                'file_sertifikat' => $namaFile
+            ]
+        );
+
+        if (!$berhasil) {
+            // Hapus file baru jika database gagal diperbarui
+            $pathBaru = $uploadPath . $namaFile;
+
+            if (is_file($pathBaru)) {
+                @unlink($pathBaru);
+            }
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'File sertifikat gagal diperbarui.');
         }
-        
-        return redirect()->back()->with('error', 'Gagal mengunggah file sertifikat.');
-    }
 
-    public function downloadSertifikat($id)
-    {
-        $sertifikatModel = new SertifikatModel();
-        $sertifikat = $sertifikatModel->find($id);
-        
-        if ($sertifikat) {
-            $path = 'uploads/sertifikat/' . $sertifikat['file_sertifikat'];
-            return $this->response->download($path, null);
+        // Hapus file lama jika masih ada
+        if (!empty($fileLama)) {
+            $pathLama = $uploadPath . $fileLama;
+
+            if (is_file($pathLama)) {
+                @unlink($pathLama);
+            }
         }
-        
-        return redirect()->to(base_url('admin/sertifikat'))->with('error', 'Sertifikat tidak ditemukan.');
+
+        return redirect()->to(base_url('admin/sertifikat'))
+            ->with('success', 'File sertifikat berhasil diperbarui.');
     }
 
+    /*
+     * Jika belum ada sertifikat:
+     * buat sertifikat baru.
+     */
+    $noSertifikat = 'CERT-' . date('Ymd') . '-' .
+        strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
+
+    $berhasil = $sertifikatModel->insert([
+        'id_user'          => $idUser,
+        'id_kelas'         => $idKelas,
+        'nomor_sertifikat' => $noSertifikat,
+        'tanggal_terbit'   => date('Y-m-d'),
+        'file_sertifikat'  => $namaFile
+    ]);
+
+    if (!$berhasil) {
+        $path = $uploadPath . $namaFile;
+
+        if (is_file($path)) {
+            @unlink($path);
+        }
+
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Sertifikat gagal disimpan.');
+    }
+
+    return redirect()->to(base_url('admin/sertifikat'))
+        ->with('success', 'Sertifikat berhasil diterbitkan.');
+}
+   public function downloadSertifikat($id)
+{
+    $sertifikatModel = new SertifikatModel();
+    $sertifikat = $sertifikatModel->find($id);
+
+    if (!$sertifikat) {
+        return redirect()->to(base_url('admin/sertifikat'))
+            ->with('error', 'Sertifikat tidak ditemukan.');
+    }
+
+    if (empty($sertifikat['file_sertifikat'])) {
+        return redirect()->to(base_url('admin/sertifikat'))
+            ->with('error', 'File sertifikat belum tersedia.');
+    }
+
+    $namaFile = $sertifikat['file_sertifikat'];
+
+    $pathPublic = FCPATH . 'uploads/sertifikat/' . $namaFile;
+    $pathRoot   = ROOTPATH . 'uploads/sertifikat/' . $namaFile;
+
+    if (is_file($pathPublic)) {
+        $path = $pathPublic;
+    } elseif (is_file($pathRoot)) {
+        $path = $pathRoot;
+    } else {
+        return redirect()->to(base_url('admin/sertifikat'))
+            ->with('error', 'File sertifikat tidak ditemukan.');
+    }
+
+    $mimeType = mime_content_type($path);
+
+    return $this->response
+        ->setHeader('Content-Type', $mimeType)
+        ->setHeader('Content-Disposition', 'inline; filename="' . basename($namaFile) . '"')
+        ->setBody(file_get_contents($path));
+}
+
+public function editSertifikat($id)
+{
+    $db = \Config\Database::connect();
+
+    $sertifikat = $db->table('sertifikat')
+        ->select('
+            sertifikat.*,
+            users.nama AS nama_peserta,
+            users.email,
+            kelas.nama_kelas,
+            nilai_ujian.nilai,
+            nilai_ujian.status_kelulusan
+        ')
+        ->join(
+            'users',
+            'users.id_users = sertifikat.id_user',
+            'left'
+        )
+        ->join(
+            'kelas',
+            'kelas.id_kelas = sertifikat.id_kelas',
+            'left'
+        )
+        ->join(
+            'nilai_ujian',
+            'nilai_ujian.id_user = sertifikat.id_user
+             AND nilai_ujian.id_kelas = sertifikat.id_kelas',
+            'left'
+        )
+        ->where('sertifikat.id_sertifikat', $id)
+        ->get()
+        ->getRowArray();
+
+    if (!$sertifikat) {
+        return redirect()->to(base_url('admin/sertifikat'))
+            ->with('error', 'Sertifikat tidak ditemukan.');
+    }
+
+    return view('admin/sertifikat/edit', [
+        'title'      => 'Edit Sertifikat',
+        'sertifikat' => $sertifikat
+    ]);
+}
+
+public function updateSertifikat($id)
+{
+    $sertifikatModel = new SertifikatModel();
+
+    $sertifikat = $sertifikatModel->find($id);
+
+    if (!$sertifikat) {
+        return redirect()->to(base_url('admin/sertifikat'))
+            ->with('error', 'Sertifikat tidak ditemukan.');
+    }
+
+    $nomorSertifikat = trim($this->request->getPost('nomor_sertifikat'));
+    $tanggalTerbit   = $this->request->getPost('tanggal_terbit');
+
+    if (empty($nomorSertifikat) || empty($tanggalTerbit)) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Nomor sertifikat dan tanggal terbit wajib diisi.');
+    }
+
+    $dataUpdate = [
+        'nomor_sertifikat' => $nomorSertifikat,
+        'tanggal_terbit'   => $tanggalTerbit,
+    ];
+
+    // Jika admin mengganti file sertifikat
+    $fileSertifikat = $this->request->getFile('file_sertifikat');
+
+    if ($fileSertifikat && $fileSertifikat->isValid() && !$fileSertifikat->hasMoved()) {
+
+        $uploadPath = FCPATH . 'uploads/sertifikat/';
+
+        if (!is_dir($uploadPath)) {
+            mkdir($uploadPath, 0775, true);
+        }
+
+        $namaFileBaru = $fileSertifikat->getRandomName();
+
+        if (!$fileSertifikat->move($uploadPath, $namaFileBaru)) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'File sertifikat gagal diunggah.');
+        }
+
+        $dataUpdate['file_sertifikat'] = $namaFileBaru;
+    }
+
+    $berhasil = $sertifikatModel->update(
+        $id,
+        $dataUpdate
+    );
+
+    if (!$berhasil) {
+
+        // Hapus file baru jika database gagal diperbarui
+        if (!empty($dataUpdate['file_sertifikat'])) {
+            $pathBaru = FCPATH . 'uploads/sertifikat/' . $dataUpdate['file_sertifikat'];
+
+            if (is_file($pathBaru)) {
+                @unlink($pathBaru);
+            }
+        }
+
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Sertifikat gagal diperbarui.');
+    }
+
+    // Hapus file lama setelah database berhasil diperbarui
+    if (!empty($dataUpdate['file_sertifikat']) && !empty($sertifikat['file_sertifikat'])) {
+
+        $pathLama = FCPATH . 'uploads/sertifikat/' . $sertifikat['file_sertifikat'];
+
+        if (is_file($pathLama)) {
+            @unlink($pathLama);
+        }
+    }
+
+    return redirect()->to(base_url('admin/sertifikat'))
+        ->with('success', 'Sertifikat berhasil diperbarui.');
+}
+public function downloadFileSertifikat($id)
+{
+    $sertifikatModel = new SertifikatModel();
+    $sertifikat = $sertifikatModel->find($id);
+
+    if (!$sertifikat) {
+        return redirect()->to(base_url('admin/sertifikat'))
+            ->with('error', 'Sertifikat tidak ditemukan.');
+    }
+
+    if (empty($sertifikat['file_sertifikat'])) {
+        return redirect()->to(base_url('admin/sertifikat'))
+            ->with('error', 'File sertifikat belum tersedia.');
+    }
+
+    $namaFile = $sertifikat['file_sertifikat'];
+
+    $pathPublic = FCPATH . 'uploads/sertifikat/' . $namaFile;
+    $pathRoot   = ROOTPATH . 'uploads/sertifikat/' . $namaFile;
+
+    if (is_file($pathPublic)) {
+        $path = $pathPublic;
+    } elseif (is_file($pathRoot)) {
+        $path = $pathRoot;
+    } else {
+        return redirect()->to(base_url('admin/sertifikat'))
+            ->with('error', 'File sertifikat tidak ditemukan.');
+    }
+
+    return $this->response->download($path, null);
+}
     public function laporan()
     {
         $controller = new \App\Controllers\LaporanPesertaController();

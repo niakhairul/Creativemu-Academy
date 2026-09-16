@@ -81,7 +81,18 @@ $routes->get('pelatihan/ujian/hasil', 'Pelatihan::hasilUjian');
 $routes->get('pelatihan/angket', 'Pelatihan::angket');
 $routes->post('pelatihan/angket/simpan', 'Pelatihan::simpanAngket');
 $routes->get('pelatihan/sertifikat', 'Pelatihan::sertifikat');
+$routes->get('admin/sertifikat/download-file/(:num)', 'Admin::downloadFileSertifikat/$1');
 
+// ===== SERTIFIKAT ADMIN =====
+$routes->get('admin/sertifikat', 'Admin::sertifikat');
+$routes->get('admin/sertifikat/upload', 'Admin::uploadSertifikat');
+$routes->post('admin/sertifikat/store', 'Admin::storeSertifikat');
+
+$routes->get('admin/sertifikat/edit/(:num)', 'Admin::editSertifikat/$1');
+$routes->post('admin/sertifikat/update/(:num)', 'Admin::updateSertifikat/$1');
+
+$routes->get('admin/sertifikat/download/(:num)', 'Admin::downloadSertifikat/$1');
+$routes->get('admin/sertifikat/download-file/(:num)', 'Admin::downloadFileSertifikat/$1');
 // ===== MENU PENGATURAN AKUN PESERTA =====
 $routes->get('pelatihan/pengaturan', 'Pelatihan::pengaturan');
 $routes->get('pelatihan/ubah-password', 'Pelatihan::ubahPassword');

@@ -7,23 +7,23 @@ use CodeIgniter\Model;
 class SertifikatModel extends Model
 {
     protected $table            = 'sertifikat';
-    protected $primaryKey       = 'id';
+    protected $primaryKey       = 'id_sertifikat';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
 
-    protected $allowedFields    = [
-        'no_sertifikat', 
-        'id_users', 
-        'id_kelas', 
-        'tanggal_penerbitan', 
+    protected $allowedFields = [
+        'id_peserta',
+        'nomor_sertifikat',
+        'id_user',
+        'id_kelas',
+        'tanggal_terbit',
         'file_sertifikat',
         'created_at',
         'updated_at'
     ];
 
-    // Timestamp otomatis
-    protected $useTimestamps   = true;
-    protected $dateFormat      = 'datetime';
-    protected $createdField    = 'created_at';
-    protected $updatedField    = 'updated_at';
+    protected $useTimestamps = true;
+    protected $dateFormat    = 'datetime';
+    protected $createdField  = 'created_at';
+    protected $updatedField  = 'updated_at';
 }
