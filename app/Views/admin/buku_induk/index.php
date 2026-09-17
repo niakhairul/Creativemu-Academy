@@ -21,7 +21,6 @@
             --accent-purple: #9b6fd9;
             --light-purple: #f4f0fc;
             --dark-purple: #1e0f33;
-            --card-hover-shadow: 0 14px 28px rgba(121, 75, 196, 0.12);
         }
 
         body {
@@ -127,40 +126,6 @@
             align-items: center;
             border: 1px solid rgba(121, 75, 196, 0.05);
         }
-
-        /* STAT CARDS */
-        .stat-card {
-            background: #ffffff;
-            border-radius: 18px;
-            padding: 20px 24px;
-            box-shadow: 0 8px 24px rgba(121, 75, 196, 0.04);
-            border: 1px solid rgba(121, 75, 196, 0.06);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--card-hover-shadow);
-        }
-
-        .stat-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-            flex-shrink: 0;
-        }
-
-        .stat-purple { background: #f2ebfc; color: var(--primary-purple); }
-        .stat-green { background: #eafaf1; color: #2e7d32; }
-        .stat-amber { background: #fef8e7; color: #d97706; }
-        .stat-blue { background: #e8f3fc; color: #1976d2; }
 
         /* FILTER & CONTENT CARDS */
         .creative-card {
@@ -268,13 +233,17 @@
             white-space: nowrap;
         }
 
-        .table-custom tbody tr:nth-of-type(even) {
-            background-color: #fbf9fe;
+        /* Pengecualian khusus untuk kolom Alamat & Lokasi Pelatihan agar teks turun ke bawah */
+        .table-custom tbody td.kolom-alamat,
+        .table-custom tbody td.kolom-lokasi {
+            white-space: normal !important;
+            max-width: 220px;
+            word-break: break-word;
+            overflow-wrap: break-word;
         }
 
-        .table-custom tbody tr:hover {
-            background-color: #f3ecfb;
-        }
+        .table-custom tbody tr:nth-of-type(even) { background-color: #fbf9fe; }
+        .table-custom tbody tr:hover { background-color: #f3ecfb; }
 
         .badge-status {
             padding: 6px 12px;
@@ -317,12 +286,10 @@
             margin-right: 15px;
         }
     </style>
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
-    <script defer src="<?= base_url('assets/js/admin-responsive.js'); ?>"></script>
 </head>
 <body>
 
-    <!-- === SIDEBAR ADMIN (DENGAN BUKU INDUK DI ATAS ANGKET) === -->
+    <!-- === SIDEBAR ADMIN === -->
     <nav id="sidebar">
         <div class="sidebar-header">
             <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
@@ -356,7 +323,7 @@
                 </a>
             </li>
 
-            <!-- MENU BUKU INDUK (TEPAT DI ATAS ANGKET) -->
+            <!-- MENU BUKU INDUK -->
             <li class="nav-item">
                 <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link active">
                     <i class="fas fa-book-open"></i> <span>Buku Induk</span>
@@ -399,7 +366,6 @@
                 </div>
             </li>
 
-            
             <li class="nav-item">
                 <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link">
                     <i class="fas fa-gear"></i> <span>Pengaturan</span>
@@ -429,9 +395,6 @@
 
             <!-- ACTION BUTTONS -->
             <div class="d-flex align-items-center gap-2 flex-wrap">
-                <button type="button" class="btn btn-creative-primary" data-bs-toggle="modal" data-bs-target="#modalTambahPeserta">
-                    <i class="fas fa-plus"></i> Tambah Peserta
-                </button>
                 <?php 
                     $exportQuery = http_build_query($filters);
                 ?>
@@ -441,58 +404,6 @@
                 <a href="<?= base_url('admin/buku-induk/cetak?' . $exportQuery); ?>" class="btn btn-print" target="_blank">
                     <i class="fas fa-print"></i> Cetak / PDF
                 </a>
-            </div>
-        </div>
-
-        <!-- STAT CARDS -->
-        <div class="row g-3 mb-4">
-            <div class="col-xl-3 col-md-6">
-                <div class="stat-card">
-                    <div class="stat-icon stat-purple">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div>
-                        <div class="text-muted small fw-semibold text-uppercase">Total Peserta</div>
-                        <h3 class="fw-bold mb-0" style="color: var(--dark-purple);"><?= number_format($statistics['total_peserta'] ?? 0); ?></h3>
-                        <small class="text-muted" style="font-size: 0.75rem;">Terdata di Buku Induk</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6">
-                <div class="stat-card">
-                    <div class="stat-icon stat-green">
-                        <i class="fas fa-certificate"></i>
-                    </div>
-                    <div>
-                        <div class="text-muted small fw-semibold text-uppercase">Sertifikat Selesai</div>
-                        <h3 class="fw-bold mb-0 text-success"><?= number_format($statistics['sertifikat_selesai'] ?? 0); ?></h3>
-                        <small class="text-muted" style="font-size: 0.75rem;">Lulus / Diterbitkan</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6">
-                <div class="stat-card">
-                    <div class="stat-icon stat-amber">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div>
-                        <div class="text-muted small fw-semibold text-uppercase">Sertifikat Menunggu</div>
-                        <h3 class="fw-bold mb-0 text-warning"><?= number_format($statistics['sertifikat_menunggu'] ?? 0); ?></h3>
-                        <small class="text-muted" style="font-size: 0.75rem;">KBM Berjalan / Pending</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6">
-                <div class="stat-card">
-                    <div class="stat-icon stat-blue">
-                        <i class="fas fa-graduation-cap"></i>
-                    </div>
-                    <div>
-                        <div class="text-muted small fw-semibold text-uppercase">Kelas Terdaftar</div>
-                        <h3 class="fw-bold mb-0 text-primary"><?= number_format($statistics['total_kelas'] ?? 0); ?></h3>
-                        <small class="text-muted" style="font-size: 0.75rem;">Variasi kelas pelatihan</small>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -557,7 +468,7 @@
                         </select>
                     </div>
 
-                    <!-- Filter Status Diterima -->
+                    <!-- Filter Status Validasi -->
                     <div class="col-lg-2 col-md-4 col-6">
                         <label class="form-label small fw-bold text-muted">Status Validasi</label>
                         <select name="status_diterima" class="form-select form-select-sm">
@@ -609,6 +520,7 @@
                             <th>Nama Peserta</th>
                             <th>Tanggal Masuk</th>
                             <th>Kelas</th>
+                            <th>Lokasi Pelatihan</th> <!-- Lokasi Pelatihan dipindah ke samping Kelas -->
                             <th>Tanggal Selesai</th>
                             <th>Status Sertifikat</th>
                             <th>Diterima</th>
@@ -616,7 +528,6 @@
                             <th>Pilihan Kelas</th>
                             <th>Metode</th>
                             <th>Jenis Kelas</th>
-                            <th>Lokasi Pelatihan</th>
                             <th>Pendidikan</th>
                             <th>Status</th>
                             <th>No. WhatsApp</th>
@@ -650,6 +561,8 @@
                                         <?= !empty($item['tanggal_masuk']) && $item['tanggal_masuk'] !== '-' ? date('d/m/Y', strtotime($item['tanggal_masuk'])) : '-'; ?>
                                     </td>
                                     <td class="fw-semibold text-primary"><?= esc($item['nama_kelas'] ?: '-'); ?></td>
+                                    <!-- Kolom Lokasi Pelatihan ditaruh di samping Kelas dengan class wrap -->
+                                    <td class="kolom-lokasi"><?= esc($item['lokasi_pelatihan']); ?></td>
                                     <td>
                                         <?= !empty($item['tanggal_selesai_kelas']) && $item['tanggal_selesai_kelas'] !== '-' ? date('d/m/Y', strtotime($item['tanggal_selesai_kelas'])) : '<span class="text-muted">-</span>'; ?>
                                     </td>
@@ -680,7 +593,6 @@
                                         </span>
                                     </td>
                                     <td><?= ucfirst(esc($item['jenis_kelas'])); ?></td>
-                                    <td><?= esc($item['lokasi_pelatihan']); ?></td>
                                     <td><?= esc($item['pendidikan_terakhir']); ?></td>
                                     <td>
                                         <span class="badge-status badge-aktif"><?= ucfirst(esc($item['status_peserta'])); ?></span>
@@ -696,7 +608,8 @@
                                     </td>
                                     <td><?= esc($item['jenis_kelamin']); ?></td>
                                     <td><?= esc($item['tempat_tanggal_lahir']); ?></td>
-                                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;"><?= esc($item['alamat']); ?></td>
+                                    <!-- Kolom Alamat di posisi paling akhir -->
+                                    <td class="kolom-alamat"><?= esc($item['alamat']); ?></td>
                                     <td class="text-center">
                                         <div class="d-inline-flex gap-1">
                                             <button type="button" class="btn btn-sm btn-light border text-primary" title="Lihat Detail" onclick="bukaDetail(<?= $item['id_pendaftaran']; ?>)">
@@ -765,105 +678,6 @@
                 <div class="modal-footer bg-light px-4 py-3">
                     <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal">Tutup</button>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- === MODAL TAMBAH PESERTA BUKU INDUK === -->
-    <div class="modal fade" id="modalTambahPeserta" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
-                <div class="modal-header py-3 px-4 text-white" style="background: var(--sidebar-active-gradient);">
-                    <h5 class="modal-title fw-bold"><i class="fas fa-user-plus me-2"></i> Tambah Peserta ke Buku Induk</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form id="formTambahPeserta" onsubmit="simpanPesertaBaru(event)">
-                    <?= csrf_field(); ?>
-                    <div class="modal-body p-4">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">NIS (Nomor Induk Siswa)</label>
-                                <input type="text" name="nis" class="form-control form-control-sm" placeholder="Otomatis (YYYYMMXXX) jika dikosongkan">
-                                <small class="text-muted" style="font-size: 0.72rem;">Contoh format: 202609013</small>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Pilih Kelas Pelatihan <span class="text-danger">*</span></label>
-                                <select name="id_kelas" class="form-select form-select-sm" required>
-                                    <option value="">-- Pilih Kelas --</option>
-                                    <?php foreach ($filterClasses as $k): ?>
-                                        <option value="<?= $k['id_kelas']; ?>"><?= esc($k['nama_kelas']); ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Nama Lengkap Peserta <span class="text-danger">*</span></label>
-                                <input type="text" name="nama" class="form-control form-control-sm" required placeholder="Masukkan nama lengkap">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">No. WhatsApp / HP</label>
-                                <input type="text" name="no_hp" class="form-control form-control-sm" placeholder="08xxxxxxxxxx">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Alamat Email</label>
-                                <input type="email" name="email" class="form-control form-control-sm" placeholder="email@contoh.com">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Jenis Kelamin</label>
-                                <select name="jenis_kelamin" class="form-select form-select-sm">
-                                    <option value="Laki-laki">Laki-laki</option>
-                                    <option value="Perempuan">Perempuan</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Tempat, Tanggal Lahir</label>
-                                <input type="text" name="ttl" class="form-control form-control-sm" placeholder="Kota, DD-MM-YYYY">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Pendidikan Terakhir</label>
-                                <select name="pendidikan_terakhir" class="form-select form-select-sm">
-                                    <option value="SMA/SMK">SMA/SMK</option>
-                                    <option value="D3">D3</option>
-                                    <option value="S1">S1</option>
-                                    <option value="S2">S2</option>
-                                    <option value="SMP">SMP</option>
-                                    <option value="Lainnya">Lainnya</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Metode Pembelajaran</label>
-                                <select name="metode_pembelajaran" class="form-select form-select-sm">
-                                    <option value="Offline">Offline</option>
-                                    <option value="Online">Online</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Jenis Kelas</label>
-                                <select name="jenis_kelas" class="form-select form-select-sm">
-                                    <option value="Reguler">Reguler</option>
-                                    <option value="Privat">Privat</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Tanggal Mulai Kelas</label>
-                                <input type="date" name="tanggal_mulai_kelas" class="form-control form-control-sm" value="<?= date('Y-m-d'); ?>">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Lokasi Pelatihan</label>
-                                <input type="text" name="lokasi_pelatihan" class="form-control form-control-sm" value="CreativeMU Training Center">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label small fw-bold">Alamat Lengkap</label>
-                                <textarea name="alamat" rows="2" class="form-control form-control-sm" placeholder="Alamat domisili peserta..."></textarea>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer bg-light px-4 py-3">
-                        <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-creative-primary btn-sm px-4" id="btnSimpanPeserta">
-                            <i class="fas fa-save me-1"></i> Simpan ke Buku Induk
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
     </div>
@@ -939,22 +753,28 @@
                                         <tr><th class="text-muted ps-0">No. WhatsApp</th><td>${d.no_whatsapp || '-'}</td></tr>
                                         <tr><th class="text-muted ps-0">Tempat, Tgl Lahir</th><td>${d.tempat_tanggal_lahir || '-'}</td></tr>
                                         <tr><th class="text-muted ps-0">Pendidikan</th><td>${d.pendidikan_terakhir || '-'}</td></tr>
-                                        <tr><th class="text-muted ps-0">Alamat</th><td>${d.alamat || '-'}</td></tr>
                                     </table>
                                 </div>
 
                                 <div class="col-md-6">
                                     <table class="table table-sm table-borderless mb-0">
                                         <tr><th class="text-muted ps-0" style="width: 140px;">Kelas</th><td class="fw-bold text-primary">${d.nama_kelas || '-'}</td></tr>
+                                        <tr><th class="text-muted ps-0">Lokasi Pelatihan</th><td>${d.lokasi_pelatihan || '-'}</td></tr>
                                         <tr><th class="text-muted ps-0">Kategori Kelas</th><td>${d.kategori_kelas || '-'}</td></tr>
                                         <tr><th class="text-muted ps-0">Pilihan Kelas</th><td>${d.pilihan_kelas || '-'}</td></tr>
                                         <tr><th class="text-muted ps-0">Metode</th><td>${d.metode || '-'}</td></tr>
                                         <tr><th class="text-muted ps-0">Jenis Kelas</th><td>${d.jenis_kelas || '-'}</td></tr>
-                                        <tr><th class="text-muted ps-0">Lokasi Pelatihan</th><td>${d.lokasi_pelatihan || '-'}</td></tr>
                                         <tr><th class="text-muted ps-0">Tanggal Masuk</th><td>${d.tanggal_masuk || '-'}</td></tr>
                                         <tr><th class="text-muted ps-0">Tanggal Selesai</th><td>${d.tanggal_selesai_kelas || '-'}</td></tr>
                                         <tr><th class="text-muted ps-0">Status Pendaftaran</th><td>${d.diterima || '-'}</td></tr>
                                     </table>
+                                </div>
+
+                                <div class="col-12 mt-2">
+                                    <div class="p-3 bg-light rounded-3">
+                                        <small class="text-muted d-block text-uppercase fw-semibold mb-1" style="font-size: 0.72rem;">Alamat Lengkap</small>
+                                        <div class="fw-normal text-dark" style="white-space: pre-line; word-break: break-word;">${d.alamat || '-'}</div>
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -1085,38 +905,6 @@
             .catch(err => {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-save me-1"></i> Simpan Perubahan';
-                alert('Terjadi kesalahan jaringan.');
-            });
-        }
-
-        // SIMPAN PESERTA BARU
-        function simpanPesertaBaru(e) {
-            e.preventDefault();
-            const form = document.getElementById('formTambahPeserta');
-            const btn = document.getElementById('btnSimpanPeserta');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Menyimpan...';
-
-            const formData = new FormData(form);
-
-            fetch('<?= base_url('admin/buku-induk/store'); ?>', {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(res => {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-save me-1"></i> Simpan ke Buku Induk';
-                if (res.status === 'success') {
-                    alert(res.message);
-                    location.reload();
-                } else {
-                    alert(res.message || 'Gagal menambahkan peserta.');
-                }
-            })
-            .catch(err => {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-save me-1"></i> Simpan ke Buku Induk';
                 alert('Terjadi kesalahan jaringan.');
             });
         }
