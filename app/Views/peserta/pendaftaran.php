@@ -711,7 +711,7 @@
                             <span class="input-group-text bg-light border-end-0 text-muted" style="border-color: var(--purple-border); border-radius: var(--radius-md) 0 0 var(--radius-md);">
                                 <i class="bi bi-person-fill text-primary"></i>
                             </span>
-                            <input type="text" class="form-control border-start-0" id="nama" name="nama" value="<?= esc($user['nama'] ?? '') ?>" required placeholder="Masukkan nama lengkap Anda" <?= ($isLoggedIn && !empty($user['nama'])) ? 'readonly' : '' ?> style="border-radius: 0 var(--radius-md) var(--radius-md) 0;">
+                            <input type="text" class="form-control border-start-0" id="nama" name="nama" value="<?= esc($user['nama'] ?? '') ?>" required placeholder="Masukkan nama lengkap Anda" <?= $isLoggedIn ? 'readonly' : '' ?> style="border-radius: 0 var(--radius-md) var(--radius-md) 0;">
                         </div>
                     </div>
 
@@ -725,7 +725,7 @@
                                 <span class="input-group-text bg-light border-end-0 text-muted" style="border-color: var(--purple-border); border-radius: var(--radius-md) 0 0 var(--radius-md);">
                                     <i class="bi bi-envelope-fill text-primary"></i>
                                 </span>
-                                <input type="email" class="form-control border-start-0" id="email" name="email" value="<?= esc($user['email'] ?? '') ?>" required placeholder="nama@email.com" <?= ($isLoggedIn && !empty($user['email'])) ? 'readonly' : '' ?> style="border-radius: 0 var(--radius-md) var(--radius-md) 0;">
+                                <input type="email" class="form-control border-start-0" id="email" name="email" value="<?= esc($user['email'] ?? '') ?>" required placeholder="nama@email.com" <?= $isLoggedIn ? 'readonly' : '' ?> style="border-radius: 0 var(--radius-md) var(--radius-md) 0;">
                             </div>
                         </div>
                         <div class="col-sm-6">
@@ -736,7 +736,7 @@
                                 <span class="input-group-text bg-light border-end-0 text-muted" style="border-color: var(--purple-border); border-radius: var(--radius-md) 0 0 var(--radius-md);">
                                     <i class="bi bi-whatsapp text-success"></i>
                                 </span>
-                                <input type="tel" class="form-control border-start-0" id="no_hp" name="no_hp" value="<?= esc($user['no_hp'] ?? '') ?>" required placeholder="08xxxxxxxxxx" <?= ($isLoggedIn && !empty($user['no_hp'])) ? 'readonly' : '' ?> style="border-radius: 0 var(--radius-md) var(--radius-md) 0;">
+                                <input type="tel" class="form-control border-start-0" id="no_hp" name="no_hp" value="<?= esc($user['no_hp'] ?? '') ?>" required placeholder="08xxxxxxxxxx" <?= $isLoggedIn ? 'readonly' : '' ?> style="border-radius: 0 var(--radius-md) var(--radius-md) 0;">
                             </div>
                         </div>
                     </div>
@@ -747,17 +747,20 @@
                             <label for="ttl" class="form-label-custom">
                                 <span>Tempat, Tanggal Lahir <span class="required-star">*</span></span>
                             </label>
-                            <input type="text" class="form-control" id="ttl" name="ttl" value="<?= esc($user['ttl'] ?? '') ?>" required placeholder="Contoh: Yogyakarta, 12 Mei 2002" <?= ($isLoggedIn && !empty($user['ttl'])) ? 'readonly' : '' ?>>
+                            <input type="text" class="form-control" id="ttl" name="ttl" value="<?= esc($user['ttl'] ?? '') ?>" required placeholder="Contoh: Yogyakarta, 12 Mei 2002" <?= $isLoggedIn ? 'readonly' : '' ?>>
                         </div>
                         <div class="col-sm-6">
                             <label for="jenis_kelamin" class="form-label-custom">
                                 <span>Jenis Kelamin <span class="required-star">*</span></span>
                             </label>
-                            <select class="form-select" id="jenis_kelamin" name="jenis_kelamin" required>
+                            <select class="form-select" id="jenis_kelamin" name="jenis_kelamin" required <?= $isLoggedIn ? 'disabled' : '' ?>>
                                 <option value="" disabled <?= empty($genderAktif) ? 'selected' : '' ?>>Pilih Jenis Kelamin</option>
                                 <option value="Laki-laki" <?= ($genderAktif === 'laki-laki') ? 'selected' : '' ?>>Laki-laki</option>
                                 <option value="Perempuan" <?= ($genderAktif === 'perempuan') ? 'selected' : '' ?>>Perempuan</option>
                             </select>
+                            <?php if ($isLoggedIn): ?>
+                                <input type="hidden" name="jenis_kelamin" value="<?= esc($user['jenis_kelamin'] ?? '') ?>">
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -767,7 +770,7 @@
                             <label for="pendidikan_terakhir" class="form-label-custom">
                                 <span>Pendidikan Terakhir <span class="required-star">*</span></span>
                             </label>
-                            <select class="form-select" id="pendidikan_terakhir" name="pendidikan_terakhir" required>
+                            <select class="form-select" id="pendidikan_terakhir" name="pendidikan_terakhir" required <?= $isLoggedIn ? 'disabled' : '' ?>>
                                 <option value="" disabled <?= empty($pendidikanAktif) ? 'selected' : '' ?>>Pilih Pendidikan Terakhir</option>
                                 <option value="Smp/Sederajat" <?= (strpos($pendidikanAktif, 'smp') !== false) ? 'selected' : '' ?>>SMP / Sederajat</option>
                                 <option value="Sma/Smk/Sederajat" <?= (strpos($pendidikanAktif, 'sma') !== false || strpos($pendidikanAktif, 'smk') !== false) ? 'selected' : '' ?>>SMA / SMK / Sederajat</option>
@@ -775,6 +778,9 @@
                                 <option value="S1" <?= ($pendidikanAktif === 's1') ? 'selected' : '' ?>>S1 (Sarjana)</option>
                                 <option value="S2" <?= ($pendidikanAktif === 's2') ? 'selected' : '' ?>>S2 (Magister)</option>
                             </select>
+                            <?php if ($isLoggedIn): ?>
+                                <input type="hidden" name="pendidikan_terakhir" value="<?= esc($user['pendidikan_terakhir'] ?? '') ?>">
+                            <?php endif; ?>
                         </div>
                         <div class="col-sm-6">
                             <?php if (!empty($isStatusLocked) && !empty($user['status'])): ?>
@@ -795,7 +801,7 @@
                                 <label for="pilihan_status" class="form-label-custom">
                                     <span>Status / Profesi <span class="required-star">*</span></span>
                                 </label>
-                                <select class="form-select" id="pilihan_status" name="pilihan_status" required>
+                                <select class="form-select" id="pilihan_status" name="pilihan_status" required <?= $isLoggedIn ? 'disabled' : '' ?>>
                                     <option value="" disabled <?= empty($statusAktif) ? 'selected' : '' ?>>Pilih Status Saat Ini</option>
                                     <option value="Pelajar SMP" <?= ($statusAktif === 'pelajar smp') ? 'selected' : '' ?>>Pelajar SMP</option>
                                     <option value="Pelajar SMA/SMK" <?= ($statusAktif === 'pelajar sma/smk' || $statusAktif === 'pelajar') ? 'selected' : '' ?>>Pelajar SMA / SMK</option>
@@ -805,6 +811,10 @@
                                     <option value="Pegawainegri" <?= (strpos($statusAktif, 'pegawai') !== false || strpos($statusAktif, 'asn') !== false) ? 'selected' : '' ?>>ASN / TNI / POLRI</option>
                                     <option value="Lainnya" <?= ($statusAktif === 'lainnya') ? 'selected' : '' ?>>Lainnya / Umum</option>
                                 </select>
+                                <?php if ($isLoggedIn): ?>
+                                    <input type="hidden" name="pilihan_status" value="<?= esc($user['status'] ?? '') ?>">
+                                    <input type="hidden" name="status" value="<?= esc($user['status'] ?? '') ?>">
+                                <?php endif; ?>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -814,7 +824,7 @@
                         <label for="alamat" class="form-label-custom">
                             <span>Alamat Lengkap Domisili <span class="required-star">*</span></span>
                         </label>
-                        <textarea class="form-control" id="alamat" name="alamat" rows="3" required placeholder="Tuliskan nama jalan, RT/RW, kelurahan, kecamatan, kota/kabupaten tempat tinggal Anda..." <?= ($isLoggedIn && !empty($user['alamat'])) ? 'readonly' : '' ?>><?= esc($user['alamat'] ?? '') ?></textarea>
+                        <textarea class="form-control" id="alamat" name="alamat" rows="3" required placeholder="Tuliskan nama jalan, RT/RW, kelurahan, kecamatan, kota/kabupaten tempat tinggal Anda..." <?= $isLoggedIn ? 'readonly' : '' ?>><?= esc($user['alamat'] ?? '') ?></textarea>
                     </div>
 
                 </div>
@@ -859,12 +869,13 @@
                                                 data-mentor="<?= esc($kOpt['nama_mentor'] ?? 'Mentor Creativemu') ?>"
                                                 data-tanggal="<?= esc($kOpt['tanggal_mulai_kelas'] ?? '-') ?>"
                                                 data-pertemuan="<?= esc($kOpt['jumlah_pertemuan'] ?? '6') ?>"
+                                                data-kuota="<?= esc($kOpt['kapasitas_tersedia'] ?? $kOpt['kapasitas'] ?? '0') ?>"
                                                 data-thumbnail="<?= esc($kOpt['thumbnail'] ?? '') ?>">
-                                                <?= esc($kOpt['nama_kelas']) ?> (<?= esc($kOpt['kategori']) ?>) — <?= ucfirst($kOpt['tipe_kelas'] ?? 'offline') ?>
+                                                <?= esc($kOpt['nama_kelas']) ?> | Sisa kuota: <?= esc($kOpt['kapasitas_tersedia'] ?? $kOpt['kapasitas'] ?? '0') ?> kursi
                                             </option>
                                         <?php endforeach; ?>
                                     <?php else: ?>
-                                        <option value="<?= esc($kelas['id_kelas']) ?>" selected><?= esc($kelas['nama_kelas']) ?></option>
+                                        <option value="<?= esc($kelas['id_kelas']) ?>" selected><?= esc($kelas['nama_kelas']) ?> | Sisa kuota: <?= esc($kelas['kapasitas_tersedia'] ?? $kelas['kapasitas'] ?? '0') ?> kursi</option>
                                     <?php endif; ?>
                                 </select>
                             </div>
@@ -941,10 +952,10 @@
                                 </label>
                                 <select class="form-select" id="pilihan_lokasi" name="pilihan_lokasi">
                                     <option value="" disabled selected>Pilih Lokasi Kantor / Ruang Kelas</option>
-                                    <option value="Kampus Utama Creativemu - Jl. Gn. Bulu No 89, Argorejo, Sedayu, Bantul, Yogyakarta">Kampus Utama Creativemu — Yogyakarta</option>
-                                    <option value="Kantor Pusat - Surakarta">Kantor Pusat — Surakarta</option>
-                                    <option value="Kantor Cabang - Solo">Kantor Cabang — Solo</option>
-                                    <option value="Kantor Perwakilan - Magelang">Kantor Perwakilan — Magelang</option>
+                                    <?php foreach (($lokasiPelatihan ?? []) as $lokasi): ?>
+                                        <?php $labelLokasi = trim(($lokasi['nama_lokasi'] ?? '') . (!empty($lokasi['alamat']) ? ' - ' . $lokasi['alamat'] : '')); ?>
+                                        <option value="<?= esc($labelLokasi) ?>"><?= esc($lokasi['nama_lokasi'] ?? '-') ?></option>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
                         </div>
@@ -961,17 +972,18 @@
                                 <select class="form-select border-start-0" id="sumber_informasi" name="sumber_informasi" required style="border-radius: 0 var(--radius-md) var(--radius-md) 0;">
                                     <option value="" disabled selected>-- Pilih sumber informasi --</option>
                                     <option value="TikTok">TikTok</option>
-                                    <option value="YouTube">YouTube</option>
-                                    <option value="Instagram">Instagram</option>
                                     <option value="Facebook">Facebook</option>
-                                    <option value="Telegram">Telegram</option>
+                                    <option value="Instagram">Instagram</option>
+                                    <option value="WhatsApp">WhatsApp</option>
+                                    <option value="Brosur">Brosur</option>
+                                    <option value="YouTube">YouTube</option>
+                                    <option value="Twitter/X">Twitter/X</option>
                                     <option value="Teman">Teman</option>
                                     <option value="Alumni CreativeMU">Alumni CreativeMU</option>
                                     <option value="Website CreativeMU">Website CreativeMU</option>
                                     <option value="Google">Google</option>
                                     <option value="Keluarga">Keluarga</option>
-                                    <option value="Brosur">Brosur</option>
-                                    <option value="Media Elektronik/Cetak">Media Elektronik/Cetak</option>
+                                    <option value="Media Elektronik">Media Elektronik</option>
                                 </select>
                             </div>
                         </div>

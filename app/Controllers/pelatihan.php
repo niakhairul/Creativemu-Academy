@@ -410,6 +410,13 @@ if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
             'kelasList'      => $availableClasses,
             'user'           => $userData,
             'isStatusLocked' => $userData['status_locked'],
+            'lokasiPelatihan' => $db->table('lokasi_pelatihan')
+                ->where('is_online !=', 1)
+                ->notLike('nama_lokasi', 'Online')
+                ->notLike('nama_lokasi', 'Surakarta')
+                ->orderBy('id_lokasi', 'ASC')
+                ->get()
+                ->getResultArray(),
         ];
 
         return view('peserta/pendaftaran', $data);
@@ -482,11 +489,40 @@ if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
         $metodePembelajaran = strtolower(trim((string) $this->request->getPost('metode_pembelajaran')));
         $jenisKelas         = trim((string) $this->request->getPost('jenis_kelas')) ?: 'Reguler';
         $kategoriKelas      = trim((string) $this->request->getPost('kategori_kelas')) ?: ($kelas['kategori'] ?? 'Basic Pelatihan');
+        $sumberInformasi    = trim((string) $this->request->getPost('sumber_informasi'));
+
+        if ($userId) {
+            $userAccount = $db->table('users')->where('id_users', $userId)->get()->getRowArray() ?? [];
+            $lastRegistration = $db->table('pendaftaran')
+                ->where('id_users', $userId)
+                ->orderBy('id_pendaftaran', 'DESC')
+                ->get()
+                ->getRowArray() ?? [];
+
+            $nama               = trim((string) ($userAccount['nama'] ?? $lastRegistration['nama'] ?? $nama));
+            $email              = trim((string) ($userAccount['email'] ?? $lastRegistration['email'] ?? $email));
+            $noHp               = trim((string) ($userAccount['no_hp'] ?? $lastRegistration['no_hp'] ?? $noHp));
+            $alamat             = trim((string) ($lastRegistration['alamat'] ?? $alamat));
+            $ttl                = trim((string) ($lastRegistration['ttl'] ?? $ttl));
+            $jenisKelamin       = trim((string) ($userAccount['jenis_kelamin'] ?? $lastRegistration['jenis_kelamin'] ?? $jenisKelamin));
+            $pendidikanTerakhir = trim((string) ($lastRegistration['pendidikan_terakhir'] ?? $pendidikanTerakhir));
+        }
 
         if (empty($nama) || empty($email) || empty($noHp) || empty($alamat) || empty($ttl) || empty($jenisKelamin) || empty($pendidikanTerakhir) || empty($metodePembayaran)) {
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Mohon lengkapi seluruh kolom formulir yang bertanda bintang (*).');
+        }
+
+        $opsiSumberInformasi = [
+            'TikTok', 'Facebook', 'Instagram', 'WhatsApp', 'Brosur', 'YouTube', 'Twitter/X',
+            'Teman', 'Alumni CreativeMU', 'Website CreativeMU', 'Google', 'Keluarga', 'Media Elektronik',
+        ];
+
+        if (!in_array($sumberInformasi, $opsiSumberInformasi, true)) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Pilih sumber informasi pelatihan yang tersedia pada daftar.');
         }
 
         // Aturan Status: Jika akun login sudah punya data status di database, kunci nilai tersebut
@@ -508,12 +544,33 @@ if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
             $statusPeserta = 'Umum';
         }
 
-        // Tempat pelatihan untuk offline
-        $lokasiPelatihan = ($metodePembelajaran === 'offline') ? $this->request->getPost('pilihan_lokasi') : 'Online / Daring';
+        // Tempat pelatihan untuk offline harus berasal dari data lokasi fisik yang tersedia.
+        $lokasiPelatihan = ($metodePembelajaran === 'offline') ? trim((string) $this->request->getPost('pilihan_lokasi')) : 'Online / Daring';
         if ($metodePembelajaran === 'offline' && empty($lokasiPelatihan)) {
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Pilihan tempat pelatihan offline wajib dipilih.');
+        }
+
+        if ($metodePembelajaran === 'offline') {
+            $lokasiValid = $db->table('lokasi_pelatihan')
+                ->where('is_online !=', 1)
+                ->notLike('nama_lokasi', 'Online')
+                ->notLike('nama_lokasi', 'Surakarta')
+                ->groupStart()
+                    ->where('nama_lokasi', $lokasiPelatihan)
+                    ->orWhere("CONCAT(nama_lokasi, ' - ', alamat) =", $lokasiPelatihan)
+                ->groupEnd()
+                ->get()
+                ->getRowArray();
+
+            if (!$lokasiValid) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Lokasi pelatihan tidak valid. Pilih lokasi yang tersedia pada daftar.');
+            }
+
+            $lokasiPelatihan = trim(($lokasiValid['nama_lokasi'] ?? '') . (!empty($lokasiValid['alamat']) ? ' - ' . $lokasiValid['alamat'] : ''));
         }
 
         // =========================================================
@@ -610,6 +667,10 @@ if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
             'alasan_penolakan'    => null,
             'persetujuan_syarat'  => $this->request->getPost('persetujuan_syarat') ? 1 : 0,
         ];
+
+        if ($db->fieldExists('sumber_informasi', 'pendaftaran')) {
+            $dataPendaftaran['sumber_informasi'] = $sumberInformasi;
+        }
 
         try {
             if ($pendaftaranModel->insert($dataPendaftaran)) {
@@ -1098,9 +1159,9 @@ if ($kelas && !empty($jadwal)) {
             $absensi = null;
             if ($idJadwal) {
                 $absensi = $absensiModel
-    ->where('id_jadwal_kelas', $idJadwal)
-    ->where('id_user', $this->userId())
-    ->first();
+                    ->where('id_jadwal_kelas', $idJadwal)
+                    ->where('id_user', $this->userId())
+                    ->first();
             }
 
             $item['absensi'] = $absensi;
@@ -1124,11 +1185,10 @@ if ($kelas && !empty($jadwal)) {
             ->get()
             ->getRow();
 
-        // 5. Cek status kelulusan / ketersediaan sertifikat (sesuaikan dengan logika tabel sertifikat/ujian Anda)
-        // Contoh sederhana: bisa diatur true/false atau mengecek ke tabel kelulusan/nilai
-        $sertifikatAcademy = false; // Ubah menjadi logika pengecekan database jika sudah ada tabelnya
+        // 5. Status sertifikat academy
+        $sertifikatAcademy = false; 
 
-        // 6. Kirim semua variabel yang dibutuhkan ke view 'peserta/kbm'
+        // 6. HANYA memanggil view 'peserta/kbm' murni tanpa mencampur fungsi view 'kelas'
         return view('peserta/kbm', [
             'kelas'               => $kelas,
             'jadwal'              => $jadwal,
@@ -1136,7 +1196,7 @@ if ($kelas && !empty($jadwal)) {
             'totalPertemuan'      => $totalPertemuan,
             'persentaseKehadiran' => $persentaseKehadiran,
             'sudahIsiAngket'      => $sudahIsiAngket,
-            'sertifikatAcademy'   => $sertifikatAcademy, // <-- Ditambahkan di sini
+            'sertifikatAcademy'   => $sertifikatAcademy,
         ]);
     }
 
@@ -1327,59 +1387,49 @@ return $this->response->setJSON([
 
 public function prosesAbsen(int $idJadwal)
 {
-    // 1. Ambil data jadwal & koordinat
-    $jadwal = $this->db->table('jadwal')
-        ->where('id_jadwal', $idJadwal)
+    // 1. Ambil data jadwal & koordinat pusat dari database
+    // Menggunakan kolom primary key yang benar: 'id_jadwal_kelas'
+    $jadwal = $this->db->table('jadwal_kelas')
+        ->where('id_jadwal_kelas', $idJadwal)
         ->get()
         ->getRowArray();
 
     if (!$jadwal) {
-        return redirect()->back()->with('error', 'Jadwal tidak ditemukan.');
+        return redirect()->back()->with('error', 'Jadwal tidak ditemukan (ID: ' . $idJadwal . ').');
     }
 
+    // 2. Cek apakah koordinat latitude & longitude sudah diisi di database
     if (empty($jadwal['latitude']) || empty($jadwal['longitude'])) {
         return redirect()->back()->with(
             'error',
-            'Lokasi absensi untuk sesi ini belum diatur oleh mentor.'
+            'Lokasi absensi untuk sesi ini belum diatur oleh admin/mentor.'
         );
     }
 
-    // 2. Tangkap koordinat GPS peserta
+    // Titik pusat dan radius diambil dari database jadwal_kelas
+    $latitudePusat  = $jadwal['latitude'];
+    $longitudePusat = $jadwal['longitude'];
+    $maxRadius      = (int) ($jadwal['radius_meter'] ?? 100); // Default 100 meter
+
+    // 3. Tangkap koordinat GPS peserta dari form/request frontend
     $userLat = $this->request->getPost('user_latitude');
-    $userLng = $this->request->getPost('user_longitude');
+    $userLon = $this->request->getPost('user_longitude');
 
-    if (!$userLat || !$userLng) {
-        return redirect()->back()->with(
-            'error',
-            'Gagal mendeteksi lokasi GPS Anda. Pastikan izin lokasi (GPS) di perangkat Anda aktif.'
-        );
+    // 4. Validasi jika koordinat kosong (peserta mematikan GPS)
+    if (empty($userLat) || empty($userLon)) {
+        return redirect()->back()->with('error', 'Gagal mendeteksi lokasi GPS. Pastikan izin lokasi aktif.');
     }
 
-    // 3. Hitung jarak
-    $jarakMeter = $this->hitungJarakGPS(
-        $userLat,
-        $userLng,
-        $jadwal['latitude'],
-        $jadwal['longitude']
-    );
+    // 5. Hitung jarak menggunakan fungsi Haversine yang ada di class ini
+    $jarak = $this->hitungJarakGPS($latitudePusat, $longitudePusat, $userLat, $userLon);
 
-    $radiusMaksimal = (int) ($jadwal['radius_meter'] ?? 100);
-
-    // 4. Validasi radius
-    if ($jarakMeter > $radiusMaksimal) {
-        return redirect()->back()->with(
-            'error',
-            'Anda berada di luar radius lokasi pelatihan! Jarak Anda sekitar ' .
-            round($jarakMeter) .
-            ' meter dari titik pusat (Maksimal ' .
-            $radiusMaksimal .
-            ' meter).'
-        );
+    // 6. Validasi apakah jarak peserta melebihi radius maksimal
+    if ($jarak > $maxRadius) {
+        return redirect()->back()->with('error', 'Anda berada di luar radius absensi! Jarak Anda sekitar ' . round($jarak) . ' meter dari lokasi.');
     }
 
-    // 5. Simpan absensi jika valid
+    // 7. Cek apakah sudah pernah absen sebelumnya
     $idUser = $this->userId();
-
     $cekAbsen = $this->db->table('absensi')
         ->where('id_jadwal_kelas', $idJadwal)
         ->where('id_user', $idUser)
@@ -1387,23 +1437,23 @@ public function prosesAbsen(int $idJadwal)
         ->getRowArray();
 
     if ($cekAbsen) {
-        return redirect()->back()->with(
-            'error',
-            'Anda sudah melakukan absensi pada sesi ini.'
-        );
+        return redirect()->back()->with('error', 'Anda sudah melakukan absensi pada sesi ini.');
     }
 
+    // 8. Simpan data absensi ke database jika lolos semua validasi
     $this->db->table('absensi')->insert([
         'id_jadwal_kelas' => $idJadwal,
         'id_user'         => $idUser,
         'status'          => 'hadir',
-        'waktu_absen'     => date('Y-m-d H:i:s')
+        'latitude'        => (float) $userLat,
+        'longitude'       => (float) $userLon,
+        'jarak'           => round($jarak),
+        'waktu_absen'     => date('Y-m-d H:i:s'),
+        'created_at'      => date('Y-m-d H:i:s'),
+        'updated_at'      => date('Y-m-d H:i:s'),
     ]);
 
-    return redirect()->back()->with(
-        'success',
-        'Absensi berhasil! Kehadiran Anda telah tercatat.'
-    );
+    return redirect()->back()->with('success', 'Absensi berhasil! Kehadiran Anda telah tercatat.');
 }
 
     // Fungsi pendukung untuk menghitung jarak GPS (dalam meter menggunakan Haversine Formula)
@@ -1495,7 +1545,7 @@ public function prosesAbsen(int $idJadwal)
 
         // 4. Fallback lokasi offline: Kampus Utama Creativemu (Sedayu, Bantul)
         return [
-            'nama_lokasi'  => $namaLokasi ?: 'Kampus Utama Creativemu',
+            'nama_lokasi'  => $namaLokasi ?: 'Kantor Utama Creativemu',
             'alamat'       => 'Jl. Gn. Bulu No 89, RT.34, Bandut Lor, Argorejo, Sedayu, Bantul, Yogyakarta',
             'latitude'     => -7.818933,
             'longitude'    => 110.285813,

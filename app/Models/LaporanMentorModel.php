@@ -172,7 +172,7 @@ class LaporanMentorModel extends Model
                 }
 
                 // Jika jadwal memiliki absensi_dibuka = 1 atau absensi mentor ada
-                if (($j['absensi_dibuka'] ?? 0) == 1 || $absenRecord) {
+                if (($j['absensi_dibuka'] ?? 1) == 1 || $absenRecord) {
                     $sesiTerlaksana++;
                 }
 

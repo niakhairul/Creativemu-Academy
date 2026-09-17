@@ -764,14 +764,6 @@
                                 <span class="badge-kategori shadow-sm"><?= esc($k['kategori']) ?></span>
                             </div>
 
-                            <?php if (!empty($k['metode'])) : ?>
-                                <div class="position-absolute top-0 end-0 p-3" style="z-index: 5;">
-                                    <span class="badge-metode shadow-sm">
-                                        <i class="bi <?= strtolower($k['metode']) == 'online' ? 'bi-camera-video-fill text-primary' : 'bi-building-fill text-success' ?> me-1"></i>
-                                        <?= esc($k['metode']) ?>
-                                    </span>
-                                </div>
-                            <?php endif; ?>
                         </div>
 
                         <div class="card-body p-4 d-flex flex-column">

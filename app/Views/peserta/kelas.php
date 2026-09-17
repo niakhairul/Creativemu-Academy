@@ -32,213 +32,147 @@
             min-height: 100vh;
         }
 
-/* Sidebar dengan Gradasi Ungu Deep Modern */
-/* Sidebar dengan Gradasi Ungu Modern */
-.sidebar {
-    width: 260px;
-    background:
-        radial-gradient(circle at 15% 12%, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 45%),
-        linear-gradient(165deg, #4a2fc9 0%, #7440e6 32%, #9257f2 60%, #b678f5 100%);
-    background-size: 200% 200%, 220% 220%;
-    animation: sidebarGlow 14s ease infinite;
-    color: white;
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 100;
-    padding: 24px 20px;
-    box-shadow: 6px 0 34px rgba(116, 64, 230, 0.35);
-    overflow-y: auto;
-    overflow-x: hidden;
-}
+        /* Sidebar dengan Gradasi Ungu Modern */
+        .sidebar {
+            width: 260px;
+            background:
+                radial-gradient(circle at 15% 12%, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 45%),
+                linear-gradient(165deg, #4a2fc9 0%, #7440e6 32%, #9257f2 60%, #b678f5 100%);
+            background-size: 200% 200%, 220% 220%;
+            animation: sidebarGlow 14s ease infinite;
+            color: white;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 24px 20px;
+            box-shadow: 6px 0 34px rgba(116, 64, 230, 0.35);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
 
-.sidebar::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-        135deg,
-        rgba(255, 255, 255, 0.035) 0px,
-        rgba(255, 255, 255, 0.035) 2px,
-        transparent 2px,
-        transparent 14px
-    );
-    pointer-events: none;
-}
+        .sidebar::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.035) 0px,
+                rgba(255, 255, 255, 0.035) 2px,
+                transparent 2px,
+                transparent 14px
+            );
+            pointer-events: none;
+        }
 
-@keyframes sidebarGlow {
-    0% {
-        background-position: 0% 0%, 0% 0%;
-    }
+        @keyframes sidebarGlow {
+            0% { background-position: 0% 0%, 0% 0%; }
+            50% { background-position: 100% 100%, 100% 100%; }
+            100% { background-position: 0% 0%, 0% 0%; }
+        }
 
-    50% {
-        background-position: 100% 100%, 100% 100%;
-    }
+        .sidebar::before {
+            content: "";
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: floatBlob 8s ease-in-out infinite;
+        }
 
-    100% {
-        background-position: 0% 0%, 0% 0%;
-    }
-}
+        @keyframes floatBlob {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(20px) scale(1.08); }
+        }
 
-.sidebar::before {
-    content: "";
-    position: absolute;
-    top: -60px;
-    right: -60px;
-    width: 180px;
-    height: 180px;
-    background: radial-gradient(
-        circle,
-        rgba(255,255,255,0.18) 0%,
-        rgba(255,255,255,0) 70%
-    );
-    border-radius: 50%;
-    pointer-events: none;
-    animation: floatBlob 8s ease-in-out infinite;
-}
+        .sidebar-brand {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
 
-@keyframes floatBlob {
-    0%, 100% {
-        transform: translateY(0) scale(1);
-    }
+        .sidebar-brand i {
+            animation: brandPulse 3s ease-in-out infinite;
+        }
 
-    50% {
-        transform: translateY(20px) scale(1.08);
-    }
-}
+        @keyframes brandPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.12) rotate(-4deg); }
+        }
 
-.sidebar-brand {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: white;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    padding-bottom: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-    margin-bottom: 20px;
-    position: relative;
-    z-index: 1;
-}
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
 
-.sidebar-brand i {
-    animation: brandPulse 3s ease-in-out infinite;
-}
+        .sidebar-menu li {
+            margin-bottom: 8px;
+            opacity: 0;
+            transform: translateX(-12px);
+            animation: menuSlideIn 0.5s ease forwards;
+        }
 
-@keyframes brandPulse {
-    0%, 100% {
-        transform: scale(1) rotate(0deg);
-    }
+        .sidebar-menu li:nth-child(1) { animation-delay: 0.05s; }
+        .sidebar-menu li:nth-child(2) { animation-delay: 0.12s; }
+        .sidebar-menu li:nth-child(3) { animation-delay: 0.19s; }
+        .sidebar-menu li:nth-child(4) { animation-delay: 0.26s; }
+        .sidebar-menu li:nth-child(5) { animation-delay: 0.33s; }
 
-    50% {
-        transform: scale(1.12) rotate(-4deg);
-    }
-}
+        @keyframes menuSlideIn {
+            to { opacity: 1; transform: translateX(0); }
+        }
 
-.sidebar-menu {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    position: relative;
-    z-index: 1;
-}
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.75);
+            text-decoration: none;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
 
-.sidebar-menu li {
-    margin-bottom: 8px;
-    opacity: 0;
-    transform: translateX(-12px);
-    animation: menuSlideIn 0.5s ease forwards;
-}
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background: rgba(255, 255, 255, 0.18);
+            color: white;
+            transform: translateX(6px);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+        }
 
-.sidebar-menu li:nth-child(1) {
-    animation-delay: 0.05s;
-}
+        .sidebar-menu a.active {
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.12));
+            box-shadow: 0 6px 18px rgba(20, 5, 60, 0.28), inset 3px 0 0 #ffd166;
+        }
 
-.sidebar-menu li:nth-child(2) {
-    animation-delay: 0.12s;
-}
+        .sidebar-menu a i {
+            font-size: 1.2rem;
+            margin-right: 12px;
+            transition: transform 0.3s ease;
+        }
 
-.sidebar-menu li:nth-child(3) {
-    animation-delay: 0.19s;
-}
-
-.sidebar-menu li:nth-child(4) {
-    animation-delay: 0.26s;
-}
-
-.sidebar-menu li:nth-child(5) {
-    animation-delay: 0.33s;
-}
-
-@keyframes menuSlideIn {
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-.sidebar-menu a {
-    display: flex;
-    align-items: center;
-    color: rgba(255, 255, 255, 0.75);
-    text-decoration: none;
-    padding: 12px 16px;
-    border-radius: 12px;
-    font-weight: 500;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-}
-
-.sidebar-menu a::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        120deg,
-        transparent,
-        rgba(255,255,255,0.15),
-        transparent
-    );
-    transition: left 0.6s ease;
-}
-
-.sidebar-menu a:hover::before {
-    left: 100%;
-}
-
-.sidebar-menu a:hover,
-.sidebar-menu a.active {
-    background: rgba(255, 255, 255, 0.18);
-    color: white;
-    transform: translateX(6px);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-}
-
-.sidebar-menu a.active {
-    background: linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0.28),
-        rgba(255, 255, 255, 0.12)
-    );
-    box-shadow:
-        0 6px 18px rgba(20, 5, 60, 0.28),
-        inset 3px 0 0 #ffd166;
-}
-
-.sidebar-menu a i {
-    font-size: 1.2rem;
-    margin-right: 12px;
-    transition: transform 0.3s ease;
-}
-
-.sidebar-menu a:hover i {
-    transform: scale(1.15) rotate(-6deg);
-}
+        .sidebar-menu a:hover i {
+            transform: scale(1.15) rotate(-6deg);
+        }
 
         .main-content {
             flex: 0 0 calc(100% - 260px);
@@ -324,18 +258,6 @@
             align-items: center;
             justify-content: space-between;
             gap: 10px;
-        }
-
-        .status-materi {
-            font-size: 12px;
-            font-weight: 700;
-            color: #059669;
-        }
-
-        .status-materi-terkunci {
-            font-size: 12px;
-            font-weight: 600;
-            color: #94a3b8;
         }
 
         .nav-tabs {
@@ -543,7 +465,7 @@
                     <div class="card">
                         <div class="card-body p-4">
                             <h5 class="fw-bold mb-2 text-dark">Rekap Absensi Kehadiran</h5>
-                            <p class="text-muted mb-4">Masukkan 4 digit token yang diberikan oleh mentor saat sesi kelas berlangsung.</p>
+                            <p class="text-muted mb-4">Silakan lakukan absensi menggunakan lokasi GPS Anda saat sesi kelas berlangsung.</p>
 
                             <?php if (!empty($jadwal)): ?>
                                 <div class="row g-4">
@@ -551,47 +473,49 @@
                                         <?php
                                         $absensi = $item['absensi'] ?? null;
                                         $statusAbsensi = $absensi['status'] ?? null;
-                                        $idJadwalItem = $item['id_jadwal'] ?? ($item['id_jadwal'] ?? '');
+                                        $idJadwalItem = $item['id_jadwal'] ?? '';
                                         
-                                        // Cek status buka absensi dengan fallback agar aman jika key tidak terbawa
                                         $absensiDibuka = $item['absensi_dibuka'] ?? 1;
                                         ?>
+
+                                        <?php 
+// Paksa buka absensi untuk keperluan testing
+$absensiDibuka = 1; 
+?>
+
                                         <div class="col-lg-6">
                                             <div class="materi-card">
                                                 <span class="materi-badge">Pertemuan <?= esc($item['pertemuan_ke'] ?? '-') ?></span>
                                                 <h5 class="fw-bold mt-3 mb-2 text-dark">Pertemuan <?= esc($item['pertemuan_ke'] ?? '-') ?></h5>
                                                 <p class="text-muted mb-3">
-
                                                     <i class="bi bi-calendar-event me-1 text-primary"></i>
-                                                    <?= !empty($item['tanggal_kbm']) ? date('d F Y, H:i', strtotime($item['tanggal_kbm'])) : 'Jadwal belum ditentukan' ?>
+                                                    <?= !empty($item['tanggal_kbm'])
+                                                        ? date('d F Y', strtotime($item['tanggal_kbm']))
+                                                            . ', Pukul '
+                                                            . date('H:i', strtotime($item['waktu_mulai']))
+                                                            . ' - '
+                                                            . date('H:i', strtotime($item['waktu_selesai']))
+                                                        : 'Jadwal belum ditentukan' ?>
                                                 </p>
-
-    <i class="bi bi-calendar-event me-1 text-primary"></i>
-    <?= !empty($item['tanggal_kbm'])
-        ? date('d F Y', strtotime($item['tanggal_kbm']))
-            . ', Pukul '
-            . date('H:i', strtotime($item['waktu_mulai']))
-            . ' - '
-            . date('H:i', strtotime($item['waktu_selesai']))
-        : 'Jadwal belum ditentukan' ?>
-</p>
-
 
                                                 <?php if ($statusAbsensi === 'hadir'): ?>
                                                     <div class="alert alert-success border-0 bg-success bg-opacity-10 text-success mb-0 rounded-3 py-2 small">
                                                         <i class="bi bi-check-circle-fill me-2"></i> Anda sudah hadir pada pertemuan ini.
                                                     </div>
                                                 <?php else: ?>
-                                                    <!-- Form Input Token Absensi -->
+                                                    <!-- Form Absensi Berbasis GPS -->
                                                     <?php if ($absensiDibuka == 1) : ?>
-                                                        <form action="<?= base_url('peserta/proses-absen'); ?>" method="POST" class="mt-2">
+                                                        <form action="<?= base_url('pelatihan/prosesAbsen/' . $idJadwalItem); ?>" method="POST" class="mt-2">
                                                             <?= csrf_field(); ?>
-                                                            <input type="hidden" name="id_jadwal" value="<?= esc($idJadwalItem); ?>">
                                                             
-                                                            <div class="input-group mb-2">
-                                                                <input type="text" class="form-control" name="token_absen" maxlength="4" placeholder="Masukkan 4 digit token" required>
-                                                                <button class="btn btn-primary" type="submit">Kirim Absen</button>
-                                                            </div>
+                                                            <!-- Input tersembunyi untuk koordinat HP peserta -->
+                                                            <input type="hidden" name="user_latitude" class="user_latitude">
+                                                            <input type="hidden" name="user_longitude" class="user_longitude">
+
+                                                            <!-- Tombol Absen (Disabled sampai GPS terkunci) -->
+                                                            <button type="submit" class="btn btn-primary btn-absen w-100" disabled>
+                                                                Mendeteksi Lokasi GPS...
+                                                            </button>
                                                         </form>
                                                     <?php else : ?>
                                                         <span class="badge bg-secondary">Absensi Belum Dibuka</span>
@@ -697,6 +621,50 @@
 
 <!-- Bootstrap JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- JavaScript untuk Mendeteksi GPS Peserta Otomatis -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const tombolAbsenList = document.querySelectorAll('.btn-absen');
+    const inputLatList = document.querySelectorAll('.user_latitude');
+    const inputLonList = document.querySelectorAll('.user_longitude');
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            const userLat = position.coords.latitude;
+            const userLon = position.coords.longitude;
+            
+            // Masukkan koordinat ke semua input hidden yang ada di halaman
+            inputLatList.forEach(input => input.value = userLat);
+            inputLonList.forEach(input => input.value = userLon);
+            
+            // Ubah tombol absen menjadi aktif dan siap diklik
+            tombolAbsenList.forEach(btn => {
+                btn.removeAttribute('disabled');
+                btn.className = "btn btn-success btn-absen w-100";
+                btn.innerText = "Kirim Absen Sekarang";
+            });
+            
+        }, function(error) {
+            tombolAbsenList.forEach(btn => {
+                btn.className = "btn btn-danger btn-absen w-100";
+                btn.innerText = "Gagal Mendeteksi GPS";
+            });
+            alert('Gagal mendeteksi lokasi. Pastikan izin GPS/Location di browser/perangkat Anda sudah aktif!');
+        }, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        });
+    } else {
+        tombolAbsenList.forEach(btn => {
+            btn.className = "btn btn-secondary btn-absen w-100";
+            btn.innerText = "GPS Tidak Didukung";
+        });
+        alert('Browser Anda tidak mendukung fitur Geolocation.');
+    }
+});
+</script>
 
 </body>
 </html>

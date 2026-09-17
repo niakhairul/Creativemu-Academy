@@ -69,6 +69,9 @@ $routes->get('pelatihan/daftar-kelas', 'Pelatihan::daftarKelas');
 $routes->get('pelatihan/detail/(:num)', 'Pelatihan::detail/$1'); 
 $routes->get('pelatihan/kbm', 'Pelatihan::kbm');
 $routes->get('pelatihan/kelas', 'Pelatihan::kelas');
+$routes->post('pelatihan/prosesAbsen/(:num)', 'Pelatihan::prosesAbsen/$1');
+$routes->get('pelatihan/prosesAbsen/(:num)', 'Pelatihan::prosesAbsen/$1');
+
 
 // ===== MENU UJIAN PESERTA =====
 $routes->get('pelatihan/ujian', 'Pelatihan::ujian');

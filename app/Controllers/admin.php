@@ -342,7 +342,7 @@ public function masterKelas()
         $db = \Config\Database::connect();
         
         $data = [
-            'absensi_dibuka' => 0,
+            'absensi_dibuka' => 1,
             'token_absen'    => null
         ];
 
