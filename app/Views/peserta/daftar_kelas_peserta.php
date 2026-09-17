@@ -450,7 +450,7 @@
 
                                     <!-- Action Button -->
                                     <div class="mt-auto pt-2">
-                                        <a href="<?= base_url('pelatihan/kbm') ?>" class="btn btn-kbm w-100 d-flex align-items-center justify-content-center">
+                                        <a href="<?= base_url('pelatihan/kbm?id_kelas=' . $k['id_kelas']) ?>" class="btn btn-kbm w-100 d-flex align-items-center justify-content-center">
                                             <i class="bi bi-mortarboard-fill me-2 fs-5"></i> Masuk Ruang KBM
                                         </a>
                                     </div>

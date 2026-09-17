@@ -906,52 +906,63 @@ public function setujuiPendaftaran($id_pendaftaran)
         return $redirect;
     }
 
-    // Ambil data kelas & mentor
-    $kelas = (new PendaftaranModel())
-        ->select('pendaftaran.*, kelas.*, mentor.nama_mentor')
-        ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-        ->where('pendaftaran.id_users', $this->userId())
-        ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
-        ->first();
+    // Ambil data kelas & mentor sesuai kelas yang dipilih peserta
+$idKelas = $this->request->getGet('id_kelas');
 
-    $db = \Config\Database::connect();
+$kelasBuilder = (new PendaftaranModel())
+    ->select('pendaftaran.*, kelas.*, mentor.nama_mentor')
+    ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+    ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+    ->where('pendaftaran.id_users', $this->userId());
 
-    // Ambil data jadwal
-    $jadwal = [];
+if (!empty($idKelas)) {
+    $kelasBuilder->where('pendaftaran.id_kelas', $idKelas);
+}
 
-    if ($kelas) {
-        $jadwal = (new JadwalModel())
-            ->select('jadwal.*, jadwal.absensi_dibuka')
-            ->where('id_kelas', $kelas['id_kelas'])
-            ->orderBy('pertemuan_ke', 'ASC')
-            ->findAll();
-    }
-    // Ambil data ujian berdasarkan kelas peserta
-    $ujian = [];
+$kelas = $kelasBuilder
+    ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+    ->first();
 
-    if ($kelas) {
-        $ujian = $db->table('ujian')
-            ->where('id_kelas', $kelas['id_kelas'])
-            ->orderBy('id_ujian', 'ASC')
+$db = \Config\Database::connect();
+
+// Ambil data jadwal
+$jadwal = [];
+
+if ($kelas) {
+    $jadwal = $db->table('jadwal_kelas')
+        ->select('jadwal_kelas.*')
+        ->where('id_kelas', $kelas['id_kelas'])
+        ->orderBy('pertemuan_ke', 'ASC')
+        ->get()
+        ->getResultArray();
+}
+
+// Ambil data ujian berdasarkan kelas peserta
+$ujian = [];
+
+if ($kelas) {
+    $ujian = $db->table('ujian')
+        ->where('id_kelas', $kelas['id_kelas'])
+        ->orderBy('id_ujian', 'ASC')
+        ->get()
+        ->getResultArray();
+
+    foreach ($ujian as &$itemUjian) {
+        $itemUjian['jawaban'] = $db->table('jawaban_ujian')
+            ->where('id_ujian', $itemUjian['id_ujian'])
+            ->where('id_user', $this->userId())
             ->get()
-            ->getResultArray();
-
-        foreach ($ujian as &$itemUjian) {
-            $itemUjian['jawaban'] = $db->table('jawaban_ujian')
-                ->where('id_ujian', $itemUjian['id_ujian'])
-                ->where('id_user', $this->userId())
-                ->get()
-                ->getRowArray();
-        }
-        unset($itemUjian);
+            ->getRowArray();
     }
 
-    // Ambil materi yang benar-benar terhubung dengan jadwal kelas peserta
+    unset($itemUjian);
+}
+
+// Ambil materi yang terhubung dengan jadwal kelas
 $materi = [];
 
 if ($kelas && !empty($jadwal)) {
-    $idJadwalKelas = array_column($jadwal, 'id_jadwal');
+    $idJadwalKelas = array_column($jadwal, 'id_jadwal_kelas');
 
     $materi = $db->table('materi')
         ->where('id_kelas', $kelas['id_kelas'])
@@ -961,14 +972,14 @@ if ($kelas && !empty($jadwal)) {
         ->getResultArray();
 }
 
-    // Hitung absensi dan hubungkan materi dengan pertemuan
+    
     // Hitung absensi dan hubungkan materi dengan pertemuan
     $jumlahHadir = 0;
 
     foreach ($jadwal as &$item) {
 
-        // Sesuaikan 'id' di bawah ini dengan nama primary key di tabel jadwal Anda (misal: 'id' atau 'id_jadwal_kelas')
-        $idJadwal = $item['id_jadwal'] ?? $item['id'] ?? null;
+    // ID jadwal yang digunakan tabel absensi
+    $idJadwal = $item['id_jadwal_kelas'] ?? null;
 
         // Cari absensi peserta pada pertemuan ini
         $absensi = null;
@@ -1130,76 +1141,88 @@ if ($kelas && !empty($jadwal)) {
 }
 
     public function kbm()
-    {
-        if ($redirect = $this->requireLogin()) {
-            return $redirect;
-        }
-
-        $kelas = $this->approvedEnrollment();
-        if (! $kelas) {
-            return redirect()->to(base_url('pelatihan/kelas'))->with('error', 'Kelas Anda belum disetujui admin.');
-        }
-
-        $db = \Config\Database::connect();
-
-        // 1. Ambil data jadwal berdasarkan kelas
-        $jadwal = (new JadwalModel())
-            ->select('jadwal.*, jadwal.absensi_dibuka')
-            ->where('id_kelas', $kelas['id_kelas'])
-            ->orderBy('pertemuan_ke', 'ASC')
-            ->findAll();
-
-        $absensiModel = new AbsensiModel();
-        $jumlahHadir = 0;
-
-        // 2. Cek status absensi per jadwal untuk user yang login
-        foreach ($jadwal as &$item) {
-            $idJadwal = $item['id_jadwal'] ?? $item['id'] ?? null;
-            
-            $absensi = null;
-            if ($idJadwal) {
-                $absensi = $absensiModel
-                    ->where('id_jadwal_kelas', $idJadwal)
-                    ->where('id_user', $this->userId())
-                    ->first();
-            }
-
-            $item['absensi'] = $absensi;
-
-            if (($absensi['status'] ?? null) === 'hadir') {
-                $jumlahHadir++;
-            }
-        }
-        unset($item);
-
-        // 3. Hitung total pertemuan dan persentase kehadiran
-        $totalPertemuan = count($jadwal);
-        $persentaseKehadiran = $totalPertemuan > 0
-            ? round(($jumlahHadir / $totalPertemuan) * 100)
-            : 0;
-
-        // 4. Cek apakah peserta sudah mengisi angket evaluasi
-        $sudahIsiAngket = (bool) $db->table('angket_penilaian')
-            ->where('id_peserta', $this->userId())
-            ->where('id_kelas', $kelas['id_kelas'])
-            ->get()
-            ->getRow();
-
-        // 5. Status sertifikat academy
-        $sertifikatAcademy = false; 
-
-        // 6. HANYA memanggil view 'peserta/kbm' murni tanpa mencampur fungsi view 'kelas'
-        return view('peserta/kbm', [
-            'kelas'               => $kelas,
-            'jadwal'              => $jadwal,
-            'jumlahHadir'         => $jumlahHadir,
-            'totalPertemuan'      => $totalPertemuan,
-            'persentaseKehadiran' => $persentaseKehadiran,
-            'sudahIsiAngket'      => $sudahIsiAngket,
-            'sertifikatAcademy'   => $sertifikatAcademy,
-        ]);
+{
+    if ($redirect = $this->requireLogin()) {
+        return $redirect;
     }
 
+    $idKelas = $this->request->getGet('id_kelas');
+
+if (!empty($idKelas)) {
+    $kelas = (new PendaftaranModel())
+        ->select('pendaftaran.*, kelas.*, mentor.nama_mentor')
+        ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+        ->where('pendaftaran.id_users', $this->userId())
+        ->where('pendaftaran.id_kelas', $idKelas)
+        ->groupStart()
+            ->where('pendaftaran.status', 'Disetujui')
+            ->orWhere('pendaftaran.status_pembayaran', 'valid')
+        ->groupEnd()
+        ->first();
+} else {
+    $kelas = $this->approvedEnrollment();
+}
+
+if (! $kelas) {
+    return redirect()->to(base_url('pelatihan/kelas'))
+        ->with('error', 'Kelas Anda belum disetujui admin.');
+}
+
+    $db = \Config\Database::connect();
+
+    // Ambil jadwal kelas sekaligus data lokasi GPS
+    $jadwal = $db->table('jadwal_kelas')
+        ->where('id_kelas', $kelas['id_kelas'])
+        ->orderBy('pertemuan_ke', 'ASC')
+        ->get()
+        ->getResultArray();
+
+    $absensiModel = new AbsensiModel();
+    $jumlahHadir = 0;
+
+    // Cek status absensi peserta yang sedang login
+    foreach ($jadwal as &$item) {
+
+        $idJadwal = $item['id_jadwal_kelas'] ?? null;
+
+        $absensi = null;
+
+        if ($idJadwal) {
+            $absensi = $absensiModel
+                ->where('id_jadwal_kelas', $idJadwal)
+                ->where('id_user', $this->userId())
+                ->first();
+        }
+
+        $item['absensi'] = $absensi;
+
+        if (($absensi['status'] ?? null) === 'hadir') {
+            $jumlahHadir++;
+        }
+    }
+
+    unset($item);
+
+    // Hitung persentase kehadiran
+    $totalPertemuan = count($jadwal);
+
+    $persentaseKehadiran = $totalPertemuan > 0
+        ? round(($jumlahHadir / $totalPertemuan) * 100)
+        : 0;
+
+    // Cek apakah peserta sudah mengisi angket
+    $sudahIsiAngket = (bool) $db->table('angket_penilaian')
+        ->where('id_peserta', $this->userId())
+        ->where('id_kelas', $kelas['id_kelas'])
+        ->get()
+        ->getRow();
+
+    // Status sertifikat academy
+    $sertifikatAcademy = false;
+
+    return redirect()->to(base_url('pelatihan/kelas?id_kelas=' . $kelas['id_kelas']));
+}
 
     public function daftarMateri()
 {
@@ -1390,27 +1413,47 @@ public function prosesAbsen(int $idJadwal)
     // 1. Ambil data jadwal & koordinat pusat dari database
     // Menggunakan kolom primary key yang benar: 'id_jadwal_kelas'
     $jadwal = $this->db->table('jadwal_kelas')
-        ->where('id_jadwal_kelas', $idJadwal)
-        ->get()
-        ->getRowArray();
+    ->select('jadwal_kelas.*, pendaftaran.lokasi_pelatihan')
+    ->join(
+        'pendaftaran',
+        'pendaftaran.id_kelas = jadwal_kelas.id_kelas',
+        'inner'
+    )
+    ->where('jadwal_kelas.id_jadwal_kelas', $idJadwal)
+    ->where('pendaftaran.id_users', $this->userId())
+    ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+    ->get()
+    ->getRowArray();
 
     if (!$jadwal) {
         return redirect()->back()->with('error', 'Jadwal tidak ditemukan (ID: ' . $idJadwal . ').');
     }
 
     // 2. Cek apakah koordinat latitude & longitude sudah diisi di database
-    if (empty($jadwal['latitude']) || empty($jadwal['longitude'])) {
-        return redirect()->back()->with(
-            'error',
-            'Lokasi absensi untuk sesi ini belum diatur oleh admin/mentor.'
-        );
-    }
+   // 2. Ambil lokasi pelatihan yang dipilih peserta saat pendaftaran
+$lokasiNama = trim((string) ($jadwal['lokasi_pelatihan'] ?? ''));
 
-    // Titik pusat dan radius diambil dari database jadwal_kelas
-    $latitudePusat  = $jadwal['latitude'];
-    $longitudePusat = $jadwal['longitude'];
-    $maxRadius      = (int) ($jadwal['radius_meter'] ?? 100); // Default 100 meter
+$lokasi = $this->db->table('lokasi_pelatihan')
+    ->groupStart()
+        ->where('nama_lokasi', $lokasiNama)
+        ->orWhere("CONCAT(nama_lokasi, ' - ', alamat) =", $lokasiNama)
+    ->groupEnd()
+    ->where('is_online !=', 1)
+    ->get()
+    ->getRowArray();
 
+if (!$lokasi) {
+    return redirect()->back()->with(
+        'error',
+        'Data lokasi pelatihan peserta tidak ditemukan.'
+    );
+}
+
+$latitudePusat  = (float) $lokasi['latitude'];
+$longitudePusat = (float) $lokasi['longitude'];
+$maxRadius      = (int) ($lokasi['radius_meter'] ?? 100);
+
+    
     // 3. Tangkap koordinat GPS peserta dari form/request frontend
     $userLat = $this->request->getPost('user_latitude');
     $userLon = $this->request->getPost('user_longitude');

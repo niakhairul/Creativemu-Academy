@@ -18,6 +18,9 @@ class JadwalKelasModel extends Model
         'absensi_dibuka',
         'absensi_mulai',
         'absensi_selesai',
+        'latitude',
+        'longitude',
+        'radius_meter',
         'created_at',
         'updated_at'
     ];

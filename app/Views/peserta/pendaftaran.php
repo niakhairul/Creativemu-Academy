@@ -563,8 +563,10 @@
     <div class="hero-banner text-center">
         <div class="position-relative" style="z-index: 2;">
             <div class="logo-wrap mb-3">
-                <img src="<?= base_url('assets/img/logo_creativemu_academy.jpg') ?>" width="66" height="66" class="rounded-circle object-fit-cover" alt="Creativemu Academy Logo">
-            </div>
+    <img src="<?= base_url('assets/img/logo_creativemu.jpg') ?>"
+         alt="Creativemu Academy Logo"
+         style="width: 100%; height: 100%; object-fit: contain; border-radius: 14px; padding: 0; transform: scale(1.35);">
+</div>
             <h1 class="fw-bold mb-2 fs-2">Formulir Pendaftaran Pelatihan</h1>
             <p class="text-white-50 mb-0 mx-auto" style="max-width: 680px; font-size: 0.95rem; line-height: 1.6;">
                 Tingkatkan kompetensi profesional Anda bersama instruktur ahli Creativemu Academy. Lengkapi data di bawah ini untuk mengamankan slot pelatihan eksklusif Anda.

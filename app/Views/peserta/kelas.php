@@ -470,13 +470,13 @@
                             <?php if (!empty($jadwal)): ?>
                                 <div class="row g-4">
                                     <?php foreach ($jadwal as $item): ?>
-                                        <?php
-                                        $absensi = $item['absensi'] ?? null;
-                                        $statusAbsensi = $absensi['status'] ?? null;
-                                        $idJadwalItem = $item['id_jadwal'] ?? '';
-                                        
-                                        $absensiDibuka = $item['absensi_dibuka'] ?? 1;
-                                        ?>
+    <?php
+        $absensi = $item['absensi'] ?? null;
+        $statusAbsensi = $absensi['status'] ?? null;
+       $idJadwalItem = $item['id_jadwal_kelas'] ?? '';
+
+        $absensiDibuka = $item['absensi_dibuka'] ?? 1;
+    ?>
 
                                         <?php 
 // Paksa buka absensi untuk keperluan testing
@@ -490,13 +490,11 @@ $absensiDibuka = 1;
                                                 <p class="text-muted mb-3">
                                                     <i class="bi bi-calendar-event me-1 text-primary"></i>
                                                     <?= !empty($item['tanggal_kbm'])
-                                                        ? date('d F Y', strtotime($item['tanggal_kbm']))
-                                                            . ', Pukul '
-                                                            . date('H:i', strtotime($item['waktu_mulai']))
-                                                            . ' - '
-                                                            . date('H:i', strtotime($item['waktu_selesai']))
-                                                        : 'Jadwal belum ditentukan' ?>
-                                                </p>
+    ? date('d F Y', strtotime($item['tanggal_kbm']))
+        . (!empty($item['jam_selesai'])
+            ? ', Sampai Pukul ' . date('H:i', strtotime($item['jam_selesai']))
+            : '')
+    : 'Jadwal belum ditentukan' ?>
 
                                                 <?php if ($statusAbsensi === 'hadir'): ?>
                                                     <div class="alert alert-success border-0 bg-success bg-opacity-10 text-success mb-0 rounded-3 py-2 small">
