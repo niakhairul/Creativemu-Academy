@@ -289,6 +289,54 @@
             box-shadow: 0 6px 20px rgba(124, 58, 237, 0.25);
             border: none;
         }
+
+        /* Desain Khusus Nilai Ujian */
+        .score-card-wrapper {
+            background: linear-gradient(135deg, #f8f7ff 0%, #ede9fe 100%);
+            border: 2px dashed #d8b4fe;
+            border-radius: 24px;
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.08);
+        }
+
+        .score-circle {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 20px auto;
+            background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 12px 30px rgba(124, 58, 237, 0.3);
+            border: 4px solid #ffffff;
+            animation: pulseScore 3s infinite ease-in-out;
+        }
+
+        @keyframes pulseScore {
+            0%, 100% { transform: scale(1); box-shadow: 0 12px 30px rgba(124, 58, 237, 0.3); }
+            50% { transform: scale(1.04); box-shadow: 0 18px 40px rgba(124, 58, 237, 0.45); }
+        }
+
+        .score-number {
+            font-size: 2.8rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .score-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.85;
+            margin-top: 4px;
+            font-weight: 600;
+        }
     </style>
 </head>
 
@@ -470,18 +518,16 @@
                             <?php if (!empty($jadwal)): ?>
                                 <div class="row g-4">
                                     <?php foreach ($jadwal as $item): ?>
-    <?php
-        $absensi = $item['absensi'] ?? null;
-        $statusAbsensi = $absensi['status'] ?? null;
-       $idJadwalItem = $item['id_jadwal_kelas'] ?? '';
-
-        $absensiDibuka = $item['absensi_dibuka'] ?? 1;
-    ?>
-
+                                        <?php
+                                            $absensi = $item['absensi'] ?? null;
+                                            $statusAbsensi = $absensi['status'] ?? null;
+                                            $idJadwalItem = $item['id_jadwal_kelas'] ?? '';
+                                            $absensiDibuka = $item['absensi_dibuka'] ?? 1;
+                                        ?>
                                         <?php 
-// Paksa buka absensi untuk keperluan testing
-$absensiDibuka = 1; 
-?>
+                                            // Paksa buka absensi untuk keperluan testing
+                                            $absensiDibuka = 1; 
+                                        ?>
 
                                         <div class="col-lg-6">
                                             <div class="materi-card">
@@ -490,11 +536,12 @@ $absensiDibuka = 1;
                                                 <p class="text-muted mb-3">
                                                     <i class="bi bi-calendar-event me-1 text-primary"></i>
                                                     <?= !empty($item['tanggal_kbm'])
-    ? date('d F Y', strtotime($item['tanggal_kbm']))
-        . (!empty($item['jam_selesai'])
-            ? ', Sampai Pukul ' . date('H:i', strtotime($item['jam_selesai']))
-            : '')
-    : 'Jadwal belum ditentukan' ?>
+                                                        ? date('d F Y', strtotime($item['tanggal_kbm']))
+                                                            . (!empty($item['jam_selesai'])
+                                                                ? ', Sampai Pukul ' . date('H:i', strtotime($item['jam_selesai']))
+                                                                : '')
+                                                        : 'Jadwal belum ditentukan' ?>
+                                                </p>
 
                                                 <?php if ($statusAbsensi === 'hadir'): ?>
                                                     <div class="alert alert-success border-0 bg-success bg-opacity-10 text-success mb-0 rounded-3 py-2 small">
@@ -533,12 +580,30 @@ $absensiDibuka = 1;
                 </div>
 
 
-                <!-- ================= TAB 3 : UJIAN ================= -->
+                <!-- ================= TAB 3 : UJIAN (Hanya Menampilkan Nilai Ujian) ================= -->
                 <div class="tab-pane fade" id="ujian" role="tabpanel">
                     <div class="card">
-                        <div class="card-body p-4">
-                            <h5 class="fw-bold mb-2 text-dark">Ujian Akhir</h5>
-                            <p class="text-muted mb-4">Silakan download soal ujian dan kumpulkan jawaban Anda.</p>
+                        <div class="card-body p-4 text-center py-5">
+                            <div class="mb-3">
+                                <span class="badge bg-purple bg-opacity-10 text-purple px-3 py-2 rounded-pill fw-bold" style="background-color: #f3e8ff; color: #7c3aed;">
+                                    <i class="fas fa-award me-1"></i> Hasil Evaluasi Ujian Akhir
+                                </span>
+                            </div>
+                            <h4 class="fw-bold text-dark mb-1">Nilai Ujian Anda</h4>
+                            <p class="text-muted mb-4">Berikut adalah perolehan nilai akhir yang berhasil Anda raih pada ujian pelatihan ini.</p>
+
+                            <div class="row justify-content-center">
+                                <div class="col-md-6 col-lg-5">
+                                    <div class="score-card-wrapper">
+                                        <div class="score-circle">
+                                            <span class="score-number"><?= esc($nilai_ujian ?? $nilai ?? '-'); ?></span>
+                                            <span class="score-label">Skor Akhir</span>
+                                        </div>
+                                        <h5 class="fw-bold text-dark mt-3 mb-1">Status Kelulusan Ujian</h5>
+                                        <p class="text-muted small mb-0">Terus tingkatkan semangat belajar dan kompetensi Anda di Creativemu Academy!</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
