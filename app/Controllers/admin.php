@@ -915,16 +915,39 @@ $data = [
             }
 
             $nisBaru = $pendaftaran['nis'] ?? null;
+
             $dataUpdate = [
                 'status_pembayaran'  => $aksi === 'setuju' ? 'valid' : 'rejected',
                 'status_pendaftaran' => $aksi === 'setuju' ? 'Disetujui' : 'Ditolak',
                 'status'             => $aksi === 'setuju' ? 'Disetujui' : 'Ditolak',
             ];
 
-            if ($aksi === 'setuju' && empty($nisBaru)) {
-                $nisBaru = $this->generateNisPendaftaran($db, $pendaftaran);
-                $dataUpdate['nis'] = $nisBaru;
-            }
+// Jika disetujui, gunakan satu NIS yang sama untuk peserta dengan email yang sama
+if ($aksi === 'setuju') {
+    $pendaftaranLama = $db->table('pendaftaran')
+        ->select('nis')
+        ->where('email', $pendaftaran['email'] ?? null)
+        ->where('nis IS NOT NULL', null, false)
+        ->where('nis !=', '')
+        ->orderBy('id_pendaftaran', 'ASC')
+        ->get()
+        ->getRowArray();
+
+    if (!empty($pendaftaranLama['nis'])) {
+        // Gunakan NIS peserta yang sudah ada
+        $nisBaru = $pendaftaranLama['nis'];
+    } else {
+        // Peserta belum memiliki NIS
+        $nisBaru = $this->generateNisPendaftaran($db, $pendaftaran);
+    }
+
+    // Samakan NIS seluruh pendaftaran dengan email yang sama
+    $db->table('pendaftaran')
+        ->where('email', $pendaftaran['email'] ?? null)
+        ->update(['nis' => $nisBaru]);
+
+    $dataUpdate['nis'] = $nisBaru;
+}
 
             $db->table('pendaftaran')
                 ->where('id_pendaftaran', $id_pendaftaran)
