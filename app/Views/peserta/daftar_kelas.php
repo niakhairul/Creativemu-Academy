@@ -637,7 +637,7 @@
 <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
     <div class="container px-lg-4">
         <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none" href="<?= base_url('/') ?>">
-            <img src="<?= base_url('assets/img/logo_creativemu_academy.jpg') ?>" alt="Logo Creativemu" class="navbar-logo shadow-sm" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/3413/3413535.png';">
+            <img src="<?= base_url('assets/img/logo_creativemu.jpg') ?>" alt="Logo Creativemu" class="navbar-logo shadow-sm" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/3413/3413535.png';">
             <span class="fs-4">Creativemu Academy</span>
         </a>
 
@@ -673,25 +673,8 @@
                 <p class="lead mb-0">Temukan kelas pengembangan skill profesional dengan mentor berpengalaman, jadwal fleksibel, dan materi yang siap dipakai untuk karier maupun bisnis.</p>
             </div>
             <div class="col-lg-4">
-                <div class="hero-highlight">
-                    <div class="hero-stat-grid">
-                        <div class="hero-stat">
-                            <strong><?= count($kelas ?? []) ?></strong>
-                            <span>Program tersedia</span>
-                        </div>
-                        <div class="hero-stat">
-                            <strong>Online</strong>
-                            <span>Belajar fleksibel</span>
-                        </div>
-                        <div class="hero-stat">
-                            <strong>Privat</strong>
-                            <span>Opsi intensif</span>
-                        </div>
-                        <div class="hero-stat">
-                            <strong>Mentor</strong>
-                            <span>Pendamping ahli</span>
-                        </div>
-                    </div>
+                <div class="hero-highlight border-0 bg-transparent shadow-none p-0">
+                    <img src="<?= base_url('assets/img/foto_utama.png') ?>" alt="Ilustrasi Program Pelatihan" class="img-fluid w-100" style="object-fit: contain;">
                 </div>
             </div>
         </div>
