@@ -589,14 +589,6 @@
                 <img id="imgSummaryFoto" src="<?= base_url('uploads/kelas/' . $fotoKelas); ?>" alt="Banner <?= esc($kelas['nama_kelas'] ?? 'Kelas') ?>" class="class-thumb-sm" onerror="this.onerror=null; this.src='<?= base_url('assets/img/default-class.jpg') ?>';">
             </div>
             <div class="col-md">
-                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                    <span class="badge" id="badgeSummaryKategori" style="background: var(--purple-subtle); color: var(--purple-primary); font-weight: 700; font-size: 0.76rem;">
-                        <i class="bi bi-mortarboard-fill me-1"></i> <?= esc($kelas['kategori'] ?? 'Pelatihan'); ?>
-                    </span>
-                    <span class="badge bg-success bg-opacity-10 text-success fw-bold" id="badgeSummaryTipe" style="font-size: 0.76rem;">
-                        <i class="bi bi-broadcast me-1"></i> <?= esc(ucfirst($tipeKelas)) ?>
-                    </span>
-                </div>
                 <h4 class="fw-bold mb-1 fs-5" id="titleSummaryNamaKelas" style="color: var(--purple-dark);">
                     <?= esc($kelas['nama_kelas'] ?? $kelas['nama'] ?? 'Pelatihan CreativeMU') ?>
                 </h4>
@@ -1219,12 +1211,7 @@ function handleSelectKelas(selectEl) {
     if (tanggalEl) tanggalEl.textContent = tanggal;
     const durasiEl = document.getElementById('textSummaryDurasi');
     if (durasiEl) durasiEl.textContent = pertemuan + ' Sesi';
-    const badgeKategori = document.getElementById('badgeSummaryKategori');
-    if (badgeKategori) badgeKategori.innerHTML = '<i class="bi bi-mortarboard-fill me-1"></i> ' + kategori;
-    const badgeTipe = document.getElementById('badgeSummaryTipe');
-    if (badgeTipe) {
-        badgeTipe.innerHTML = '<i class="bi bi-broadcast me-1"></i> ' + (tipe.charAt(0).toUpperCase() + tipe.slice(1));
-    }
+
     const hargaRegulerEl = document.getElementById('textSummaryHargaReguler');
     if (hargaRegulerEl) hargaRegulerEl.textContent = 'Reguler: Rp ' + reguler.toLocaleString('id-ID');
     const hargaPrivatEl = document.getElementById('textSummaryHargaPrivat');
