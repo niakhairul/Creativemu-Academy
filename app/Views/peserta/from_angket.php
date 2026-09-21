@@ -2,6 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Isi Angket Evaluasi - Creativemu Academy</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -14,11 +15,11 @@
         }
     </style>
 </head>
-<body class="py-5">
-    <div class="container">
+<body class="py-3 py-md-5">
+    <div class="container px-3 px-md-4">
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <div class="card shadow-sm border-0 rounded-4 p-4 p-md-5 bg-white">
+                <div class="card shadow-sm border-0 rounded-4 p-3 p-md-5 bg-white">
                     <div class="text-center mb-4">
                         <h3 class="fw-bold" style="color: #2e1065;">Angket Evaluasi Pelatihan</h3>
                         <p class="text-muted small">Silakan isi pertanyaan di bawah ini dengan jujur untuk membantu evaluasi kualitas kelas.</p>
