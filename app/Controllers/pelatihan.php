@@ -900,6 +900,52 @@ public function setujuiPendaftaran($id_pendaftaran)
 }
 
     
+    public function daftarKelasPeserta()
+{
+    if ($redirect = $this->requireLogin()) {
+        return $redirect;
+    }
+
+    $pendaftaranModel = new PendaftaranModel();
+
+    // Ambil data kelas yang diambil oleh peserta berdasarkan id_users yang sedang login dengan JOIN lengkap
+    $kelasSaya = $pendaftaranModel
+        ->select('pendaftaran.*, kelas.nama_kelas, kelas.thumbnail, mentor.nama_mentor')
+        ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+        ->where('pendaftaran.id_users', $this->userId())
+        ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+        ->findAll();
+
+
+    $data['kelas'] = $kelasSaya;
+
+    return view('peserta/daftar_kelas_peserta', $data);
+}
+
+    public function tambahKelas()
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
+
+        // Langsung arahkan peserta ke form pendaftaran kelas
+        return $this->pendaftaran();
+    }
+
+    public function daftarKelas()
+{
+    $kelasModel = new \App\Models\KelasModel();
+
+    // Harus mengambil banyak data (array multidimensi)
+    $data['kelas'] = $kelasModel->getKelasWithMentor(); 
+
+    return view('peserta/daftar_kelas', $data);
+}
+
+
+    // Method tambahan untuk mengatasi error "Controller method is not found: kelas"
+    // Method untuk halaman KBM (Absen, Materi, Ujian, Sertifikat, Angket)
     public function kelas()
 {
     if ($redirect = $this->requireLogin()) {
@@ -1039,48 +1085,6 @@ if ($kelas && !empty($jadwal)) {
         'sudahIsiAngket'      => $sudahIsiAngket,
         'sertifikatAcademy'   => $sertifikatAcademy,
     ]);
-}
-    public function daftarKelasPeserta()
-{
-    if ($redirect = $this->requireLogin()) {
-        return $redirect;
-    }
-
-    $pendaftaranModel = new PendaftaranModel();
-
-    // Ambil data kelas yang diambil oleh peserta berdasarkan id_users yang sedang login dengan JOIN lengkap
-    $kelasSaya = $pendaftaranModel
-        ->select('pendaftaran.*, kelas.nama_kelas, kelas.thumbnail, mentor.nama_mentor')
-        ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-        ->where('pendaftaran.id_users', $this->userId())
-        ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
-        ->findAll();
-
-
-    $data['kelas'] = $kelasSaya;
-
-    return view('peserta/daftar_kelas_peserta', $data);
-}
-
-    public function tambahKelas()
-    {
-        if ($redirect = $this->requireLogin()) {
-            return $redirect;
-        }
-
-        // Langsung arahkan peserta ke form pendaftaran kelas
-        return $this->pendaftaran();
-    }
-
-    public function daftarKelas()
-{
-    $kelasModel = new \App\Models\KelasModel();
-
-    // Harus mengambil banyak data (array multidimensi)
-    $data['kelas'] = $kelasModel->getKelasWithMentor(); 
-
-    return view('peserta/daftar_kelas', $data);
 }
 
     public function detail($id)
@@ -1224,6 +1228,7 @@ if (! $kelas) {
     return redirect()->to(base_url('pelatihan/kelas?id_kelas=' . $kelas['id_kelas']));
 }
 
+
     public function daftarMateri()
 {
     if ($redirect = $this->requireLogin()) {
@@ -1329,175 +1334,461 @@ if (! $kelas) {
 }
 
 
-public function prosesAbsenGps()
-{
-    $json = $this->request->getJSON();
-$userLat = $json->latitude ?? null;
-$userLng = $json->longitude ?? null;
-$idJadwal = $json->id_jadwal ?? null;
+    /**
+     * Memastikan kolom-kolom tabel untuk absensi GPS dan jadwal selalu tersedia
+     */
+    private function ensureAbsensiGpsColumns(): void
+    {
+        try {
+            $db = \Config\Database::connect();
+            $forge = \Config\Database::forge();
 
-if (!$userLat || !$userLng || !$idJadwal) {
-    return $this->response->setJSON([
-        'status' => false,
-        'message' => 'Data koordinat tidak lengkap.'
-    ]);
-}
+            if ($db->tableExists('absensi')) {
+                if (!$db->fieldExists('id_jadwal', 'absensi')) {
+                    $forge->addColumn('absensi', [
+                        'id_jadwal' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'null' => true, 'after' => 'id_absensi']
+                    ]);
+                }
+                if (!$db->fieldExists('id_jadwal_kelas', 'absensi')) {
+                    $forge->addColumn('absensi', [
+                        'id_jadwal_kelas' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'null' => true, 'after' => 'id_jadwal']
+                    ]);
+                }
+                if (!$db->fieldExists('latitude', 'absensi')) {
+                    $forge->addColumn('absensi', [
+                        'latitude' => ['type' => 'DECIMAL', 'constraint' => '10,8', 'null' => true, 'after' => 'status']
+                    ]);
+                }
+                if (!$db->fieldExists('longitude', 'absensi')) {
+                    $forge->addColumn('absensi', [
+                        'longitude' => ['type' => 'DECIMAL', 'constraint' => '11,8', 'null' => true, 'after' => 'latitude']
+                    ]);
+                }
+                if (!$db->fieldExists('jarak', 'absensi')) {
+                    $forge->addColumn('absensi', [
+                        'jarak' => ['type' => 'INT', 'constraint' => 11, 'null' => true, 'after' => 'longitude']
+                    ]);
+                }
+            }
 
-$db = \Config\Database::connect();
-
-// 1. Ambil titik koordinat dan radius dari tabel jadwal
-$jadwal = $db->table('jadwal')
-    ->select('latitude, longitude, radius_meter')
-    ->where('id_jadwal', $idJadwal)
-    ->get()
-    ->getRowArray();
-
-if (!$jadwal || empty($jadwal['latitude']) || empty($jadwal['longitude'])) {
-    return $this->response->setJSON([
-        'status' => false,
-        'message' => 'Absen gagal! Koordinat GPS untuk jadwal ini belum diatur oleh admin.'
-    ]);
-}
-
-$targetLat = $jadwal['latitude'];
-$targetLng = $jadwal['longitude'];
-$maxRadius = $jadwal['radius_meter'] ?? 100;
-
-// 2. Hitung jarak menggunakan Haversine
-$jarak = $this->hitungJarakHaversine(
-    $userLat,
-    $userLng,
-    $targetLat,
-    $targetLng
-);
-
-// 3. Validasi radius
-if ($jarak > $maxRadius) {
-    return $this->response->setJSON([
-        'status' => false,
-        'message' => 'Absen gagal! Anda berada di luar radius kelas (Jarak Anda: ' . round($jarak) . ' meter dari lokasi).'
-    ]);
-}
-
-// 4. Cek apakah sudah pernah absen
-$cekAbsen = $db->table('absensi')
-    ->where('id_jadwal_kelas', $idJadwal)
-    ->where('id_user', $this->userId())
-    ->get()
-    ->getRowArray();
-
-if ($cekAbsen) {
-    return $this->response->setJSON([
-        'status' => false,
-        'message' => 'Anda sudah melakukan absensi sebelumnya.'
-    ]);
-}
-
-// 5. Simpan absensi
-$db->table('absensi')->insert([
-    'id_jadwal_kelas' => $idJadwal,
-    'id_user'         => $this->userId(),
-    'status'          => 'hadir',
-    'waktu_absen'     => date('Y-m-d H:i:s')
-]);
-
-return $this->response->setJSON([
-    'status' => true,
-    'message' => 'Absensi berhasil dicatat! Selamat belajar.'
-]);
-
-}
-
-public function prosesAbsen(int $idJadwal)
-{
-    // 1. Ambil data jadwal & koordinat pusat dari database
-    // Menggunakan kolom primary key yang benar: 'id_jadwal_kelas'
-    $jadwal = $this->db->table('jadwal_kelas')
-    ->select('jadwal_kelas.*, pendaftaran.lokasi_pelatihan')
-    ->join(
-        'pendaftaran',
-        'pendaftaran.id_kelas = jadwal_kelas.id_kelas',
-        'inner'
-    )
-    ->where('jadwal_kelas.id_jadwal_kelas', $idJadwal)
-    ->where('pendaftaran.id_users', $this->userId())
-    ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
-    ->get()
-    ->getRowArray();
-
-    if (!$jadwal) {
-        return redirect()->back()->with('error', 'Jadwal tidak ditemukan (ID: ' . $idJadwal . ').');
+            if ($db->tableExists('jadwal')) {
+                if (!$db->fieldExists('token_absen', 'jadwal')) {
+                    $forge->addColumn('jadwal', [
+                        'token_absen' => ['type' => 'VARCHAR', 'constraint' => 10, 'null' => true]
+                    ]);
+                }
+                if (!$db->fieldExists('absensi_dibuka', 'jadwal')) {
+                    $forge->addColumn('jadwal', [
+                        'absensi_dibuka' => ['type' => 'TINYINT', 'constraint' => 1, 'default' => 0]
+                    ]);
+                }
+                if (!$db->fieldExists('absensi_mulai', 'jadwal')) {
+                    $forge->addColumn('jadwal', [
+                        'absensi_mulai' => ['type' => 'DATETIME', 'null' => true]
+                    ]);
+                }
+                if (!$db->fieldExists('absensi_selesai', 'jadwal')) {
+                    $forge->addColumn('jadwal', [
+                        'absensi_selesai' => ['type' => 'DATETIME', 'null' => true]
+                    ]);
+                }
+                if (!$db->fieldExists('latitude', 'jadwal')) {
+                    $forge->addColumn('jadwal', [
+                        'latitude' => ['type' => 'DECIMAL', 'constraint' => '10,8', 'null' => true]
+                    ]);
+                }
+                if (!$db->fieldExists('longitude', 'jadwal')) {
+                    $forge->addColumn('jadwal', [
+                        'longitude' => ['type' => 'DECIMAL', 'constraint' => '11,8', 'null' => true]
+                    ]);
+                }
+                if (!$db->fieldExists('radius_meter', 'jadwal')) {
+                    $forge->addColumn('jadwal', [
+                        'radius_meter' => ['type' => 'INT', 'constraint' => 11, 'default' => 100, 'null' => true]
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            log_message('error', 'ensureAbsensiGpsColumns error: ' . $e->getMessage());
+        }
     }
 
-    // 2. Cek apakah koordinat latitude & longitude sudah diisi di database
-   // 2. Ambil lokasi pelatihan yang dipilih peserta saat pendaftaran
-$lokasiNama = trim((string) ($jadwal['lokasi_pelatihan'] ?? ''));
+    public function prosesAbsenGps()
+    {
+        $this->ensureAbsensiGpsColumns();
 
-$lokasi = $this->db->table('lokasi_pelatihan')
-    ->groupStart()
-        ->where('nama_lokasi', $lokasiNama)
-        ->orWhere("CONCAT(nama_lokasi, ' - ', alamat) =", $lokasiNama)
-    ->groupEnd()
-    ->where('is_online !=', 1)
-    ->get()
-    ->getRowArray();
+        $json = $this->request->getJSON();
+        $userLat  = $json->latitude ?? $json->user_latitude ?? null;
+        $userLng  = $json->longitude ?? $json->user_longitude ?? null;
+        $idJadwal = (int) ($json->id_jadwal ?? $json->id_jadwal_kelas ?? 0);
+        $tokenInput = trim((string) ($json->token_absen ?? ''));
 
-if (!$lokasi) {
-    return redirect()->back()->with(
-        'error',
-        'Data lokasi pelatihan peserta tidak ditemukan.'
-    );
-}
+        if (!$idJadwal) {
+            return $this->response->setJSON([
+                'status'  => false,
+                'message' => 'ID Jadwal sesi pertemuan tidak valid.'
+            ]);
+        }
 
-$latitudePusat  = (float) $lokasi['latitude'];
-$longitudePusat = (float) $lokasi['longitude'];
-$maxRadius      = (int) ($lokasi['radius_meter'] ?? 100);
+        $userId = $this->userId();
+        if (!$userId) {
+            return $this->response->setJSON([
+                'status'  => false,
+                'message' => 'Sesi login berakhir. Silakan login kembali.'
+            ]);
+        }
 
-    
-    // 3. Tangkap koordinat GPS peserta dari form/request frontend
-    $userLat = $this->request->getPost('user_latitude');
-    $userLon = $this->request->getPost('user_longitude');
+        $pendaftaran = $this->approvedEnrollment();
+        if (!$pendaftaran) {
+            return $this->response->setJSON([
+                'status'  => false,
+                'message' => 'Anda belum memiliki kelas yang disetujui.'
+            ]);
+        }
 
-    // 4. Validasi jika koordinat kosong (peserta mematikan GPS)
-    if (empty($userLat) || empty($userLon)) {
-        return redirect()->back()->with('error', 'Gagal mendeteksi lokasi GPS. Pastikan izin lokasi aktif.');
+        $db = \Config\Database::connect();
+        $jadwal = $db->table('jadwal')
+            ->where('id_jadwal', $idJadwal)
+            ->where('id_kelas', $pendaftaran['id_kelas'])
+            ->get()
+            ->getRowArray();
+
+        if (!$jadwal && $db->tableExists('jadwal_kelas')) {
+            $jadwal = $db->table('jadwal_kelas')
+                ->where('id_jadwal_kelas', $idJadwal)
+                ->where('id_kelas', $pendaftaran['id_kelas'])
+                ->get()
+                ->getRowArray();
+        }
+
+        if (!$jadwal) {
+            return $this->response->setJSON([
+                'status'  => false,
+                'message' => 'Jadwal sesi kelas tidak ditemukan.'
+            ]);
+        }
+
+        if ((int)($jadwal['absensi_dibuka'] ?? 0) !== 1) {
+            return $this->response->setJSON([
+                'status'  => false,
+                'message' => 'Sesi absensi untuk pertemuan ini belum dibuka oleh mentor/admin.'
+            ]);
+        }
+
+        if (!empty($jadwal['absensi_selesai']) && strtotime($jadwal['absensi_selesai']) < time()) {
+            return $this->response->setJSON([
+                'status'  => false,
+                'message' => 'Waktu sesi absensi untuk pertemuan ini telah berakhir.'
+            ]);
+        }
+
+        $tokenDb = trim((string) ($jadwal['token_absen'] ?? ''));
+        if ($tokenDb !== '') {
+            if ($tokenInput === '') {
+                return $this->response->setJSON([
+                    'status'  => false,
+                    'message' => 'Silakan masukkan 4 digit token absensi dari mentor.'
+                ]);
+            }
+            $secretKey = "KunciRahasiaKelasOffline" . $idJadwal;
+            $currBlock = floor(time() / 12);
+            $validTokens = [
+                $tokenDb,
+                substr(abs(crc32(($currBlock) . $secretKey)), 0, 4),
+                substr(abs(crc32(($currBlock - 1) . $secretKey)), 0, 4),
+                substr(abs(crc32(($currBlock - 2) . $secretKey)), 0, 4),
+                substr(abs(crc32(($currBlock + 1) . $secretKey)), 0, 4),
+            ];
+
+            if (!in_array($tokenInput, $validTokens, true)) {
+                return $this->response->setJSON([
+                    'status'  => false,
+                    'message' => 'Token absensi salah! Silakan periksa kembali token dari mentor.'
+                ]);
+            }
+        }
+
+        $cekAbsen = $db->table('absensi')
+            ->where('id_user', $userId)
+            ->groupStart()
+                ->where('id_jadwal_kelas', $idJadwal)
+                ->orWhere('id_jadwal', $idJadwal)
+            ->groupEnd()
+            ->get()
+            ->getRowArray();
+
+        if ($cekAbsen) {
+            return $this->response->setJSON([
+                'status'  => false,
+                'message' => 'Anda sudah melakukan absensi pada pertemuan ini sebelumnya.'
+            ]);
+        }
+
+        $lokasiInfo = $this->resolveLokasiPelatihan(
+            $jadwal['lokasi_nama'] ?? $pendaftaran['lokasi_pelatihan'] ?? null,
+            $pendaftaran['metode_pembelajaran'] ?? null
+        );
+
+        $waktuSekarang = date('Y-m-d H:i:s');
+
+        // Kelas Online
+        if (!empty($lokasiInfo['is_online'])) {
+            $db->table('absensi')->insert([
+                'id_jadwal'       => $idJadwal,
+                'id_jadwal_kelas' => $idJadwal,
+                'id_user'         => $userId,
+                'status'          => 'hadir',
+                'latitude'        => null,
+                'longitude'       => null,
+                'jarak'           => 0,
+                'waktu_absen'     => $waktuSekarang,
+                'created_at'      => $waktuSekarang,
+                'updated_at'      => $waktuSekarang,
+            ]);
+
+            return $this->response->setJSON([
+                'status'  => true,
+                'message' => 'Absensi HADIR kelas online berhasil dicatat!'
+            ]);
+        }
+
+        // Kelas Offline: Validasi GPS
+        if ($userLat === null || $userLng === null || trim((string)$userLat) === '' || trim((string)$userLng) === '') {
+            return $this->response->setJSON([
+                'status'  => false,
+                'message' => 'Data koordinat GPS tidak lengkap atau izin lokasi tidak aktif.'
+            ]);
+        }
+
+        $userLat = (float) $userLat;
+        $userLng = (float) $userLng;
+
+        if ($userLat == 0.0 && $userLng == 0.0) {
+            return $this->response->setJSON([
+                'status'  => false,
+                'message' => 'Koordinat GPS tidak valid (0, 0).'
+            ]);
+        }
+
+        $targetLat       = (float) (!empty($jadwal['latitude']) ? $jadwal['latitude'] : $lokasiInfo['latitude']);
+        $targetLng       = (float) (!empty($jadwal['longitude']) ? $jadwal['longitude'] : $lokasiInfo['longitude']);
+        $radiusToleransi = (int) (!empty($jadwal['radius_meter']) ? $jadwal['radius_meter'] : ($lokasiInfo['radius_meter'] ?? 100));
+
+        $jarakMeter = round($this->hitungJarakGPS($userLat, $userLng, $targetLat, $targetLng));
+
+        if ($jarakMeter > $radiusToleransi) {
+            return $this->response->setJSON([
+                'status'  => false,
+                'message' => 'Absen ditolak! Anda berada di luar radius lokasi kelas. (Jarak Anda: ' . number_format($jarakMeter, 0, ',', '.') . ' m dari ' . $lokasiInfo['nama_lokasi'] . ', toleransi: ' . $radiusToleransi . ' m).'
+            ]);
+        }
+
+        $db->table('absensi')->insert([
+            'id_jadwal'       => $idJadwal,
+            'id_jadwal_kelas' => $idJadwal,
+            'id_user'         => $userId,
+            'status'          => 'hadir',
+            'latitude'        => $userLat,
+            'longitude'       => $userLng,
+            'jarak'           => $jarakMeter,
+            'waktu_absen'     => $waktuSekarang,
+            'created_at'      => $waktuSekarang,
+            'updated_at'      => $waktuSekarang,
+        ]);
+
+        return $this->response->setJSON([
+            'status'  => true,
+            'message' => 'Absensi HADIR berhasil! Terverifikasi di lokasi pelatihan (' . $jarakMeter . ' meter dari titik pusat).'
+        ]);
     }
 
-    // 5. Hitung jarak menggunakan fungsi Haversine yang ada di class ini
-    $jarak = $this->hitungJarakGPS($latitudePusat, $longitudePusat, $userLat, $userLon);
+    public function prosesAbsen(?int $idJadwal = null)
+    {
+        $this->ensureAbsensiGpsColumns();
 
-    // 6. Validasi apakah jarak peserta melebihi radius maksimal
-    if ($jarak > $maxRadius) {
-        return redirect()->back()->with('error', 'Anda berada di luar radius absensi! Jarak Anda sekitar ' . round($jarak) . ' meter dari lokasi.');
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
+
+        if (!$idJadwal) {
+            $idJadwal = (int) ($this->request->getPost('id_jadwal') ?? $this->request->getPost('id_jadwal_kelas'));
+        }
+
+        if (!$idJadwal) {
+            return redirect()->back()->with('error', 'ID Jadwal sesi pertemuan tidak valid.');
+        }
+
+        $pendaftaran = $this->approvedEnrollment();
+        if (!$pendaftaran) {
+            return redirect()->to(base_url('pelatihan/kelas'))->with('error', 'Anda belum memiliki kelas yang disetujui.');
+        }
+
+        $db = \Config\Database::connect();
+
+        // 1. Ambil jadwal dari tabel jadwal (atau fallback jadwal_kelas)
+        $jadwal = $db->table('jadwal')
+            ->where('id_jadwal', $idJadwal)
+            ->where('id_kelas', $pendaftaran['id_kelas'])
+            ->get()
+            ->getRowArray();
+
+        if (!$jadwal && $db->tableExists('jadwal_kelas')) {
+            $jadwal = $db->table('jadwal_kelas')
+                ->where('id_jadwal_kelas', $idJadwal)
+                ->where('id_kelas', $pendaftaran['id_kelas'])
+                ->get()
+                ->getRowArray();
+        }
+
+        if (!$jadwal) {
+            return redirect()->back()->with('error', 'Jadwal pertemuan tidak ditemukan untuk kelas Anda.');
+        }
+
+        // 2. Cek apakah absensi dibuka
+        $absensiDibuka = (int) ($jadwal['absensi_dibuka'] ?? 0);
+        if ($absensiDibuka !== 1) {
+            return redirect()->back()->with('error', 'Sesi absensi untuk pertemuan ini belum dibuka oleh mentor/admin.');
+        }
+
+        // 3. Cek batas waktu jika diatur
+        if (!empty($jadwal['absensi_selesai']) && strtotime($jadwal['absensi_selesai']) < time()) {
+            return redirect()->back()->with('error', 'Waktu sesi absensi untuk pertemuan ini telah berakhir.');
+        }
+
+        // 4. Validasi token jika mentor/admin menetapkan token sesi
+        $tokenDb = trim((string) ($jadwal['token_absen'] ?? ''));
+        $tokenInput = trim((string) $this->request->getPost('token_absen'));
+        if ($tokenDb !== '') {
+            if ($tokenInput === '') {
+                return redirect()->back()->with('error', 'Silakan masukkan 4 digit token absensi dari mentor.');
+            }
+            $secretKey = "KunciRahasiaKelasOffline" . $idJadwal;
+            $currBlock = floor(time() / 12);
+            $validTokens = [
+                $tokenDb,
+                substr(abs(crc32(($currBlock) . $secretKey)), 0, 4),
+                substr(abs(crc32(($currBlock - 1) . $secretKey)), 0, 4),
+                substr(abs(crc32(($currBlock - 2) . $secretKey)), 0, 4),
+                substr(abs(crc32(($currBlock + 1) . $secretKey)), 0, 4),
+            ];
+
+            if (!in_array($tokenInput, $validTokens, true)) {
+                return redirect()->back()->with('error', 'Token absensi salah! Silakan periksa kembali token dari mentor.');
+            }
+        }
+
+        // 5. Cek absensi ganda
+        $absensiModel = new AbsensiModel();
+        $sudahAbsen = $absensiModel
+            ->where('id_user', $this->userId())
+            ->groupStart()
+                ->where('id_jadwal', $idJadwal)
+                ->orWhere('id_jadwal_kelas', $idJadwal)
+            ->groupEnd()
+            ->first();
+
+        if ($sudahAbsen) {
+            return redirect()->back()->with('error', 'Anda sudah melakukan absensi pada pertemuan ini.');
+        }
+
+        $waktuSekarang = date('Y-m-d H:i:s');
+
+        // 6. Opsi status: tidak hadir
+        $pilihanStatus = strtolower(trim((string) $this->request->getPost('status_absen')));
+        if ($pilihanStatus === 'tidak hadir' || $pilihanStatus === 'tidak_hadir') {
+            $absensiModel->insert([
+                'id_jadwal'       => $idJadwal,
+                'id_jadwal_kelas' => $idJadwal,
+                'id_user'         => $this->userId(),
+                'status'          => 'tidak hadir',
+                'latitude'        => null,
+                'longitude'       => null,
+                'jarak'           => null,
+                'waktu_absen'     => $waktuSekarang,
+                'created_at'      => $waktuSekarang,
+                'updated_at'      => $waktuSekarang,
+            ]);
+
+            return redirect()->back()->with('success', 'Status TIDAK HADIR berhasil disimpan.');
+        }
+
+        // 7. Resolusi koordinat pusat lokasi pelatihan
+        $lokasiInfo = $this->resolveLokasiPelatihan(
+            $jadwal['lokasi_nama'] ?? $pendaftaran['lokasi_pelatihan'] ?? null,
+            $pendaftaran['metode_pembelajaran'] ?? null
+        );
+
+        // A. KELAS ONLINE: Tidak membutuhkan validasi GPS
+        if (!empty($lokasiInfo['is_online'])) {
+            $absensiModel->insert([
+                'id_jadwal'       => $idJadwal,
+                'id_jadwal_kelas' => $idJadwal,
+                'id_user'         => $this->userId(),
+                'status'          => 'hadir',
+                'latitude'        => null,
+                'longitude'       => null,
+                'jarak'           => 0,
+                'waktu_absen'     => $waktuSekarang,
+                'created_at'      => $waktuSekarang,
+                'updated_at'      => $waktuSekarang,
+            ]);
+
+            return redirect()->back()->with('success', 'Absensi HADIR kelas online berhasil dicatat!');
+        }
+
+        // B. KELAS OFFLINE: Validasi GPS perangkat pengguna
+        $userLat = $this->request->getPost('user_latitude') ?? $this->request->getPost('latitude');
+        $userLng = $this->request->getPost('user_longitude') ?? $this->request->getPost('longitude');
+        $gpsError = $this->request->getPost('gps_error');
+
+        if ($gpsError || $userLat === null || $userLng === null || trim((string)$userLat) === '' || trim((string)$userLng) === '') {
+            return redirect()->back()->with(
+                'error',
+                'Absensi gagal! Koordinat GPS tidak terdeteksi. Pastikan izin lokasi (Geolocation) diizinkan di browser Anda dan GPS perangkat dalam keadaan aktif.'
+            );
+        }
+
+        $userLat = (float) $userLat;
+        $userLng = (float) $userLng;
+
+        if ($userLat == 0.0 && $userLng == 0.0) {
+            return redirect()->back()->with('error', 'Titik koordinat GPS tidak valid (0, 0). Pastikan GPS Anda aktif dan mendapatkan sinyal yang akurat.');
+        }
+
+        $targetLat       = (float) (!empty($jadwal['latitude']) ? $jadwal['latitude'] : $lokasiInfo['latitude']);
+        $targetLng       = (float) (!empty($jadwal['longitude']) ? $jadwal['longitude'] : $lokasiInfo['longitude']);
+        $radiusToleransi = (int) (!empty($jadwal['radius_meter']) ? $jadwal['radius_meter'] : ($lokasiInfo['radius_meter'] ?? 100));
+
+        // Hitung jarak Haversine di server
+        $jarakMeter = round($this->hitungJarakGPS($userLat, $userLng, $targetLat, $targetLng));
+
+        // Validasi radius jarak
+        if ($jarakMeter > $radiusToleransi) {
+            return redirect()->back()->with(
+                'error',
+                'Absensi ditolak! Anda berada di luar radius area pelatihan. (Jarak Anda: ' . number_format($jarakMeter, 0, ',', '.') . ' meter dari ' . esc($lokasiInfo['nama_lokasi']) . ', batas toleransi: ' . $radiusToleransi . ' meter).'
+            );
+        }
+
+        // Simpan data absensi HADIR lengkap
+        $absensiModel->insert([
+            'id_jadwal'       => $idJadwal,
+            'id_jadwal_kelas' => $idJadwal,
+            'id_user'         => $this->userId(),
+            'status'          => 'hadir',
+            'latitude'        => $userLat,
+            'longitude'       => $userLng,
+            'jarak'           => $jarakMeter,
+            'waktu_absen'     => $waktuSekarang,
+            'created_at'      => $waktuSekarang,
+            'updated_at'      => $waktuSekarang,
+        ]);
+
+        return redirect()->back()->with(
+            'success',
+            'Absensi HADIR berhasil dicatat! Anda terverifikasi di area pelatihan (' . $jarakMeter . ' meter dari titik pusat ' . esc($lokasiInfo['nama_lokasi']) . ').'
+        );
     }
-
-    // 7. Cek apakah sudah pernah absen sebelumnya
-    $idUser = $this->userId();
-    $cekAbsen = $this->db->table('absensi')
-        ->where('id_jadwal_kelas', $idJadwal)
-        ->where('id_user', $idUser)
-        ->get()
-        ->getRowArray();
-
-    if ($cekAbsen) {
-        return redirect()->back()->with('error', 'Anda sudah melakukan absensi pada sesi ini.');
-    }
-
-    // 8. Simpan data absensi ke database jika lolos semua validasi
-    $this->db->table('absensi')->insert([
-        'id_jadwal_kelas' => $idJadwal,
-        'id_user'         => $idUser,
-        'status'          => 'hadir',
-        'latitude'        => (float) $userLat,
-        'longitude'       => (float) $userLon,
-        'jarak'           => round($jarak),
-        'waktu_absen'     => date('Y-m-d H:i:s'),
-        'created_at'      => date('Y-m-d H:i:s'),
-        'updated_at'      => date('Y-m-d H:i:s'),
-    ]);
-
-    return redirect()->back()->with('success', 'Absensi berhasil! Kehadiran Anda telah tercatat.');
-}
 
     // Fungsi pendukung untuk menghitung jarak GPS (dalam meter menggunakan Haversine Formula)
     public function hitungJarakGPS($lat1, $lon1, $lat2, $lon2): float
@@ -2199,6 +2490,8 @@ public function simpanJawabanUjian()
 
     public function absensi()
     {
+        $this->ensureAbsensiGpsColumns();
+
         if ($redirect = $this->requireLogin()) {
             return $redirect;
         }
@@ -2227,11 +2520,13 @@ public function simpanJawabanUjian()
                 ->where('id_user', $this->userId())
                 ->groupStart()
                     ->where('id_jadwal_kelas', $idJadwal)
+                    ->orWhere('id_jadwal', $idJadwal)
                 ->groupEnd()
                 ->first();
         }
 
         return view('peserta/absensi', [
+            'kelas'       => $pendaftaran,
             'pendaftaran' => $pendaftaran,
             'lokasiInfo'  => $lokasiInfo,
             'jadwal'      => $jadwal,
@@ -2240,137 +2535,7 @@ public function simpanJawabanUjian()
 
     public function simpanAbsensi()
     {
-        if ($redirect = $this->requireLogin()) {
-            return $redirect;
-        }
-
-        $idJadwal = (int) ($this->request->getPost('id_jadwal') ?? $this->request->getPost('id_jadwal_kelas'));
-        if (!$idJadwal) {
-            return redirect()->back()->with('error', 'Jadwal pertemuan tidak ditemukan.');
-        }
-
-        $pendaftaran = $this->approvedEnrollment();
-        if (!$pendaftaran) {
-            return redirect()->to(base_url('pelatihan/kelas'))->with('error', 'Anda belum memiliki kelas yang disetujui.');
-        }
-
-        // Pastikan jadwal pertemuan memang milik kelas peserta
-        $jadwal = (new JadwalModel())
-            ->where('id_jadwal', $idJadwal)
-            ->where('id_kelas', $pendaftaran['id_kelas'])
-            ->first();
-
-        if (!$jadwal) {
-            return redirect()->back()->with('error', 'Jadwal pertemuan tidak valid untuk kelas Anda.');
-        }
-
-        $absensiModel = new AbsensiModel();
-
-        // 1. Cegah absen ganda
-        $sudahAbsen = $absensiModel
-            ->where('id_user', $this->userId())
-            ->groupStart()
-                ->where('id_jadwal', $idJadwal)
-                ->orWhere('id_jadwal_kelas', $idJadwal)
-            ->groupEnd()
-            ->first();
-
-        if ($sudahAbsen) {
-            return redirect()->back()->with('error', 'Anda sudah melakukan absensi untuk pertemuan ini.');
-        }
-
-        $pilihanStatus = strtolower(trim((string) $this->request->getPost('status_absen')));
-        if (!in_array($pilihanStatus, ['hadir', 'tidak hadir', 'tidak_hadir'], true)) {
-            $pilihanStatus = 'hadir';
-        }
-
-        $waktuSekarang = date('Y-m-d H:i:s');
-
-        // 2. PILIHAN TIDAK HADIR
-        if ($pilihanStatus === 'tidak hadir' || $pilihanStatus === 'tidak_hadir') {
-            $absensiModel->insert([
-                'id_jadwal_kelas' => $idJadwal,
-                'id_user'         => $this->userId(),
-                'status'          => 'tidak hadir',
-                'latitude'        => null,
-                'longitude'       => null,
-                'jarak'           => null,
-                'waktu_absen'     => $waktuSekarang,
-                'created_at'      => $waktuSekarang,
-                'updated_at'      => $waktuSekarang,
-            ]);
-
-            return redirect()->back()->with('success', 'Status TIDAK HADIR berhasil disimpan.');
-        }
-
-        // 3. PILIHAN HADIR
-        $lokasiInfo = $this->resolveLokasiPelatihan(
-            $pendaftaran['lokasi_pelatihan'] ?? null,
-            $pendaftaran['metode_pembelajaran'] ?? null
-        );
-
-        // A. KELAS ONLINE: Tidak memerlukan validasi fisik GPS
-        if (!empty($lokasiInfo['is_online'])) {
-            $absensiModel->insert([
-                'id_jadwal_kelas' => $idJadwal,
-                'id_user'         => $this->userId(),
-                'status'          => 'hadir',
-                'latitude'        => null,
-                'longitude'       => null,
-                'jarak'           => 0,
-                'waktu_absen'     => $waktuSekarang,
-                'created_at'      => $waktuSekarang,
-                'updated_at'      => $waktuSekarang,
-            ]);
-
-            return redirect()->back()->with('success', 'Absensi HADIR kelas online berhasil disimpan.');
-        }
-
-        // B. KELAS OFFLINE: Wajib validasi GPS browser
-        $gpsError = $this->request->getPost('gps_error');
-        $userLat  = $this->request->getPost('latitude');
-        $userLng  = $this->request->getPost('longitude');
-
-        if ($gpsError || $userLat === null || $userLng === null || $userLat === '' || $userLng === '') {
-            return redirect()->back()->with(
-                'error',
-                'Absensi hadir membutuhkan izin lokasi/GPS untuk memastikan Anda berada di tempat pelatihan.'
-            );
-        }
-
-        $targetLat       = (float) $lokasiInfo['latitude'];
-        $targetLng       = (float) $lokasiInfo['longitude'];
-        $radiusToleransi = (int) ($lokasiInfo['radius_meter'] ?? 100);
-
-        // Hitung jarak Haversine di server
-        $jarakMeter = round($this->hitungJarakGPS($userLat, $userLng, $targetLat, $targetLng));
-
-        // Validasi jarak terhadap batas toleransi radius
-        if ($jarakMeter > $radiusToleransi) {
-            return redirect()->back()->with(
-                'error',
-                'Anda berada di luar area tempat pelatihan. Absensi hadir tidak dapat dilakukan. (Jarak Anda: ' . $jarakMeter . ' meter dari ' . esc($lokasiInfo['nama_lokasi']) . ', batas toleransi: ' . $radiusToleransi . ' meter).'
-            );
-        }
-
-        // Simpan data absensi HADIR beserta bukti audit lokasi
-        $absensiModel->insert([
-            'id_jadwal'       => $idJadwal,
-            'id_jadwal_kelas' => $idJadwal,
-            'id_user'         => $this->userId(),
-            'status'          => 'hadir',
-            'latitude'        => (float) $userLat,
-            'longitude'       => (float) $userLng,
-            'jarak'           => $jarakMeter,
-            'waktu_absen'     => $waktuSekarang,
-            'created_at'      => $waktuSekarang,
-            'updated_at'      => $waktuSekarang,
-        ]);
-
-        return redirect()->back()->with(
-            'success',
-            'Absensi HADIR berhasil dicatat! Anda terverifikasi di area pelatihan (' . $jarakMeter . ' meter dari titik pusat).'
-        );
+        return $this->prosesAbsen();
     }
 
 

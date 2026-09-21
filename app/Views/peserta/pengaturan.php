@@ -269,8 +269,14 @@
 <div class="app-wrapper">
     <!-- Sidebar Kustom -->
     <nav class="sidebar">
-        <a href="#" class="sidebar-brand">
-            <i class="bi bi-mortarboard-fill me-2 fs-5 text-warning"></i> Creativemu
+        <a href="#" class="sidebar-brand d-flex align-items-center">
+            <!-- Menggunakan file gambar logo dari folder assets -->
+            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Logo Creativemu" class="rounded-3 me-2 shadow-sm object-fit-cover" style="width: 38px; height: 38px;">
+            
+            <div>
+                <span class="fs-6 fw-bold d-block text-white lh-1">Creativemu</span>
+                <span class="text-white-50" style="font-size: 0.65rem; letter-spacing: 0.5px;">ACADEMY</span>
+            </div>
         </a>
         <ul class="sidebar-menu">
             <li>
