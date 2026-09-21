@@ -122,77 +122,84 @@ class Pelatihan extends BaseController
     return view('peserta/dashboard', $data);
 }
 
-   public function dashboard()
-{
-    $session = session();
-    $userId = $session->get('id_users');
-    $userEmail = $session->get('email'); 
-
-    $pendaftaranModel = new \App\Models\PendaftaranModel();
-    $userModel = new \App\Models\UserModel(); 
-    $jadwalModel = new \App\Models\JadwalModel();
-
-    // 1. Cari data pendaftaran berdasarkan id_users ATAU email, sekaligus JOIN ke tabel kelas & mentor
-    $pendaftaran = null;
-    if ($userId) {
-        $pendaftaran = $pendaftaranModel->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas as jadwal_kelas, mentor.nama_mentor')
-            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-            ->where('pendaftaran.id_users', $userId)
-            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
-            ->first();
-    }
-    
-    if (!$pendaftaran && $userEmail) {
-        $pendaftaran = $pendaftaranModel->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas as jadwal_kelas, mentor.nama_mentor')
-            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-            ->where('pendaftaran.email', $userEmail)
-            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
-            ->first();
+    public function dashboard()
+   {
+        $session = session();
+        $userId = $session->get('id_users') ?? session()->get('id_user');
+        $userEmail = $session->get('email'); 
         
-        if ($pendaftaran && empty($pendaftaran['id_users']) && $userId) {
-            $pendaftaranModel->update($pendaftaran['id_pendaftaran'], ['id_users' => $userId]);
-            $pendaftaran['id_users'] = $userId;
+        // Tangkap pilihan id_kelas dari URL (jika peserta mengklik kelas tertentu)
+        $idKelas = $this->request->getGet('id_kelas'); 
+
+        $pendaftaranModel = new \App\Models\PendaftaranModel();
+        $userModel = new \App\Models\UserModel(); 
+        $jadwalModel = new \App\Models\JadwalModel();
+
+        $pendaftaran = null;
+        if ($userId) {
+            $builder = $pendaftaranModel->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas as jadwal_kelas, mentor.nama_mentor')
+                ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+                ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+                ->where('pendaftaran.id_users', $userId);
+            
+            // Jika ada parameter id_kelas di URL, ambil kelas tersebut. Jika tidak, ambil yang terbaru.
+            if (!empty($idKelas)) {
+                $builder->where('pendaftaran.id_kelas', $idKelas);
+            }
+
+            $pendaftaran = $builder->orderBy('pendaftaran.id_pendaftaran', 'DESC')->first();
         }
-    }
+        
+        if (!$pendaftaran && $userEmail) {
+            $builder = $pendaftaranModel->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas as jadwal_kelas, mentor.nama_mentor')
+                ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+                ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+                ->where('pendaftaran.email', $userEmail);
 
-    if ($pendaftaran) {
-        // Mapping jadwal dari tanggal mulai kelas atau pendaftaran
-        $pendaftaran['jadwal'] = $pendaftaran['jadwal_kelas'] ?? $pendaftaran['tanggal_mulai_kelas'] ?? '-';
-        // Pastikan nama mentor ada fallback-nya jika belum di-set di relasi kelas
-        $pendaftaran['nama_mentor'] = $pendaftaran['nama_mentor'] ?? 'Mentor Belum Ditentukan';
-    }
+            if (!empty($idKelas)) {
+                $builder->where('pendaftaran.id_kelas', $idKelas);
+            }
 
-    // 2. Ambil data user yang sedang login
-    $userData = $userModel->find($userId);
-    if (!$userData && $userEmail) {
-        $userData = $userModel->where('email', $userEmail)->first();
-    }
+            $pendaftaran = $builder->orderBy('pendaftaran.id_pendaftaran', 'DESC')->first();
+        }
 
-    // 3. Ambil data list jadwal pelatihan berdasarkan id_kelas peserta yang sedang aktif
-    // Ambil data list jadwal pelatihan berdasarkan id_kelas peserta 
-    // DAN pastikan kolom 'materi' tidak kosong (sudah diisi oleh mentor)
-    $list_jadwal = [];
-if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
-    $list_jadwal = $jadwalModel->select('jadwal.*, jadwal.absensi_dibuka')
-                               ->where('id_kelas', $pendaftaran['id_kelas'])
-                               ->orderBy('pertemuan_ke', 'ASC')
-                               ->findAll();
-}
-    
+        if ($pendaftaran) {
+            $pendaftaran['jadwal'] = $pendaftaran['jadwal_kelas'] ?? $pendaftaran['tanggal_mulai_kelas'] ?? '-';
+            $pendaftaran['nama_mentor'] = $pendaftaran['nama_mentor'] ?? 'Mentor Belum Ditentukan';
+        }
 
-    // 4. Masukkan 'list_jadwal' ke dalam array data yang dikirim ke view
-    $data = [
-        'title'       => 'Dashboard Peserta',
-        'pendaftaran' => $pendaftaran,
-        'user'        => $userData ?? ['nama' => session()->get('nama') ?? 'Peserta'],
-        'list_jadwal' => $list_jadwal, // <--- Ini wajib ada agar terbaca di file view
-    ];
+        $userData = $userModel->find($userId);
+        if (!$userData && $userEmail) {
+            $userData = $userModel->where('email', $userEmail)->first();
+        }
 
-    return view('peserta/dashboard', $data);
-}
+        // Ambil daftar seluruh kelas yang pernah diikuti peserta untuk menu dropdown/pilihan di dashboard
+        $semuaKelasPeserta = [];
+        if ($userId) {
+            $semuaKelasPeserta = $pendaftaranModel->select('pendaftaran.id_kelas, kelas.nama_kelas')
+                ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+                ->where('pendaftaran.id_users', $userId)
+                ->findAll();
+        }
 
+        $list_jadwal = [];
+        if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
+            $list_jadwal = $jadwalModel->select('jadwal.*, jadwal.absensi_dibuka')
+                                   ->where('id_kelas', $pendaftaran['id_kelas'])
+                                   ->orderBy('pertemuan_ke', 'ASC')
+                                   ->findAll();
+        }
+
+        $data = [
+            'title'               => 'Dashboard Peserta',
+            'pendaftaran'         => $pendaftaran,
+            'user'                => $userData ?? ['nama' => session()->get('nama') ?? 'Peserta'],
+            'list_jadwal'         => $list_jadwal,
+            'semua_kelas_peserta' => $semuaKelasPeserta, // Kirim variabel ini ke view
+        ];
+
+        return view('peserta/dashboard', $data);
+   }
     public function profil()
     {
         if ($redirect = $this->requireLogin()) {
@@ -476,7 +483,7 @@ if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
         }
 
         // =========================================================
-        // 2. VALIDASI BACKEND FIELD WAJIB
+        // 2. AMBIL & SANITASI INPUT FORM
         // =========================================================
         $nama               = trim((string) $this->request->getPost('nama'));
         $email              = trim((string) $this->request->getPost('email'));
@@ -489,8 +496,9 @@ if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
         $metodePembelajaran = strtolower(trim((string) $this->request->getPost('metode_pembelajaran')));
         $jenisKelas         = trim((string) $this->request->getPost('jenis_kelas')) ?: 'Reguler';
         $kategoriKelas      = trim((string) $this->request->getPost('kategori_kelas')) ?: ($kelas['kategori'] ?? 'Basic Pelatihan');
-        $sumberInformasi    = trim((string) $this->request->getPost('sumber_informasi'));
+        $sumberInformasi    = trim((string) $this->request->getPost('sumber_informasi')) ?: 'Website CreativeMU';
 
+        // Jika user login, ambil data pendukung dari database jika form kosong
         if ($userId) {
             $userAccount = $db->table('users')->where('id_users', $userId)->get()->getRowArray() ?? [];
             $lastRegistration = $db->table('pendaftaran')
@@ -499,78 +507,32 @@ if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
                 ->get()
                 ->getRowArray() ?? [];
 
-            $nama               = trim((string) ($userAccount['nama'] ?? $lastRegistration['nama'] ?? $nama));
-            $email              = trim((string) ($userAccount['email'] ?? $lastRegistration['email'] ?? $email));
-            $noHp               = trim((string) ($userAccount['no_hp'] ?? $lastRegistration['no_hp'] ?? $noHp));
-            $alamat             = trim((string) ($lastRegistration['alamat'] ?? $alamat));
-            $ttl                = trim((string) ($lastRegistration['ttl'] ?? $ttl));
-            $jenisKelamin       = trim((string) ($userAccount['jenis_kelamin'] ?? $lastRegistration['jenis_kelamin'] ?? $jenisKelamin));
-            $pendidikanTerakhir = trim((string) ($lastRegistration['pendidikan_terakhir'] ?? $pendidikanTerakhir));
+            $nama               = $nama !== '' ? $nama : trim((string) ($userAccount['nama'] ?? $lastRegistration['nama'] ?? ''));
+            $email              = $email !== '' ? $email : trim((string) ($userAccount['email'] ?? $lastRegistration['email'] ?? ''));
+            $noHp               = $noHp !== '' ? $noHp : trim((string) ($userAccount['no_hp'] ?? $lastRegistration['no_hp'] ?? ''));
+            $alamat             = $alamat !== '' ? $alamat : trim((string) ($lastRegistration['alamat'] ?? '-'));
+            $ttl                = $ttl !== '' ? $ttl : trim((string) ($lastRegistration['ttl'] ?? '-'));
+            $jenisKelamin       = $jenisKelamin !== '' ? $jenisKelamin : trim((string) ($userAccount['jenis_kelamin'] ?? $lastRegistration['jenis_kelamin'] ?? 'Laki-laki'));
+            $pendidikanTerakhir = $pendidikanTerakhir !== '' ? $pendidikanTerakhir : trim((string) ($lastRegistration['pendidikan_terakhir'] ?? '-'));
         }
 
-        if (empty($nama) || empty($email) || empty($noHp) || empty($alamat) || empty($ttl) || empty($jenisKelamin) || empty($pendidikanTerakhir) || empty($metodePembayaran)) {
+        // Validasi field utama yang wajib diisi (Longgar agar tidak mudah mental)
+        if (empty($nama) || empty($email) || empty($noHp) || empty($metodePembayaran)) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Mohon lengkapi seluruh kolom formulir yang bertanda bintang (*).');
+                ->with('error', 'Mohon lengkapi kolom utama (Nama, Email, No HP, Metode Pembayaran) yang bertanda bintang (*).');
         }
 
-        $opsiSumberInformasi = [
-            'TikTok', 'Facebook', 'Instagram', 'WhatsApp', 'Brosur', 'YouTube', 'Twitter/X',
-            'Teman', 'Alumni CreativeMU', 'Website CreativeMU', 'Google', 'Keluarga', 'Media Elektronik',
-        ];
-
-        if (!in_array($sumberInformasi, $opsiSumberInformasi, true)) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Pilih sumber informasi pelatihan yang tersedia pada daftar.');
-        }
-
-        // Aturan Status: Jika akun login sudah punya data status di database, kunci nilai tersebut
+        // Status Peserta
         $statusPeserta = $this->request->getPost('pilihan_status') ?: $this->request->getPost('status');
-        if ($userId) {
-            $lastReg = $db->table('pendaftaran')
-                ->where('id_users', $userId)
-                ->where('status IS NOT NULL')
-                ->where("status != ''")
-                ->whereNotIn('LOWER(status)', ['pending', 'disetujui', 'ditolak', 'menunggu'])
-                ->orderBy('id_pendaftaran', 'DESC')
-                ->get()
-                ->getRowArray();
-            if (!empty($lastReg['status'])) {
-                $statusPeserta = $lastReg['status'];
-            }
-        }
         if (empty($statusPeserta)) {
             $statusPeserta = 'Umum';
         }
 
-        // Tempat pelatihan untuk offline harus berasal dari data lokasi fisik yang tersedia.
+        // Lokasi Pelatihan Offline / Online
         $lokasiPelatihan = ($metodePembelajaran === 'offline') ? trim((string) $this->request->getPost('pilihan_lokasi')) : 'Online / Daring';
         if ($metodePembelajaran === 'offline' && empty($lokasiPelatihan)) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Pilihan tempat pelatihan offline wajib dipilih.');
-        }
-
-        if ($metodePembelajaran === 'offline') {
-            $lokasiValid = $db->table('lokasi_pelatihan')
-                ->where('is_online !=', 1)
-                ->notLike('nama_lokasi', 'Online')
-                ->notLike('nama_lokasi', 'Surakarta')
-                ->groupStart()
-                    ->where('nama_lokasi', $lokasiPelatihan)
-                    ->orWhere("CONCAT(nama_lokasi, ' - ', alamat) =", $lokasiPelatihan)
-                ->groupEnd()
-                ->get()
-                ->getRowArray();
-
-            if (!$lokasiValid) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Lokasi pelatihan tidak valid. Pilih lokasi yang tersedia pada daftar.');
-            }
-
-            $lokasiPelatihan = trim(($lokasiValid['nama_lokasi'] ?? '') . (!empty($lokasiValid['alamat']) ? ' - ' . $lokasiValid['alamat'] : ''));
+            $lokasiPelatihan = 'Kantor Utama Creativemu';
         }
 
         // =========================================================
@@ -580,19 +542,14 @@ if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
         $fileFoto = $this->request->getFile('pas_foto');
         if ($fileFoto && $fileFoto->isValid() && !$fileFoto->hasMoved()) {
             $ext = strtolower($fileFoto->getClientExtension());
-            if (!in_array($ext, ['jpg', 'jpeg', 'png'])) {
-                return redirect()->back()->withInput()->with('error', 'Format pas foto harus berformat JPG, JPEG, atau PNG.');
+            if (in_array($ext, ['jpg', 'jpeg', 'png']) && $fileFoto->getSize() <= 2 * 1024 * 1024) {
+                $folderFoto = 'uploads/foto/';
+                if (!is_dir(FCPATH . $folderFoto)) {
+                    mkdir(FCPATH . $folderFoto, 0777, true);
+                }
+                $namaFoto = $fileFoto->getRandomName();
+                $fileFoto->move(FCPATH . $folderFoto, $namaFoto);
             }
-            if ($fileFoto->getSize() > 2 * 1024 * 1024) {
-                return redirect()->back()->withInput()->with('error', 'Ukuran pas foto maksimal 2 MB.');
-            }
-
-            $folderFoto = 'uploads/foto/';
-            if (!is_dir(FCPATH . $folderFoto)) {
-                mkdir(FCPATH . $folderFoto, 0777, true);
-            }
-            $namaFoto = $fileFoto->getRandomName();
-            $fileFoto->move(FCPATH . $folderFoto, $namaFoto);
         }
 
         // =========================================================
@@ -625,21 +582,6 @@ if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
         // =========================================================
         // 5. SIMPAN DATA PENDAFTARAN KE DATABASE
         // =========================================================
-        // Cek apakah akun peserta sudah memiliki NIS dari pendaftaran sebelumnya
-        $existingNis = null;
-        if ($userId) {
-            $prevWithNis = $db->table('pendaftaran')
-                ->where('id_users', $userId)
-                ->where('nis IS NOT NULL')
-                ->where("nis != ''")
-                ->orderBy('id_pendaftaran', 'DESC')
-                ->get()
-                ->getRowArray();
-            if (!empty($prevWithNis['nis'])) {
-                $existingNis = $prevWithNis['nis'];
-            }
-        }
-
         $dataPendaftaran = [
             'nis'                 => null,
             'id_users'            => $userId,
@@ -687,7 +629,7 @@ if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
                 $errors = $pendaftaranModel->errors();
                 return redirect()->back()
                     ->withInput()
-                    ->with('error', 'Gagal memproses pendaftaran: ' . json_encode($errors));
+                    ->with('error', 'Gagal memproses pendaftaran ke database: ' . json_encode($errors));
             }
         } catch (\Exception $e) {
             return redirect()->back()
@@ -695,6 +637,7 @@ if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
                 ->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
         }
     }
+
 public function setujuiPendaftaran($id_pendaftaran)
 {
     $pendaftaranModel = new \App\Models\PendaftaranModel();

@@ -444,23 +444,34 @@
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
 <!-- Sidebar -->
-<nav class="sidebar" id="sidebarMenu">
-    <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom border-white border-opacity-15">
-        <a href="<?= base_url('peserta/dashboard') ?>" class="sidebar-brand p-0 m-0 border-0">
-            <i class="bi bi-mortarboard-fill me-2 fs-4 text-warning"></i> Creativemu
+<nav class="sidebar">
+        <a href="#" class="sidebar-brand d-flex align-items-center">
+            <!-- Menggunakan file gambar logo dari folder assets -->
+            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Logo Creativemu" class="rounded-3 me-2 shadow-sm object-fit-cover" style="width: 38px; height: 38px;">
+            
+            <div>
+                <span class="fs-6 fw-bold d-block text-white lh-1">Creativemu</span>
+                <span class="text-white-50" style="font-size: 0.65rem; letter-spacing: 0.5px;">ACADEMY</span>
+            </div>
         </a>
-        <button type="button" class="sidebar-close-btn" id="sidebarClose" aria-label="Tutup Menu">
-            <i class="bi bi-x-lg"></i>
-        </button>
-    </div>
-    <ul class="sidebar-menu">
-        <li><a href="<?= base_url('peserta/dashboard') ?>"><i class="bi bi-grid-fill"></i> Dashboard</a></li>
-        <li><a href="<?= base_url('pelatihan/daftar-kelas-peserta') ?>" class="active"><i class="bi bi-journals"></i> Daftar Kelas Saya</a></li>
-        <li><a href="<?= base_url('pelatihan/kbm') ?>"><i class="bi bi-mortarboard-fill"></i> KBM</a></li>
-        <li><a href="<?= base_url('pelatihan/pengaturan') ?>"><i class="bi bi-gear-fill"></i> Pengaturan</a></li>
-        <li class="mt-5"><a href="<?= base_url('auth/logout') ?>" class="text-danger bg-danger bg-opacity-10"><i class="bi bi-box-arrow-left"></i> Keluar</a></li>
-    </ul>
-</nav>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="<?= base_url('peserta/dashboard') ?>" class="active"><i class="bi bi-grid-fill"></i> Dashboard</a>
+            </li>
+            <li>
+                <a href="<?= base_url('pelatihan/daftar-kelas-peserta') ?>"><i class="bi bi-journals"></i> Daftar Kelas Saya</a>
+            </li>
+            <li>
+                <a href="<?= base_url('pelatihan/kelas') ?>"><i class="bi bi-mortarboard-fill"></i> KBM</a>
+            </li>
+            <li>
+                <a href="<?= base_url('pelatihan/pengaturan') ?>"><i class="bi bi-gear-fill"></i> Pengaturan</a>
+            </li>
+            <li class="mt-5">
+                <a href="<?= base_url('auth/logout') ?>" class="text-danger bg-danger bg-opacity-10"><i class="bi bi-box-arrow-left"></i> Keluar</a>
+            </li>
+        </ul>
+    </nav>
 
 <div class="app-wrapper">
     <!-- Main Content -->

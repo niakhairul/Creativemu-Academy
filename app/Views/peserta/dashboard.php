@@ -30,7 +30,6 @@
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            /* Gradasi latar belakang cerah bernuansa ungu lembut yang selaras, bergerak halus */
             background: linear-gradient(120deg, #f8f6ff, #f1ecff, #faf5ff, #eee8ff);
             background-size: 300% 300%;
             animation: bgFlow 22s ease infinite;
@@ -46,13 +45,11 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Layout Utama dengan Sidebar */
         .app-wrapper {
             display: flex;
             min-height: 100vh;
         }
 
-        /* Sidebar dengan Gradasi Ungu yang Lebih Kaya & Hidup */
         .sidebar {
             width: 260px;
             background:
@@ -72,7 +69,6 @@
             overflow-x: hidden;
         }
 
-        /* Tekstur garis tipis diagonal agar sidebar tidak terlihat polos/monoton */
         .sidebar::after {
             content: "";
             position: absolute;
@@ -93,7 +89,6 @@
             100% { background-position: 0% 0%, 0% 0%; }
         }
 
-        /* Aksen bintik cahaya lembut di sidebar agar terasa hidup, tanpa mengganggu isi */
         .sidebar::before {
             content: "";
             position: absolute;
@@ -150,7 +145,6 @@
             animation: menuSlideIn 0.5s ease forwards;
         }
 
-        /* Menu muncul bertahap satu-persatu saat halaman dibuka */
         .sidebar-menu li:nth-child(1) { animation-delay: 0.05s; }
         .sidebar-menu li:nth-child(2) { animation-delay: 0.12s; }
         .sidebar-menu li:nth-child(3) { animation-delay: 0.19s; }
@@ -176,7 +170,6 @@
             transition: all 0.3s ease;
         }
 
-        /* Efek kilau halus saat menu di-hover */
         .sidebar-menu a::before {
             content: "";
             position: absolute;
@@ -214,7 +207,6 @@
             transform: scale(1.15) rotate(-6deg);
         }
 
-        /* Konten Utama */
         .main-content {
             flex: 1;
             margin-left: 260px;
@@ -228,7 +220,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Card Umum dengan Nuansa Semi-Transparan & Glassmorphism */
         .card {
             border: none;
             border-radius: 20px;
@@ -245,7 +236,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Kartu muncul bertahap mengikuti urutan tampil di halaman */
         .row:nth-of-type(1) .card { animation-delay: 0.05s; }
         .row:nth-of-type(2) .card { animation-delay: 0.12s; }
         .row:nth-of-type(3) .card { animation-delay: 0.18s; }
@@ -282,7 +272,6 @@
             color: var(--purple-mid);
         }
 
-        /* Lonceng notifikasi berdenyut lembut agar terasa hidup */
         .bi-bell-fill {
             display: inline-block;
             animation: bellRing 4s ease-in-out infinite;
@@ -296,7 +285,6 @@
             98% { transform: rotate(6deg); }
         }
 
-        /* Tombol dengan sedikit gerak saat hover agar interaktif */
         .btn {
             transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
         }
@@ -305,7 +293,6 @@
             filter: brightness(1.05);
         }
 
-        /* Badge status dengan denyut lembut supaya menarik perhatian */
         .badge.bg-warning, .badge.bg-success, .badge.bg-danger {
             animation: badgePop 0.4s ease;
             transition: transform 0.25s ease;
@@ -319,9 +306,6 @@
             to { transform: scale(1); opacity: 1; }
         }
 
-        /* ===== Sentuhan Ekstra Agar Lebih Hidup & Menarik ===== */
-
-        /* Bola cahaya dekoratif melayang di latar belakang untuk kedalaman visual */
         body::before, body::after {
             content: "";
             position: fixed;
@@ -355,12 +339,10 @@
         }
         .app-wrapper { position: relative; }
 
-        /* Scrollbar sidebar yang lebih halus (Webkit) */
         .sidebar::-webkit-scrollbar { width: 6px; }
         .sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
         .sidebar::-webkit-scrollbar-track { background: transparent; }
 
-        /* Sapaan "Halo, Nama" tampil dengan gradasi teks yang bergerak halus */
         .row:nth-of-type(1) h2 {
             background: linear-gradient(90deg, var(--purple-deep), var(--purple-mid), var(--purple-light), var(--purple-mid));
             background-size: 250% auto;
@@ -375,7 +357,6 @@
             100% { background-position: 250% center; }
         }
 
-        /* Ikon kecil judul kartu (mis. Profil Saya, Pengumuman) melayang pelan */
         .bg-purple-soft.rounded-3 {
             animation: iconFloat 3s ease-in-out infinite;
         }
@@ -384,7 +365,6 @@
             50% { transform: translateY(-4px); }
         }
 
-        /* Efek kilau menyapu saat kartu di-hover, memberi kesan premium & hidup */
         .hover-card {
             position: relative;
             overflow: hidden;
@@ -406,7 +386,6 @@
             left: 150%;
         }
 
-        /* Empat kartu statistik diberi aksen warna ungu yang bervariasi agar lebih hidup namun tetap satu keluarga warna */
         .row:nth-of-type(2) .col-md-3:nth-of-type(1) { --card-accent: #7c5cfa; }
         .row:nth-of-type(2) .col-md-3:nth-of-type(2) { --card-accent: #9b6bf5; }
         .row:nth-of-type(2) .col-md-3:nth-of-type(3) { --card-accent: #6a4ce0; }
@@ -433,7 +412,6 @@
             100% { transform: scale(1.4); opacity: 0; }
         }
 
-        /* Tombol dengan efek kilau menyapu saat hover */
         .btn {
             position: relative;
             overflow: hidden;
@@ -453,7 +431,6 @@
             left: 130%;
         }
 
-        /* Baris tabel profil sedikit menyorot saat disentuh */
         .table-borderless tr {
             transition: background 0.25s ease;
         }
@@ -464,9 +441,6 @@
             border-radius: 8px;
         }
 
-        /* =========================
-           RESPONSIVE & MOBILE DRAWER
-        ========================= */
         .mobile-topbar {
             display: none;
             width: 100%;
@@ -577,11 +551,15 @@
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
 <!-- Sidebar Kustom dengan Menu Terstruktur Ringkas & Konsisten -->
-<nav class="sidebar" id="sidebarMenu">
-    <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom border-white border-opacity-15">
-        <a href="<?= base_url('peserta/dashboard') ?>" class="sidebar-brand p-0 m-0 border-0">
-            <i class="bi bi-mortarboard-fill me-2 fs-4 text-warning"></i> Creativemu
-
+<nav class="sidebar">
+        <a href="#" class="sidebar-brand d-flex align-items-center">
+            <!-- Menggunakan file gambar logo dari folder assets -->
+            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Logo Creativemu" class="rounded-3 me-2 shadow-sm object-fit-cover" style="width: 38px; height: 38px;">
+            
+            <div>
+                <span class="fs-6 fw-bold d-block text-white lh-1">Creativemu</span>
+                <span class="text-white-50" style="font-size: 0.65rem; letter-spacing: 0.5px;">ACADEMY</span>
+            </div>
         </a>
         <button type="button" class="sidebar-close-btn" id="sidebarClose" aria-label="Tutup Menu">
             <i class="bi bi-x-lg"></i>
@@ -612,9 +590,9 @@
     <div class="main-content">
         <div class="container-fluid py-2">
 
-            <!-- Header Sambutan -->
+            <!-- Header Sambutan & Dropdown Pemilihan Kelas Aktif -->
             <div class="row mb-4 align-items-center">
-                <div class="col-md-8 mb-3 mb-md-0">
+                <div class="col-md-7 mb-3 mb-md-0">
                     <h2 class="fw-bold mb-1" style="color: #5b3fd6;">
                         Halo, <?= esc($user['nama']) ?> 👋
                     </h2>
@@ -622,20 +600,47 @@
                         Selamat datang di dashboard peserta
                     </p>
                 </div>
-                <div class="col-md-4 text-md-end">
-                    <div class="d-inline-flex align-items-center bg-white p-2 px-3 rounded-pill shadow-sm border border-purple border-opacity-10">
-                        <div class="bg-purple-soft text-purple-custom p-2 rounded-circle me-2 position-relative">
-                            <i class="bi bi-bell-fill fs-5"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;"></span>
-                        </div>
-                        <div class="text-start me-2">
-                            <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.9rem;"><?= esc($user['nama']) ?></h6>
-                            <span class="text-muted" style="font-size: 0.75rem;">Peserta</span>
+                
+                <!-- DROPDOWN PILIHAN KELAS AKTIF (Menggantikan tombol baris penuh) -->
+                <div class="col-md-5 text-md-end">
+                    <div class="d-flex align-items-center justify-content-md-end gap-2">
+                        <?php if (!empty($semua_kelas_peserta) && count($semua_kelas_peserta) > 0): ?>
+                            <div class="dropdown w-100" style="max-width: 280px;">
+                                <button class="btn btn-white bg-white border border-purple border-opacity-25 rounded-pill dropdown-toggle w-100 text-start px-3 py-2 shadow-sm d-flex align-items-center justify-content-between" type="button" id="dropdownKelasAktif" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="text-truncate" style="font-size: 0.85rem;">
+                                        <i class="bi bi-journals text-purple-custom me-1"></i> 
+                                        <strong><?= esc($pendaftaran['nama_kelas'] ?? 'Pilih Kelas') ?></strong>
+                                    </span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 w-100" aria-labelledby="dropdownKelasAktif">
+                                    <li><h6 class="dropdown-header text-uppercase text-muted fs-7 mb-1">Ganti Kelas Aktif:</h6></li>
+                                    <?php foreach ($semua_kelas_peserta as $kp): ?>
+                                        <li>
+                                            <a class="dropdown-item rounded-3 py-2 small <?= (isset($pendaftaran['id_kelas']) && $pendaftaran['id_kelas'] == $kp['id_kelas']) ? 'active bg-purple-soft text-purple-custom fw-bold' : 'text-dark' ?>" 
+                                               href="<?= base_url('peserta/dashboard?id_kelas=' . $kp['id_kelas']) ?>">
+                                                <i class="bi bi-mortarboard me-2"></i><?= esc($kp['nama_kelas']) ?>
+                                            </a>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Info Badge Profil Singkat -->
+                        <div class="d-none d-lg-inline-flex align-items-center bg-white p-2 px-3 rounded-pill shadow-sm border border-purple border-opacity-10">
+                            <div class="bg-purple-soft text-purple-custom p-2 rounded-circle me-2 position-relative">
+                                <i class="bi bi-bell-fill fs-5"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;"></span>
+                            </div>
+                            <div class="text-start me-1">
+                                <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;"><?= esc($user['nama']) ?></h6>
+                                <span class="text-muted" style="font-size: 0.7rem;">Peserta</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-                
+
             <!-- Kotak Statistik Ringkas 4 Kolom -->
             <div class="row mb-4">
                 <!-- 1. Kelas Aktif -->
@@ -821,55 +826,53 @@
             <div class="row">
                 
                 <!-- Jadwal Pelatihan & Materi -->
-                <!-- Jadwal Pelatihan & Materi -->
-<div class="col-lg-7 mb-4">
-    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
-        <div class="card-body p-4">
-            <div class="d-flex align-items-center mb-4">
-                <div class="bg-purple-soft text-purple-custom p-2 rounded-3 me-3">
-                    <i class="bi bi-calendar-range fs-4"></i>
-                </div>
-                <h4 class="fw-bold mb-0" style="color: #5b3fd6;">Jadwal Pelatihan & Materi</h4>
-            </div>
-
-            <!-- Loop Data Jadwal dari Mentor -->
-            <?php if (!empty($list_jadwal) && is_array($list_jadwal)): ?>
-                <div class="list-group list-group-flush">
-                    <?php foreach ($list_jadwal as $jdl): ?>
-                        <div class="p-3 mb-3 border border-purple border-opacity-25 rounded-4 bg-white shadow-sm">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="fw-bold mb-0" style="color: #5b3fd6;"><?= esc($jdl['materi']); ?></h6>
-                                <span class="badge bg-purple-soft text-purple-custom px-2 py-1"><?= esc($jdl['status'] ?? 'Terjadwal'); ?></span>
+                <div class="col-lg-7 mb-4">
+                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="bg-purple-soft text-purple-custom p-2 rounded-3 me-3">
+                                    <i class="bi bi-calendar-range fs-4"></i>
+                                </div>
+                                <h4 class="fw-bold mb-0" style="color: #5b3fd6;">Jadwal Pelatihan & Materi</h4>
                             </div>
-                            <p class="text-muted small mb-1">
-                                <i class="bi bi-calendar-event text-purple-custom me-2"></i><strong>Tanggal:</strong> <?= esc($jdl['tanggal_kbm']); ?>
-                            </p>
-                           <p class="text-muted small mb-1">
-    <i class="bi bi-clock text-purple-custom me-2"></i>
-    <strong>Jam mulai:</strong> <?= esc(!empty($jdl['waktu_mulai']) ? date('H:i', strtotime($jdl['waktu_mulai'])) : '-'); ?>
-</p>
 
-<p class="text-muted small mb-1">
-    <i class="bi bi-clock text-purple-custom me-2"></i>
-    <strong>Jam selesai:</strong> <?= esc(!empty($jdl['waktu_selesai']) ? date('H:i', strtotime($jdl['waktu_selesai'])) : '-'); ?>
-</p>
-                            <p class="text-muted small mb-2">
-    <i class="bi bi-camera-video text-purple-custom me-2"></i>
-    <strong>Tempat / Link Meet:</strong> -
-</p>
+                            <!-- Loop Data Jadwal dari Mentor -->
+                            <?php if (!empty($list_jadwal) && is_array($list_jadwal)): ?>
+                                <div class="list-group list-group-flush">
+                                    <?php foreach ($list_jadwal as $jdl): ?>
+                                        <div class="p-3 mb-3 border border-purple border-opacity-25 rounded-4 bg-white shadow-sm">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <h6 class="fw-bold mb-0" style="color: #5b3fd6;"><?= esc($jdl['materi']); ?></h6>
+                                                <span class="badge bg-purple-soft text-purple-custom px-2 py-1"><?= esc($jdl['status'] ?? 'Terjadwal'); ?></span>
+                                            </div>
+                                            <p class="text-muted small mb-1">
+                                                <i class="bi bi-calendar-event text-purple-custom me-2"></i><strong>Tanggal:</strong> <?= esc($jdl['tanggal_kbm']); ?>
+                                            </p>
+                                            <p class="text-muted small mb-1">
+                                                <i class="bi bi-clock text-purple-custom me-2"></i>
+                                                <strong>Jam mulai:</strong> <?= esc(!empty($jdl['waktu_mulai']) ? date('H:i', strtotime($jdl['waktu_mulai'])) : '-'); ?>
+                                            </p>
+                                            <p class="text-muted small mb-1">
+                                                <i class="bi bi-clock text-purple-custom me-2"></i>
+                                                <strong>Jam selesai:</strong> <?= esc(!empty($jdl['waktu_selesai']) ? date('H:i', strtotime($jdl['waktu_selesai'])) : '-'); ?>
+                                            </p>
+                                            <p class="text-muted small mb-2">
+                                                <i class="bi bi-camera-video text-purple-custom me-2"></i>
+                                                <strong>Tempat / Link Meet:</strong> -
+                                            </p>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <div class="text-center py-4">
+                                    <div class="text-muted mb-2"><i class="bi bi-calendar-x fs-1 opacity-50"></i></div>
+                                    <p class="text-muted small mb-0">Belum ada jadwal pelatihan atau materi yang dikirimkan oleh mentor.</p>
+                                </div>
+                            <?php endif; ?>
+
                         </div>
-                    <?php endforeach; ?>
+                    </div>
                 </div>
-            <?php else: ?>
-                <div class="text-center py-4">
-                    <div class="text-muted mb-2"><i class="bi bi-calendar-x fs-1 opacity-50"></i></div>
-                    <p class="text-muted small mb-0">Belum ada jadwal pelatihan atau materi yang dikirimkan oleh mentor.</p>
-                </div>
-            <?php endif; ?>
-
-        </div>
-    </div>
-</div>
 
                 <!-- Pengumuman -->
                 <div class="col-lg-5 mb-4">
@@ -902,7 +905,6 @@
                                     </div>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <!-- Kotak Pengumuman Sertifikat (Default Fallback) -->
                                 <?php 
                                     $kategoriKelas = trim($pendaftaran['kategori_kelas'] ?? '');
                                     $isSertifikat = (strcasecmp($kategoriKelas, 'Pelatihan Sertifikasi') === 0 || stripos($kategoriKelas, 'sertifikasi') !== false);
@@ -970,7 +972,6 @@
 <!-- Bootstrap 5 JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Animasi angka statistik (count-up) - hanya efek tampilan, nilai akhir tetap sama dari server -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.stat-icon').forEach(function (icon) {
@@ -1003,7 +1004,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }, stepTime);
     });
 
-    // Mobile Sidebar Drawer Toggle
     const toggleBtn = document.getElementById('sidebarToggle');
     const closeBtn = document.getElementById('sidebarClose');
     const sidebar = document.getElementById('sidebarMenu');
