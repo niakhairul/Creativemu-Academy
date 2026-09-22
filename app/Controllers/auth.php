@@ -38,6 +38,14 @@ class Auth extends BaseController
             'logged_in' => true
         ]);
 
+        // Hubungkan pendaftaran lama dengan akun peserta berdasarkan email
+$db->table('pendaftaran')
+    ->where('email', $user['email'])
+    ->where('id_users', null)
+    ->update([
+        'id_users' => $user['id_users']
+    ]);
+
         if ($user['role'] === 'admin') {
             return redirect()->to(base_url('admin/dashboard'));
         }

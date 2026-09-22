@@ -26,6 +26,8 @@ class PendaftaranModel extends Model
         'ttl',
         'jenis_kelamin',
         'pendidikan_terakhir',
+        'asal_instansi',
+        'semester',
         'status',
         'status_pendaftaran',
         'lokasi_pelatihan',

@@ -381,6 +381,8 @@ class Pelatihan extends BaseController
             'ttl'                 => '',
             'jenis_kelamin'       => '',
             'pendidikan_terakhir' => '',
+            'asal_instansi'       => '',
+            'semester'            => '',
             'status'              => '',
             'status_locked'       => false,
         ];
@@ -407,6 +409,8 @@ class Pelatihan extends BaseController
             $userData['ttl']                 = $lastRegistration['ttl'] ?? '';
             $userData['jenis_kelamin']       = $userAccount['jenis_kelamin'] ?? $lastRegistration['jenis_kelamin'] ?? '';
             $userData['pendidikan_terakhir'] = $lastRegistration['pendidikan_terakhir'] ?? '';
+            $userData['asal_instansi']       = $lastRegistration['asal_instansi'] ?? '';
+            $userData['semester']            = $lastRegistration['semester'] ?? '';
             $userData['status']              = $statusDB;
             $userData['status_locked']       = !empty($statusDB);
         }
@@ -492,6 +496,8 @@ class Pelatihan extends BaseController
         $ttl                = trim((string) $this->request->getPost('ttl'));
         $jenisKelamin       = trim((string) $this->request->getPost('jenis_kelamin'));
         $pendidikanTerakhir = trim((string) $this->request->getPost('pendidikan_terakhir'));
+        $asalInstansi       = trim((string) $this->request->getPost('asal_instansi'));
+        $semester           = trim((string) $this->request->getPost('semester'));
         $metodePembayaran   = trim((string) $this->request->getPost('metode_pembayaran'));
         $metodePembelajaran = strtolower(trim((string) $this->request->getPost('metode_pembelajaran')));
         $jenisKelas         = trim((string) $this->request->getPost('jenis_kelas')) ?: 'Reguler';
@@ -514,7 +520,10 @@ class Pelatihan extends BaseController
             $ttl                = $ttl !== '' ? $ttl : trim((string) ($lastRegistration['ttl'] ?? '-'));
             $jenisKelamin       = $jenisKelamin !== '' ? $jenisKelamin : trim((string) ($userAccount['jenis_kelamin'] ?? $lastRegistration['jenis_kelamin'] ?? 'Laki-laki'));
             $pendidikanTerakhir = $pendidikanTerakhir !== '' ? $pendidikanTerakhir : trim((string) ($lastRegistration['pendidikan_terakhir'] ?? '-'));
+            $asalInstansi = trim((string) ($lastRegistration['asal_instansi'] ?? $asalInstansi));
+            $semester     = trim((string) ($lastRegistration['semester'] ?? $semester));
         }
+
 
         // Validasi field utama yang wajib diisi (Longgar agar tidak mudah mental)
         if (empty($nama) || empty($email) || empty($noHp) || empty($metodePembayaran)) {
@@ -593,6 +602,8 @@ class Pelatihan extends BaseController
             'ttl'                 => $ttl,
             'jenis_kelamin'       => $jenisKelamin,
             'pendidikan_terakhir' => $pendidikanTerakhir,
+            'asal_instansi'       => $asalInstansi,
+            'semester'            => $semester,
             'pas_foto'            => $namaFoto,
             'status'              => $statusPeserta,
             'status_pendaftaran'  => 'Menunggu',
@@ -2827,6 +2838,8 @@ if ($emailBaru !== $emailLama) {
     'jenis_kelamin'       => $this->request->getPost('jenis_kelamin'),
     'ttl'                 => $this->request->getPost('ttl'),
     'pendidikan_terakhir' => $this->request->getPost('pendidikan_terakhir'),
+    'asal_instansi' => $this->request->getPost('asal_instansi'),
+    'semester'      => $this->request->getPost('semester'),
     'alamat'              => $this->request->getPost('alamat'),
     'updated_at'          => date('Y-m-d H:i:s'),
 ];

@@ -646,10 +646,15 @@
                     <span class="small fw-semibold text-muted" style="font-size: 0.78rem;">
                         <i class="bi bi-file-earmark-text me-1 text-primary"></i> Dokumen Syarat & Ketentuan Resmi CreativeMU Academy
                     </span>
-                    <a href="<?= base_url('uploads/syarat_dan_persetujuan/syarat_dan_persetujuan.jpeg') ?>" target="_blank" class="small fw-bold text-decoration-none" style="color: var(--purple-primary); font-size: 0.78rem;">
-                        <i class="bi bi-arrows-fullscreen me-1"></i> Perbesar Dokumen
-                    </a>
+                    <button type="button"
+        onclick="bukaDokumen()"
+        class="btn btn-link p-0 small fw-bold text-decoration-none"
+        style="color: var(--purple-primary); font-size: 0.78rem;">
+    <i class="bi bi-arrows-fullscreen me-1"></i>
+    Perbesar Dokumen
+</button>
                 </div>
+                
                 <img src="<?= base_url('uploads/syarat_dan_persetujuan/syarat_dan_persetujuan.jpeg') ?>" alt="Syarat dan Ketentuan Pendaftaran CreativeMU Academy" class="img-fluid" onerror="this.style.display='none';">
             </div>
 
@@ -693,6 +698,8 @@
                         $statusAktif = strtolower($user['pilihan_status'] ?? $user['status'] ?? '');
                         $pendidikanAktif = strtolower($user['pendidikan_terakhir'] ?? '');
                         $genderAktif = strtolower($user['jenis_kelamin'] ?? '');
+                        $semesterAktif = $user['semester'] ?? '';
+                        $asalInstansiAktif = $user['asal_instansi'] ?? '';
                     ?>
 
                     <!-- Nama Lengkap -->
@@ -813,6 +820,41 @@
                         </div>
                     </div>
 
+                    <!-- Asal Sekolah/Kampus/Instansi & Semester -->
+<div class="row g-3 mb-3">
+    <div class="col-sm-6">
+        <label for="asal_instansi" class="form-label-custom">
+            <span>Asal Sekolah/Kampus/Instansi <span class="required-star">*</span></span>
+        </label>
+        <input
+            type="text"
+            class="form-control"
+            id="asal_instansi"
+            name="asal_instansi"
+            value="<?= esc($asalInstansiAktif) ?>"
+            required
+            placeholder="Contoh: Universitas Duta Bangsa">
+    </div>
+
+    <div class="col-sm-6">
+        <label for="semester" class="form-label-custom">
+            <span>Semester</span>
+        </label>
+        <select class="form-select" id="semester" name="semester">
+            <option value="" <?= empty($semesterAktif) ? 'selected' : '' ?>>
+                Pilih Semester
+            </option>
+            <?php for ($i = 1; $i <= 8; $i++): ?>
+                <option value="<?= $i ?>" <?= ((string) $semesterAktif === (string) $i) ? 'selected' : '' ?>>
+                    Semester <?= $i ?>
+                </option>
+            <?php endfor; ?>
+            <option value="Tidak Berlaku" <?= $semesterAktif === 'Tidak Berlaku' ? 'selected' : '' ?>>
+                Tidak Berlaku
+            </option>
+        </select>
+    </div>
+</div>
                     <!-- Alamat Lengkap -->
                     <div class="mb-0">
                         <label for="alamat" class="form-label-custom">
@@ -1466,6 +1508,57 @@ document.addEventListener("DOMContentLoaded", function() {
     togglePembayaran();
     toggleLokasiPelatihan();
 });
+</script>
+<!-- Modal Perbesar Dokumen -->
+<div id="modalDokumen"
+     style="display: none;
+            position: fixed;
+            z-index: 9999;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;">
+
+    <!-- Tombol Silang -->
+    <button type="button"
+            onclick="tutupDokumen()"
+            aria-label="Tutup dokumen"
+            style="position: absolute;
+                   top: 20px;
+                   right: 25px;
+                   z-index: 10000;
+                   background: white;
+                   color: #333;
+                   border: none;
+                   border-radius: 50%;
+                   width: 42px;
+                   height: 42px;
+                   font-size: 25px;
+                   font-weight: bold;
+                   cursor: pointer;">
+        &times;
+    </button>
+
+    <!-- Gambar Dokumen -->
+    <img src="<?= base_url('uploads/syarat_dan_persetujuan/syarat_dan_persetujuan.jpeg') ?>"
+         alt="Syarat dan Persetujuan"
+         style="max-width: 95%;
+                max-height: 90vh;
+                object-fit: contain;
+                border-radius: 8px;">
+</div>
+
+<script>
+    function bukaDokumen() {
+        document.getElementById('modalDokumen').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function tutupDokumen() {
+        document.getElementById('modalDokumen').style.display = 'none';
+        document.body.style.overflow = '';
+    }
 </script>
 
 </body>
