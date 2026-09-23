@@ -1189,35 +1189,50 @@ private function generateNisPendaftaran($db, array $pendaftaran): string
         'tanggal' => trim((string) $this->request->getGet('tanggal')),
     ];
 
-    $builder = $db->table('angket_pertanyaan aq')
-        ->select('MIN(aq.id_angket_pertanyaan) AS id_angket_pertanyaan', false)
-        ->select('aq.judul_angket, aq.id_kelas')
-        ->select('kelas.nama_kelas, kelas.tanggal_mulai_kelas, kelas.lokasi_pelatihan')
-        ->select('mentor.nama_mentor')
-        ->select('COUNT(aq.id_angket_pertanyaan) AS jumlah_pertanyaan', false)
-        ->join('kelas', 'kelas.id_kelas = aq.id_kelas', 'left')
-        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-        ->groupBy('aq.judul_angket, aq.id_kelas, kelas.nama_kelas, kelas.tanggal_mulai_kelas, kelas.lokasi_pelatihan, mentor.nama_mentor');
+$builder = $db->table('angket_pertanyaan aq')
+    ->select('MIN(aq.id_angket_pertanyaan) AS id_angket_pertanyaan', false)
+    ->select('aq.judul_angket, aq.id_kelas')
+    ->select('kelas.nama_kelas, kelas.tanggal_mulai_kelas, kelas.lokasi_pelatihan')
+    ->select('mentor.nama_mentor')
+    ->select('COUNT(aq.id_angket_pertanyaan) AS jumlah_pertanyaan', false)
+    ->join('kelas', 'kelas.id_kelas = aq.id_kelas', 'left')
+    ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+    ->groupBy('aq.judul_angket, aq.id_kelas, kelas.nama_kelas, kelas.tanggal_mulai_kelas, kelas.lokasi_pelatihan, mentor.nama_mentor');
+    
+if ($filters['search'] !== '') {
+    $builder->groupStart()
+        ->like('aq.kategori', $filters['search'])
+        ->orLike('aq.pertanyaan', $filters['search'])
+        ->orLike('aq.judul_angket', $filters['search'])
+        ->orLike('kelas.nama_kelas', $filters['search'])
+        ->orLike('mentor.nama_mentor', $filters['search'])
+        ->groupEnd();
+}
 
-    if ($filters['search'] !== '') {
-        $builder->groupStart()
-            ->like('aq.judul_angket', $filters['search'])
-            ->orLike('kelas.nama_kelas', $filters['search'])
-            ->orLike('mentor.nama_mentor', $filters['search'])
-            ->groupEnd();
-    }
-    if ($filters['mentor'] !== '') {
-        $builder->like('mentor.nama_mentor', $filters['mentor']);
-    }
-    if ($filters['kelas'] !== '') {
-        $builder->like('kelas.nama_kelas', $filters['kelas']);
-    }
-    if ($filters['tanggal'] !== '' && $db->fieldExists('tanggal_mulai_kelas', 'kelas')) {
-        $builder->where('DATE(kelas.tanggal_mulai_kelas)', $filters['tanggal']);
-    }
+if ($filters['mentor'] !== '') {
+    $builder->like('mentor.nama_mentor', $filters['mentor']);
+}
 
-    $angket = $builder->orderBy('MAX(aq.created_at)', 'DESC', false)->get()->getResultArray();
-    $angket = $this->lengkapiRingkasanAngket($angket, $db);
+if ($filters['kelas'] !== '') {
+    $builder->like('kelas.nama_kelas', $filters['kelas']);
+}
+
+if (
+    $filters['tanggal'] !== '' &&
+    $db->fieldExists('tanggal_mulai_kelas', 'kelas')
+) {
+    $builder->where(
+        'DATE(kelas.tanggal_mulai_kelas)',
+        $filters['tanggal']
+    );
+}
+
+$angket = $builder
+    ->orderBy('aq.created_at', 'DESC')
+    ->get()
+    ->getResultArray();
+
+$angket = $this->lengkapiRingkasanAngket($angket, $db);
 
     $mentorOptions = $db->table('mentor')
         ->select('nama_mentor')
@@ -1272,33 +1287,51 @@ private function generateNisPendaftaran($db, array $pendaftaran): string
 
     return view('admin/angket/tambah_angket', $data);
 }
-
 public function simpanAngket()
 {
-    $judulAngket = $this->request->getPost('judul_angket');
-    $idKelas     = $this->request->getPost('id_kelas');
-    $kategori    = $this->request->getPost('kategori');
-    $pertanyaan  = $this->request->getPost('pertanyaan');
+    $judulAngket  = $this->request->getPost('judul_angket');
+    $idKelas      = $this->request->getPost('id_kelas');
+    $kategori     = $this->request->getPost('kategori');
+    $pertanyaan   = $this->request->getPost('pertanyaan');
+    $jenisJawaban = $this->request->getPost('jenis_jawaban');
+    $opsiJawaban  = $this->request->getPost('opsi_jawaban');
 
     $db = \Config\Database::connect();
-    $builder = $db->table('angket_pertanyaan'); 
+    $builder = $db->table('angket_pertanyaan');
 
     if (!empty($pertanyaan)) {
         for ($i = 0; $i < count($pertanyaan); $i++) {
+
+            // Menyesuaikan jenis jawaban dengan tipe database
+            $jenis = $jenisJawaban[$i] ?? 'skala';
+
+            $tipe = match ($jenis) {
+                'skala'          => 'rating',
+                'pilihan_ganda'  => 'pilihan',
+                'singkat',
+                'paragraf'       => 'essay',
+                default          => 'rating'
+            };
+
             $dataSimpan = [
-                'judul_angket' => $judulAngket,
-                'id_kelas'     => $idKelas,
-                'kategori'     => $kategori[$i] ?? null,
-                'pertanyaan'   => $pertanyaan[$i],
-                'created_at'   => date('Y-m-d H:i:s')
+                'judul_angket'  => $judulAngket,
+                'id_kelas'      => $idKelas ?: null,
+                'kategori'      => $kategori[$i] ?? null,
+                'pertanyaan'    => $pertanyaan[$i],
+                'tipe'          => $tipe,
+                'opsi_jawaban'  => json_encode($opsiJawaban[$i] ?? [], JSON_UNESCAPED_UNICODE),
+                'created_at'    => date('Y-m-d H:i:s')
             ];
 
             $builder->insert($dataSimpan);
         }
     }
 
-    return redirect()->to(base_url('admin/angket'))->with('success', 'Konfigurasi angket berhasil disimpan!');
+    return redirect()
+        ->to(base_url('admin/angket'))
+        ->with('success', 'Konfigurasi angket berhasil disimpan!');
 }
+
 
     public function getAngket()
 {

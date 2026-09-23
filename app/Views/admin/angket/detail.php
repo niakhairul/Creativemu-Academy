@@ -216,14 +216,79 @@ $tanggalPelatihan = !empty($angket['tanggal_mulai_kelas']) ? date('d M Y', strto
             <?php if (!empty($semua_pertanyaan)) : ?>
                 <ul class="question-list">
                     <?php $no = 1; foreach ($semua_pertanyaan as $row) : ?>
-                        <li class="question-item">
-                            <div class="question-number"><?= $no++; ?></div>
-                            <div>
-                                <div class="question-category"><?= esc($row['kategori'] ?? 'Umum'); ?></div>
-                                <div><?= esc($row['pertanyaan'] ?? '-'); ?></div>
+
+    <?php
+        $opsi = [];
+
+        if (!empty($row['opsi_jawaban'])) {
+            $decodedOpsi = json_decode($row['opsi_jawaban'], true);
+
+            if (is_array($decodedOpsi)) {
+                $opsi = $decodedOpsi;
+            }
+        }
+
+        $jenisJawaban = $row['tipe'] ?? 'rating';
+
+        $labelJenis = match ($jenisJawaban) {
+            'pilihan' => 'Pilihan Ganda',
+            'rating'  => 'Skala Penilaian',
+            'essay'   => 'Jawaban Teks',
+            default   => ucfirst($jenisJawaban)
+        };
+    ?>
+
+    <li class="question-item">
+
+        <div class="question-number">
+            <?= $no++; ?>
+        </div>
+
+        <div>
+
+            <div class="question-category">
+                <?= esc($row['kategori'] ?? 'Umum'); ?>
+            </div>
+
+            <div class="fw-semibold mb-2">
+                <?= esc($row['pertanyaan'] ?? '-'); ?>
+            </div>
+
+            <div class="small text-muted mb-2">
+                <strong>Jenis Jawaban:</strong>
+                <?= esc($labelJenis); ?>
+            </div>
+
+            <?php if ($jenisJawaban === 'pilihan' && !empty($opsi)) : ?>
+
+                <div class="mt-2">
+
+                    <div class="small fw-bold text-muted mb-2">
+                        Pilihan Jawaban:
+                    </div>
+
+                    <div class="d-flex flex-column gap-2">
+
+                        <?php foreach ($opsi as $pilihan) : ?>
+
+                            <div class="border rounded px-3 py-2 bg-white">
+                                <i class="far fa-circle me-2 text-muted"></i>
+                                <?= esc($pilihan); ?>
                             </div>
-                        </li>
-                    <?php endforeach; ?>
+
+                        <?php endforeach; ?>
+
+                    </div>
+
+                </div>
+
+            <?php endif; ?>
+
+        </div>
+
+    </li>
+
+<?php endforeach; ?>
                 </ul>
             <?php else : ?>
                 <div class="empty-state"><i class="fas fa-list-check fa-2x mb-3"></i><div>Tidak ada pertanyaan ditemukan.</div></div>

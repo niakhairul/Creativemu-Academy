@@ -140,29 +140,136 @@
                 </div>
 
                 <!-- Container Pertanyaan Dinamis -->
-                <div id="list-pertanyaan">
-                    <!-- Baris Pertanyaan Pertama (Default) -->
-                    <div class="pertanyaan-item mb-3 p-3 rounded bg-light border position-relative">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="badge text-white" style="background-color: var(--primary-purple);">Pertanyaan #1</span>
-                            <button type="button" class="btn btn-sm btn-outline-danger hapus-item" style="display:none;"><i class="fas fa-trash"></i></button>
+<div id="list-pertanyaan">
+
+    <!-- Baris Pertanyaan Pertama (Default) -->
+    <div class="pertanyaan-item mb-3 p-3 rounded bg-light border position-relative">
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="badge text-white" style="background-color: var(--primary-purple);">
+                Pertanyaan #1
+            </span>
+
+            <button type="button"
+                    class="btn btn-sm btn-outline-danger hapus-item"
+                    style="display:none;">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+
+        <div class="row">
+
+            <!-- Kategori -->
+            <div class="col-md-3 mb-2">
+                <label class="form-label small fw-bold text-muted">
+                    Kategori Penilaian:
+                </label>
+
+                <select name="kategori[]"
+                        class="form-select form-select-sm"
+                        required>
+
+                    <option value="">-- Pilih Kategori --</option>
+
+                    <option value="Customer Insight">
+                        Customer Insight / Informasi Peserta
+                    </option>
+
+                    <option value="Penilaian Instruktur">
+                        Penilaian Instruktur oleh Peserta
+                    </option>
+
+                    <option value="Penilaian Lembaga">
+                        Penilaian Lembaga oleh Peserta
+                    </option>
+
+                </select>
+            </div>
+
+
+            <!-- Jenis Jawaban -->
+            <div class="col-md-3 mb-2">
+
+                <label class="form-label small fw-bold text-muted">
+                    Jenis Jawaban:
+                </label>
+
+                <select name="jenis_jawaban[]"
+                        class="form-select form-select-sm jenis-jawaban"
+                        required>
+
+                    <option value="">-- Pilih Jenis --</option>
+                    <option value="skala">Skala 1–4</option>
+                    <option value="pilihan_ganda">Pilihan Ganda</option>
+                    <option value="singkat">Jawaban Singkat</option>
+                    <option value="paragraf">Paragraf</option>
+
+                </select>
+
+
+                <!-- Pilihan Jawaban -->
+                <div class="opsi-jawaban-container mt-2"
+                     style="display: none;">
+
+                    <label class="form-label small fw-bold text-muted">
+                        Pilihan Jawaban:
+                    </label>
+
+                    <div class="daftar-opsi">
+
+                        <div class="input-group input-group-sm mb-2">
+                            <input type="text"
+                                   name="opsi_jawaban[0][]"
+                                   class="form-control"
+                                   placeholder="Opsi 1">
                         </div>
-                        <div class="row">
-                            <div class="col-md-4 mb-2">
-                                <label class="form-label small fw-bold text-muted">Kategori Penilaian:</label>
-                                <select name="kategori[]" class="form-select form-select-sm" required>
-                                    <option value="mentor">Kinerja Instruktur</option>
-                                    <option value="tempat">Tempat / Fasilitas</option>
-                                </select>
-                            </div>
-                            <div class="col-md-8 mb-2">
-                                <label class="form-label small fw-bold text-muted">Isi Pertanyaan:</label>
-                                <input type="text" name="pertanyaan[]" class="form-control form-control-sm" placeholder="Contoh: Ketepatan waktu instruktur / Kebersihan kelas..." required>
-                            </div>
+
+                        <div class="input-group input-group-sm mb-2">
+                            <input type="text"
+                                   name="opsi_jawaban[0][]"
+                                   class="form-control"
+                                   placeholder="Opsi 2">
                         </div>
-                        <small class="text-muted" style="font-size: 0.78rem;"><i class="fas fa-info-circle me-1"></i> Peserta akan menjawab poin ini menggunakan skala 1 - 5 bintang.</small>
+
                     </div>
+
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary tambah-opsi">
+                        + Tambah Opsi
+                    </button>
+
                 </div>
+
+            </div>
+
+
+            <!-- Isi Pertanyaan -->
+            <div class="col-md-6 mb-2">
+
+                <label class="form-label small fw-bold text-muted">
+                    Isi Pertanyaan:
+                </label>
+
+                <input type="text"
+                       name="pertanyaan[]"
+                       class="form-control form-control-sm"
+                       placeholder="Contoh: Ketepatan waktu instruktur / Kebersihan kelas..."
+                       required>
+
+            </div>
+
+        </div>
+
+
+        <small class="text-muted" style="font-size: 0.78rem;">
+            <i class="fas fa-info-circle me-1"></i>
+            Peserta akan menjawab pertanyaan penilaian menggunakan skala 1–4:
+            1 = Kurang Puas, 2 = Cukup Puas, 3 = Puas, 4 = Sangat Puas.
+        </small>
+
+    </div>
+
+</div>
 
                 <div class="mb-4 mt-4">
                     <label class="form-label fw-bold">Kotak Kritik & Saran Peserta</label>
@@ -179,60 +286,205 @@
 
     <!-- Script JavaScript untuk Tambah/Hapus Baris Pertanyaan Dinamis -->
     <script>
-        document.getElementById('tambah-pertanyaan-btn').addEventListener('click', function() {
-            const container = document.getElementById('list-pertanyaan');
-            const items = container.getElementsByClassName('pertanyaan-item');
-            const newIndex = items.length + 1;
+    const container = document.getElementById('list-pertanyaan');
 
-            const newItem = document.createElement('div');
-            newItem.className = 'pertanyaan-item mb-3 p-3 rounded bg-light border position-relative';
-            newItem.innerHTML = `
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="badge text-white" style="background-color: var(--primary-purple);">Pertanyaan #${newIndex}</span>
-                    <button type="button" class="btn btn-sm btn-outline-danger hapus-item"><i class="fas fa-trash"></i></button>
+    // Tambah pertanyaan
+    document.getElementById('tambah-pertanyaan-btn').addEventListener('click', function() {
+        const items = container.getElementsByClassName('pertanyaan-item');
+        const newIndex = items.length;
+
+        const newItem = document.createElement('div');
+        newItem.className = 'pertanyaan-item mb-3 p-3 rounded bg-light border position-relative';
+
+        newItem.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge text-white" style="background-color: var(--primary-purple);">
+                    Pertanyaan #${newIndex + 1}
+                </span>
+
+                <button type="button" class="btn btn-sm btn-outline-danger hapus-item">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+
+            <div class="row">
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small fw-bold text-muted">
+                        Kategori Penilaian:
+                    </label>
+
+                    <select name="kategori[]" class="form-select form-select-sm" required>
+                        <option value="">-- Pilih Kategori --</option>
+                        <option value="Customer Insight">
+                            Customer Insight / Informasi Peserta
+                        </option>
+                        <option value="Penilaian Instruktur">
+                            Penilaian Instruktur oleh Peserta
+                        </option>
+                        <option value="Penilaian Lembaga">
+                            Penilaian Lembaga oleh Peserta
+                        </option>
+                    </select>
                 </div>
-                <div class="row">
-                    <div class="col-md-4 mb-2">
-                        <label class="form-label small fw-bold text-muted">Kategori Penilaian:</label>
-                        <select name="kategori[]" class="form-select form-select-sm" required>
-                            <option value="mentor">Kinerja Instruktur</option>
-                            <option value="tempat">Tempat / Fasilitas</option>
-                        </select>
-                    </div>
-                    <div class="col-md-8 mb-2">
-                        <label class="form-label small fw-bold text-muted">Isi Pertanyaan:</label>
-                        <input type="text" name="pertanyaan[]" class="form-control form-control-sm" placeholder="Tuliskan isi pertanyaan..." required>
+
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small fw-bold text-muted">
+                        Jenis Jawaban:
+                    </label>
+
+                    <select name="jenis_jawaban[]" class="form-select form-select-sm jenis-jawaban" required>
+                        <option value="">-- Pilih Jenis --</option>
+                        <option value="skala">Skala 1–4</option>
+                        <option value="pilihan_ganda">Pilihan Ganda</option>
+                        <option value="singkat">Jawaban Singkat</option>
+                        <option value="paragraf">Paragraf</option>
+                    </select>
+
+                    <div class="opsi-jawaban-container mt-2" style="display: none;">
+                        <label class="form-label small fw-bold text-muted">
+                            Pilihan Jawaban:
+                        </label>
+
+                        <div class="daftar-opsi">
+                            <div class="input-group input-group-sm mb-2">
+                                <input type="text"
+                                       name="opsi_jawaban[${newIndex}][]"
+                                       class="form-control"
+                                       placeholder="Opsi 1">
+                            </div>
+
+                            <div class="input-group input-group-sm mb-2">
+                                <input type="text"
+                                       name="opsi_jawaban[${newIndex}][]"
+                                       class="form-control"
+                                       placeholder="Opsi 2">
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-sm btn-outline-primary tambah-opsi">
+                            + Tambah Opsi
+                        </button>
                     </div>
                 </div>
-                <small class="text-muted" style="font-size: 0.78rem;"><i class="fas fa-info-circle me-1"></i> Peserta akan menjawab poin ini menggunakan skala 1 - 5 bintang.</small>
+
+                <div class="col-md-6 mb-2">
+                    <label class="form-label small fw-bold text-muted">
+                        Isi Pertanyaan:
+                    </label>
+
+                    <input type="text"
+                           name="pertanyaan[]"
+                           class="form-control form-control-sm"
+                           placeholder="Tuliskan isi pertanyaan..."
+                           required>
+                </div>
+            </div>
+
+            <small class="text-muted" style="font-size: 0.78rem;">
+                <i class="fas fa-info-circle me-1"></i>
+                Peserta akan menjawab pertanyaan penilaian menggunakan skala 1–4.
+            </small>
+        `;
+
+        container.appendChild(newItem);
+        updateHapusButtons();
+    });
+
+
+    // Menampilkan pilihan jawaban ketika memilih Pilihan Ganda
+    container.addEventListener('change', function(e) {
+        if (e.target.classList.contains('jenis-jawaban')) {
+            const item = e.target.closest('.pertanyaan-item');
+            const opsiContainer = item.querySelector('.opsi-jawaban-container');
+
+            if (e.target.value === 'pilihan_ganda') {
+                opsiContainer.style.display = 'block';
+            } else {
+                opsiContainer.style.display = 'none';
+            }
+        }
+    });
+
+
+    // Menambahkan opsi jawaban
+    container.addEventListener('click', function(e) {
+        const tombolTambah = e.target.closest('.tambah-opsi');
+
+        if (tombolTambah) {
+            const item = tombolTambah.closest('.pertanyaan-item');
+            const daftarOpsi = item.querySelector('.daftar-opsi');
+            const jumlahOpsi = daftarOpsi.children.length;
+
+            const indexPertanyaan = Array.from(
+                container.querySelectorAll('.pertanyaan-item')
+            ).indexOf(item);
+
+            const opsiBaru = document.createElement('div');
+            opsiBaru.className = 'input-group input-group-sm mb-2';
+
+            opsiBaru.innerHTML = `
+                <input type="text"
+                       name="opsi_jawaban[${indexPertanyaan}][]"
+                       class="form-control"
+                       placeholder="Opsi ${jumlahOpsi + 1}">
+
+                <button type="button" class="btn btn-outline-danger hapus-opsi">
+                    <i class="fas fa-trash"></i>
+                </button>
             `;
 
-            container.appendChild(newItem);
-            updateHapusButtons();
+            daftarOpsi.appendChild(opsiBaru);
+        }
+    });
+
+
+    // Menghapus opsi jawaban
+    container.addEventListener('click', function(e) {
+        const tombolHapus = e.target.closest('.hapus-opsi');
+
+        if (tombolHapus) {
+            tombolHapus.closest('.input-group').remove();
+        }
+    });
+
+
+    // Menghapus pertanyaan
+    container.addEventListener('click', function(e) {
+        if (e.target.closest('.hapus-item')) {
+            e.target.closest('.pertanyaan-item').remove();
+            reorderPertanyaan();
+        }
+    });
+
+
+    // Mengatur tombol hapus pertanyaan
+    function updateHapusButtons() {
+        const items = document.querySelectorAll('.pertanyaan-item');
+
+        items.forEach((item) => {
+            const deleteBtn = item.querySelector('.hapus-item');
+
+            deleteBtn.style.display =
+                (items.length > 1) ? 'block' : 'none';
+        });
+    }
+
+
+    // Mengatur nomor pertanyaan
+    function reorderPertanyaan() {
+        const items = document.querySelectorAll('.pertanyaan-item');
+
+        items.forEach((item, index) => {
+            item.querySelector('.badge').textContent =
+                `Pertanyaan #${index + 1}`;
         });
 
-        document.getElementById('list-pertanyaan').addEventListener('click', function(e) {
-            if (e.target.closest('.hapus-item')) {
-                e.target.closest('.pertanyaan-item').remove();
-                reorderPertanyaan();
-            }
-        });
+        updateHapusButtons();
+    }
 
-        function updateHapusButtons() {
-            const items = document.querySelectorAll('.pertanyaan-item');
-            items.forEach((item) => {
-                const deleteBtn = item.querySelector('.hapus-item');
-                deleteBtn.style.display = (items.length > 1) ? 'block' : 'none';
-            });
-        }
 
-        function reorderPertanyaan() {
-            const items = document.querySelectorAll('.pertanyaan-item');
-            items.forEach((item, index) => {
-                item.querySelector('.badge').textContent = `Pertanyaan #${index + 1}`;
-            });
-            updateHapusButtons();
-        }
-    </script>
+    // Menjalankan pengaturan tombol saat halaman dibuka
+    updateHapusButtons();
+</script>
 </body>
 </html>

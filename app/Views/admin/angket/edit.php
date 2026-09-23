@@ -400,17 +400,7 @@
                                 <input type="text" name="judul_angket" class="form-control" value="<?= esc($angket['judul_angket'] ?? ''); ?>" required>
                             </div>
 
-                            <!-- Pilihan Kelas -->
-                            <div class="mb-3">
-                                <label class="form-label">Kelas</label>
-                                <select name="id_kelas" class="form-select">
-                                    <?php foreach ($kelas as $k): ?>
-                                        <option value="<?= $k['id_kelas']; ?>" <?= ($angket['id_kelas'] == $k['id_kelas']) ? 'selected' : ''; ?>>
-                                            <?= $k['nama_kelas']; ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
+                        
 
                             <div class="mb-3">
     <label class="form-label">Kelas & Instruktur</label>
@@ -441,14 +431,37 @@
         <?php foreach ($semua_pertanyaan as $row) : ?>
             <div class="card p-3 mb-3 border-light shadow-sm">
                 <div class="row">
-                    <div class="col-md-3">
-                        <label class="form-label">Kategori</label>
-                        <input type="text" name="kategori[]" class="form-control" value="<?= esc($row['kategori']); ?>">
-                    </div>
-                    <div class="col-md-9">
-                        <label class="form-label">Pertanyaan</label>
-                        <input type="text" name="pertanyaan[]" class="form-control" value="<?= esc($row['pertanyaan']); ?>" required>
-                    </div>
+                    <div class="col-md-4">
+    <label class="form-label">Kategori</label>
+
+    <select name="kategori[]" class="form-select" required>
+        <option value="">-- Pilih Kategori --</option>
+
+        <option value="Customer Insight"
+            <?= ($row['kategori'] === 'Customer Insight') ? 'selected' : ''; ?>>
+            Customer Insight
+        </option>
+
+        <option value="Penilaian Instruktur"
+            <?= ($row['kategori'] === 'Penilaian Instruktur') ? 'selected' : ''; ?>>
+            Penilaian Instruktur oleh Peserta
+        </option>
+
+        <option value="Penilaian Lembaga"
+            <?= ($row['kategori'] === 'Penilaian Lembaga') ? 'selected' : ''; ?>>
+            Penilaian Lembaga oleh Peserta
+        </option>
+    </select>
+</div>
+                    <div class="col-md-8">
+    <label class="form-label">Pertanyaan</label>
+
+    <input type="text"
+           name="pertanyaan[]"
+           class="form-control"
+           value="<?= esc($row['pertanyaan']); ?>"
+           required>
+</div>
                 </div>
             </div>
         <?php endforeach; ?>

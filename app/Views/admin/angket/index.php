@@ -320,9 +320,8 @@ if (!function_exists('rating_stars_admin_angket')) {
                 <table class="table table-hover align-middle">
                     <thead>
                         <tr>
-                            <th>Judul</th>
+                            <th>No</th>
                             <th>Mentor</th>
-                            <th>Kelas</th>
                             <th>Tempat</th>
                             <th>Rata-rata</th>
                             <th class="text-end">Lihat Detail</th>
@@ -330,18 +329,37 @@ if (!function_exists('rating_stars_admin_angket')) {
                     </thead>
                     <tbody>
                         <?php if (!empty($angket)) : ?>
-                            <?php foreach ($angket as $item): ?>
-                                <tr>
-                                    <td><div class="survey-title"><?= esc($item['judul_angket'] ?? 'Angket Evaluasi'); ?></div><div class="meta-text"><?= (int) ($item['jumlah_responden'] ?? 0); ?> responden</div></td>
-                                    <td><?= esc($item['nama_mentor'] ?? '-'); ?></td>
-                                    <td><?= esc($item['nama_kelas'] ?? '-'); ?></td>
-                                    <td><?= esc($item['tempat_pelatihan'] ?? '-'); ?></td>
-                                    <td><span class="rating-stars"><?= rating_stars_admin_angket($item['rata_rata'] ?? 0); ?></span><span class="rating-score ms-2"><?= number_format((float) ($item['rata_rata'] ?? 0), 1); ?>/5</span></td>
-                                    <td class="text-end"><a href="<?= base_url('admin/angket/detail/' . ($item['id_angket_pertanyaan'] ?? 0)); ?>" class="btn btn-soft"><i class="fas fa-eye me-2"></i>Lihat Detail</a></td>
-                                </tr>
-                            <?php endforeach; ?>
+                            <?php foreach ($angket as $no => $item): ?>
+    <tr>
+        <td><?= $no + 1; ?></td>
+
+        <td>
+            <?= esc($item['nama_mentor'] ?? '-'); ?>
+        </td>
+
+        <td>
+            <?= esc($item['tempat_pelatihan'] ?? '-'); ?>
+        </td>
+
+        <td>
+            <span class="rating-stars">
+                <?= rating_stars_admin_angket($item['rata_rata'] ?? 0); ?>
+            </span>
+
+            <span class="rating-score ms-2">
+                <?= number_format((float) ($item['rata_rata'] ?? 0), 1); ?>/5
+            </span>
+        </td>
+
+        <td class="text-end">
+            <a href="<?= base_url('admin/angket/detail/' . ($item['id_angket_pertanyaan'] ?? 0)); ?>" class="btn btn-soft">
+                <i class="fas fa-eye me-2"></i>Lihat Detail
+            </a>
+        </td>
+    </tr>
+<?php endforeach; ?>
                         <?php else : ?>
-                            <tr><td colspan="6"><div class="empty-state"><i class="fas fa-inbox fa-2x mb-3"></i><div>Belum ada data angket sesuai filter.</div></div></td></tr>
+                            <tr><td colspan="5"><div class="empty-state"><i class="fas fa-inbox fa-2x mb-3"></i><div>Belum ada data angket sesuai filter.</div></div></td></tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
