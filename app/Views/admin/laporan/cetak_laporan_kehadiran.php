@@ -247,6 +247,7 @@
                     <th>Nama Peserta</th>
                     <th>Kelas</th>
                     <th>Pelatihan</th>
+                    <th>Tempat Pelatihan</th>
                     <th width="7%">Sesi</th>
                     <th width="7%">Hadir</th>
                     <th width="6%">Izin</th>
@@ -266,6 +267,7 @@
                         <td><strong><?= esc($row['nama_peserta']); ?></strong></td>
                         <td><?= esc($row['kelas']); ?></td>
                         <td><?= esc($row['pelatihan']); ?></td>
+                        <td><?= esc($row['tempat_pelatihan'] ?? '-'); ?></td>
                         <td class="text-center"><?= $row['total_pertemuan']; ?></td>
                         <td class="text-center text-success fw-bold"><?= $row['hadir']; ?></td>
                         <td class="text-center"><?= $row['izin']; ?></td>
@@ -277,7 +279,7 @@
                     </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <tr><td colspan="13" class="text-center py-3 text-muted">Belum ada data kehadiran pada periode yang dipilih.</td></tr>
+                    <tr><td colspan="14" class="text-center py-3 text-muted">Belum ada data kehadiran pada periode yang dipilih.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>

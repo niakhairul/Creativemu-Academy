@@ -61,39 +61,26 @@ class LaporanPesertaController extends BaseController
      */
     private function parseFilters(): array
     {
-        $periode = $this->request->getGet('periode') ?: 'tahunan';
-        if (!in_array($periode, ['tahunan', 'bulanan'])) {
-            $periode = 'tahunan';
-        }
-
-        $availableYears = $this->laporanModel->getFilterYears();
-        $defaultYear = !empty($availableYears) ? (int) $availableYears[0] : (int) date('Y');
-
-        $tahun = $this->request->getGet('tahun');
-        $tahun = (!empty($tahun) && is_numeric($tahun)) ? (int) $tahun : $defaultYear;
-
         $bulan = $this->request->getGet('bulan');
         $bulan = (!empty($bulan) && is_numeric($bulan)) ? (int) $bulan : (int) date('n');
 
         $idKelas = $this->request->getGet('id_kelas') ?: 'all';
         $kategori = $this->request->getGet('kategori') ?: 'all';
         $statusKelulusan = $this->request->getGet('status_kelulusan') ?: 'all';
+        $tempatPelatihan = $this->request->getGet('tempat_pelatihan') ?: 'all';
         $q = trim((string) ($this->request->getGet('q') ?: ''));
 
         $mentor = $this->getMentorData();
-        $idMentor = null;
-        // Jika mentor login, batasi data ke kelas miliknya jika diinginkan, atau beri akses kelasnya
-        if ($mentor) {
-            $idMentor = (int) $mentor['id_mentor'];
-        }
+        $idMentor = $mentor ? (int) $mentor['id_mentor'] : null;
 
         return [
-            'periode'          => $periode,
-            'tahun'            => $tahun,
+            'periode'          => 'bulanan',
+            'tahun'            => (int) date('Y'),
             'bulan'            => $bulan,
             'id_kelas'         => $idKelas,
             'kategori'         => $kategori,
             'status_kelulusan' => $statusKelulusan,
+            'tempat_pelatihan' => $tempatPelatihan,
             'q'                => $q,
             'id_mentor'        => $idMentor,
         ];
@@ -112,9 +99,13 @@ class LaporanPesertaController extends BaseController
         $mentor = $this->getMentorData();
         $idMentor = $mentor ? (int) $mentor['id_mentor'] : null;
 
-        $years      = $this->laporanModel->getFilterYears();
         $classes    = $this->laporanModel->getFilterClasses($idMentor);
         $categories = $this->laporanModel->getFilterCategories();
+        
+        // [TAMBAHAN] Jika model Anda punya method untuk opsi filter tempat pelatihan (opsional)
+        $tempatList = method_exists($this->laporanModel, 'getFilterTempatPelatihan') 
+            ? $this->laporanModel->getFilterTempatPelatihan() 
+            : [];
 
         $stats       = $this->laporanModel->getRingkasanStats($filters);
         $infoKelas   = $this->laporanModel->getInformasiPelatihan($filters);
@@ -130,9 +121,9 @@ class LaporanPesertaController extends BaseController
             'isMentor'     => ($role === 'mentor'),
             'mentor'       => $mentor,
             'filters'      => $filters,
-            'years'        => $years,
             'classes'      => $classes,
             'categories'   => $categories,
+            'tempatList'   => $tempatList, // [TAMBAHAN] Dikirim ke view jika dibutuhkan di dropdown
             'stats'        => $stats,
             'infoKelas'    => $infoKelas,
             'rekapKelas'   => $rekapKelas,
@@ -164,9 +155,7 @@ class LaporanPesertaController extends BaseController
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
 
-        $periodeText = ($filters['periode'] === 'bulanan')
-            ? ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun']
-            : 'Tahun ' . $filters['tahun'];
+        $periodeText = ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun'];
 
         $filename = 'Laporan_Peserta_CreativeMU_' . str_replace(' ', '_', $periodeText) . '_' . date('Ymd_His') . '.csv';
 
@@ -216,7 +205,9 @@ class LaporanPesertaController extends BaseController
 
         // Detail Data Peserta
         fputcsv($output, ['=== DETAIL DATA PESERTA ===']);
-        fputcsv($output, ['No', 'NIS / ID', 'Nama Peserta', 'Gender', 'Email', 'No. WhatsApp', 'Kelas', 'Kategori Pelatihan', 'Tanggal Daftar', 'Status Kelulusan']);
+        // [TAMBAHAN] Kolom 'Tempat Pelatihan' ditambahkan ke header CSV
+        fputcsv($output, ['No', 'NIS / ID', 'Nama Peserta', 'Gender', 'Email', 'No. WhatsApp', 'Kelas', 'Kategori Pelatihan', 'Tempat Pelatihan', 'Tanggal Daftar', 'Status Kelulusan']);
+        
         $noP = 1;
         foreach ($detailList as $p) {
             fputcsv($output, [
@@ -228,6 +219,7 @@ class LaporanPesertaController extends BaseController
                 $p['resolved_no_hp'] ?? '-',
                 $p['nama_kelas'] ?? '-',
                 $p['kategori'] ?? '-',
+                $p['tempat_pelatihan'] ?? '-', // [TAMBAHAN] Nilai tempat pelatihan diexport
                 !empty($p['tanggal_daftar']) ? date('d-m-Y H:i', strtotime($p['tanggal_daftar'])) : '-',
                 $p['status_kelulusan']
             ]);
@@ -257,9 +249,7 @@ class LaporanPesertaController extends BaseController
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
 
-        $periodeText = ($filters['periode'] === 'bulanan')
-            ? ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun']
-            : 'Tahun ' . $filters['tahun'];
+        $periodeText = ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun'];
 
         $data = [
             'title'        => 'Cetak Laporan Peserta - CreativeMU Academy',

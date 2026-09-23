@@ -85,7 +85,7 @@ class Pelatihan extends BaseController
         }
 
         return (new PendaftaranModel())
-            ->select('pendaftaran.*, kelas.nama_kelas, kelas.deskripsi, kelas.tipe_kelas, kelas.lokasi_media, kelas.tanggal_mulai_kelas, kelas.jumlah_pertemuan, kelas.ringkasan, kelas.thumbnail, mentor.nama_mentor')
+            ->select('pendaftaran.*, kelas.nama_kelas, kelas.deskripsi, kelas.tipe_kelas, kelas.lokasi_pelatihan, kelas.tanggal_mulai_kelas, kelas.jumlah_pertemuan, kelas.ringkasan, kelas.thumbnail, mentor.nama_mentor')
             ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
             ->where('pendaftaran.id_users', $userId)
@@ -1995,7 +1995,7 @@ public function simpanJawabanUjian()
 
     // Ambil pendaftaran peserta berdasarkan user yang sedang login
     $kelas = (new PendaftaranModel())
-        ->select('pendaftaran.*, kelas.nama_kelas, kelas.deskripsi, kelas.tipe_kelas, kelas.lokasi_media, kelas.tanggal_mulai_kelas, kelas.jumlah_pertemuan, kelas.ringkasan, kelas.thumbnail, mentor.nama_mentor')
+        ->select('pendaftaran.*, kelas.nama_kelas, kelas.deskripsi, kelas.tipe_kelas, kelas.lokasi_pelatihan, kelas.tanggal_mulai_kelas, kelas.jumlah_pertemuan, kelas.ringkasan, kelas.thumbnail, mentor.nama_mentor')
         ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
         ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
         ->where('pendaftaran.id_users', $this->userId())

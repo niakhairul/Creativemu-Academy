@@ -233,6 +233,7 @@
                     <th>Nama Mentor</th>
                     <th>Pelatihan</th>
                     <th>Kelas Diampu</th>
+                    <th>Tempat Pelatihan</th>
                     <th width="9%">Keaktifan</th>
                     <th width="9%">Kehadiran</th>
                     <th width="9%">Keterlambatan</th>
@@ -249,6 +250,7 @@
                         <td><strong><?= esc($m['nama_mentor']); ?></strong><br><small class="text-muted">NIP: <?= esc($m['nip']); ?></small></td>
                         <td><?= esc($m['pelatihan']); ?></td>
                         <td><?= esc($m['kelas']); ?></td>
+                        <td><?= esc($m['tempat_pelatihan'] ?? '-'); ?></td>
                         <td class="text-center"><?= $m['persen_keaktifan']; ?>%</td>
                         <td class="text-center"><strong><?= $m['persen_kehadiran']; ?>%</strong></td>
                         <td class="text-center"><?= $m['persen_keterlambatan']; ?>%</td>
@@ -258,7 +260,7 @@
                     </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <tr><td colspan="10" class="text-center py-3 text-muted">Tidak ada data mentor pada periode yang dipilih.</td></tr>
+                    <tr><td colspan="11" class="text-center py-3 text-muted">Tidak ada data mentor pada periode yang dipilih.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>

@@ -85,7 +85,7 @@ class LaporanKehadiranModel extends Model
     public function getFilterClasses(): array
     {
         return $this->db->table('kelas')
-            ->select('kelas.id_kelas, kelas.nama_kelas, kelas.kategori, mentor.nama_mentor')
+            ->select('kelas.id_kelas, kelas.nama_kelas, kelas.kategori, kelas.lokasi_pelatihan, mentor.nama_mentor')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
             ->orderBy('kelas.nama_kelas', 'ASC')
             ->get()->getResultArray();
@@ -111,6 +111,22 @@ class LaporanKehadiranModel extends Model
     }
 
     /**
+     * Ambil daftar tempat pelatihan dari Master Kelas
+     */
+    public function getFilterTempatPelatihan(): array
+    {
+        $rows = $this->db->table('kelas')
+            ->select('lokasi_pelatihan')
+            ->distinct()
+            ->where('lokasi_pelatihan IS NOT NULL')
+            ->where('lokasi_pelatihan !=', '')
+            ->orderBy('lokasi_pelatihan', 'ASC')
+            ->get()->getResultArray();
+
+        return array_values(array_filter(array_column($rows, 'lokasi_pelatihan')));
+    }
+
+    /**
      * Ambil rekapitulasi data kehadiran peserta lengkap berdasarkan filter
      */
     public function getLaporanKehadiranList(array $filters): array
@@ -123,6 +139,7 @@ class LaporanKehadiranModel extends Model
         $idPeserta       = $filters['id_peserta'] ?? 'all';
         $statusFilter    = strtolower(trim((string) ($filters['status_kehadiran'] ?? 'all')));
         $keyword         = strtolower(trim((string) ($filters['keyword'] ?? '')));
+        $tempatPelatihan = $filters['tempat_pelatihan'] ?? 'all';
 
         // 1. Ambil pendaftaran peserta dengan relasi kelas & users
         $pBuilder = $this->db->table('pendaftaran')
@@ -137,6 +154,7 @@ class LaporanKehadiranModel extends Model
                 pendaftaran.created_at,
                 kelas.nama_kelas,
                 kelas.kategori,
+                kelas.lokasi_pelatihan AS tempat_pelatihan,
                 kelas.id_mentor,
                 mentor.nama_mentor
             ')
@@ -156,6 +174,10 @@ class LaporanKehadiranModel extends Model
             $pBuilder->where('pendaftaran.id_pendaftaran', (int) $idPeserta);
         }
 
+        if ($tempatPelatihan !== 'all' && !empty($tempatPelatihan)) {
+            $pBuilder->where('kelas.lokasi_pelatihan', $tempatPelatihan);
+        }
+
         // Filter periode tahunan/bulanan berdasarkan created_at pendaftaran jika diperlukan
         if ($periode === 'bulanan' && $bulan) {
             // Kita bisa fleksibel: jika ada absensi di bulan ini atau mendaftar di bulan ini
@@ -165,7 +187,7 @@ class LaporanKehadiranModel extends Model
 
         // 2. Ambil seluruh jadwal/pertemuan sesuai periode dan kelas
         $jBuilder = $this->db->table('jadwal')
-            ->select('jadwal.*, kelas.nama_kelas, mentor.nama_mentor')
+            ->select('jadwal.*, kelas.nama_kelas, kelas.lokasi_pelatihan AS tempat_pelatihan, mentor.nama_mentor')
             ->join('kelas', 'kelas.id_kelas = jadwal.id_kelas', 'left')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left');
 
@@ -334,6 +356,7 @@ class LaporanKehadiranModel extends Model
                 'no_hp'                => $peserta['no_hp'] ?: '-',
                 'kelas'                => $peserta['nama_kelas'] ?: 'Kelas Umum',
                 'pelatihan'            => $peserta['kategori'] ?: 'Pelatihan Kejuruan',
+                'tempat_pelatihan'     => $peserta['tempat_pelatihan'] ?: '-',
                 'mentor'               => $peserta['nama_mentor'] ?: 'Instruktur Ahli',
                 'total_pertemuan'      => $denominator,
                 'hadir'                => $hadirCount,
@@ -529,6 +552,7 @@ class LaporanKehadiranModel extends Model
                 COALESCE(NULLIF(pendaftaran.no_hp, ""), users.no_hp) AS no_hp,
                 kelas.nama_kelas,
                 kelas.kategori,
+                kelas.lokasi_pelatihan AS tempat_pelatihan,
                 mentor.nama_mentor
             ')
             ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
@@ -655,6 +679,7 @@ class LaporanKehadiranModel extends Model
                 'no_hp'                => $peserta['no_hp'],
                 'kelas'                => $peserta['nama_kelas'],
                 'pelatihan'            => $peserta['kategori'],
+                'tempat_pelatihan'     => $peserta['tempat_pelatihan'] ?: '-',
                 'mentor'               => $peserta['nama_mentor'],
                 'total_pertemuan'      => $totalSesi,
                 'hadir'                => $totalHadir,

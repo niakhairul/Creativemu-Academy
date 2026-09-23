@@ -264,6 +264,7 @@
                     <th>Nama Mentor</th>
                     <th>Pelatihan</th>
                     <th>Kelas Diampu</th>
+                    <th>Tempat Pelatihan</th>
                     <th width="12%">Responden</th>
                     <th width="12%">Nilai Rata-rata</th>
                     <th width="12%">Kepuasan (%)</th>
@@ -281,6 +282,7 @@
                         </td>
                         <td><?= esc($m['pelatihan']); ?></td>
                         <td><?= esc($m['kelas']); ?></td>
+                        <td><?= esc($m['tempat_pelatihan'] ?? '-'); ?></td>
                         <td class="text-center"><?= number_format($m['jumlah_responden']); ?> Orang</td>
                         <td class="text-center fw-bold text-primary"><?= number_format($m['nilai_rata'], 2); ?> / 5.00</td>
                         <td class="text-center fw-bold text-success"><?= number_format($m['persen_kepuasan'], 1); ?>%</td>
@@ -288,7 +290,7 @@
                     </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <tr><td colspan="8" class="text-center py-3 text-muted">Tidak ada data angket mentor pada periode ini.</td></tr>
+                    <tr><td colspan="9" class="text-center py-3 text-muted">Tidak ada data angket mentor pada periode ini.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>

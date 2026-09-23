@@ -499,30 +499,8 @@
 
             <form action="<?= base_url($baseUrlReport); ?>" method="GET" id="filterMentorForm">
                 <div class="row g-3">
-                    
-                    <!-- Periode -->
+                    <!-- Bulan -->
                     <div class="col-12 col-md-6 col-lg-2">
-                        <label class="form-label small fw-semibold text-muted">Periode</label>
-                        <select name="periode" id="periodeSelect" class="form-select" onchange="toggleBulanField()">
-                            <option value="tahunan" <?= ($filters['periode'] === 'tahunan') ? 'selected' : ''; ?>>Tahunan</option>
-                            <option value="bulanan" <?= ($filters['periode'] === 'bulanan') ? 'selected' : ''; ?>>Bulanan</option>
-                        </select>
-                    </div>
-
-                    <!-- Tahun -->
-                    <div class="col-12 col-md-6 col-lg-2">
-                        <label class="form-label small fw-semibold text-muted">Tahun</label>
-                        <select name="tahun" class="form-select">
-                            <?php foreach ($years as $y): ?>
-                                <option value="<?= $y; ?>" <?= ((int)$filters['tahun'] === (int)$y) ? 'selected' : ''; ?>>
-                                    <?= $y; ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <!-- Bulan (Muncul jika Bulanan) -->
-                    <div class="col-12 col-md-6 col-lg-2" id="bulanWrapper" style="<?= ($filters['periode'] === 'bulanan') ? '' : 'display: none;'; ?>">
                         <label class="form-label small fw-semibold text-muted">Bulan</label>
                         <select name="bulan" class="form-select">
                             <?php foreach ($bulanNames as $num => $namaBulan): ?>
@@ -558,6 +536,16 @@
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label small fw-semibold text-muted">Tempat Pelatihan</label>
+                        <select name="tempat_pelatihan" class="form-select">
+                            <option value="all">-- Semua Tempat --</option>
+                            <?php foreach (($tempatList ?? []) as $tempat): ?>
+                                <option value="<?= esc($tempat); ?>" <?= (($filters['tempat_pelatihan'] ?? 'all') === $tempat) ? 'selected' : ''; ?>><?= esc($tempat); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
 
                     <!-- Tombol Aksi -->
                     <div class="col-12 d-flex gap-2 justify-content-end align-items-center mt-3 pt-2 border-top">
@@ -718,7 +706,7 @@
                 </div>
             </div>
 
-            <!-- Grafik 4: Line Chart Tren Tahunan 12 Bulan -->
+            <!-- Grafik 4: Line Chart Tren Bulanan 12 Bulan -->
             <div class="col-12">
                 <div class="custom-card">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -730,7 +718,7 @@
                         </div>
                     </div>
                     <div class="chart-box" style="height: 260px;">
-                        <canvas id="chartTrenTahunan"></canvas>
+                        <canvas id="chartTrenBulanan"></canvas>
                     </div>
                 </div>
             </div>
@@ -807,6 +795,7 @@
                             <th>Nama Mentor</th>
                             <th>Pelatihan</th>
                             <th>Kelas Diampu</th>
+                            <th>Tempat Pelatihan</th>
                             <th class="text-center">Keaktifan</th>
                             <th class="text-center">Kehadiran</th>
                             <th class="text-center">Keterlambatan</th>
@@ -848,7 +837,7 @@
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="10" class="text-center py-5 text-muted">
+                                <td colspan="11" class="text-center py-5 text-muted">
                                     <i class="fas fa-user-slash fa-3x mb-3 opacity-50 d-block"></i>
                                     <h6 class="fw-semibold">Belum ada data laporan mentor pada periode yang dipilih.</h6>
                                     <p class="small text-muted m-0">Silakan pilih periode atau pelatihan lainnya di bagian filter atas.</p>
@@ -902,12 +891,7 @@
             document.getElementById('sidebar').classList.toggle('show');
         }
 
-        function toggleBulanField() {
-            const periode = document.getElementById('periodeSelect').value;
-            const bulanWrapper = document.getElementById('bulanWrapper');
-            bulanWrapper.style.display = (periode === 'bulanan') ? 'block' : 'none';
-        }
-
+        
         function filterMentorTable() {
             const q = document.getElementById('searchMentorInput').value.toLowerCase().trim();
             const rows = document.querySelectorAll('.mentor-row');
@@ -1104,8 +1088,8 @@
                 });
             }
 
-            // 4. Line Chart Tren Tahunan
-            const ctxLine = document.getElementById('chartTrenTahunan');
+            // 4. Line Chart Tren Bulanan
+            const ctxLine = document.getElementById('chartTrenBulanan');
             if (ctxLine) {
                 new Chart(ctxLine.getContext('2d'), {
                     type: 'line',

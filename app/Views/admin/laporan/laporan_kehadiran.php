@@ -460,27 +460,10 @@
 
             <form method="GET" action="<?= base_url($baseUrlReport); ?>" id="formFilterKehadiran">
                 <div class="row g-3">
-                    <!-- Tipe Periode -->
-                    <div class="col-12 col-sm-6 col-md-2">
-                        <label class="form-label small fw-semibold text-muted">Periode</label>
-                        <select name="periode" id="filterPeriode" class="form-select form-select-sm" onchange="toggleMonthFilter()">
-                            <option value="tahunan" <?= ($filters['periode'] === 'tahunan') ? 'selected' : ''; ?>>Tahunan</option>
-                            <option value="bulanan" <?= ($filters['periode'] === 'bulanan') ? 'selected' : ''; ?>>Bulanan</option>
-                        </select>
-                    </div>
 
-                    <!-- Tahun -->
-                    <div class="col-12 col-sm-6 col-md-2">
-                        <label class="form-label small fw-semibold text-muted">Tahun</label>
-                        <select name="tahun" class="form-select form-select-sm">
-                            <?php foreach ($years as $y): ?>
-                                <option value="<?= $y; ?>" <?= ($filters['tahun'] == $y) ? 'selected' : ''; ?>><?= $y; ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
 
                     <!-- Bulan -->
-                    <div class="col-12 col-sm-6 col-md-2" id="boxFilterBulan" style="<?= ($filters['periode'] === 'bulanan') ? '' : 'display:none;'; ?>">
+                    <div class="col-12 col-sm-6 col-md-2" >
                         <label class="form-label small fw-semibold text-muted">Bulan</label>
                         <select name="bulan" class="form-select form-select-sm">
                             <?php foreach ($bulanNames as $num => $name): ?>
@@ -514,6 +497,16 @@
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label small fw-semibold text-muted">Tempat Pelatihan</label>
+                        <select name="tempat_pelatihan" class="form-select">
+                            <option value="all">-- Semua Tempat --</option>
+                            <?php foreach (($tempatList ?? []) as $tempat): ?>
+                                <option value="<?= esc($tempat); ?>" <?= (($filters['tempat_pelatihan'] ?? 'all') === $tempat) ? 'selected' : ''; ?>><?= esc($tempat); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
 
                     <!-- Filter Peserta -->
                     <div class="col-12 col-sm-6 col-md-3">
@@ -719,7 +712,7 @@
                 <div class="custom-card">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-bold mb-0" style="color: var(--dark-purple);">
-                            <i class="fas fa-chart-line text-info me-2"></i> Tren Kehadiran per Bulan (Tahun <?= esc($filters['tahun']); ?>)
+                            <i class="fas fa-chart-line text-info me-2"></i> Tren Kehadiran Bulanan
                         </h6>
                         <span class="badge bg-light text-muted border">12 Bulan</span>
                     </div>
@@ -818,6 +811,7 @@
                             <th onclick="sortTable(2)">Nama Peserta <i class="fas fa-sort sort-icon"></i></th>
                             <th onclick="sortTable(3)">Kelas <i class="fas fa-sort sort-icon"></i></th>
                             <th onclick="sortTable(4)">Pelatihan <i class="fas fa-sort sort-icon"></i></th>
+                            <th>Tempat Pelatihan</th>
                             <th width="7%" class="text-center" onclick="sortTable(5, true)">Pertemuan <i class="fas fa-sort sort-icon"></i></th>
                             <th width="6%" class="text-center text-success" onclick="sortTable(6, true)">Hadir <i class="fas fa-sort sort-icon"></i></th>
                             <th width="6%" class="text-center" onclick="sortTable(7, true)">Izin <i class="fas fa-sort sort-icon"></i></th>
@@ -841,6 +835,7 @@
                                 </td>
                                 <td><span class="badge bg-light text-dark border"><?= esc($row['kelas']); ?></span></td>
                                 <td><span class="text-secondary small fw-semibold"><?= esc($row['pelatihan']); ?></span></td>
+                                <td class="small"><?= esc($row['tempat_pelatihan'] ?? '-'); ?></td>
                                 <td class="text-center fw-bold"><?= $row['total_pertemuan']; ?></td>
                                 <td class="text-center fw-bold text-success"><?= $row['hadir']; ?></td>
                                 <td class="text-center"><?= $row['izin']; ?></td>
@@ -867,10 +862,10 @@
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr id="emptyRow">
-                                <td colspan="14" class="text-center py-5 text-muted">
+                                <td colspan="15" class="text-center py-5 text-muted">
                                     <i class="fas fa-clipboard-user fa-3x text-muted mb-3 opacity-50"></i>
                                     <h6>Belum ada data kehadiran pada periode yang dipilih.</h6>
-                                    <p class="small">Silakan sesuaikan filter tahun, bulan, atau kelas di atas.</p>
+                                    <p class="small">Silakan sesuaikan filter bulan, tempat, atau kelas di atas.</p>
                                 </td>
                             </tr>
                         <?php endif; ?>
@@ -970,12 +965,7 @@
         }
 
         // Toggle Month Filter based on Periode
-        function toggleMonthFilter() {
-            const periode = document.getElementById('filterPeriode').value;
-            const boxBulan = document.getElementById('boxFilterBulan');
-            boxBulan.style.display = (periode === 'bulanan') ? 'block' : 'none';
-        }
-
+        
         // Setup Chart.js
         document.addEventListener('DOMContentLoaded', function() {
             const chartDataServer = <?= json_encode($chartData); ?>;

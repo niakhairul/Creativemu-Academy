@@ -38,7 +38,7 @@ class LaporanPesertaModel extends Model
     public function getFilterClasses(?int $idMentor = null): array
     {
         $builder = $this->db->table('kelas')
-            ->select('kelas.id_kelas, kelas.nama_kelas, kelas.kategori, mentor.nama_mentor')
+            ->select('kelas.id_kelas, kelas.nama_kelas, kelas.kategori, kelas.lokasi_pelatihan, mentor.nama_mentor')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left');
 
         if ($idMentor !== null) {
@@ -66,6 +66,22 @@ class LaporanPesertaModel extends Model
     }
 
     /**
+     * Ambil daftar tempat pelatihan dari Master Kelas
+     */
+    public function getFilterTempatPelatihan(): array
+    {
+        $rows = $this->db->table('kelas')
+            ->select('lokasi_pelatihan')
+            ->distinct()
+            ->where('lokasi_pelatihan IS NOT NULL')
+            ->where('lokasi_pelatihan !=', '')
+            ->orderBy('lokasi_pelatihan', 'ASC')
+            ->get()->getResultArray();
+
+        return array_values(array_filter(array_column($rows, 'lokasi_pelatihan')));
+    }
+
+    /**
      * Bangun Query Builder dasar dengan filter aktif
      */
     private function buildFilteredBuilder(array $filters)
@@ -83,6 +99,7 @@ class LaporanPesertaModel extends Model
                 pendaftaran.created_at AS tanggal_daftar,
                 kelas.nama_kelas,
                 kelas.kategori,
+                kelas.lokasi_pelatihan AS tempat_pelatihan,
                 kelas.tanggal_mulai_kelas,
                 kelas.jumlah_pertemuan,
                 kelas.kapasitas,
@@ -128,6 +145,10 @@ class LaporanPesertaModel extends Model
         // Filter Kategori / Pelatihan
         if (!empty($filters['kategori']) && $filters['kategori'] !== 'all') {
             $builder->where('kelas.kategori', $filters['kategori']);
+        }
+
+        if (!empty($filters['tempat_pelatihan']) && $filters['tempat_pelatihan'] !== 'all') {
+            $builder->where('kelas.lokasi_pelatihan', $filters['tempat_pelatihan']);
         }
 
         // Filter Mentor jika akses mentor
@@ -246,7 +267,7 @@ class LaporanPesertaModel extends Model
     public function getInformasiPelatihan(array $filters): array
     {
         $kBuilder = $this->db->table('kelas')
-            ->select('kelas.*, mentor.nama_mentor')
+            ->select('kelas.*, kelas.lokasi_pelatihan AS tempat_pelatihan, mentor.nama_mentor')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left');
 
         if (!empty($filters['id_kelas']) && $filters['id_kelas'] !== 'all') {
@@ -257,6 +278,9 @@ class LaporanPesertaModel extends Model
         }
         if (!empty($filters['id_mentor'])) {
             $kBuilder->where('kelas.id_mentor', (int) $filters['id_mentor']);
+        }
+        if (!empty($filters['tempat_pelatihan']) && $filters['tempat_pelatihan'] !== 'all') {
+            $kBuilder->where('kelas.lokasi_pelatihan', $filters['tempat_pelatihan']);
         }
 
         $kelasList = $kBuilder->orderBy('kelas.nama_kelas', 'ASC')->get()->getResultArray();
@@ -294,12 +318,14 @@ class LaporanPesertaModel extends Model
             $idKelas = (int) ($row['id_kelas'] ?? 0);
             $namaKelas = $row['nama_kelas'] ?? 'Tanpa Kelas';
             $kategori  = $row['kategori'] ?? '-';
+            $tempatPelatihan = $row['tempat_pelatihan'] ?? '-';
 
             if (!isset($rekap[$idKelas])) {
                 $rekap[$idKelas] = [
                     'id_kelas'        => $idKelas,
                     'nama_kelas'      => $namaKelas,
                     'kategori'        => $kategori,
+                    'tempat_pelatihan'=> $tempatPelatihan,
                     'jumlah_peserta'  => 0,
                     'laki_laki'       => 0,
                     'perempuan'       => 0,
@@ -413,7 +439,7 @@ class LaporanPesertaModel extends Model
                 }
             }
         } else {
-            // Tahunan: 12 Bulan
+            // Fallback tren bulanan 12 bulan
             $lineLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
             $lineValues = array_fill(0, 12, 0);
 
@@ -458,4 +484,6 @@ class LaporanPesertaModel extends Model
             ->get()
             ->getResultArray();
     }
+
+    
 }

@@ -66,17 +66,6 @@ class LaporanKehadiranController extends BaseController
      */
     private function parseFilters(): array
     {
-        $periode = $this->request->getGet('periode') ?: 'tahunan';
-        if (!in_array($periode, ['tahunan', 'bulanan'])) {
-            $periode = 'tahunan';
-        }
-
-        $availableYears = $this->laporanKehadiranModel->getFilterYears();
-        $defaultYear = !empty($availableYears) ? (int) $availableYears[0] : (int) date('Y');
-
-        $tahun = $this->request->getGet('tahun');
-        $tahun = (!empty($tahun) && is_numeric($tahun)) ? (int) $tahun : $defaultYear;
-
         $bulan = $this->request->getGet('bulan');
         $bulan = (!empty($bulan) && is_numeric($bulan)) ? (int) $bulan : (int) date('n');
 
@@ -84,22 +73,18 @@ class LaporanKehadiranController extends BaseController
         $idKelas         = $this->request->getGet('id_kelas') ?: 'all';
         $idPeserta       = $this->request->getGet('id_peserta') ?: 'all';
         $statusKehadiran = $this->request->getGet('status_kehadiran') ?: 'all';
+        $tempatPelatihan = $this->request->getGet('tempat_pelatihan') ?: 'all';
         $keyword         = trim((string) ($this->request->getGet('keyword') ?? ''));
 
-        // Jika mentor login, filter kelas hanya yang diampunya
-        $mentorLogin = $this->getMentorData();
-        if ($mentorLogin && session()->get('role') === 'mentor') {
-            // Mentor can only see classes they teach
-        }
-
         return [
-            'periode'          => $periode,
-            'tahun'            => $tahun,
+            'periode'          => 'bulanan',
+            'tahun'            => (int) date('Y'),
             'bulan'            => $bulan,
             'kategori'         => $kategori,
             'id_kelas'         => $idKelas,
             'id_peserta'       => $idPeserta,
             'status_kehadiran' => $statusKehadiran,
+            'tempat_pelatihan' => $tempatPelatihan,
             'keyword'          => $keyword,
         ];
     }
@@ -121,6 +106,7 @@ class LaporanKehadiranController extends BaseController
         $categories   = $this->laporanKehadiranModel->getFilterCategories();
         $classes      = $this->laporanKehadiranModel->getFilterClasses();
         $participants = $this->laporanKehadiranModel->getFilterParticipants();
+        $tempatList = $this->laporanKehadiranModel->getFilterTempatPelatihan();
 
         $stats     = $this->laporanKehadiranModel->getRingkasanStats($filters);
         $rekapList = $this->laporanKehadiranModel->getLaporanKehadiranList($filters);
@@ -133,9 +119,7 @@ class LaporanKehadiranController extends BaseController
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
 
-        $periodeText = ($filters['periode'] === 'bulanan')
-            ? ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun']
-            : 'Tahun ' . $filters['tahun'];
+        $periodeText = ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun'];
 
         $data = [
             'title'        => 'Laporan Kehadiran Peserta - CreativeMU Academy',
@@ -148,6 +132,7 @@ class LaporanKehadiranController extends BaseController
             'categories'   => $categories,
             'classes'      => $classes,
             'participants' => $participants,
+            'tempatList'   => $tempatList,
             'stats'        => $stats,
             'rekapList'    => $rekapList,
             'chartData'    => $chartData,
@@ -199,9 +184,7 @@ class LaporanKehadiranController extends BaseController
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
 
-        $periodeText = ($filters['periode'] === 'bulanan')
-            ? ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun']
-            : 'Tahun ' . $filters['tahun'];
+        $periodeText = ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun'];
 
         $filename = 'Laporan_Kehadiran_Peserta_CreativeMU_' . str_replace(' ', '_', $periodeText) . '_' . date('Ymd_His') . '.xlsx';
 
@@ -221,10 +204,10 @@ class LaporanKehadiranController extends BaseController
                 ' | Status: ' . ($filters['status_kehadiran'] === 'all' ? 'Semua' : ucfirst($filters['status_kehadiran']));
             $sheet->setCellValue('A4', $filterDesc);
 
-            $sheet->mergeCells('A1:M1');
-            $sheet->mergeCells('A2:M2');
-            $sheet->mergeCells('A3:M3');
-            $sheet->mergeCells('A4:M4');
+            $sheet->mergeCells('A1:N1');
+            $sheet->mergeCells('A2:N2');
+            $sheet->mergeCells('A3:N3');
+            $sheet->mergeCells('A4:N4');
 
             $sheet->getStyle('A1')->getFont()->setSize(16)->setBold(true)->getColor()->setRGB('22133C');
             $sheet->getStyle('A2')->getFont()->setSize(11)->setItalic(true)->getColor()->setRGB('5931A0');
@@ -268,18 +251,18 @@ class LaporanKehadiranController extends BaseController
             $sheet->getStyle('A' . ($rowTableStart - 1))->getFont()->setSize(11)->setBold(true)->getColor()->setRGB('22133C');
 
             $mainHeaders = [
-                'No', 'NIS', 'Nama Peserta', 'Kelas', 'Pelatihan',
+                'No', 'NIS', 'Nama Peserta', 'Kelas', 'Pelatihan', 'Tempat Pelatihan',
                 'Total Pertemuan', 'Hadir', 'Izin', 'Sakit', 'Alpa', 'Terlambat', 'Persentase Kehadiran', 'Status'
             ];
-            $colLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
+            $colLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N'];
 
             for ($k = 0; $k < count($mainHeaders); $k++) {
                 $sheet->setCellValue($colLetters[$k] . $rowTableStart, $mainHeaders[$k]);
             }
 
-            $sheet->getStyle('A' . $rowTableStart . ':M' . $rowTableStart)->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');
-            $sheet->getStyle('A' . $rowTableStart . ':M' . $rowTableStart)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('22133C');
-            $sheet->getStyle('A' . $rowTableStart . ':M' . $rowTableStart)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getStyle('A' . $rowTableStart . ':N' . $rowTableStart)->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');
+            $sheet->getStyle('A' . $rowTableStart . ':N' . $rowTableStart)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('22133C');
+            $sheet->getStyle('A' . $rowTableStart . ':N' . $rowTableStart)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
             $sheet->getRowDimension($rowTableStart)->setRowHeight(28);
 
             $currentRow = $rowTableStart + 1;
@@ -291,23 +274,24 @@ class LaporanKehadiranController extends BaseController
                 $sheet->setCellValue('C' . $currentRow, $row['nama_peserta']);
                 $sheet->setCellValue('D' . $currentRow, $row['kelas']);
                 $sheet->setCellValue('E' . $currentRow, $row['pelatihan']);
-                $sheet->setCellValue('F' . $currentRow, $row['total_pertemuan']);
-                $sheet->setCellValue('G' . $currentRow, $row['hadir']);
-                $sheet->setCellValue('H' . $currentRow, $row['izin']);
-                $sheet->setCellValue('I' . $currentRow, $row['sakit']);
-                $sheet->setCellValue('J' . $currentRow, $row['alpa']);
-                $sheet->setCellValue('K' . $currentRow, $row['terlambat']);
-                $sheet->setCellValue('L' . $currentRow, ($row['persentase_kehadiran'] / 100));
-                $sheet->setCellValue('M' . $currentRow, $row['predikat']);
+                $sheet->setCellValue('F' . $currentRow, $row['tempat_pelatihan'] ?? '-');
+                $sheet->setCellValue('G' . $currentRow, $row['total_pertemuan']);
+                $sheet->setCellValue('H' . $currentRow, $row['hadir']);
+                $sheet->setCellValue('I' . $currentRow, $row['izin']);
+                $sheet->setCellValue('J' . $currentRow, $row['sakit']);
+                $sheet->setCellValue('K' . $currentRow, $row['alpa']);
+                $sheet->setCellValue('L' . $currentRow, $row['terlambat']);
+                $sheet->setCellValue('M' . $currentRow, ($row['persentase_kehadiran'] / 100));
+                $sheet->setCellValue('N' . $currentRow, $row['predikat']);
 
-                $sheet->getStyle('L' . $currentRow)->getNumberFormat()->setFormatCode('0.0%');
+                $sheet->getStyle('M' . $currentRow)->getNumberFormat()->setFormatCode('0.0%');
 
                 $sheet->getStyle('A' . $currentRow . ':B' . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                 $sheet->getStyle('C' . $currentRow)->getFont()->setBold(true);
-                $sheet->getStyle('F' . $currentRow . ':M' . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle('F' . $currentRow . ':N' . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
                 if ($no % 2 === 0) {
-                    $sheet->getStyle('A' . $currentRow . ':M' . $currentRow)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F8F6FD');
+                    $sheet->getStyle('A' . $currentRow . ':N' . $currentRow)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F8F6FD');
                 }
 
                 $sheet->getRowDimension($currentRow)->setRowHeight(22);
@@ -316,10 +300,10 @@ class LaporanKehadiranController extends BaseController
 
             $lastRow = $currentRow - 1;
             if ($lastRow >= $rowTableStart) {
-                $sheet->getStyle('A' . $rowTableStart . ':M' . $lastRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('D0C9E8');
+                $sheet->getStyle('A' . $rowTableStart . ':N' . $lastRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('D0C9E8');
             }
 
-            foreach (range('A', 'M') as $col) {
+            foreach (range('A', 'N') as $col) {
                 $sheet->getColumnDimension($col)->setAutoSize(true);
             }
 
@@ -375,7 +359,7 @@ class LaporanKehadiranController extends BaseController
         fputcsv($output, ['Persentase Kehadiran', $stats['persentase_kehadiran'] . '%']);
         fputcsv($output, []);
 
-        fputcsv($output, ['No', 'NIS', 'Nama Peserta', 'Kelas', 'Pelatihan', 'Total Pertemuan', 'Hadir', 'Izin', 'Sakit', 'Alpa', 'Terlambat', 'Persentase Kehadiran', 'Status']);
+        fputcsv($output, ['No', 'NIS', 'Nama Peserta', 'Kelas', 'Pelatihan', 'Tempat Pelatihan', 'Total Pertemuan', 'Hadir', 'Izin', 'Sakit', 'Alpa', 'Terlambat', 'Persentase Kehadiran', 'Status']);
         $no = 1;
         foreach ($rekapList as $row) {
             fputcsv($output, [
@@ -384,6 +368,7 @@ class LaporanKehadiranController extends BaseController
                 $row['nama_peserta'],
                 $row['kelas'],
                 $row['pelatihan'],
+                $row['tempat_pelatihan'] ?? '-',
                 $row['total_pertemuan'],
                 $row['hadir'],
                 $row['izin'],
@@ -418,9 +403,7 @@ class LaporanKehadiranController extends BaseController
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
 
-        $periodeText = ($filters['periode'] === 'bulanan')
-            ? ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun']
-            : 'Tahun ' . $filters['tahun'];
+        $periodeText = ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun'];
 
         $data = [
             'title'       => 'Cetak Laporan Kehadiran Peserta - CreativeMU Academy',

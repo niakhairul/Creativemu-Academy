@@ -514,27 +514,10 @@
 
             <form method="GET" action="<?= base_url($baseUrlReport); ?>" id="formFilterAngket">
                 <div class="row g-3">
-                    <!-- Tipe Periode -->
-                    <div class="col-12 col-sm-6 col-md-2">
-                        <label class="form-label small fw-semibold text-muted">Periode</label>
-                        <select name="periode" id="filterPeriode" class="form-select form-select-sm" onchange="toggleMonthFilter()">
-                            <option value="tahunan" <?= ($filters['periode'] === 'tahunan') ? 'selected' : ''; ?>>Tahunan</option>
-                            <option value="bulanan" <?= ($filters['periode'] === 'bulanan') ? 'selected' : ''; ?>>Bulanan</option>
-                        </select>
-                    </div>
 
-                    <!-- Tahun -->
-                    <div class="col-12 col-sm-6 col-md-2">
-                        <label class="form-label small fw-semibold text-muted">Tahun</label>
-                        <select name="tahun" class="form-select form-select-sm">
-                            <?php foreach ($years as $y): ?>
-                                <option value="<?= $y; ?>" <?= ($filters['tahun'] == $y) ? 'selected' : ''; ?>><?= $y; ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
 
                     <!-- Bulan -->
-                    <div class="col-12 col-sm-6 col-md-2" id="boxFilterBulan" style="<?= ($filters['periode'] === 'bulanan') ? '' : 'display:none;'; ?>">
+                    <div class="col-12 col-sm-6 col-md-2" >
                         <label class="form-label small fw-semibold text-muted">Bulan</label>
                         <select name="bulan" class="form-select form-select-sm">
                             <?php foreach ($bulanNames as $num => $name): ?>
@@ -570,6 +553,16 @@
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label small fw-semibold text-muted">Tempat Pelatihan</label>
+                        <select name="tempat_pelatihan" class="form-select">
+                            <option value="all">-- Semua Tempat --</option>
+                            <?php foreach (($tempatList ?? []) as $tempat): ?>
+                                <option value="<?= esc($tempat); ?>" <?= (($filters['tempat_pelatihan'] ?? 'all') === $tempat) ? 'selected' : ''; ?>><?= esc($tempat); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
 
                     <!-- Tombol Filter -->
                     <div class="col-12 d-flex justify-content-end gap-2 mt-3">
@@ -812,6 +805,7 @@
                             <th>Nama Mentor</th>
                             <th>Pelatihan / Kategori</th>
                             <th>Kelas Diampu</th>
+                            <th>Tempat Pelatihan</th>
                             <th class="text-center" width="12%">Responden</th>
                             <th class="text-center" width="14%">Nilai Rata-rata</th>
                             <th class="text-center" width="13%">Kepuasan (%)</th>
@@ -989,15 +983,7 @@
         }
 
         // Toggle Month Filter based on Periode
-        function toggleMonthFilter() {
-            const periode = document.getElementById('filterPeriode').value;
-            const boxBulan = document.getElementById('boxFilterBulan');
-            if (periode === 'bulanan') {
-                boxBulan.style.display = 'block';
-            } else {
-                boxBulan.style.display = 'none';
-            }
-        }
+                }
 
         // Chart.js Setup
         document.addEventListener('DOMContentLoaded', function() {

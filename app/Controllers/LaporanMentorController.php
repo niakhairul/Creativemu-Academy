@@ -66,36 +66,25 @@ class LaporanMentorController extends BaseController
      */
     private function parseFilters(): array
     {
-        $periode = $this->request->getGet('periode') ?: 'tahunan';
-        if (!in_array($periode, ['tahunan', 'bulanan'])) {
-            $periode = 'tahunan';
-        }
-
-        $availableYears = $this->laporanMentorModel->getFilterYears();
-        $defaultYear = !empty($availableYears) ? (int) $availableYears[0] : (int) date('Y');
-
-        $tahun = $this->request->getGet('tahun');
-        $tahun = (!empty($tahun) && is_numeric($tahun)) ? (int) $tahun : $defaultYear;
-
         $bulan = $this->request->getGet('bulan');
         $bulan = (!empty($bulan) && is_numeric($bulan)) ? (int) $bulan : (int) date('n');
 
         $idMentor = $this->request->getGet('id_mentor') ?: 'all';
         $kategori = $this->request->getGet('kategori') ?: 'all';
+        $tempatPelatihan = $this->request->getGet('tempat_pelatihan') ?: 'all';
 
         $mentorLogin = $this->getMentorData();
-        // Jika mentor login, kunci atau defaultkan ke mentor tersebut jika diinginkan
         if ($mentorLogin && session()->get('role') === 'mentor') {
-            // Mentor hanya melihat laporan dirinya atau kelasnya
             $idMentor = (string) $mentorLogin['id_mentor'];
         }
 
         return [
-            'periode'   => $periode,
-            'tahun'     => $tahun,
-            'bulan'     => $bulan,
-            'id_mentor' => $idMentor,
-            'kategori'  => $kategori,
+            'periode'          => 'bulanan',
+            'tahun'            => (int) date('Y'),
+            'bulan'            => $bulan,
+            'id_mentor'        => $idMentor,
+            'kategori'         => $kategori,
+            'tempat_pelatihan' => $tempatPelatihan,
         ];
     }
 
@@ -115,6 +104,7 @@ class LaporanMentorController extends BaseController
         $years      = $this->laporanMentorModel->getFilterYears();
         $mentors    = $this->laporanMentorModel->getFilterMentors();
         $categories = $this->laporanMentorModel->getFilterCategories();
+        $tempatList = $this->laporanMentorModel->getFilterTempatPelatihan();
 
         $stats       = $this->laporanMentorModel->getRingkasanStats($filters);
         $mentorList  = $this->laporanMentorModel->getLaporanMentorList($filters);
@@ -127,9 +117,7 @@ class LaporanMentorController extends BaseController
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
 
-        $periodeText = ($filters['periode'] === 'bulanan')
-            ? ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun']
-            : 'Tahun ' . $filters['tahun'];
+        $periodeText = ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun'];
 
         $data = [
             'title'        => 'Laporan Instruktur & Kinerja Pengajar',
@@ -141,6 +129,7 @@ class LaporanMentorController extends BaseController
             'years'        => $years,
             'mentors'      => $mentors,
             'categories'   => $categories,
+            'tempatList'   => $tempatList,
             'stats'        => $stats,
             'mentorList'   => $mentorList,
             'rankingList'  => $rankingList,
@@ -189,9 +178,7 @@ class LaporanMentorController extends BaseController
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
 
-        $periodeText = ($filters['periode'] === 'bulanan')
-            ? ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun']
-            : 'Tahun ' . $filters['tahun'];
+        $periodeText = ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun'];
 
         $filename = 'Laporan_Instruktur_CreativeMU_' . str_replace(' ', '_', $periodeText) . '_' . date('Ymd_His') . '.xlsx';
 
@@ -206,9 +193,9 @@ class LaporanMentorController extends BaseController
             $sheet->setCellValue('A2', 'CreativeMU Academy - Lembaga Pendidikan & Pelatihan Kejuruan Terpadu');
             $sheet->setCellValue('A3', 'Periode Laporan: ' . $periodeText . ' | Tanggal Ekspor: ' . date('d-m-Y H:i'));
 
-            $sheet->mergeCells('A1:I1');
-            $sheet->mergeCells('A2:I2');
-            $sheet->mergeCells('A3:I3');
+            $sheet->mergeCells('A1:J1');
+            $sheet->mergeCells('A2:J2');
+            $sheet->mergeCells('A3:J3');
 
             $sheet->getStyle('A1')->getFont()->setSize(16)->setBold(true)->getColor()->setRGB('22133C');
             $sheet->getStyle('A2')->getFont()->setSize(11)->setItalic(true)->getColor()->setRGB('5931A0');
@@ -242,7 +229,7 @@ class LaporanMentorController extends BaseController
             // 3. Tabel Utama Laporan Instruktur
             $rowStart = 10;
             $tableHeaders = [
-                'No', 'Nama Instruktur', 'Kategori Pelatihan', 'Kelas Diampu', 
+                'No', 'Nama Instruktur', 'Kategori Pelatihan', 'Kelas Diampu', 'Tempat Pelatihan',
                 'Keaktifan (%)', 'Kehadiran (%)', 'Keterlambatan (%)', 'Nilai Angket', 'Predikat'
             ];
 
@@ -252,9 +239,9 @@ class LaporanMentorController extends BaseController
                 $colLetter++;
             }
 
-            $sheet->getStyle('A' . $rowStart . ':I' . $rowStart)->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');
-            $sheet->getStyle('A' . $rowStart . ':I' . $rowStart)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('22133C');
-            $sheet->getStyle('A' . $rowStart . ':I' . $rowStart)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getStyle('A' . $rowStart . ':J' . $rowStart)->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');
+            $sheet->getStyle('A' . $rowStart . ':J' . $rowStart)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('22133C');
+            $sheet->getStyle('A' . $rowStart . ':J' . $rowStart)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
             $sheet->getRowDimension($rowStart)->setRowHeight(28);
 
             $currentRow = $rowStart + 1;
@@ -265,16 +252,17 @@ class LaporanMentorController extends BaseController
                 $sheet->setCellValue('B' . $currentRow, $m['nama_mentor']);
                 $sheet->setCellValue('C' . $currentRow, $m['pelatihan']);
                 $sheet->setCellValue('D' . $currentRow, $m['kelas']);
-                $sheet->setCellValue('E' . $currentRow, ($m['persen_keaktifan'] / 100));
-                $sheet->setCellValue('F' . $currentRow, ($m['persen_kehadiran'] / 100));
-                $sheet->setCellValue('G' . $currentRow, ($m['persen_keterlambatan'] / 100));
-                $sheet->setCellValue('H' . $currentRow, number_format($m['nilai_angket'], 2));
-                $sheet->setCellValue('I' . $currentRow, $m['predikat']);
+                $sheet->setCellValue('E' . $currentRow, $m['tempat_pelatihan'] ?? '-');
+                $sheet->setCellValue('F' . $currentRow, ($m['persen_keaktifan'] / 100));
+                $sheet->setCellValue('G' . $currentRow, ($m['persen_kehadiran'] / 100));
+                $sheet->setCellValue('H' . $currentRow, ($m['persen_keterlambatan'] / 100));
+                $sheet->setCellValue('I' . $currentRow, number_format($m['nilai_angket'], 2));
+                $sheet->setCellValue('J' . $currentRow, $m['predikat']);
 
                 // Number formatting
-                $sheet->getStyle('E' . $currentRow)->getNumberFormat()->setFormatCode('0.0%');
                 $sheet->getStyle('F' . $currentRow)->getNumberFormat()->setFormatCode('0.0%');
                 $sheet->getStyle('G' . $currentRow)->getNumberFormat()->setFormatCode('0.0%');
+                $sheet->getStyle('H' . $currentRow)->getNumberFormat()->setFormatCode('0.0%');
 
                 // Alignments
                 $sheet->getStyle('A' . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
@@ -356,7 +344,7 @@ class LaporanMentorController extends BaseController
         fputcsv($output, ['Rata-rata Angket', $stats['avg_angket']]);
         fputcsv($output, []);
 
-        fputcsv($output, ['No', 'Nama Mentor', 'Kategori Pelatihan', 'Kelas Diampu', 'Keaktifan (%)', 'Kehadiran (%)', 'Keterlambatan (%)', 'Nilai Angket', 'Predikat']);
+        fputcsv($output, ['No', 'Nama Mentor', 'Kategori Pelatihan', 'Kelas Diampu', 'Tempat Pelatihan', 'Keaktifan (%)', 'Kehadiran (%)', 'Keterlambatan (%)', 'Nilai Angket', 'Predikat']);
         $no = 1;
         foreach ($mentorList as $m) {
             fputcsv($output, [
@@ -364,6 +352,7 @@ class LaporanMentorController extends BaseController
                 $m['nama_mentor'],
                 $m['pelatihan'],
                 $m['kelas'],
+                $m['tempat_pelatihan'] ?? '-',
                 $m['persen_keaktifan'] . '%',
                 $m['persen_kehadiran'] . '%',
                 $m['persen_keterlambatan'] . '%',
@@ -396,9 +385,7 @@ class LaporanMentorController extends BaseController
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
 
-        $periodeText = ($filters['periode'] === 'bulanan')
-            ? ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun']
-            : 'Tahun ' . $filters['tahun'];
+        $periodeText = ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun'];
 
         $data = [
             'title'        => 'Cetak Laporan Instruktur - CreativeMU Academy',

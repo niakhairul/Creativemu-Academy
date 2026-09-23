@@ -141,21 +141,21 @@ public function masterKelas()
         }
 
         $data = [
-            'id_mentor'           => $this->request->getPost('id_mentor'),
-            'kategori'            => $this->request->getPost('kategori'),
-            'nama_kelas'          => $this->request->getPost('nama_kelas'),
-            'deskripsi'           => $this->request->getPost('deskripsi'),
-            'kapasitas'           => $this->request->getPost('kapasitas'),
-            'jumlah_pertemuan'    => $this->request->getPost('jumlah_pertemuan'),
-            'harga_reguler'       => $this->request->getPost('harga_reguler'), // <-- Diubah ke harga reguler
-            'harga_privat'        => $this->request->getPost('harga_privat'),   // <-- Ditambahkan harga privat
-            'tanggal_mulai_kelas' => $this->request->getPost('tanggal_mulai_kelas'), 
-            'ringkasan'           => $this->request->getPost('ringkasan'),
-            'status'              => $this->request->getPost('status'),
-            'tipe_kelas'          => $this->request->getPost('tipe_kelas'), 
-            'lokasi_media'        => '-', 
-            'thumbnail'           => $namaThumbnail,
-        ];
+    'id_mentor'           => $this->request->getPost('id_mentor'),
+    'kategori'            => $this->request->getPost('kategori'),
+    'nama_kelas'          => $this->request->getPost('nama_kelas'),
+    'deskripsi'           => $this->request->getPost('deskripsi'),
+    'kapasitas'           => $this->request->getPost('kapasitas'),
+    'jumlah_pertemuan'    => $this->request->getPost('jumlah_pertemuan'),
+    'harga_reguler'       => $this->request->getPost('harga_reguler'),
+    'harga_privat'        => $this->request->getPost('harga_privat'),
+    'tanggal_mulai_kelas' => $this->request->getPost('tanggal_mulai_kelas'), 
+    'ringkasan'           => $this->request->getPost('ringkasan'),
+    'status'              => $this->request->getPost('status'),
+    'tipe_kelas'          => $this->request->getPost('tipe_kelas'), 
+    'lokasi_pelatihan'    => $this->request->getPost('lokasi_pelatihan') ?: $this->request->getPost('lokasi_pelatihan') ?: '-', // Diperbarui ke lokasi_pelatihan
+    'thumbnail'           => $namaThumbnail,
+];
 
         if (!$kelasModel->insert($data)) {
             dd($kelasModel->errors());
@@ -191,19 +191,20 @@ public function masterKelas()
         $kelasLama = $kelasModel->find($id);
 
         $data = [
-            'nama_kelas'          => $this->request->getPost('nama_kelas'),
-            'id_mentor'           => $this->request->getPost('id_mentor'),
-            'kategori'            => $this->request->getPost('kategori'),
-            'tipe_kelas'          => $this->request->getPost('tipe_kelas'),
-            'harga_reguler'       => $this->request->getPost('harga_reguler'), // <-- Diubah ke harga reguler
-            'harga_privat'        => $this->request->getPost('harga_privat'),   // <-- Ditambahkan harga privat
-            'jumlah_pertemuan'    => $this->request->getPost('jumlah_pertemuan'),
-            'kapasitas'           => $this->request->getPost('kapasitas'),
-            'tanggal_mulai_kelas' => $this->request->getPost('tanggal_mulai_kelas'),
-            'ringkasan'           => $this->request->getPost('ringkasan'), 
-            'deskripsi'           => $this->request->getPost('deskripsi'), 
-            'status'              => $this->request->getPost('status'),
-        ];
+    'nama_kelas'          => $this->request->getPost('nama_kelas'),
+    'id_mentor'           => $this->request->getPost('id_mentor'),
+    'kategori'            => $this->request->getPost('kategori'),
+    'tipe_kelas'          => $this->request->getPost('tipe_kelas'),
+    'harga_reguler'       => $this->request->getPost('harga_reguler'),
+    'harga_privat'        => $this->request->getPost('harga_privat'),
+    'jumlah_pertemuan'    => $this->request->getPost('jumlah_pertemuan'),
+    'kapasitas'           => $this->request->getPost('kapasitas'),
+    'tanggal_mulai_kelas' => $this->request->getPost('tanggal_mulai_kelas'),
+    'ringkasan'           => $this->request->getPost('ringkasan'), 
+    'deskripsi'           => $this->request->getPost('deskripsi'), 
+    'status'              => $this->request->getPost('status'),
+    'lokasi_pelatihan'    => $this->request->getPost('lokasi_pelatihan') ?: $this->request->getPost('lokasi_pelatihan') ?: '-', // Diperbarui ke lokasi_pelatihan
+];
 
         // Cek apakah ada file foto/thumbnail banner baru yang di-upload
         $fileThumbnail = $this->request->getFile('foto');
@@ -673,28 +674,31 @@ $data = [
     {
         $db = \Config\Database::connect();
 
-        $keyword      = trim((string) ($this->request->getGet('keyword') ?? ''));
-        $idKelas      = trim((string) ($this->request->getGet('id_kelas') ?? ''));
-        $filterStatus = strtolower(trim((string) ($this->request->getGet('status') ?? '')));
-        $perPage      = 10;
-        $page         = max(1, (int) ($this->request->getGet('page') ?? 1));
-        $offset       = ($page - 1) * $perPage;
+        $keyword        = trim((string) ($this->request->getGet('keyword') ?? ''));
+        $idKelas        = trim((string) ($this->request->getGet('id_kelas') ?? ''));
+        $filterStatus   = strtolower(trim((string) ($this->request->getGet('status') ?? '')));
+        $tempatPelatihan = trim((string) ($this->request->getGet('tempat_pelatihan') ?? '')); // <-- 1. Tangkap filter tempat pelatihan
+        $perPage        = 10;
+        $page           = max(1, (int) ($this->request->getGet('page') ?? 1));
+        $offset         = ($page - 1) * $perPage;
 
-        $buildQuery = function () use ($db, $keyword, $idKelas, $filterStatus) {
-            $builder = $db->table('pendaftaran')
-                ->select('
-                    pendaftaran.*,
-                    COALESCE(NULLIF(pendaftaran.nama, ""), users.nama) AS nama_lengkap,
-                    COALESCE(NULLIF(pendaftaran.no_hp, ""), users.no_hp) AS no_hp_terbaru,
-                    COALESCE(NULLIF(pendaftaran.jenis_kelamin, ""), users.jenis_kelamin) AS gender_terbaru,
-                    COALESCE(NULLIF(pendaftaran.email, ""), users.email) AS email_terbaru,
-                    pendaftaran.nis AS resolved_nis,
-                    kelas.nama_kelas,
-                    kelas.kategori AS kategori_kelas_master
-                ')
-                ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
-                ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left');
-
+        $buildQuery = function () use ($db, $keyword, $idKelas, $filterStatus, $tempatPelatihan) {
+    $builder = $db->table('pendaftaran')
+        ->select('
+            pendaftaran.*,
+            COALESCE(NULLIF(pendaftaran.nama, ""), users.nama) AS nama_lengkap,
+            COALESCE(NULLIF(pendaftaran.no_hp, ""), users.no_hp) AS no_hp_terbaru,
+            COALESCE(NULLIF(pendaftaran.jenis_kelamin, ""), users.jenis_kelamin) AS gender_terbaru,
+            COALESCE(NULLIF(pendaftaran.email, ""), users.email) AS email_terbaru,
+            pendaftaran.nis AS resolved_nis,
+            kelas.nama_kelas,
+            kelas.kategori AS kategori_kelas_master,
+            COALESCE(NULLIF(kelas.lokasi_pelatihan, "-"), NULLIF(kelas.lokasi_pelatihan, ""), pendaftaran.lokasi_pelatihan, "-") AS tempat_pelatihan
+        ')
+        ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
+        ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left');
+    
+    
             if ($keyword !== '') {
                 $builder->groupStart()
                     ->like('pendaftaran.nama', $keyword)
@@ -710,6 +714,15 @@ $data = [
             if ($idKelas !== '') {
                 $builder->where('pendaftaran.id_kelas', $idKelas);
             }
+
+            // --- 2. TERAPKAN FILTER TEMPAT PELATIHAN KE QUERY ---
+            if ($tempatPelatihan !== '') {
+                $builder->groupStart()
+                    ->where('kelas.lokasi_pelatihan', $tempatPelatihan)
+                    ->orWhere('pendaftaran.lokasi_pelatihan', $tempatPelatihan)
+                ->groupEnd();
+            }
+            // ---------------------------------------------------
 
             if ($filterStatus !== '') {
                 if (in_array($filterStatus, ['aktif', 'valid', 'disetujui'], true)) {
@@ -755,6 +768,16 @@ $data = [
             ->get()
             ->getResultArray();
 
+        // Ambil opsi tempat pelatihan unik untuk dropdown filter di view jika diperlukan
+        $tempatPelatihanOptions = $db->table('kelas')
+            ->select('lokasi_pelatihan')
+            ->where('lokasi_pelatihan IS NOT NULL')
+            ->where('lokasi_pelatihan !=', '')
+            ->groupBy('lokasi_pelatihan')
+            ->orderBy('lokasi_pelatihan', 'ASC')
+            ->get()
+            ->getResultArray();
+
         $summaryRows = $db->table('pendaftaran')
             ->select('status_pembayaran, status_pendaftaran, status')
             ->get()
@@ -773,14 +796,16 @@ $data = [
         }
 
         $data = [
-            'title'          => 'Data Peserta - Panel Admin',
-            'peserta'        => $peserta,
-            'kelasList'      => $kelasList,
-            'keyword'        => $keyword,
-            'selectedKelas'  => $idKelas,
-            'selectedStatus' => $filterStatus,
-            'summary'        => $summary,
-            'pagination'     => [
+            'title'               => 'Data Peserta - Panel Admin',
+            'peserta'             => $peserta,
+            'kelasList'           => $kelasList,
+            'tempatPelatihanList' => $tempatPelatihanOptions, // <-- Kirim ke view agar dropdown terisi
+            'keyword'             => $keyword,
+            'selectedKelas'       => $idKelas,
+            'selectedStatus'      => $filterStatus,
+            'selectedTempat'      => $tempatPelatihan,      // <-- Agar nilai select tidak reset saat difilter
+            'summary'             => $summary,
+            'pagination'          => [
                 'page'       => $page,
                 'perPage'    => $perPage,
                 'totalRows'  => $totalRows,
@@ -815,9 +840,10 @@ $data = [
         $keyword = trim((string) ($this->request->getGet('keyword') ?? ''));
         $status = strtolower(trim((string) ($this->request->getGet('status') ?? '')));
         $idKelas = trim((string) ($this->request->getGet('id_kelas') ?? ''));
+        $bulan = trim((string) ($this->request->getGet('bulan') ?? '')); // <-- 1. Tangkap parameter bulan
 
         $builder = $db->table('pendaftaran')
-            ->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas AS tanggal_mulai_master, kelas.lokasi_media')
+            ->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas AS tanggal_mulai_master, kelas.lokasi_pelatihan')
             ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left');
 
         if ($keyword !== '') {
@@ -833,6 +859,12 @@ $data = [
         if ($idKelas !== '') {
             $builder->where('pendaftaran.id_kelas', $idKelas);
         }
+
+        // --- 2. TAMBAHKAN FILTER BULAN KE QUERY BUILDER ---
+        if ($bulan !== '') {
+            $builder->where('MONTH(pendaftaran.created_at)', (int) $bulan);
+        }
+        // -------------------------------------------------
 
         if ($status !== '') {
             if (in_array($status, ['disetujui', 'valid'], true)) {
@@ -885,6 +917,7 @@ $data = [
                 'keyword'  => $keyword,
                 'status'   => $status,
                 'id_kelas' => $idKelas,
+                'bulan'    => $bulan, // <-- 3. Sertakan kembali agar dropdown tidak reset
             ],
             'summary'     => $summary,
         ];
@@ -1159,12 +1192,12 @@ private function generateNisPendaftaran($db, array $pendaftaran): string
     $builder = $db->table('angket_pertanyaan aq')
         ->select('MIN(aq.id_angket_pertanyaan) AS id_angket_pertanyaan', false)
         ->select('aq.judul_angket, aq.id_kelas')
-        ->select('kelas.nama_kelas, kelas.tanggal_mulai_kelas, kelas.lokasi_media')
+        ->select('kelas.nama_kelas, kelas.tanggal_mulai_kelas, kelas.lokasi_pelatihan')
         ->select('mentor.nama_mentor')
         ->select('COUNT(aq.id_angket_pertanyaan) AS jumlah_pertanyaan', false)
         ->join('kelas', 'kelas.id_kelas = aq.id_kelas', 'left')
         ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-        ->groupBy('aq.judul_angket, aq.id_kelas, kelas.nama_kelas, kelas.tanggal_mulai_kelas, kelas.lokasi_media, mentor.nama_mentor');
+        ->groupBy('aq.judul_angket, aq.id_kelas, kelas.nama_kelas, kelas.tanggal_mulai_kelas, kelas.lokasi_pelatihan, mentor.nama_mentor');
 
     if ($filters['search'] !== '') {
         $builder->groupStart()
@@ -1348,7 +1381,7 @@ public function update($id)
     $db = \Config\Database::connect();
 
     $angket = $db->table('angket_pertanyaan aq')
-        ->select('aq.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas, kelas.lokasi_media, mentor.nama_mentor')
+        ->select('aq.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas, kelas.lokasi_pelatihan, mentor.nama_mentor')
         ->join('kelas', 'kelas.id_kelas = aq.id_kelas', 'left')
         ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
         ->where('aq.id_angket_pertanyaan', $id)
@@ -1505,8 +1538,8 @@ private function ambilTempatPelatihan($db, int $idKelas, array $angket): string
     if (!empty($angket['tempat_pelatihan'])) {
         return (string) $angket['tempat_pelatihan'];
     }
-    if (!empty($angket['lokasi_media'])) {
-        return (string) $angket['lokasi_media'];
+    if (!empty($angket['lokasi_pelatihan'])) {
+        return (string) $angket['lokasi_pelatihan'];
     }
     if ($db->tableExists('pendaftaran') && $db->fieldExists('lokasi_pelatihan', 'pendaftaran') && $idKelas > 0) {
         $row = $db->table('pendaftaran')

@@ -238,6 +238,7 @@
                     <th width="5%">No</th>
                     <th>Nama Kelas</th>
                     <th>Kategori Pelatihan</th>
+                    <th>Tempat Pelatihan</th>
                     <th width="14%">Jumlah Peserta</th>
                     <th width="12%">Laki-laki</th>
                     <th width="12%">Perempuan</th>
@@ -252,6 +253,7 @@
                         <td class="text-center"><?= $no++; ?></td>
                         <td><strong><?= esc($rk['nama_kelas']); ?></strong></td>
                         <td><?= esc($rk['kategori']); ?></td>
+                        <td><?= esc($rk['tempat_pelatihan'] ?? '-'); ?></td>
                         <td class="text-center"><strong><?= number_format($rk['jumlah_peserta']); ?></strong></td>
                         <td class="text-center"><?= number_format($rk['laki_laki']); ?></td>
                         <td class="text-center"><?= number_format($rk['perempuan']); ?></td>
@@ -260,7 +262,7 @@
                     </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <tr><td colspan="8" class="text-center py-2 text-muted">Tidak ada data rekapitulasi kelas.</td></tr>
+                    <tr><td colspan="9" class="text-center py-2 text-muted">Tidak ada data rekapitulasi kelas.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>
@@ -276,6 +278,7 @@
                     <th width="10%">Gender</th>
                     <th>Kelas</th>
                     <th>Pelatihan</th>
+                    <th>Tempat Pelatihan</th>
                     <th width="12%">Tgl Daftar</th>
                     <th width="13%">Status</th>
                 </tr>
@@ -290,6 +293,7 @@
                         <td><?= esc($p['resolved_gender']); ?></td>
                         <td><?= esc($p['nama_kelas'] ?? '-'); ?></td>
                         <td><?= esc($p['kategori'] ?? '-'); ?></td>
+                        <td><?= esc($p['tempat_pelatihan'] ?? '-'); ?></td>
                         <td class="text-center"><?= !empty($p['tanggal_daftar']) ? date('d/m/Y', strtotime($p['tanggal_daftar'])) : '-'; ?></td>
                         <td class="text-center">
                             <strong><?= esc($p['status_kelulusan']); ?></strong>

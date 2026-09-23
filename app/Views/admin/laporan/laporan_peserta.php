@@ -141,7 +141,7 @@
             border-radius: 18px;
             box-shadow: var(--card-shadow);
             border: 1px solid var(--border-soft);
-            padding: 22px;
+            padding: 18px;
             position: relative;
             overflow: hidden;
             transition: all 0.3s ease;
@@ -154,26 +154,26 @@
         }
 
         .stat-card .stat-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: 14px;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             color: #fff;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .stat-card .stat-value {
-            font-size: 2rem;
+            font-size: 1.5rem; /* Diperkecil agar pas saat layar 100% */
             font-weight: 700;
             line-height: 1.2;
             color: var(--dark-purple);
         }
 
         .stat-card .stat-label {
-            font-size: 0.85rem;
+            font-size: 0.78rem;
             color: #6c757d;
             font-weight: 500;
             text-transform: uppercase;
@@ -388,10 +388,8 @@
 
         <ul class="nav flex-column">
             <?php if (!empty($isMentor)): ?>
-                <!-- Navigasi Mentor -->
                 <li class="nav-item"><a href="<?= base_url('mentor/dashboard'); ?>" class="nav-link"><i class="fas fa-chart-line"></i> <span>Dashboard</span></a></li>
                 <li class="nav-item"><a href="<?= base_url('mentor/kelas'); ?>" class="nav-link"><i class="fas fa-book"></i> <span>Daftar Kelas</span></a></li>
-                <!-- Submenu Laporan Mentor -->
                 <li class="nav-item">
                     <a class="nav-link" data-bs-toggle="collapse" href="#submenuLaporanMentor" role="button" aria-expanded="true">
                         <i class="fas fa-file-lines"></i> <span>Laporan</span>
@@ -416,20 +414,18 @@
                 </li>
                 <li class="nav-item"><a href="<?= base_url('mentor/profil'); ?>" class="nav-link"><i class="fas fa-user"></i> <span>Profil Mentor</span></a></li>
             <?php else: ?>
-                <!-- Navigasi Admin -->
                 <li class="nav-item"><a href="<?= base_url('admin/dashboard'); ?>" class="nav-link"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
                 <li class="nav-item"><a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link"><i class="fas fa-book"></i> <span>Master Kelas</span></a></li>
                 <li class="nav-item"><a href="<?= base_url('admin/mentor'); ?>" class="nav-link"><i class="fas fa-chalkboard-user"></i> <span>Mentor</span></a></li>
                 <li class="nav-item"><a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link"><i class="fas fa-users"></i> <span>Data Peserta</span></a></li>
                 <li class="nav-item"><a href="<?= base_url('admin/validasi'); ?>" class="nav-link"><i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span></a></li>
-                 <li class="nav-item">
-                <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
-                    <i class="fas fa-book-open"></i> <span>Buku Induk</span>
-                </a>
-            </li>
+                <li class="nav-item">
+                    <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
+                        <i class="fas fa-book-open"></i> <span>Buku Induk</span>
+                    </a>
+                </li>
                 <li class="nav-item"><a href="<?= base_url('admin/angket'); ?>" class="nav-link"><i class="fas fa-poll"></i> <span>Angket</span></a></li>
                 <li class="nav-item"><a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link"><i class="fas fa-award"></i> <span>Sertifikat</span></a></li>
-                <!-- Submenu Laporan Admin -->
                 <li class="nav-item">
                     <a class="nav-link" data-bs-toggle="collapse" href="#submenuLaporanAdmin" role="button" aria-expanded="true">
                         <i class="fas fa-chart-simple"></i> <span>Laporan</span>
@@ -471,10 +467,9 @@
                 </div>
             </div>
 
-            <!-- Quick Export Buttons -->
             <?php 
                 $baseUrlReport = $isMentor ? 'mentor/laporan' : 'admin/laporan';
-                $exportQuery = http_build_query($filters);
+                $exportQuery = http_build_query($filters ?? []);
             ?>
             <div class="d-flex gap-2 flex-wrap">
                 <a href="<?= base_url($baseUrlReport . '/export-excel?' . $exportQuery); ?>" class="btn-excel">
@@ -486,64 +481,43 @@
             </div>
         </div>
 
-        <!-- FILTER FORM CARD -->
+        <!-- FILTER FORM CARD (Periode Bulan, Tahun, dan Tempat Pelatihan Dikembalikan) -->
         <div class="custom-card">
             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                 <h6 class="fw-bold m-0" style="color: var(--dark-purple);">
-                    <i class="fas fa-filter text-purple me-2" style="color: var(--primary-purple);"></i> Filter & Periode Laporan
+                    <i class="fas fa-filter text-purple me-2" style="color: var(--primary-purple);"></i> Filter Laporan
                 </h6>
-                <span class="badge bg-light text-muted border px-2 py-1">Filter Dinamis Database</span>
+                <small class="text-muted">Pilih bulan dan parameter untuk menyaring data laporan</small>
             </div>
 
             <form action="<?= base_url($baseUrlReport); ?>" method="GET" id="filterForm">
                 <div class="row g-3">
                     
-                    <!-- Pilihan Periode (Tahunan / Bulanan) -->
-                    <div class="col-12 col-md-6 col-lg-2">
-                        <label class="form-label small fw-semibold text-muted">Periode</label>
-                        <select name="periode" id="periodeSelect" class="form-select" onchange="toggleBulanField()">
-                            <option value="tahunan" <?= ($filters['periode'] === 'tahunan') ? 'selected' : ''; ?>>Tahunan</option>
-                            <option value="bulanan" <?= ($filters['periode'] === 'bulanan') ? 'selected' : ''; ?>>Bulanan</option>
-                        </select>
-                    </div>
-
-                    <!-- Pilihan Tahun -->
-                    <div class="col-12 col-md-6 col-lg-2">
-                        <label class="form-label small fw-semibold text-muted">Tahun</label>
-                        <select name="tahun" class="form-select">
-                            <?php foreach ($years as $y): ?>
-                                <option value="<?= $y; ?>" <?= ((int)$filters['tahun'] === (int)$y) ? 'selected' : ''; ?>>
-                                    <?= $y; ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <!-- Pilihan Bulan (Muncul jika bulanan dipilih) -->
-                    <div class="col-12 col-md-6 col-lg-2" id="bulanWrapper" style="<?= ($filters['periode'] === 'bulanan') ? '' : 'display: none;'; ?>">
+                    <!-- Filter Bulan (Dikembalikan) -->
+                    <div class="col-12 col-md-3">
                         <label class="form-label small fw-semibold text-muted">Bulan</label>
                         <select name="bulan" class="form-select">
+                            <option value="all">-- Semua Bulan --</option>
                             <?php 
-                            $monthNames = [
-                                1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-                                5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-                                9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+                            $listBulan = [
+                                '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
+                                '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
+                                '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
                             ];
-                            foreach ($monthNames as $num => $namaBulan): ?>
-                                <option value="<?= $num; ?>" <?= ((int)$filters['bulan'] === $num) ? 'selected' : ''; ?>>
-                                    <?= $namaBulan; ?>
-                                </option>
+                            $currentBulan = $filters['bulan'] ?? date('m');
+                            foreach ($listBulan as $bKey => $bVal): 
+                            ?>
+                                <option value="<?= $bKey; ?>" <?= ($currentBulan === $bKey) ? 'selected' : ''; ?>><?= $bVal; ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
-
-                    <!-- Filter Kelas -->
-                    <div class="col-12 col-md-6 col-lg-3">
+<!-- Filter Kelas -->
+                    <div class="col-12 col-md-3">
                         <label class="form-label small fw-semibold text-muted">Kelas</label>
                         <select name="id_kelas" class="form-select">
                             <option value="all">-- Semua Kelas --</option>
                             <?php foreach ($classes as $c): ?>
-                                <option value="<?= $c['id_kelas']; ?>" <?= ((string)$filters['id_kelas'] === (string)$c['id_kelas']) ? 'selected' : ''; ?>>
+                                <option value="<?= $c['id_kelas']; ?>" <?= ((string)($filters['id_kelas'] ?? '') === (string)$c['id_kelas']) ? 'selected' : ''; ?>>
                                     <?= esc($c['nama_kelas']); ?> (<?= esc($c['nama_mentor'] ?? 'Mentor -'); ?>)
                                 </option>
                             <?php endforeach; ?>
@@ -551,20 +525,29 @@
                     </div>
 
                     <!-- Filter Pelatihan / Kategori -->
-                    <div class="col-12 col-md-6 col-lg-3">
+                    <div class="col-12 col-md-3">
                         <label class="form-label small fw-semibold text-muted">Pelatihan / Kategori</label>
                         <select name="kategori" class="form-select">
                             <option value="all">-- Semua Pelatihan --</option>
                             <?php foreach ($categories as $cat): ?>
-                                <option value="<?= esc($cat); ?>" <?= ($filters['kategori'] === $cat) ? 'selected' : ''; ?>>
+                                <option value="<?= esc($cat); ?>" <?= (($filters['kategori'] ?? '') === $cat) ? 'selected' : ''; ?>>
                                     <?= esc($cat); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label small fw-semibold text-muted">Tempat Pelatihan</label>
+                        <select name="tempat_pelatihan" class="form-select">
+                            <option value="all">-- Semua Tempat --</option>
+                            <?php foreach (($tempatList ?? []) as $tempat): ?>
+                                <option value="<?= esc($tempat); ?>" <?= (($filters['tempat_pelatihan'] ?? 'all') === $tempat) ? 'selected' : ''; ?>><?= esc($tempat); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
 
-                    <!-- Tombol Aksi Filter -->
-                    <div class="col-12 d-flex gap-2 justify-content-end align-items-center mt-3 pt-2 border-top">
+<!-- Tombol Aksi Filter -->
+                    <div class="col-12 col-md-6 d-flex gap-2 justify-content-end align-items-end mt-3 pt-2">
                         <a href="<?= base_url($baseUrlReport); ?>" class="btn btn-outline-purple">
                             <i class="fas fa-rotate-left me-1"></i> Reset Filter
                         </a>
@@ -577,7 +560,7 @@
             </form>
         </div>
 
-        <!-- 2. DASHBOARD RINGKASAN (6 CARDS STATISTIK) -->
+        <!-- DASHBOARD RINGKASAN (6 CARDS STATISTIK) -->
         <div class="row g-3 mb-4">
             
             <!-- Card 1: Total Peserta -->
@@ -648,13 +631,13 @@
 
         </div>
 
-        <!-- 3. INFORMASI PELATIHAN / KELAS -->
+        <!-- INFORMASI PELATIHAN / KELAS -->
         <div class="custom-card">
             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                 <h6 class="fw-bold m-0" style="color: var(--dark-purple);">
                     <i class="fas fa-circle-info text-purple me-2" style="color: var(--primary-purple);"></i> Informasi Pelatihan
                 </h6>
-                <small class="text-muted">Status & kapasitas kelas periode terpilih</small>
+                <small class="text-muted">Status & kapasitas kelas periode ini</small>
             </div>
 
             <div class="row g-3">
@@ -681,7 +664,7 @@
                                     <span class="fw-semibold text-dark"><?= esc($ik['nama_mentor'] ?? 'Belum Ditentukan'); ?></span>
                                 </div>
                                 <div class="d-flex justify-content-between py-1">
-                                    <span class="text-muted"><i class="fas fa-calendar-day me-1"></i> Periode Mulai:</span>
+                                    <span class="text-muted"><i class="fas fa-calendar-day me-1"></i> Tanggal Mulai:</span>
                                     <span class="fw-semibold text-dark"><?= !empty($ik['tanggal_mulai_kelas']) ? date('d M Y', strtotime($ik['tanggal_mulai_kelas'])) : '-'; ?></span>
                                 </div>
                                 <div class="d-flex justify-content-between py-1">
@@ -701,10 +684,8 @@
             </div>
         </div>
 
-        <!-- 4. GRAFIK LAPORAN INTERAKTIF (CHART.JS) -->
+        <!-- GRAFIK LAPORAN INTERAKTIF -->
         <div class="row g-3 mb-4">
-            
-            <!-- Grafik 1: Peserta Per Kelas (Bar Chart) -->
             <div class="col-12 col-xl-6">
                 <div class="custom-card h-100">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -719,14 +700,13 @@
                 </div>
             </div>
 
-            <!-- Grafik 2: Perkembangan Pendaftaran (Line Chart) -->
             <div class="col-12 col-xl-6">
                 <div class="custom-card h-100">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-bold m-0" style="color: var(--dark-purple);">
                             <i class="fas fa-chart-line me-2" style="color: #3a86ff;"></i> Perkembangan Pendaftaran Peserta
                         </h6>
-                        <small class="text-muted"><?= ($chartData['line_tren']['mode'] === 'bulanan') ? 'Tren Mingguan' : 'Tren Bulanan 12 Bulan'; ?></small>
+                        <small class="text-muted">Tren Periode Ini</small>
                     </div>
                     <div class="chart-container-box">
                         <canvas id="chartPerkembangan"></canvas>
@@ -734,7 +714,6 @@
                 </div>
             </div>
 
-            <!-- Grafik 3: Gender Peserta (Donut Chart) -->
             <div class="col-12 col-md-6 col-xl-6">
                 <div class="custom-card h-100">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -749,7 +728,6 @@
                 </div>
             </div>
 
-            <!-- Grafik 4: Status Kelulusan (Donut Chart) -->
             <div class="col-12 col-md-6 col-xl-6">
                 <div class="custom-card h-100">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -763,10 +741,9 @@
                     </div>
                 </div>
             </div>
-
         </div>
 
-        <!-- 5. TABEL REKAPITULASI PESERTA PER KELAS -->
+        <!-- TABEL REKAPITULASI PESERTA PER KELAS -->
         <div class="custom-card">
             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                 <h6 class="fw-bold m-0" style="color: var(--dark-purple);">
@@ -782,6 +759,7 @@
                             <th width="5%" class="text-center">No</th>
                             <th>Nama Kelas</th>
                             <th>Nama Pelatihan</th>
+                            <th>Tempat Pelatihan</th>
                             <th class="text-center">Jumlah Peserta</th>
                             <th class="text-center">Laki-laki</th>
                             <th class="text-center">Perempuan</th>
@@ -796,6 +774,7 @@
                                 <td class="text-center fw-bold"><?= $no++; ?></td>
                                 <td class="fw-semibold text-dark"><?= esc($rk['nama_kelas']); ?></td>
                                 <td><span class="badge bg-light text-dark border"><?= esc($rk['kategori']); ?></span></td>
+                                <td><?= esc($rk['tempat_pelatihan'] ?? '-'); ?></td>
                                 <td class="text-center fw-bold text-primary"><?= number_format($rk['jumlah_peserta']); ?></td>
                                 <td class="text-center text-info-emphasis"><?= number_format($rk['laki_laki']); ?></td>
                                 <td class="text-center text-danger-emphasis"><?= number_format($rk['perempuan']); ?></td>
@@ -805,9 +784,9 @@
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="8" class="text-center py-4 text-muted">
+                                <td colspan="9" class="text-center py-4 text-muted">
                                     <i class="fas fa-folder-open fa-2x mb-2 opacity-50 d-block"></i>
-                                    Tidak ada data kelas pada periode yang dipilih.
+                                    Tidak ada data kelas pada periode ini.
                                 </td>
                             </tr>
                         <?php endif; ?>
@@ -816,17 +795,16 @@
             </div>
         </div>
 
-        <!-- 6. TABEL DETAIL DATA PESERTA -->
+        <!-- TABEL DETAIL DATA PESERTA -->
         <div class="custom-card">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3 pb-3 border-bottom">
                 <div>
                     <h6 class="fw-bold m-0" style="color: var(--dark-purple);">
                         <i class="fas fa-address-book me-2" style="color: var(--primary-purple);"></i> Detail Data Peserta
                     </h6>
-                    <small class="text-muted">Total: <?= count($detailList); ?> peserta terdaftar pada filter aktif</small>
+                    <small class="text-muted">Total: <?= count($detailList ?? []); ?> peserta terdaftar</small>
                 </div>
 
-                <!-- Client-Side Realtime Search & Filter Status -->
                 <div class="d-flex gap-2 flex-wrap">
                     <select id="filterStatusClient" class="form-select form-select-sm" style="width: auto;" onchange="filterDetailTable()">
                         <option value="all">Semua Status</option>
@@ -851,6 +829,7 @@
                             <th>Gender</th>
                             <th>Kelas</th>
                             <th>Pelatihan</th>
+                            <th>Tempat Pelatihan</th> <!-- Tambahan Kolom Header -->
                             <th>Tanggal Daftar</th>
                             <th class="text-center">Status Kelulusan</th>
                         </tr>
@@ -859,34 +838,42 @@
                         <?php if (!empty($detailList)): ?>
                             <?php $no = 1; foreach ($detailList as $p): ?>
                             <tr class="detail-row" 
-                                data-status="<?= strtolower($p['status_kelulusan']); ?>"
-                                data-search="<?= strtolower(esc($p['nama_peserta'] . ' ' . $p['resolved_nis'] . ' ' . $p['nama_kelas'] . ' ' . $p['kategori'])); ?>">
+                                data-status="<?= strtolower($p['status_kelulusan'] ?? 'dalam proses'); ?>"
+                                data-search="<?= strtolower(esc(($p['nama_peserta'] ?? '') . ' ' . ($p['resolved_nis'] ?? '') . ' ' . ($p['nama_kelas'] ?? '') . ' ' . ($p['kategori'] ?? '') . ' ' . ($p['tempat_pelatihan'] ?? ''))); ?>">
                                 <td class="text-center fw-bold row-no"><?= $no++; ?></td>
                                 <td>
-                                    <div class="fw-semibold text-dark"><?= esc($p['nama_peserta']); ?></div>
+                                    <div class="fw-semibold text-dark"><?= esc($p['nama_peserta'] ?? '-'); ?></div>
                                     <small class="text-muted"><?= esc($p['resolved_email'] ?? '-'); ?></small>
                                 </td>
                                 <td>
-                                    <span class="badge bg-light text-dark border px-2 py-1 fw-mono"><?= esc($p['resolved_nis']); ?></span>
+                                    <span class="badge bg-light text-dark border px-2 py-1 fw-mono"><?= esc($p['resolved_nis'] ?? '-'); ?></span>
                                 </td>
                                 <td>
                                     <?php 
-                                    $isMale = !str_contains(strtolower($p['resolved_gender']), 'perempuan');
+                                    $isMale = !str_contains(strtolower($p['resolved_gender'] ?? ''), 'perempuan');
                                     ?>
                                     <span class="badge <?= $isMale ? 'bg-primary-subtle text-primary' : 'bg-danger-subtle text-danger'; ?>">
                                         <i class="fas <?= $isMale ? 'fa-mars' : 'fa-venus'; ?> me-1"></i>
-                                        <?= esc($p['resolved_gender']); ?>
+                                        <?= esc($p['resolved_gender'] ?? '-'); ?>
                                     </span>
                                 </td>
                                 <td class="fw-semibold text-dark"><?= esc($p['nama_kelas'] ?? '-'); ?></td>
                                 <td><span class="badge bg-light text-secondary border"><?= esc($p['kategori'] ?? '-'); ?></span></td>
+                                
+                                <!-- Kolom Tempat Pelatihan Pilihan Peserta -->
+                                <td>
+                                    <span class="small text-dark" style="max-width: 250px; display: inline-block; white-space: normal;">
+                                        <?= esc($p['tempat_pelatihan'] ?? '-'); ?>
+                                    </span>
+                                </td>
+
                                 <td class="small text-muted">
                                     <?= !empty($p['tanggal_daftar']) ? date('d M Y, H:i', strtotime($p['tanggal_daftar'])) : '-'; ?>
                                 </td>
                                 <td class="text-center">
-                                    <?php if ($p['status_kelulusan'] === 'Lulus'): ?>
+                                    <?php if (($p['status_kelulusan'] ?? '') === 'Lulus'): ?>
                                         <span class="badge-lulus"><i class="fas fa-check-circle"></i> Lulus</span>
-                                    <?php elseif ($p['status_kelulusan'] === 'Tidak Lulus'): ?>
+                                    <?php elseif (($p['status_kelulusan'] ?? '') === 'Tidak Lulus'): ?>
                                         <span class="badge-tidak-lulus"><i class="fas fa-times-circle"></i> Tidak Lulus</span>
                                     <?php else: ?>
                                         <span class="badge-proses"><i class="fas fa-clock"></i> Dalam Proses</span>
@@ -896,10 +883,10 @@
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr id="emptyRow">
-                                <td colspan="8" class="text-center py-5 text-muted">
+                                <td colspan="9" class="text-center py-5 text-muted">
                                     <i class="fas fa-user-slash fa-3x mb-3 opacity-50 d-block"></i>
-                                    <h6 class="fw-semibold">Tidak ada data peserta pada periode yang dipilih.</h6>
-                                    <p class="small text-muted m-0">Silakan ubah filter periode atau filter kelas di atas.</p>
+                                    <h6 class="fw-semibold">Tidak ada data peserta pada periode ini.</h6>
+                                    <p class="small text-muted m-0">Silakan ubah filter bulan atau kelas di atas.</p>
                                 </td>
                             </tr>
                         <?php endif; ?>
@@ -907,7 +894,6 @@
                 </table>
             </div>
 
-            <!-- Client Empty Result Row (Hidden by default) -->
             <div id="noMatchMessage" class="text-center py-4 text-muted d-none">
                 <i class="fas fa-filter-circle-xmark fa-2x mb-2 opacity-50"></i>
                 <p class="m-0 fw-semibold">Tidak ada data peserta yang cocok dengan pencarian / status.</p>
@@ -920,25 +906,12 @@
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- INLINE JAVASCRIPT UNTUK INTERAKTIVITAS & GRAFIK -->
+    <!-- INLINE JAVASCRIPT -->
     <script>
-        // Toggle Sidebar Mobile
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('show');
         }
 
-        // Toggle Field Bulan sesuai Periode
-        function toggleBulanField() {
-            const periode = document.getElementById('periodeSelect').value;
-            const bulanWrapper = document.getElementById('bulanWrapper');
-            if (periode === 'bulanan') {
-                bulanWrapper.style.display = 'block';
-            } else {
-                bulanWrapper.style.display = 'none';
-            }
-        }
-
-        // Realtime Client-side Search & Status Filter pada Tabel Detail Peserta
         function filterDetailTable() {
             const searchKeyword = document.getElementById('searchDetailInput').value.toLowerCase().trim();
             const statusFilter = document.getElementById('filterStatusClient').value.toLowerCase().trim();
@@ -972,23 +945,19 @@
             }
         }
 
-        // Inisialisasi 4 Grafik Chart.js
         document.addEventListener('DOMContentLoaded', function() {
-            const chartData = <?= json_encode($chartData); ?>;
+            const chartData = <?= json_encode($chartData ?? []); ?>;
 
-            // Palette Warna Modern CreativeMU
             const purpleMain = '#794bc4';
             const purpleDark = '#5931a0';
-            const purpleLight = '#c8bfe7';
             const tealColor  = '#06d6a0';
             const blueColor  = '#3a86ff';
             const pinkColor  = '#ff006e';
             const redColor   = '#e63946';
             const amberColor = '#ffb703';
 
-            // 1. Bar Chart: Peserta Per Kelas
             const ctxBar = document.getElementById('chartPesertaPerKelas');
-            if (ctxBar) {
+            if (ctxBar && chartData.bar_kelas) {
                 new Chart(ctxBar.getContext('2d'), {
                     type: 'bar',
                     data: {
@@ -1014,23 +983,15 @@
                             }
                         },
                         scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: { precision: 0 },
-                                grid: { color: 'rgba(0,0,0,0.05)' }
-                            },
-                            x: {
-                                grid: { display: false },
-                                ticks: { font: { size: 11 } }
-                            }
+                            y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                            x: { grid: { display: false }, ticks: { font: { size: 11 } } }
                         }
                     }
                 });
             }
 
-            // 2. Line Chart: Perkembangan Pendaftaran Peserta
             const ctxLine = document.getElementById('chartPerkembangan');
-            if (ctxLine) {
+            if (ctxLine && chartData.line_tren) {
                 new Chart(ctxLine.getContext('2d'), {
                     type: 'line',
                     data: {
@@ -1061,23 +1022,15 @@
                             }
                         },
                         scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: { precision: 0 },
-                                grid: { color: 'rgba(0,0,0,0.05)' }
-                            },
-                            x: {
-                                grid: { display: false },
-                                ticks: { font: { size: 11 } }
-                            }
+                            y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                            x: { grid: { display: false }, ticks: { font: { size: 11 } } }
                         }
                     }
                 });
             }
 
-            // 3. Donut Chart: Komposisi Gender
             const ctxGender = document.getElementById('chartGender');
-            if (ctxGender) {
+            if (ctxGender && chartData.donut_gender) {
                 new Chart(ctxGender.getContext('2d'), {
                     type: 'doughnut',
                     data: {
@@ -1093,20 +1046,14 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: { font: { size: 12 }, padding: 14 }
-                            }
-                        },
+                        plugins: { legend: { position: 'bottom', labels: { font: { size: 12 }, padding: 14 } } },
                         cutout: '70%'
                     }
                 });
             }
 
-            // 4. Donut Chart: Status Kelulusan
             const ctxKelulusan = document.getElementById('chartKelulusan');
-            if (ctxKelulusan) {
+            if (ctxKelulusan && chartData.donut_kelulusan) {
                 new Chart(ctxKelulusan.getContext('2d'), {
                     type: 'doughnut',
                     data: {
@@ -1122,17 +1069,11 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: { font: { size: 12 }, padding: 14 }
-                            }
-                        },
+                        plugins: { legend: { position: 'bottom', labels: { font: { size: 12 }, padding: 14 } } },
                         cutout: '70%'
                     }
                 });
             }
-
         });
     </script>
 </body>

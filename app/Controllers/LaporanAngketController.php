@@ -66,37 +66,27 @@ class LaporanAngketController extends BaseController
      */
     private function parseFilters(): array
     {
-        $periode = $this->request->getGet('periode') ?: 'tahunan';
-        if (!in_array($periode, ['tahunan', 'bulanan'])) {
-            $periode = 'tahunan';
-        }
-
-        $availableYears = $this->laporanAngketModel->getFilterYears();
-        $defaultYear = !empty($availableYears) ? (int) $availableYears[0] : (int) date('Y');
-
-        $tahun = $this->request->getGet('tahun');
-        $tahun = (!empty($tahun) && is_numeric($tahun)) ? (int) $tahun : $defaultYear;
-
         $bulan = $this->request->getGet('bulan');
         $bulan = (!empty($bulan) && is_numeric($bulan)) ? (int) $bulan : (int) date('n');
 
         $idMentor = $this->request->getGet('id_mentor') ?: 'all';
         $idKelas  = $this->request->getGet('id_kelas') ?: 'all';
         $kategori = $this->request->getGet('kategori') ?: 'all';
+        $tempatPelatihan = $this->request->getGet('tempat_pelatihan') ?: 'all';
 
         $mentorLogin = $this->getMentorData();
         if ($mentorLogin && session()->get('role') === 'mentor') {
-            // Jika role mentor, batasi hanya melihat datanya
             $idMentor = (string) $mentorLogin['id_mentor'];
         }
 
         return [
-            'periode'   => $periode,
-            'tahun'     => $tahun,
-            'bulan'     => $bulan,
-            'id_mentor' => $idMentor,
-            'id_kelas'  => $idKelas,
-            'kategori'  => $kategori,
+            'periode'          => 'bulanan',
+            'tahun'            => (int) date('Y'),
+            'bulan'            => $bulan,
+            'id_mentor'        => $idMentor,
+            'id_kelas'         => $idKelas,
+            'kategori'         => $kategori,
+            'tempat_pelatihan' => $tempatPelatihan,
         ];
     }
 
@@ -117,6 +107,7 @@ class LaporanAngketController extends BaseController
         $mentors    = $this->laporanAngketModel->getFilterMentors();
         $classes    = $this->laporanAngketModel->getFilterClasses();
         $categories = $this->laporanAngketModel->getFilterCategories();
+        $tempatList = $this->laporanAngketModel->getFilterTempatPelatihan();
 
         $stats         = $this->laporanAngketModel->getRingkasanStats($filters);
         $angketList    = $this->laporanAngketModel->getLaporanAngketList($filters);
@@ -135,9 +126,7 @@ class LaporanAngketController extends BaseController
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
 
-        $periodeText = ($filters['periode'] === 'bulanan')
-            ? ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun']
-            : 'Tahun ' . $filters['tahun'];
+        $periodeText = ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun'];
 
         $data = [
             'title'         => 'Laporan Angket Instruktur & Evaluasi Kepuasan',
@@ -150,6 +139,7 @@ class LaporanAngketController extends BaseController
             'mentors'       => $mentors,
             'classes'       => $classes,
             'categories'    => $categories,
+            'tempatList'    => $tempatList,
             'stats'         => $stats,
             'angketList'    => $angketList,
             'indikatorList' => $indikatorList,
@@ -213,9 +203,7 @@ class LaporanAngketController extends BaseController
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
 
-        $periodeText = ($filters['periode'] === 'bulanan')
-            ? ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun']
-            : 'Tahun ' . $filters['tahun'];
+        $periodeText = ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun'];
 
         $filename = 'Laporan_Angket_Instruktur_CreativeMU_' . str_replace(' ', '_', $periodeText) . '_' . date('Ymd_His') . '.xlsx';
 
@@ -229,9 +217,9 @@ class LaporanAngketController extends BaseController
             $sheet->setCellValue('A2', 'CreativeMU Academy - Lembaga Pendidikan & Pelatihan Kejuruan Terpadu');
             $sheet->setCellValue('A3', 'Periode Evaluasi: ' . $periodeText . ' | Tanggal Ekspor: ' . date('d-m-Y H:i') . ' WIB');
 
-            $sheet->mergeCells('A1:H1');
-            $sheet->mergeCells('A2:H2');
-            $sheet->mergeCells('A3:H3');
+            $sheet->mergeCells('A1:I1');
+            $sheet->mergeCells('A2:I2');
+            $sheet->mergeCells('A3:I3');
 
             $sheet->getStyle('A1')->getFont()->setSize(16)->setBold(true)->getColor()->setRGB('22133C');
             $sheet->getStyle('A2')->getFont()->setSize(11)->setItalic(true)->getColor()->setRGB('5931A0');
@@ -302,18 +290,18 @@ class LaporanAngketController extends BaseController
             $sheet->getStyle('A' . ($rowTableStart - 1))->getFont()->setSize(11)->setBold(true)->getColor()->setRGB('22133C');
 
             $mainHeaders = [
-                'No', 'Nama Instruktur', 'Kategori Pelatihan', 'Kelas Diampu',
+                'No', 'Nama Instruktur', 'Kategori Pelatihan', 'Kelas Diampu', 'Tempat Pelatihan',
                 'Jml Responden', 'Nilai Rata-rata', 'Persentase Kepuasan', 'Predikat'
             ];
 
-            $colLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+            $colLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
             for ($k = 0; $k < count($mainHeaders); $k++) {
                 $sheet->setCellValue($colLetters[$k] . $rowTableStart, $mainHeaders[$k]);
             }
 
-            $sheet->getStyle('A' . $rowTableStart . ':H' . $rowTableStart)->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');
-            $sheet->getStyle('A' . $rowTableStart . ':H' . $rowTableStart)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('22133C');
-            $sheet->getStyle('A' . $rowTableStart . ':H' . $rowTableStart)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getStyle('A' . $rowTableStart . ':I' . $rowTableStart)->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');
+            $sheet->getStyle('A' . $rowTableStart . ':I' . $rowTableStart)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('22133C');
+            $sheet->getStyle('A' . $rowTableStart . ':I' . $rowTableStart)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
             $sheet->getRowDimension($rowTableStart)->setRowHeight(28);
 
             $currentRow = $rowTableStart + 1;
@@ -324,19 +312,20 @@ class LaporanAngketController extends BaseController
                 $sheet->setCellValue('B' . $currentRow, $m['nama_mentor']);
                 $sheet->setCellValue('C' . $currentRow, $m['pelatihan']);
                 $sheet->setCellValue('D' . $currentRow, $m['kelas']);
-                $sheet->setCellValue('E' . $currentRow, $m['jumlah_responden']);
-                $sheet->setCellValue('F' . $currentRow, number_format($m['nilai_rata'], 2));
-                $sheet->setCellValue('G' . $currentRow, ($m['persen_kepuasan'] / 100));
-                $sheet->setCellValue('H' . $currentRow, $m['predikat']);
+                $sheet->setCellValue('E' . $currentRow, $m['tempat_pelatihan'] ?? '-');
+                $sheet->setCellValue('F' . $currentRow, $m['jumlah_responden']);
+                $sheet->setCellValue('G' . $currentRow, number_format($m['nilai_rata'], 2));
+                $sheet->setCellValue('H' . $currentRow, ($m['persen_kepuasan'] / 100));
+                $sheet->setCellValue('I' . $currentRow, $m['predikat']);
 
-                $sheet->getStyle('G' . $currentRow)->getNumberFormat()->setFormatCode('0.0%');
+                $sheet->getStyle('H' . $currentRow)->getNumberFormat()->setFormatCode('0.0%');
 
                 $sheet->getStyle('A' . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                 $sheet->getStyle('B' . $currentRow)->getFont()->setBold(true);
-                $sheet->getStyle('E' . $currentRow . ':H' . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle('E' . $currentRow . ':I' . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
                 if ($no % 2 === 0) {
-                    $sheet->getStyle('A' . $currentRow . ':H' . $currentRow)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F8F6FD');
+                    $sheet->getStyle('A' . $currentRow . ':I' . $currentRow)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F8F6FD');
                 }
 
                 $sheet->getRowDimension($currentRow)->setRowHeight(22);
@@ -345,10 +334,10 @@ class LaporanAngketController extends BaseController
 
             $lastRow = $currentRow - 1;
             if ($lastRow >= $rowTableStart) {
-                $sheet->getStyle('A' . $rowTableStart . ':H' . $lastRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('D0C9E8');
+                $sheet->getStyle('A' . $rowTableStart . ':I' . $lastRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('D0C9E8');
             }
 
-            foreach (range('A', 'H') as $col) {
+            foreach (range('A', 'I') as $col) {
                 $sheet->getColumnDimension($col)->setAutoSize(true);
             }
 
@@ -400,7 +389,7 @@ class LaporanAngketController extends BaseController
         fputcsv($output, ['Persentase Kepuasan', $stats['persen_kepuasan'] . '%']);
         fputcsv($output, []);
 
-        fputcsv($output, ['No', 'Nama Mentor', 'Kategori Pelatihan', 'Kelas Diampu', 'Jml Responden', 'Nilai Rata-rata', 'Persentase Kepuasan', 'Predikat']);
+        fputcsv($output, ['No', 'Nama Mentor', 'Kategori Pelatihan', 'Kelas Diampu', 'Tempat Pelatihan', 'Jml Responden', 'Nilai Rata-rata', 'Persentase Kepuasan', 'Predikat']);
         $no = 1;
         foreach ($angketList as $m) {
             fputcsv($output, [
@@ -408,6 +397,7 @@ class LaporanAngketController extends BaseController
                 $m['nama_mentor'],
                 $m['pelatihan'],
                 $m['kelas'],
+                $m['tempat_pelatihan'] ?? '-',
                 $m['jumlah_responden'],
                 number_format($m['nilai_rata'], 2),
                 $m['persen_kepuasan'] . '%',
@@ -444,9 +434,7 @@ class LaporanAngketController extends BaseController
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
 
-        $periodeText = ($filters['periode'] === 'bulanan')
-            ? ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun']
-            : 'Tahun ' . $filters['tahun'];
+        $periodeText = ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun'];
 
         $data = [
             'title'         => 'Cetak Laporan Angket Mentor - CreativeMU Academy',

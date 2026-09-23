@@ -75,6 +75,22 @@ class LaporanMentorModel extends Model
     }
 
     /**
+     * Ambil daftar tempat pelatihan dari Master Kelas
+     */
+    public function getFilterTempatPelatihan(): array
+    {
+        $rows = $this->db->table('kelas')
+            ->select('lokasi_pelatihan')
+            ->distinct()
+            ->where('lokasi_pelatihan IS NOT NULL')
+            ->where('lokasi_pelatihan !=', '')
+            ->orderBy('lokasi_pelatihan', 'ASC')
+            ->get()->getResultArray();
+
+        return array_values(array_filter(array_column($rows, 'lokasi_pelatihan')));
+    }
+
+    /**
      * Ambil data komprehensif performa per mentor berdasarkan filter
      */
     public function getLaporanMentorList(array $filters): array
@@ -93,6 +109,7 @@ class LaporanMentorModel extends Model
         $periode = $filters['periode'] ?? 'tahunan';
         $bulan = !empty($filters['bulan']) ? (int) $filters['bulan'] : (int) date('n');
         $kategori = $filters['kategori'] ?? 'all';
+        $tempatPelatihan = $filters['tempat_pelatihan'] ?? 'all';
 
         $reportList = [];
 
@@ -105,6 +122,9 @@ class LaporanMentorModel extends Model
             if ($kategori !== 'all') {
                 $kBuilder->where('kategori', $kategori);
             }
+            if ($tempatPelatihan !== 'all' && !empty($tempatPelatihan)) {
+                $kBuilder->where('lokasi_pelatihan', $tempatPelatihan);
+            }
             $kelasList = $kBuilder->get()->getResultArray();
 
             // Jika filter kategori aktif dan mentor tidak punya kelas di kategori tersebut, lewati
@@ -115,6 +135,7 @@ class LaporanMentorModel extends Model
             $kelasIds = array_column($kelasList, 'id_kelas');
             $namaKelasArr = array_column($kelasList, 'nama_kelas');
             $kategoriArr = array_unique(array_filter(array_column($kelasList, 'kategori')));
+            $lokasiArr = array_unique(array_filter(array_column($kelasList, 'lokasi_pelatihan')));
 
             // 2. Ambil jadwal mengajar mentor
             $jadwalList = [];
@@ -300,6 +321,7 @@ class LaporanMentorModel extends Model
                 'status_mentor'        => $mentor['status'] ?: 'Aktif',
                 'pelatihan'            => !empty($kategoriArr) ? implode(', ', $kategoriArr) : '-',
                 'kelas'                => !empty($namaKelasArr) ? implode(', ', $namaKelasArr) : 'Belum Ada Kelas',
+                'tempat_pelatihan'     => !empty($lokasiArr) ? implode(', ', $lokasiArr) : '-',
                 'total_sesi'           => $totalSesi,
                 'sesi_terlaksana'      => $sesiTerlaksana,
                 'total_materi'         => $totalMateri,
@@ -411,7 +433,7 @@ class LaporanMentorModel extends Model
             $i++;
         }
 
-        // 4. Line Chart Tren 12 Bulan (Tahunan)
+        // 4. Line Chart Tren Bulanan
         $monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         $trenPerforma = [91, 92, 90, 93, 94, 92, 93, 95, 96, 94, 95, 96];
         $trenKehadiran = [95, 96, 94, 98, 97, 95, 96, 98, 99, 97, 98, 99];
