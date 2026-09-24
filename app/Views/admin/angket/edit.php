@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts: Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+
     <style>
         :root {
             --sidebar-bg: #22133c;
@@ -67,7 +67,7 @@
 
         #sidebar .nav { padding: 20px 14px; }
         #sidebar .nav-item { margin-bottom: 6px; }
-        
+
         #sidebar .nav-link {
             color: var(--sidebar-text);
             padding: 12px 18px;
@@ -132,7 +132,7 @@
             font-size: 1.6rem;
             letter-spacing: -0.5px;
         }
-        
+
         .dash-header p {
             color: #8c83a5;
             font-size: 0.9rem;
@@ -347,7 +347,7 @@
                     <i class="fas fa-file-lines"></i> <span>Laporan</span>
                 </a>
             </li>
-            
+
             <li class="nav-item">
                 <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link">
                     <i class="fas fa-gear"></i> <span>Pengaturan</span>
@@ -363,7 +363,7 @@
 
     <!-- === MAIN CONTENT === -->
     <div id="main-content">
-        
+
         <!-- === TOP NAVBAR === -->
         <div class="top-navbar">
             <div class="dash-header">
@@ -392,102 +392,118 @@
                         <h4 class="card-title-custom mb-4">
                             <i class="fas fa-pen-to-square"></i> Form Edit Angket
                         </h4>
-                        
+
                         <form action="<?= base_url('admin/angket/update/' . $id); ?>" method="post">
-                            <!-- Judul Angket -->
-                            <div class="mb-3">
-                                <label class="form-label">Judul Angket</label>
-                                <input type="text" name="judul_angket" class="form-control" value="<?= esc($angket['judul_angket'] ?? ''); ?>" required>
-                            </div>
+    <!-- Judul Angket -->
+    <div class="mb-3">
+        <label class="form-label fw-bold">Judul Angket</label>
+        <input type="text" name="judul_angket" class="form-control" value="<?= esc($angket['judul_angket'] ?? ''); ?>" required>
+    </div>
 
-                        
+    <!-- Kelas (Opsional) -->
+    <div class="mb-4">
+        <label class="form-label fw-bold">Berlaku untuk Kelas</label>
+        <select name="id_kelas" class="form-select">
+            <option value="">-- Berlaku Untuk Semua Kelas (Global) --</option>
+            <?php foreach ($kelas as $k) : ?>
+                <option value="<?= $k['id_kelas']; ?>" <?= ($k['id_kelas'] == $angket['id_kelas']) ? 'selected' : ''; ?>>
+                    <?= esc($k['nama_kelas']); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
 
-                            <div class="mb-3">
-    <label class="form-label">Kelas & Instruktur</label>
-    <select name="id_kelas" class="form-select" required>
-        <?php foreach ($kelas as $k) : ?>
-            <option value="<?= $k['id_kelas']; ?>" <?= ($k['id_kelas'] == $angket['id_kelas']) ? 'selected' : ''; ?>>
-                <?= $k['nama_kelas']; ?> 
-                <?php 
-                    // Mencari nama instruktur berdasarkan id_mentor dari kelas tersebut
-                    $namaMentor = '-';
-                    foreach ($mentor as $m) {
-                        if ($m['id_mentor'] == $k['id_mentor']) {
-                            $namaMentor = $m['nama_mentor'];
-                            break;
-                        }
-                    }
-                ?>
-                (Instruktur: <?= $namaMentor; ?>)
-            </option>
-        <?php endforeach; ?>
-    </select>
-</div>
+    <hr class="my-4">
 
-                            <!-- Pertanyaan (Textarea) -->
-                            <!-- Ganti bagian input pertanyaan lama Anda dengan perulangan ini -->
-<div id="container-pertanyaan">
-    <?php if (!empty($semua_pertanyaan)) : ?>
-        <?php foreach ($semua_pertanyaan as $row) : ?>
-            <div class="card p-3 mb-3 border-light shadow-sm">
-                <div class="row">
-                    <div class="col-md-4">
-    <label class="form-label">Kategori</label>
-
-    <select name="kategori[]" class="form-select" required>
-        <option value="">-- Pilih Kategori --</option>
-
-        <option value="Customer Insight"
-            <?= ($row['kategori'] === 'Customer Insight') ? 'selected' : ''; ?>>
-            Customer Insight
-        </option>
-
-        <option value="Penilaian Instruktur"
-            <?= ($row['kategori'] === 'Penilaian Instruktur') ? 'selected' : ''; ?>>
-            Penilaian Instruktur oleh Peserta
-        </option>
-
-        <option value="Penilaian Lembaga"
-            <?= ($row['kategori'] === 'Penilaian Lembaga') ? 'selected' : ''; ?>>
-            Penilaian Lembaga oleh Peserta
-        </option>
-    </select>
-</div>
-                    <div class="col-md-8">
-    <label class="form-label">Pertanyaan</label>
-
-    <input type="text"
-           name="pertanyaan[]"
-           class="form-control"
-           value="<?= esc($row['pertanyaan']); ?>"
-           required>
-</div>
-                </div>
+    <!-- Pertanyaan -->
+    <div class="card p-4 mb-4 border-light shadow-sm">
+        <div class="row">
+            <div class="col-md-12 mb-3">
+                <label class="form-label fw-bold">Kategori Penilaian</label>
+                <select name="kategori" class="form-select" required>
+                    <option value="">-- Pilih Kategori --</option>
+                    <option value="Customer Insight" <?= ($angket['kategori'] === 'Customer Insight') ? 'selected' : ''; ?>>Customer Insight</option>
+                    <option value="Penilaian Instruktur" <?= ($angket['kategori'] === 'Penilaian Instruktur') ? 'selected' : ''; ?>>Penilaian Instruktur</option>
+                    <option value="Penilaian Lembaga" <?= ($angket['kategori'] === 'Penilaian Lembaga') ? 'selected' : ''; ?>>Penilaian Lembaga</option>
+                </select>
             </div>
-        <?php endforeach; ?>
-    <?php endif; ?>
-</div>
 
-                            <!-- Kotak Saran (Opsional) -->
-                            <div class="mb-3">
-                                <label class="form-label">Kotak Saran</label>
-                                <textarea name="saran" class="form-control" rows="2"><?= esc($angket['saran'] ?? ''); ?></textarea>
-                            </div>
+            <div class="col-md-12 mb-3">
+                <label class="form-label fw-bold">Isi Pertanyaan</label>
+                <input type="text" name="pertanyaan" class="form-control" value="<?= esc($angket['pertanyaan']); ?>" required>
+            </div>
 
-                            <!-- Status -->
-                            <div class="mb-3">
-                                <label class="form-label">Status</label>
-                                <select name="status" class="form-select">
-                                    <option value="Aktif" <?= ($angket['status'] == 'Aktif') ? 'selected' : ''; ?>>Aktif</option>
-                                    <option value="Nonaktif" <?= ($angket['status'] == 'Nonaktif') ? 'selected' : ''; ?>>Nonaktif</option>
-                                </select>
-                            </div>
+            <div class="col-md-12 mb-3">
+                <label class="form-label fw-bold">Jenis Jawaban</label>
+                <select name="tipe" class="form-select" id="jenis_jawaban" required>
+                    <option value="rating" <?= ($angket['tipe'] === 'rating') ? 'selected' : ''; ?>>Rating (Bintang 1-4)</option>
+                    <option value="pilihan" <?= ($angket['tipe'] === 'pilihan') ? 'selected' : ''; ?>>Pilihan Ganda</option>
+                    <option value="essay" <?= ($angket['tipe'] === 'essay') ? 'selected' : ''; ?>>Essay / Paragraf</option>
+                </select>
+            </div>
 
-                            <div class="d-flex justify-content-between mt-4">
-                                <a href="<?= base_url('admin/angket'); ?>" class="btn btn-secondary rounded-pill px-4">Kembali</a>
-                                <button type="submit" class="btn btn-purple px-4">Simpan Perubahan</button>
-                            </div>
-                        </form>
+            <div class="col-md-12 mb-3" id="opsi_jawaban_container" style="display: <?= ($angket['tipe'] === 'pilihan') ? 'block' : 'none'; ?>;">
+                <label class="form-label fw-bold">Opsi Jawaban</label>
+                <div id="opsi_list">
+                    <?php
+                    $opsi = json_decode($angket['opsi_jawaban'], true) ?? [];
+                    if (empty($opsi)) $opsi = ['', '']; // Default 2 fields
+                    foreach ($opsi as $o): ?>
+                        <div class="input-group mb-2">
+                            <input type="text" name="opsi_jawaban[]" class="form-control" value="<?= esc($o); ?>" placeholder="Teks opsi...">
+                            <button type="button" class="btn btn-outline-danger hapus-opsi"><i class="fas fa-trash"></i></button>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="tambah_opsi">+ Tambah Opsi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status -->
+    <div class="mb-4">
+        <label class="form-label fw-bold">Status Pertanyaan</label>
+        <select name="status" class="form-select">
+            <option value="Aktif" <?= ($angket['status'] == 'Aktif') ? 'selected' : ''; ?>>Aktif</option>
+            <option value="Nonaktif" <?= ($angket['status'] == 'Nonaktif') ? 'selected' : ''; ?>>Nonaktif</option>
+        </select>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+        <a href="<?= base_url('admin/angket'); ?>" class="btn btn-light px-4 border">Batal</a>
+        <button type="submit" class="btn btn-purple px-5">Simpan Perubahan</button>
+    </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const jenisJawaban = document.getElementById('jenis_jawaban');
+    const opsiContainer = document.getElementById('opsi_jawaban_container');
+    const opsiList = document.getElementById('opsi_list');
+    const btnTambahOpsi = document.getElementById('tambah_opsi');
+
+    jenisJawaban.addEventListener('change', function() {
+        if (this.value === 'pilihan') {
+            opsiContainer.style.display = 'block';
+        } else {
+            opsiContainer.style.display = 'none';
+        }
+    });
+
+    btnTambahOpsi.addEventListener('click', function() {
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2';
+        div.innerHTML = '<input type="text" name="opsi_jawaban[]" class="form-control" placeholder="Teks opsi..."><button type="button" class="btn btn-outline-danger hapus-opsi"><i class="fas fa-trash"></i></button>';
+        opsiList.appendChild(div);
+    });
+
+    opsiList.addEventListener('click', function(e) {
+        if (e.target.closest('.hapus-opsi')) {
+            e.target.closest('.input-group').remove();
+        }
+    });
+});
+</script>
                     </div>
                 </div>
             </div>

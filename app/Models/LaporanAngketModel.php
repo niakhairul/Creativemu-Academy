@@ -66,7 +66,7 @@ class LaporanAngketModel extends Model
     public function getFilterClasses(): array
     {
         return $this->db->table('kelas')
-            ->select('kelas.id_kelas, kelas.nama_kelas, kelas.kategori, kelas.lokasi_pelatihan, mentor.nama_mentor')
+            ->select('kelas.id_kelas, kelas.nama_kelas, kelas.kategori, kelas.lokasi_media, mentor.nama_mentor')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
             ->orderBy('kelas.nama_kelas', 'ASC')
             ->get()->getResultArray();
@@ -94,14 +94,14 @@ class LaporanAngketModel extends Model
     public function getFilterTempatPelatihan(): array
     {
         $rows = $this->db->table('kelas')
-            ->select('lokasi_pelatihan')
+            ->select('lokasi_media')
             ->distinct()
-            ->where('lokasi_pelatihan IS NOT NULL')
-            ->where('lokasi_pelatihan !=', '')
-            ->orderBy('lokasi_pelatihan', 'ASC')
+            ->where('lokasi_media IS NOT NULL')
+            ->where('lokasi_media !=', '')
+            ->orderBy('lokasi_media', 'ASC')
             ->get()->getResultArray();
 
-        return array_values(array_filter(array_column($rows, 'lokasi_pelatihan')));
+        return array_values(array_filter(array_column($rows, 'lokasi_media')));
     }
 
     /**
@@ -140,7 +140,7 @@ class LaporanAngketModel extends Model
                 $kBuilder->where('id_kelas', (int) $idKelas);
             }
             if ($tempatPelatihan !== 'all' && !empty($tempatPelatihan)) {
-                $kBuilder->where('lokasi_pelatihan', $tempatPelatihan);
+                $kBuilder->where('lokasi_media', $tempatPelatihan);
             }
             $kelasList = $kBuilder->get()->getResultArray();
 
@@ -151,7 +151,7 @@ class LaporanAngketModel extends Model
             $kelasIds = array_column($kelasList, 'id_kelas');
             $namaKelasArr = array_column($kelasList, 'nama_kelas');
             $kategoriArr = array_unique(array_filter(array_column($kelasList, 'kategori')));
-            $lokasiArr = array_unique(array_filter(array_column($kelasList, 'lokasi_pelatihan')));
+            $lokasiArr = array_unique(array_filter(array_column($kelasList, 'lokasi_media')));
 
             // Hitung total peserta yang terdaftar di kelas mentor
             $totalPeserta = 0;
@@ -408,7 +408,7 @@ class LaporanAngketModel extends Model
 
         // Ambil ulasan riil dari tabel angket_penilaian
         $builder = $this->db->table('angket_penilaian')
-            ->select('angket_penilaian.*, kelas.nama_kelas, kelas.lokasi_pelatihan AS tempat_pelatihan, kelas.id_mentor, mentor.nama_mentor, users.nama as nama_peserta')
+            ->select('angket_penilaian.*, kelas.nama_kelas, kelas.lokasi_media AS tempat_pelatihan, kelas.id_mentor, mentor.nama_mentor, users.nama as nama_peserta')
             ->join('kelas', 'kelas.id_kelas = angket_penilaian.id_kelas', 'left')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
             ->join('users', 'users.id_users = angket_penilaian.id_peserta', 'left')

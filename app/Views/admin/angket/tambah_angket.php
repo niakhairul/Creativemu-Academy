@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= esc($title); ?> - Creativemu Academy</title>
-    
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+
     <style>
         :root {
             --sidebar-bg: #22133c;
@@ -20,7 +20,7 @@
         }
 
         body { font-family: 'Poppins', sans-serif; background-color: #f7f5fd; margin: 0; }
-        
+
         #sidebar {
             width: 275px;
             height: 100vh;
@@ -43,7 +43,7 @@
 }
         .nav-link { color: var(--sidebar-text); padding: 12px 18px; display: flex; align-items: center; border-radius: 12px; margin: 0 14px 6px; transition: 0.3s; }
         .nav-link:hover, .nav-link.active { background: var(--sidebar-active-gradient); color: #ffffff; }
-        
+
         #main-content { margin-left: 275px; padding: 35px; }
         .top-navbar { background: #ffffff; padding: 22px 30px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
 
@@ -99,36 +99,29 @@
                 <?= csrf_field(); ?>
 
                 <!-- TAMBAHKAN INPUT JUDUL ANGKET DI SINI -->
-                <div class="form-group mb-3">
-                    <label class="form-label fw-bold">Judul Angket</label>
-                    <input type="text" name="judul_angket" class="form-control" placeholder="Contoh: Evaluasi Belajar Kelas Web" required>
-                </div>
+                <div class="alert alert-info shadow-sm mb-4 border-0 border-start border-4 border-info">
+    <i class="fas fa-info-circle me-2"></i>
+    <strong>Info:</strong> Pertanyaan evaluasi standar (Customer Insight, Penilaian Instruktur, dsb) sudah <strong>otomatis berlaku secara global</strong> untuk semua kelas.
+    <br>Gunakan formulir ini <u>hanya jika</u> Anda ingin menambahkan <strong>pertanyaan khusus</strong> untuk kelas tertentu, atau menambah angket global baru.
+</div>
+
 
                 <div class="row mb-4">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Pilih Instruktur Terkait</label>
-                        <select name="id_mentor" class="form-select" required>
-                            <option value="">-- Pilih Instruktur --</option>
-                    <?php if (!empty($mentor)) : foreach ($mentor as $m) : ?>
-                        <option value="<?= $m['id_mentor']; ?>"><?= esc($m['nama_mentor']); ?></option>
-                    <?php endforeach; endif; ?>
-                </select>
-            </div>
-            <div class="col-md-6">
+                    <div class="col-md-12">
                 <label class="form-label fw-bold">Pilih Kelas Pelatihan</label>
-                <select name="id_kelas" class="form-select" required>
-                    <option value="">-- Pilih Kelas --</option>
+                <select name="id_kelas" class="form-select">
+                    <option value="">-- Berlaku Untuk Semua Kelas (Global) --</option>
                     <?php if (!empty($kelas)) : foreach ($kelas as $k) : ?>
                         <option value="<?= $k['id_kelas']; ?>"><?= esc($k['nama_kelas']); ?></option>
                     <?php endforeach; endif; ?>
                 </select>
             </div>
         </div>
-        
+
         <!-- Sisa kode form selanjutnya tetap sama... -->
 
                 <hr class="my-4">
-                
+
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div>
                         <h5 class="fw-bold mb-1" style="color: var(--primary-purple);">Daftar Pertanyaan Angket</h5>
@@ -199,10 +192,9 @@
                         required>
 
                     <option value="">-- Pilih Jenis --</option>
-                    <option value="skala">Skala 1–4</option>
-                    <option value="pilihan_ganda">Pilihan Ganda</option>
-                    <option value="singkat">Jawaban Singkat</option>
-                    <option value="paragraf">Paragraf</option>
+                    <option value="rating">Rating (Bintang 1-4)</option>
+                    <option value="pilihan">Pilihan Ganda</option>
+                    <option value="essay">Essay / Paragraf</option>
 
                 </select>
 
@@ -263,8 +255,7 @@
 
         <small class="text-muted" style="font-size: 0.78rem;">
             <i class="fas fa-info-circle me-1"></i>
-            Peserta akan menjawab pertanyaan penilaian menggunakan skala 1–4:
-            1 = Kurang Puas, 2 = Cukup Puas, 3 = Puas, 4 = Sangat Puas.
+            Untuk jenis Rating, peserta memberikan penilaian menggunakan bintang 1-4: 1 = Kurang Puas, 2 = Cukup Puas, 3 = Puas, 4 = Sangat Puas.
         </small>
 
     </div>
@@ -334,10 +325,9 @@
 
                     <select name="jenis_jawaban[]" class="form-select form-select-sm jenis-jawaban" required>
                         <option value="">-- Pilih Jenis --</option>
-                        <option value="skala">Skala 1–4</option>
-                        <option value="pilihan_ganda">Pilihan Ganda</option>
-                        <option value="singkat">Jawaban Singkat</option>
-                        <option value="paragraf">Paragraf</option>
+                        <option value="rating">Rating (Bintang 1-4)</option>
+                        <option value="pilihan">Pilihan Ganda</option>
+                        <option value="essay">Essay / Paragraf</option>
                     </select>
 
                     <div class="opsi-jawaban-container mt-2" style="display: none;">
@@ -382,7 +372,7 @@
 
             <small class="text-muted" style="font-size: 0.78rem;">
                 <i class="fas fa-info-circle me-1"></i>
-                Peserta akan menjawab pertanyaan penilaian menggunakan skala 1–4.
+                Untuk jenis Rating, peserta memberikan penilaian menggunakan bintang 1-4: 1 = Kurang Puas, 2 = Cukup Puas, 3 = Puas, 4 = Sangat Puas.
             </small>
         `;
 
@@ -397,7 +387,7 @@
             const item = e.target.closest('.pertanyaan-item');
             const opsiContainer = item.querySelector('.opsi-jawaban-container');
 
-            if (e.target.value === 'pilihan_ganda') {
+            if (e.target.value === 'pilihan') {
                 opsiContainer.style.display = 'block';
             } else {
                 opsiContainer.style.display = 'none';

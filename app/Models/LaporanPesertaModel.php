@@ -38,7 +38,7 @@ class LaporanPesertaModel extends Model
     public function getFilterClasses(?int $idMentor = null): array
     {
         $builder = $this->db->table('kelas')
-            ->select('kelas.id_kelas, kelas.nama_kelas, kelas.kategori, kelas.lokasi_pelatihan, mentor.nama_mentor')
+            ->select('kelas.id_kelas, kelas.nama_kelas, kelas.kategori, kelas.lokasi_media, mentor.nama_mentor')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left');
 
         if ($idMentor !== null) {
@@ -71,14 +71,14 @@ class LaporanPesertaModel extends Model
     public function getFilterTempatPelatihan(): array
     {
         $rows = $this->db->table('kelas')
-            ->select('lokasi_pelatihan')
+            ->select('lokasi_media')
             ->distinct()
-            ->where('lokasi_pelatihan IS NOT NULL')
-            ->where('lokasi_pelatihan !=', '')
-            ->orderBy('lokasi_pelatihan', 'ASC')
+            ->where('lokasi_media IS NOT NULL')
+            ->where('lokasi_media !=', '')
+            ->orderBy('lokasi_media', 'ASC')
             ->get()->getResultArray();
 
-        return array_values(array_filter(array_column($rows, 'lokasi_pelatihan')));
+        return array_values(array_filter(array_column($rows, 'lokasi_media')));
     }
 
     /**
@@ -99,7 +99,7 @@ class LaporanPesertaModel extends Model
                 pendaftaran.created_at AS tanggal_daftar,
                 kelas.nama_kelas,
                 kelas.kategori,
-                kelas.lokasi_pelatihan AS tempat_pelatihan,
+                kelas.lokasi_media AS tempat_pelatihan,
                 kelas.tanggal_mulai_kelas,
                 kelas.jumlah_pertemuan,
                 kelas.kapasitas,
@@ -148,7 +148,7 @@ class LaporanPesertaModel extends Model
         }
 
         if (!empty($filters['tempat_pelatihan']) && $filters['tempat_pelatihan'] !== 'all') {
-            $builder->where('kelas.lokasi_pelatihan', $filters['tempat_pelatihan']);
+            $builder->where('kelas.lokasi_media', $filters['tempat_pelatihan']);
         }
 
         // Filter Mentor jika akses mentor
@@ -267,7 +267,7 @@ class LaporanPesertaModel extends Model
     public function getInformasiPelatihan(array $filters): array
     {
         $kBuilder = $this->db->table('kelas')
-            ->select('kelas.*, kelas.lokasi_pelatihan AS tempat_pelatihan, mentor.nama_mentor')
+            ->select('kelas.*, kelas.lokasi_media AS tempat_pelatihan, mentor.nama_mentor')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left');
 
         if (!empty($filters['id_kelas']) && $filters['id_kelas'] !== 'all') {
@@ -280,7 +280,7 @@ class LaporanPesertaModel extends Model
             $kBuilder->where('kelas.id_mentor', (int) $filters['id_mentor']);
         }
         if (!empty($filters['tempat_pelatihan']) && $filters['tempat_pelatihan'] !== 'all') {
-            $kBuilder->where('kelas.lokasi_pelatihan', $filters['tempat_pelatihan']);
+            $kBuilder->where('kelas.lokasi_media', $filters['tempat_pelatihan']);
         }
 
         $kelasList = $kBuilder->orderBy('kelas.nama_kelas', 'ASC')->get()->getResultArray();

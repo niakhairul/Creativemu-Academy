@@ -85,7 +85,7 @@ class LaporanKehadiranModel extends Model
     public function getFilterClasses(): array
     {
         return $this->db->table('kelas')
-            ->select('kelas.id_kelas, kelas.nama_kelas, kelas.kategori, kelas.lokasi_pelatihan, mentor.nama_mentor')
+            ->select('kelas.id_kelas, kelas.nama_kelas, kelas.kategori, kelas.lokasi_media, mentor.nama_mentor')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
             ->orderBy('kelas.nama_kelas', 'ASC')
             ->get()->getResultArray();
@@ -116,14 +116,14 @@ class LaporanKehadiranModel extends Model
     public function getFilterTempatPelatihan(): array
     {
         $rows = $this->db->table('kelas')
-            ->select('lokasi_pelatihan')
+            ->select('lokasi_media')
             ->distinct()
-            ->where('lokasi_pelatihan IS NOT NULL')
-            ->where('lokasi_pelatihan !=', '')
-            ->orderBy('lokasi_pelatihan', 'ASC')
+            ->where('lokasi_media IS NOT NULL')
+            ->where('lokasi_media !=', '')
+            ->orderBy('lokasi_media', 'ASC')
             ->get()->getResultArray();
 
-        return array_values(array_filter(array_column($rows, 'lokasi_pelatihan')));
+        return array_values(array_filter(array_column($rows, 'lokasi_media')));
     }
 
     /**
@@ -154,7 +154,7 @@ class LaporanKehadiranModel extends Model
                 pendaftaran.created_at,
                 kelas.nama_kelas,
                 kelas.kategori,
-                kelas.lokasi_pelatihan AS tempat_pelatihan,
+                kelas.lokasi_media AS tempat_pelatihan,
                 kelas.id_mentor,
                 mentor.nama_mentor
             ')
@@ -175,7 +175,7 @@ class LaporanKehadiranModel extends Model
         }
 
         if ($tempatPelatihan !== 'all' && !empty($tempatPelatihan)) {
-            $pBuilder->where('kelas.lokasi_pelatihan', $tempatPelatihan);
+            $pBuilder->where('kelas.lokasi_media', $tempatPelatihan);
         }
 
         // Filter periode tahunan/bulanan berdasarkan created_at pendaftaran jika diperlukan
@@ -187,7 +187,7 @@ class LaporanKehadiranModel extends Model
 
         // 2. Ambil seluruh jadwal/pertemuan sesuai periode dan kelas
         $jBuilder = $this->db->table('jadwal')
-            ->select('jadwal.*, kelas.nama_kelas, kelas.lokasi_pelatihan AS tempat_pelatihan, mentor.nama_mentor')
+            ->select('jadwal.*, kelas.nama_kelas, kelas.lokasi_media AS tempat_pelatihan, mentor.nama_mentor')
             ->join('kelas', 'kelas.id_kelas = jadwal.id_kelas', 'left')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left');
 
@@ -552,7 +552,7 @@ class LaporanKehadiranModel extends Model
                 COALESCE(NULLIF(pendaftaran.no_hp, ""), users.no_hp) AS no_hp,
                 kelas.nama_kelas,
                 kelas.kategori,
-                kelas.lokasi_pelatihan AS tempat_pelatihan,
+                kelas.lokasi_media AS tempat_pelatihan,
                 mentor.nama_mentor
             ')
             ->join('users', 'users.id_users = pendaftaran.id_users', 'left')

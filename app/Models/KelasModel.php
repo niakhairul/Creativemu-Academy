@@ -26,7 +26,7 @@ class KelasModel extends Model
         'harga_privat',
         'status',
         'tipe_kelas',
-        'lokasi_pelatihansss',
+        'lokasi_media',
         'thumbnail'
     ];
 

@@ -2,9 +2,9 @@
 if (!function_exists('rating_stars_admin_angket')) {
     function rating_stars_admin_angket($nilai): string
     {
-        $nilai = max(0, min(5, (float) $nilai));
+        $nilai = max(0, min(4, (float) $nilai));
         $full = (int) round($nilai);
-        return str_repeat('&#9733;', $full) . str_repeat('&#9734;', 5 - $full);
+        return str_repeat('&#9733;', $full) . str_repeat('&#9734;', 4 - $full);
     }
 }
 
@@ -134,7 +134,7 @@ $tanggalPelatihan = !empty($angket['tanggal_mulai_kelas']) ? date('d M Y', strto
                     <i class="fas fa-file-lines"></i> <span>Laporan</span>
                 </a>
             </li>
-            
+
             <li class="nav-item">
                 <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link">
                     <i class="fas fa-gear"></i> <span>Pengaturan</span>
@@ -178,7 +178,7 @@ $tanggalPelatihan = !empty($angket['tanggal_mulai_kelas']) ? date('d M Y', strto
             <aside class="score-stack">
                 <div class="avg-card">
                     <div class="d-flex justify-content-between align-items-start gap-3">
-                        <div><div class="small opacity-75 fw-bold mb-2">Rata-rata Nilai</div><div class="avg-value"><?= number_format((float) ($angket['rata_rata'] ?? 0), 2); ?>/5</div></div>
+                        <div><div class="small opacity-75 fw-bold mb-2">Rata-rata Nilai</div><div class="avg-value"><?= number_format((float) ($angket['rata_rata'] ?? 0), 2); ?>/4</div></div>
                         <i class="fas fa-star fa-2x opacity-75"></i>
                     </div>
                     <div class="rating-stars mt-3"><?= rating_stars_admin_angket($angket['rata_rata'] ?? 0); ?></div>

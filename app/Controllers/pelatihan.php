@@ -23,7 +23,7 @@ class Pelatihan extends BaseController
     {
         parent::initController($request, $response, $logger);
         $this->db = \Config\Database::connect();
-    }    
+    }
 
     public function store() // atau nama fungsi submit pendaftaran kamu
 {
@@ -42,7 +42,7 @@ class Pelatihan extends BaseController
         'status_pembayaran' => 'pending',
         // Sesuaikan input form lainnya di bawah ini...
     ];
-    
+
 
     $pendaftaranModel->insert($dataSimpan);
 
@@ -85,7 +85,7 @@ class Pelatihan extends BaseController
         }
 
         return (new PendaftaranModel())
-            ->select('pendaftaran.*, kelas.nama_kelas, kelas.deskripsi, kelas.tipe_kelas, kelas.lokasi_pelatihan, kelas.tanggal_mulai_kelas, kelas.jumlah_pertemuan, kelas.ringkasan, kelas.thumbnail, mentor.nama_mentor')
+            ->select('pendaftaran.*, kelas.nama_kelas, kelas.deskripsi, kelas.tipe_kelas, kelas.tanggal_mulai_kelas, kelas.jumlah_pertemuan, kelas.ringkasan, kelas.thumbnail, mentor.nama_mentor')
             ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
             ->where('pendaftaran.id_users', $userId)
@@ -100,7 +100,7 @@ class Pelatihan extends BaseController
     public function index()
 {
     $userId = session()->get('id_user'); // atau id_peserta sesuai session kamu
-    
+
     // Ambil data peserta & kelas yang diikuti
     $pendaftaranModel = new \App\Models\PendaftaranModel();
     $jadwalModel = new \App\Models\JadwalModel();
@@ -126,13 +126,13 @@ class Pelatihan extends BaseController
    {
         $session = session();
         $userId = $session->get('id_users') ?? session()->get('id_user');
-        $userEmail = $session->get('email'); 
-        
+        $userEmail = $session->get('email');
+
         // Tangkap pilihan id_kelas dari URL (jika peserta mengklik kelas tertentu)
-        $idKelas = $this->request->getGet('id_kelas'); 
+        $idKelas = $this->request->getGet('id_kelas');
 
         $pendaftaranModel = new \App\Models\PendaftaranModel();
-        $userModel = new \App\Models\UserModel(); 
+        $userModel = new \App\Models\UserModel();
         $jadwalModel = new \App\Models\JadwalModel();
 
         $pendaftaran = null;
@@ -141,7 +141,7 @@ class Pelatihan extends BaseController
                 ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
                 ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
                 ->where('pendaftaran.id_users', $userId);
-            
+
             // Jika ada parameter id_kelas di URL, ambil kelas tersebut. Jika tidak, ambil yang terbaru.
             if (!empty($idKelas)) {
                 $builder->where('pendaftaran.id_kelas', $idKelas);
@@ -149,7 +149,7 @@ class Pelatihan extends BaseController
 
             $pendaftaran = $builder->orderBy('pendaftaran.id_pendaftaran', 'DESC')->first();
         }
-        
+
         if (!$pendaftaran && $userEmail) {
             $builder = $pendaftaranModel->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas as jadwal_kelas, mentor.nama_mentor')
                 ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
@@ -228,7 +228,7 @@ class Pelatihan extends BaseController
     $db = \Config\Database::connect();
     $userId = $this->userId();
 
-    
+
 
     // =========================================================
     // 1. AMBIL DATA AKUN PESERTA
@@ -769,8 +769,8 @@ public function setujuiPendaftaran($id_pendaftaran)
 {
     $keyword = $this->request->getGet('keyword');
 
-    $pendaftaranModel = new PendaftaranModel(); 
-    
+    $pendaftaranModel = new PendaftaranModel();
+
     $pendaftaran = $pendaftaranModel->select('pendaftaran.*, kelas.nama_kelas') // Pastikan pendaftaran.* ada di sini
                                     ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
                                     ->groupStart()
@@ -813,21 +813,21 @@ public function setujuiPendaftaran($id_pendaftaran)
     public function prosesUploadUlang($id_pendaftaran)
 {
     $pendaftaranModel = new PendaftaranModel();
-    
+
     // Pastikan ini murni menggunakan id_pendaftaran
     $pendaftaran = $pendaftaranModel->where('id_pendaftaran', $id_pendaftaran)->first();
-    
+
     if (!$pendaftaran) {
         return redirect()->back()->with('error', 'Data tidak ditemukan.');
     }
-    
+
     // Sisa kode proses upload...
 }
 
     public function generateNIS()
 {
     $tahunBulanTanggal = date('Ymd'); // Contoh: 20260902
-    
+
     // Cari data terakhir hari ini berdasarkan awalan NIS (misal: 20260902...)
     $builder = $this->db->table('tabel_siswa'); // Ganti dengan nama tabel Anda
     $builder->select('nis');
@@ -839,7 +839,7 @@ public function setujuiPendaftaran($id_pendaftaran)
     if ($query) {
         // Jika hari ini sudah ada pendaftaran, ambil 3 digit terakhir lalu +1
         $nisTerakhir = $query->nis;
-        $noUrut = (int) substr($nisTerakhir, -3); 
+        $noUrut = (int) substr($nisTerakhir, -3);
         $noUrut++;
     } else {
         // Jika hari ini belum ada pendaftaran sama sekali, mulai dari 1
@@ -853,7 +853,7 @@ public function setujuiPendaftaran($id_pendaftaran)
     return $tahunBulanTanggal . $formattedUrut;
 }
 
-    
+
     public function daftarKelasPeserta()
 {
     if ($redirect = $this->requireLogin()) {
@@ -892,7 +892,7 @@ public function setujuiPendaftaran($id_pendaftaran)
     $kelasModel = new \App\Models\KelasModel();
 
     // Harus mengambil banyak data (array multidimensi)
-    $data['kelas'] = $kelasModel->getKelasWithMentor(); 
+    $data['kelas'] = $kelasModel->getKelasWithMentor();
 
     return view('peserta/daftar_kelas', $data);
 }
@@ -972,7 +972,7 @@ if ($kelas && !empty($jadwal)) {
         ->getResultArray();
 }
 
-    
+
     // Hitung absensi dan hubungkan materi dengan pertemuan
     $jumlahHadir = 0;
 
@@ -1023,9 +1023,59 @@ if ($kelas && !empty($jadwal)) {
         ? round(($jumlahHadir / $totalPertemuan) * 100)
         : 0;
 
-    // Status angket dan sertifikat
-    $sudahIsiAngket = false;
-    $sertifikatAcademy = false;
+    // ==========================================
+    // Evaluasi Status Kelulusan Seluruh Ujian
+    // ==========================================
+    $sudah_ujian = false;
+
+    // Ambil seluruh jadwal/ujian yang wajib untuk kelas ini
+    $semuaUjian = $db->table('ujian')
+        ->where('id_kelas', $kelas['id_kelas'])
+        ->get()
+        ->getResultArray();
+
+    if (!empty($semuaUjian)) {
+        $lulusSemua = true;
+
+        foreach ($semuaUjian as $u) {
+            $hasilUjian = $db->table('nilai_ujian')
+                ->where('id_user', $this->userId())
+                ->where('id_ujian', $u['id_ujian'])
+                ->orderBy('id_nilai_ujian', 'DESC')
+                ->get()
+                ->getRowArray();
+
+            // Mengecek apakah sudah benar-benar "Lulus" untuk ujian tersebut
+            if (!$hasilUjian || $hasilUjian['status_kelulusan'] !== 'lulus') {
+                $lulusSemua = false;
+                break;
+            }
+        }
+
+        $sudah_ujian = $lulusSemua;
+    }
+
+    // SIMULASI SEMENTARA - HAPUS SETELAH TESTING
+    // Bypass dibuka untuk SEMUA PESERTA (seperti Elis) agar bisa menguji angket
+    $isDev = (
+        (defined('ENVIRONMENT') && ENVIRONMENT === 'development') ||
+        (isset($_SERVER['CI_ENVIRONMENT']) && $_SERVER['CI_ENVIRONMENT'] === 'development') ||
+        (getenv('CI_ENVIRONMENT') === 'development')
+    );
+
+    if ($isDev) {
+        $sudah_ujian = true;
+    }
+
+    // ==========================================
+    // Cek Pengisian Angket
+    // ==========================================
+    $sudah_isi_angket = (bool) $db->table('jawaban_angket')
+        ->where('id_siswa', $this->userId())
+        ->get()
+        ->getRow();
+
+    $sertifikatAcademy = $sudah_ujian && $sudah_isi_angket;
 
     // Kirim data ke halaman KBM
     return view('peserta/kelas', [
@@ -1036,7 +1086,8 @@ if ($kelas && !empty($jadwal)) {
         'totalPertemuan'      => $totalPertemuan,
         'jumlahHadir'         => $jumlahHadir,
         'persentaseKehadiran' => $persentaseKehadiran,
-        'sudahIsiAngket'      => $sudahIsiAngket,
+        'sudah_ujian'         => $sudah_ujian,
+        'sudah_isi_angket'    => $sudah_isi_angket,
         'sertifikatAcademy'   => $sertifikatAcademy,
     ]);
 }
@@ -1995,7 +2046,7 @@ public function simpanJawabanUjian()
 
     // Ambil pendaftaran peserta berdasarkan user yang sedang login
     $kelas = (new PendaftaranModel())
-        ->select('pendaftaran.*, kelas.nama_kelas, kelas.deskripsi, kelas.tipe_kelas, kelas.lokasi_pelatihan, kelas.tanggal_mulai_kelas, kelas.jumlah_pertemuan, kelas.ringkasan, kelas.thumbnail, mentor.nama_mentor')
+        ->select('pendaftaran.*, kelas.nama_kelas, kelas.deskripsi, kelas.tipe_kelas, kelas.tanggal_mulai_kelas, kelas.jumlah_pertemuan, kelas.ringkasan, kelas.thumbnail, mentor.nama_mentor')
         ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
         ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
         ->where('pendaftaran.id_users', $this->userId())
@@ -2379,41 +2430,119 @@ public function simpanJawabanUjian()
     }
 
     public function angket()
-    {
-        if ($redirect = $this->requireLogin()) {
-            return $redirect;
-        }
-
-        $pendaftaran = $this->approvedEnrollment();
-        if (! $pendaftaran) {
-            return redirect()->to(base_url('peserta/dashboard'))->with('error', 'Kelas Anda belum divalidasi.');
-        }
-
-        $sudahIsi = (new AngketModel())
-            ->where('id_users', $this->userId())
-            ->where('id_kelas', $pendaftaran['id_kelas'])
-            ->first();
-
-        return view('peserta/angket', ['pendaftaran' => $pendaftaran, 'sudahIsi' => $sudahIsi]);
+{
+    if ($redirect = $this->requireLogin()) {
+        return $redirect;
     }
 
+    $pendaftaran = $this->approvedEnrollment();
+
+    if (! $pendaftaran) {
+        return redirect()
+            ->to(base_url('peserta/dashboard'))
+            ->with('error', 'Kelas Anda belum divalidasi.');
+    }
+
+    $idKelas = $pendaftaran['id_kelas'];
+    $idPeserta = $this->userId();
+
+    // Ambil pertanyaan angket aktif untuk kelas peserta
+    // atau pertanyaan yang berlaku untuk semua kelas.
+    $pertanyaan = $this->db
+        ->table('angket_pertanyaan')
+        ->where('status', 'Aktif')
+        ->groupStart()
+            ->where('id_kelas', $idKelas)
+            ->orWhere('id_kelas IS NULL', null, false)
+        ->groupEnd()
+        ->orderBy('id_angket_pertanyaan', 'ASC')
+        ->get()
+        ->getResultArray();
+
+    // Ambil daftar kelas dari tabel kelas
+    $semuaKelas = $this->db
+        ->table('kelas')
+        ->where('status', 'Aktif')
+        ->get()
+        ->getResultArray();
+
+    // Cek apakah peserta sudah mengisi angket.
+    $sudahIsi = $this->db
+        ->table('jawaban_angket ja')
+        ->join(
+            'angket_pertanyaan ap',
+            'ap.id_angket_pertanyaan = ja.id_pertanyaan',
+            'inner'
+        )
+        ->where('ja.id_siswa', $idPeserta)
+        ->where('ap.id_kelas IS NULL OR ap.id_kelas = ' . $this->db->escape($idKelas), null, false)
+        ->get()
+        ->getRowArray();
+
+    return view('peserta/angket', [
+        'pendaftaran' => $pendaftaran,
+        'pertanyaan' => $pertanyaan,
+        'semuaKelas' => $semuaKelas,
+        'sudahIsi' => $sudahIsi
+    ]);
+}
     public function simpanAngket()
     {
         if ($redirect = $this->requireLogin()) {
             return $redirect;
         }
 
-        (new AngketModel())->save([
-            'id_users' => $this->userId(),
-            'id_kelas' => $this->request->getPost('kelas_id'),
-            'materi' => $this->request->getPost('materi'),
-            'mentor' => $this->request->getPost('mentor'),
-            'penyampaian' => $this->request->getPost('penyampaian'),
-            'manfaat' => $this->request->getPost('manfaat'),
-            'saran' => $this->request->getPost('saran'),
-        ]);
+        $idPeserta = $this->userId();
+        $jawaban = $this->request->getPost('jawaban');
 
-        return redirect()->to(base_url('pelatihan/angket'))->with('success', 'Angket berhasil dikirim.');
+        if (empty($jawaban) || !is_array($jawaban)) {
+            return redirect()->back()->with('error', 'Jawaban angket tidak boleh kosong.');
+        }
+
+        $pendaftaran = $this->approvedEnrollment();
+        if (!$pendaftaran) {
+            return redirect()->back()->with('error', 'Kelas tidak ditemukan.');
+        }
+
+        $idKelas = $pendaftaran['id_kelas'];
+
+        // Cek apakah sudah mengisi
+        $sudahIsi = $this->db
+            ->table('jawaban_angket ja')
+            ->join('angket_pertanyaan ap', 'ap.id_angket_pertanyaan = ja.id_pertanyaan', 'inner')
+            ->where('ja.id_siswa', $idPeserta)
+            ->where('ap.id_kelas IS NULL OR ap.id_kelas = ' . $this->db->escape($idKelas), null, false)
+            ->get()
+            ->getRowArray();
+
+        if ($sudahIsi) {
+            return redirect()->back()->with('error', 'Anda sudah mengisi angket evaluasi.');
+        }
+
+        $this->db->transBegin();
+
+        try {
+            foreach ($jawaban as $idPertanyaan => $jawab) {
+                $this->db->table('jawaban_angket')->insert([
+                    'id_pertanyaan' => $idPertanyaan,
+                    'id_siswa' => $idPeserta,
+                    'jawaban' => $jawab,
+                    'created_at' => date('Y-m-d H:i:s')
+                ]);
+            }
+
+            if ($this->db->transStatus() === false) {
+                $this->db->transRollback();
+                return redirect()->back()->with('error', 'Gagal menyimpan angket.');
+            }
+
+            $this->db->transCommit();
+            return redirect()->to(base_url('pelatihan/angket'))->with('success', 'Angket berhasil dikirim.');
+
+        } catch (\Exception $e) {
+            $this->db->transRollback();
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 
     public function sertifikat()
@@ -2479,12 +2608,65 @@ public function simpanJawabanUjian()
                 ->first();
         }
 
-        return view('peserta/absensi', [
-            'kelas'       => $pendaftaran,
-            'pendaftaran' => $pendaftaran,
-            'lokasiInfo'  => $lokasiInfo,
-            'jadwal'      => $jadwal,
-        ]);
+    // ==========================================
+    // Evaluasi Status Kelulusan Seluruh Ujian
+    // ==========================================
+    $sudah_ujian = false;
+    $db = \Config\Database::connect();
+
+    $semuaUjian = $db->table('ujian')
+        ->where('id_kelas', $pendaftaran['id_kelas'])
+        ->get()
+        ->getResultArray();
+
+    if (!empty($semuaUjian)) {
+        $lulusSemua = true;
+
+        foreach ($semuaUjian as $u) {
+            $hasilUjian = $db->table('nilai_ujian')
+                ->where('id_user', $this->userId())
+                ->where('id_ujian', $u['id_ujian'])
+                ->orderBy('id_nilai_ujian', 'DESC')
+                ->get()
+                ->getRowArray();
+
+            if (!$hasilUjian || $hasilUjian['status_kelulusan'] !== 'lulus') {
+                $lulusSemua = false;
+                break;
+            }
+        }
+
+        $sudah_ujian = $lulusSemua;
+    }
+
+    // SIMULASI SEMENTARA - HAPUS SETELAH TESTING
+    // Bypass dibuka untuk SEMUA PESERTA (seperti Elis) agar bisa menguji angket
+    $isDev = (
+        (defined('ENVIRONMENT') && ENVIRONMENT === 'development') ||
+        (isset($_SERVER['CI_ENVIRONMENT']) && $_SERVER['CI_ENVIRONMENT'] === 'development') ||
+        (getenv('CI_ENVIRONMENT') === 'development')
+    );
+
+    if ($isDev) {
+        $sudah_ujian = true;
+    }
+
+    // ==========================================
+    // Cek Pengisian Angket
+    // ==========================================
+    $sudah_isi_angket = (bool) $db->table('jawaban_angket')
+        ->where('id_siswa', $this->userId())
+        ->get()
+        ->getRow();
+
+    return view('peserta/absensi', [
+        'kelas'            => $pendaftaran,
+        'pendaftaran'      => $pendaftaran,
+        'lokasiInfo'       => $lokasiInfo,
+        'jadwal'           => $jadwal,
+        'sudah_ujian'      => $sudah_ujian,
+        'sudah_isi_angket' => $sudah_isi_angket,
+    ]);
     }
 
     public function simpanAbsensi()

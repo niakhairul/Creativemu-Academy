@@ -80,14 +80,14 @@ class LaporanMentorModel extends Model
     public function getFilterTempatPelatihan(): array
     {
         $rows = $this->db->table('kelas')
-            ->select('lokasi_pelatihan')
+            ->select('lokasi_media')
             ->distinct()
-            ->where('lokasi_pelatihan IS NOT NULL')
-            ->where('lokasi_pelatihan !=', '')
-            ->orderBy('lokasi_pelatihan', 'ASC')
+            ->where('lokasi_media IS NOT NULL')
+            ->where('lokasi_media !=', '')
+            ->orderBy('lokasi_media', 'ASC')
             ->get()->getResultArray();
 
-        return array_values(array_filter(array_column($rows, 'lokasi_pelatihan')));
+        return array_values(array_filter(array_column($rows, 'lokasi_media')));
     }
 
     /**
