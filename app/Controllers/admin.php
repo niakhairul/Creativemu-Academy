@@ -674,30 +674,29 @@ $data = [
     {
         $db = \Config\Database::connect();
 
-        $keyword        = trim((string) ($this->request->getGet('keyword') ?? ''));
-        $idKelas        = trim((string) ($this->request->getGet('id_kelas') ?? ''));
-        $filterStatus   = strtolower(trim((string) ($this->request->getGet('status') ?? '')));
-        $tempatPelatihan = trim((string) ($this->request->getGet('tempat_pelatihan') ?? '')); // <-- 1. Tangkap filter tempat pelatihan
-        $perPage        = 10;
-        $page           = max(1, (int) ($this->request->getGet('page') ?? 1));
-        $offset         = ($page - 1) * $perPage;
+        $keyword         = trim((string) ($this->request->getGet('keyword') ?? ''));
+        $idKelas         = trim((string) ($this->request->getGet('id_kelas') ?? ''));
+        $filterStatus    = strtolower(trim((string) ($this->request->getGet('status') ?? '')));
+        $tempatPelatihan = trim((string) ($this->request->getGet('tempat_pelatihan') ?? '')); 
+        $perPage         = 10;
+        $page            = max(1, (int) ($this->request->getGet('page') ?? 1));
+        $offset          = ($page - 1) * $perPage;
 
         $buildQuery = function () use ($db, $keyword, $idKelas, $filterStatus, $tempatPelatihan) {
-    $builder = $db->table('pendaftaran')
-        ->select('
-            pendaftaran.*,
-            COALESCE(NULLIF(pendaftaran.nama, ""), users.nama) AS nama_lengkap,
-            COALESCE(NULLIF(pendaftaran.no_hp, ""), users.no_hp) AS no_hp_terbaru,
-            COALESCE(NULLIF(pendaftaran.jenis_kelamin, ""), users.jenis_kelamin) AS gender_terbaru,
-            COALESCE(NULLIF(pendaftaran.email, ""), users.email) AS email_terbaru,
-            pendaftaran.nis AS resolved_nis,
-            kelas.nama_kelas,
-            kelas.kategori AS kategori_kelas_master,
-            COALESCE(NULLIF(kelas.lokasi_pelatihan, "-"), NULLIF(kelas.lokasi_pelatihan, ""), pendaftaran.lokasi_pelatihan, "-") AS tempat_pelatihan
-        ')
-        ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
-        ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left');
-    
+            $builder = $db->table('pendaftaran')
+                ->select('
+                    pendaftaran.*,
+                    COALESCE(NULLIF(pendaftaran.nama, ""), users.nama) AS nama_lengkap,
+                    COALESCE(NULLIF(pendaftaran.no_hp, ""), users.no_hp) AS no_hp_terbaru,
+                    COALESCE(NULLIF(pendaftaran.jenis_kelamin, ""), users.jenis_kelamin) AS gender_terbaru,
+                    COALESCE(NULLIF(pendaftaran.email, ""), users.email) AS email_terbaru,
+                    pendaftaran.nis AS resolved_nis,
+                    kelas.nama_kelas,
+                    kelas.kategori AS kategori_kelas_master,
+                    COALESCE(NULLIF(kelas.lokasi_pelatihan, ""), pendaftaran.lokasi_pelatihan, "-") AS tempat_pelatihan
+                ')
+                ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
+                ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left');
     
             if ($keyword !== '') {
                 $builder->groupStart()
@@ -715,14 +714,13 @@ $data = [
                 $builder->where('pendaftaran.id_kelas', $idKelas);
             }
 
-            // --- 2. TERAPKAN FILTER TEMPAT PELATIHAN KE QUERY ---
+            // Perbaikan Filter Tempat Pelatihan agar lebih fleksibel
             if ($tempatPelatihan !== '') {
                 $builder->groupStart()
                     ->where('kelas.lokasi_pelatihan', $tempatPelatihan)
                     ->orWhere('pendaftaran.lokasi_pelatihan', $tempatPelatihan)
                 ->groupEnd();
             }
-            // ---------------------------------------------------
 
             if ($filterStatus !== '') {
                 if (in_array($filterStatus, ['aktif', 'valid', 'disetujui'], true)) {
@@ -768,15 +766,17 @@ $data = [
             ->get()
             ->getResultArray();
 
-        // Ambil opsi tempat pelatihan unik untuk dropdown filter di view jika diperlukan
+        // Ambil opsi tempat pelatihan unik yang tidak kosong
         $tempatPelatihanOptions = $db->table('kelas')
             ->select('lokasi_pelatihan')
             ->where('lokasi_pelatihan IS NOT NULL')
             ->where('lokasi_pelatihan !=', '')
+            ->where('lokasi_pelatihan !=', '-')
             ->groupBy('lokasi_pelatihan')
             ->orderBy('lokasi_pelatihan', 'ASC')
             ->get()
             ->getResultArray();
+
 
         $summaryRows = $db->table('pendaftaran')
             ->select('status_pembayaran, status_pendaftaran, status')

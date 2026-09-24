@@ -2,7 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Mencegah zoom berlebih & mengatur skala awal -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title><?= esc($title); ?> - Creativemu Academy</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -29,10 +30,11 @@
             background-color: #f7f5fd;
             overflow-x: hidden;
             margin: 0;
+            font-size: 0.82rem; /* Font global diperkecil */
         }
 
         ::-webkit-scrollbar {
-            width: 6px;
+            width: 5px;
         }
 
         ::-webkit-scrollbar-track {
@@ -44,9 +46,9 @@
             border-radius: 10px;
         }
 
-        /* SIDEBAR */
+        /* SIDEBAR - Ukuran diperkecil */
         #sidebar {
-            width: 275px;
+            width: 230px; /* Dikecilkan dari 275px */
             height: 100vh;
             position: fixed;
             top: 0;
@@ -54,165 +56,174 @@
             background-color: var(--sidebar-bg);
             color: var(--sidebar-text);
             transition: all 0.3s ease;
-            z-index: 1000;
+            z-index: 1050;
             box-shadow: 8px 0 30px rgba(121, 75, 196, 0.08);
             overflow-y: auto;
         }
 
         #sidebar .sidebar-header {
-            padding: 25px 20px;
+            padding: 15px 10px;
             background: rgba(0, 0, 0, 0.25);
             border-bottom: 1px solid rgba(255, 255, 255, 0.06);
             text-align: center;
         }
 
         #sidebar .sidebar-header img {
-            width: 240px;
-            height: 95px;
+            width: 180px; /* Dikecilkan */
+            height: 70px;
             object-fit: cover;
-            border-radius: 10px;
+            border-radius: 8px;
             filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
         }
 
         #sidebar .nav {
-            padding: 20px 14px;
+            padding: 12px 10px;
         }
 
         #sidebar .nav-item {
-            margin-bottom: 6px;
+            margin-bottom: 3px;
         }
 
         #sidebar .nav-link {
             color: var(--sidebar-text);
-            padding: 12px 18px;
+            padding: 8px 12px;
             display: flex;
             align-items: center;
             font-weight: 500;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
+            border-radius: 10px;
+            transition: all 0.25s ease;
+            font-size: 0.8rem;
+            text-decoration: none;
         }
 
         #sidebar .nav-link i {
-            margin-right: 14px;
-            font-size: 1.1rem;
-            width: 22px;
+            margin-right: 10px;
+            font-size: 0.95rem;
+            width: 20px;
             text-align: center;
         }
 
         #sidebar .nav-link:hover {
             background-color: rgba(121, 75, 196, 0.2);
             color: #fff;
-            transform: translateX(6px);
+            transform: translateX(3px);
         }
 
         #sidebar .nav-link.active {
             background: var(--sidebar-active-gradient);
             color: #fff;
-            box-shadow: 0 6px 20px rgba(121, 75, 196, 0.4);
+            box-shadow: 0 4px 15px rgba(121, 75, 196, 0.4);
             font-weight: 600;
         }
 
-        /* MAIN */
+        /* MAIN CONTENT - Margin disesuaikan */
         #main-content {
-            margin-left: 275px;
-            padding: 35px;
-            animation: mainFadeIn 0.7s ease;
+            margin-left: 230px; /* Disesuaikan dengan lebar sidebar */
+            padding: 20px 25px;
+            animation: mainFadeIn 0.5s ease;
         }
 
         .top-navbar {
             background: #fff;
-            padding: 22px 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(121, 75, 196, 0.05);
-            margin-bottom: 30px;
+            padding: 14px 20px;
+            border-radius: 14px;
+            box-shadow: 0 5px 20px rgba(121, 75, 196, 0.04);
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid rgba(121, 75, 196, 0.04);
+            border: 1px solid rgba(121, 75, 196, 0.05);
         }
 
         .dash-header h3 {
             font-weight: 800;
             color: var(--dark-purple);
-            font-size: 1.6rem;
-            margin-bottom: 4px;
+            font-size: 1.25rem;
+            margin-bottom: 2px;
         }
 
         .dash-header p {
             color: #8c83a5;
-            font-size: 0.9rem;
+            font-size: 0.78rem;
             margin-bottom: 0;
         }
 
         .admin-profile {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
         }
 
         .admin-profile img {
-            width: 52px;
-            height: 52px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             object-fit: cover;
-            border: 2.5px solid var(--primary-purple);
+            border: 2px solid var(--primary-purple);
         }
 
         .admin-info h6 {
             margin: 0;
             font-weight: 700;
             color: var(--dark-purple);
+            font-size: 0.82rem;
         }
 
         .admin-info small {
             color: #8c83a5;
-            font-size: 0.78rem;
+            font-size: 0.72rem;
+            display: block;
         }
 
-        /* CONTENT */
+        /* CARDS & FILTERS */
         .page-card {
             background: #fff;
             border: none;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(121, 75, 196, 0.06);
+            border-radius: 14px;
+            box-shadow: 0 5px 20px rgba(121, 75, 196, 0.04);
         }
 
         .filter-card {
             background: #fff;
-            border-radius: 18px;
-            padding: 20px;
+            border-radius: 14px;
+            padding: 16px;
             margin-bottom: 20px;
-            box-shadow: 0 8px 25px rgba(121, 75, 196, 0.05);
+            box-shadow: 0 5px 20px rgba(121, 75, 196, 0.04);
+            border: 1px solid rgba(121, 75, 196, 0.05);
         }
 
         .form-label {
-            font-size: 0.82rem;
+            font-size: 0.78rem;
             font-weight: 600;
             color: var(--dark-purple);
+            margin-bottom: 4px;
         }
 
         .form-control,
         .form-select {
-            border-radius: 10px;
+            border-radius: 8px;
             border: 1px solid #e4dff0;
-            padding: 10px 12px;
-            font-size: 0.85rem;
+            padding: 6px 10px;
+            font-size: 0.78rem;
         }
 
         .form-control:focus,
         .form-select:focus {
             border-color: var(--primary-purple);
-            box-shadow: 0 0 0 0.2rem rgba(121, 75, 196, 0.12);
+            box-shadow: 0 0 0 0.15rem rgba(121, 75, 196, 0.12);
         }
 
         .btn-primary-custom {
             background: var(--sidebar-active-gradient);
             border: none;
             color: #fff;
-            border-radius: 10px;
-            padding: 10px 18px;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 0.78rem;
             font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .btn-primary-custom:hover {
@@ -223,32 +234,33 @@
         .section-title {
             color: var(--dark-purple);
             font-weight: 700;
+            font-size: 1.05rem;
             margin-bottom: 0;
         }
 
+        /* BADGES - Ringkas */
         .badge-lulus {
             background: #dff7e8;
             color: #198754;
-        }
-
-        .badge-belum {
-            background: #fff0d9;
-            color: #b76e00;
+            font-size: 0.72rem;
         }
 
         .badge-sertifikat {
             background: #e9ddff;
             color: #6f42c1;
+            font-size: 0.72rem;
         }
 
         .badge-belum-sertifikat {
             background: #f1f1f1;
             color: #666;
+            font-size: 0.72rem;
         }
 
+        /* TABLE - Kompak */
         .table {
             margin-bottom: 0;
-            font-size: 0.84rem;
+            font-size: 0.78rem;
         }
 
         .table thead th {
@@ -256,12 +268,15 @@
             color: #fff;
             border: none;
             white-space: nowrap;
-            padding: 14px 12px;
+            padding: 10px 10px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
         }
 
         .table tbody td {
-            padding: 13px 12px;
+            padding: 8px 10px;
             vertical-align: middle;
+            white-space: nowrap;
         }
 
         .certificate-card {
@@ -270,20 +285,20 @@
 
         .empty-state {
             text-align: center;
-            padding: 45px 20px;
+            padding: 30px 15px;
             color: #8c83a5;
         }
 
         .empty-state i {
-            font-size: 42px;
-            margin-bottom: 12px;
+            font-size: 32px;
+            margin-bottom: 8px;
             color: #b293f0;
         }
 
         @keyframes mainFadeIn {
             from {
                 opacity: 0;
-                transform: translateY(15px);
+                transform: translateY(10px);
             }
             to {
                 opacity: 1;
@@ -293,31 +308,30 @@
 
         @media (max-width: 992px) {
             #sidebar {
-                width: 275px;
+                transform: translateX(-100%);
             }
-
+            #sidebar.show {
+                transform: translateX(0);
+            }
             #main-content {
                 margin-left: 0;
-                padding: 20px;
+                padding: 15px;
             }
-
             .top-navbar {
-                padding: 18px;
+                padding: 14px;
             }
         }
 
         @media (max-width: 576px) {
             #main-content {
-                padding: 12px;
+                padding: 10px;
             }
 
             .top-navbar {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 15px;
-                padding: 18px;
-                padding-top: 58px;
-                position: relative;
+                gap: 10px;
+                padding: 14px;
             }
 
             .admin-profile {
@@ -325,7 +339,7 @@
             }
 
             .filter-card {
-                padding: 15px;
+                padding: 12px;
             }
 
             .table-responsive {
@@ -335,33 +349,35 @@
             .certificate-card {
                 display: block;
                 background: #fff;
-                border-radius: 16px;
-                padding: 16px;
-                margin-bottom: 12px;
-                box-shadow: 0 6px 20px rgba(121, 75, 196, 0.06);
+                border-radius: 12px;
+                padding: 12px;
+                margin-bottom: 10px;
+                box-shadow: 0 4px 15px rgba(121, 75, 196, 0.05);
+                border: 1px solid rgba(121, 75, 196, 0.05);
             }
 
             .certificate-card .name {
                 font-weight: 700;
                 color: var(--dark-purple);
-                font-size: 0.95rem;
+                font-size: 0.88rem;
             }
 
             .certificate-card .detail {
                 color: #777;
-                font-size: 0.78rem;
-                margin-top: 5px;
+                font-size: 0.75rem;
+                margin-top: 3px;
             }
 
             .certificate-card .actions {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 7px;
-                margin-top: 12px;
+                gap: 5px;
+                margin-top: 10px;
             }
 
             .certificate-card .actions .btn {
-                font-size: 0.75rem;
+                font-size: 0.72rem;
+                padding: 4px 8px;
             }
         }
     </style>
@@ -381,152 +397,134 @@
     </div>
 
     <ul class="nav flex-column">
-
         <li class="nav-item">
             <a href="<?= base_url('admin/dashboard'); ?>" class="nav-link">
                 <i class="fas fa-chart-pie"></i>
                 <span>Dashboard</span>
             </a>
         </li>
-
         <li class="nav-item">
             <a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link">
                 <i class="fas fa-book"></i>
                 <span>Master Kelas</span>
             </a>
         </li>
-
         <li class="nav-item">
             <a href="<?= base_url('admin/mentor'); ?>" class="nav-link">
                 <i class="fas fa-chalkboard-user"></i>
                 <span>Instruktur</span>
             </a>
         </li>
-
         <li class="nav-item">
             <a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link">
                 <i class="fas fa-users"></i>
                 <span>Data Peserta</span>
             </a>
         </li>
-
         <li class="nav-item">
             <a href="<?= base_url('admin/validasi'); ?>" class="nav-link">
                 <i class="fas fa-clipboard-check"></i>
                 <span>Validasi Pendaftaran</span>
             </a>
         </li>
-
         <li class="nav-item">
             <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
                 <i class="fas fa-book-open"></i>
                 <span>Buku Induk</span>
             </a>
         </li>
-
         <li class="nav-item">
             <a href="<?= base_url('admin/angket'); ?>" class="nav-link">
                 <i class="fas fa-award"></i>
                 <span>Angket</span>
             </a>
         </li>
-
         <li class="nav-item">
             <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link active">
                 <i class="fas fa-certificate"></i>
                 <span>Sertifikat</span>
             </a>
         </li>
-
         <li class="nav-item">
             <a href="<?= base_url('admin/laporan'); ?>" class="nav-link">
                 <i class="fas fa-file-lines"></i>
                 <span>Laporan</span>
             </a>
         </li>
-
         <li class="nav-item">
             <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link">
                 <i class="fas fa-gear"></i>
                 <span>Pengaturan</span>
             </a>
         </li>
-
-        <li class="nav-item mt-4">
+        <li class="nav-item mt-3">
             <a href="<?= base_url('logout'); ?>" class="nav-link text-danger">
                 <i class="fas fa-right-from-bracket"></i>
                 <span>Logout</span>
             </a>
         </li>
-
     </ul>
 </nav>
 
-<!-- MAIN -->
+<!-- MAIN CONTENT -->
 <div id="main-content">
 
     <!-- TOP NAVBAR -->
     <div class="top-navbar">
-
         <div class="dash-header">
             <h3>Manajemen Sertifikat</h3>
             <p>Kelola sertifikat kelulusan peserta.</p>
         </div>
 
-        <div class="d-flex align-items-center gap-4">
-
-            <div class="text-muted d-none d-md-block px-3 py-2 rounded-pill bg-light"
+        <div class="d-flex align-items-center gap-3">
+            <div class="text-muted d-none d-md-block px-3 py-1 rounded-pill bg-light"
                  id="current-date"
-                 style="font-size: 0.82rem; font-weight: 600; color: #794bc4 !important;">
+                 style="font-size: 0.78rem; font-weight: 600; color: #794bc4 !important;">
                 Memuat tanggal...
             </div>
 
             <div class="admin-profile">
                 <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ?: 'admin-profile.jpg')); ?>"
                      alt="Foto Profil">
-
                 <div class="admin-info">
-                    <?= esc(session()->get('nama')); ?>
+                    <h6><?= esc(session()->get('nama')); ?></h6>
                     <small>Administrator</small>
                 </div>
             </div>
-
         </div>
     </div>
 
-    <!-- ALERT -->
+    <!-- FLASH MESSAGES -->
     <?php if (session()->getFlashdata('success')) : ?>
-        <div class="alert alert-success alert-dismissible fade show">
+        <div class="alert alert-success alert-dismissible fade show py-2 px-3 small">
             <i class="fas fa-circle-check me-2"></i>
             <?= esc(session()->getFlashdata('success')); ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
 
     <?php if (session()->getFlashdata('error')) : ?>
-        <div class="alert alert-danger alert-dismissible fade show">
+        <div class="alert alert-danger alert-dismissible fade show py-2 px-3 small">
             <i class="fas fa-circle-exclamation me-2"></i>
             <?= esc(session()->getFlashdata('error')); ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
 
-    <!-- FILTER -->
+    <!-- FILTER CARD -->
     <div class="filter-card">
-
-        <div class="row g-3 align-items-end">
-
+        <div class="row g-2 align-items-end">
             <div class="col-md-5">
                 <label class="form-label">Cari Peserta</label>
                 <input type="text"
                        id="searchPeserta"
-                       class="form-control"
+                       class="form-control form-control-sm"
                        placeholder="Nama atau email peserta...">
             </div>
 
             <div class="col-md-3">
                 <label class="form-label">Status Sertifikat</label>
-                <select id="filterSertifikat" class="form-select">
+                <select id="filterSertifikat" class="form-select form-select-sm">
                     <option value="">Semua</option>
                     <option value="sudah">Sudah Terbit</option>
                     <option value="belum">Belum Terbit</option>
@@ -535,7 +533,7 @@
 
             <div class="col-md-2">
                 <label class="form-label">Status Kelulusan</label>
-                <select id="filterLulus" class="form-select">
+                <select id="filterLulus" class="form-select form-select-sm">
                     <option value="">Semua</option>
                     <option value="lulus">Lulus</option>
                     <option value="belum">Belum Lulus</option>
@@ -544,54 +542,44 @@
 
             <div class="col-md-2">
                 <button type="button"
-                        class="btn btn-primary-custom w-100"
+                        class="btn btn-primary-custom btn-sm w-100"
                         onclick="resetFilter()">
-                    <i class="fas fa-rotate-left me-1"></i>
-                    Reset
+                    <i class="fas fa-rotate-left me-1"></i> Reset
                 </button>
             </div>
-
         </div>
     </div>
 
-    <!-- PESERTA LULUS -->
+    <!-- TABEL PESERTA LULUS -->
     <div class="page-card mb-4">
-
-        <div class="p-4 pb-3">
+        <div class="p-3 border-bottom">
             <h5 class="section-title">
-                <i class="fas fa-graduation-cap me-2"></i>
+                <i class="fas fa-graduation-cap me-2 text-primary"></i>
                 Peserta Lulus
             </h5>
-
             <small class="text-muted">
                 Peserta yang dinyatakan lulus dan dapat diterbitkan sertifikatnya.
             </small>
         </div>
 
-        <div class="table-responsive px-4 pb-4">
+        <div class="table-responsive p-3">
             <table class="table table-hover align-middle" id="tablePesertaLulus">
-
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th style="width: 40px;" class="text-center">No</th>
                         <th>Peserta</th>
                         <th>Email</th>
                         <th>Kelas</th>
                         <th>Nilai</th>
                         <th>Status</th>
                         <th>Sertifikat</th>
-                        <th class="text-center">Aksi</th>
+                        <th class="text-center" style="min-width: 120px;">Aksi</th>
                     </tr>
                 </thead>
-
                 <tbody>
-
                 <?php if (!empty($pesertaLulus)) : ?>
-
                     <?php $no = 1; ?>
-
                     <?php foreach ($pesertaLulus as $p) : ?>
-
                         <?php
                             $sudahTerbit = false;
                             $sertifikatId = null;
@@ -599,106 +587,69 @@
 
                             foreach ($sertifikat as $s) {
                                 if (
-    isset($s['id_user'], $s['id_kelas']) &&
-    $s['id_user'] == $p['id_user'] &&
-    $s['id_kelas'] == $p['id_kelas']
-) {
-    $sudahTerbit = true;
-    $sertifikatId = $s['id_sertifikat'];
-    $fileSertifikat = $s['file_sertifikat'];
-    break;
-}
+                                    isset($s['id_user'], $s['id_kelas']) &&
+                                    $s['id_user'] == $p['id_user'] &&
+                                    $s['id_kelas'] == $p['id_kelas']
+                                ) {
+                                    $sudahTerbit = true;
+                                    $sertifikatId = $s['id_sertifikat'];
+                                    $fileSertifikat = $s['file_sertifikat'];
+                                    break;
+                                }
                             }
                         ?>
-
                         <tr class="certificate-row"
                             data-nama="<?= esc(strtolower($p['nama_peserta'] ?? '')); ?>"
                             data-email="<?= esc(strtolower($p['email'] ?? '')); ?>"
                             data-lulus="lulus"
                             data-sertifikat="<?= $sudahTerbit ? 'sudah' : 'belum'; ?>">
-
-                            <td><?= $no++; ?></td>
-
-                            <td>
-                                <strong><?= esc($p['nama_peserta'] ?? '-'); ?></strong>
-                            </td>
-
+                            <td class="text-center fw-semibold text-muted"><?= $no++; ?></td>
+                            <td><strong style="color: var(--dark-purple);"><?= esc($p['nama_peserta'] ?? '-'); ?></strong></td>
                             <td><?= esc($p['email'] ?? '-'); ?></td>
-
-                            <td><?= esc($p['nama_kelas'] ?? '-'); ?></td>
-
+                            <td class="text-primary fw-semibold"><?= esc($p['nama_kelas'] ?? '-'); ?></td>
+                            <td><strong><?= esc($p['nilai'] ?? '-'); ?></strong></td>
                             <td>
-                                <strong><?= esc($p['nilai'] ?? '-'); ?></strong>
+                                <span class="badge badge-lulus rounded-pill px-2 py-1">LULUS</span>
                             </td>
-
-                            <td>
-                                <span class="badge badge-lulus rounded-pill px-3 py-2">
-                                    LULUS
-                                </span>
-                            </td>
-
                             <td>
                                 <?php if ($sudahTerbit) : ?>
-
-                                    <span class="badge badge-sertifikat rounded-pill px-3 py-2">
-                                        <i class="fas fa-check me-1"></i>
-                                        Sudah Terbit
+                                    <span class="badge badge-sertifikat rounded-pill px-2 py-1">
+                                        <i class="fas fa-check me-1"></i> Sudah Terbit
                                     </span>
-
                                 <?php else : ?>
-
-                                    <span class="badge badge-belum-sertifikat rounded-pill px-3 py-2">
+                                    <span class="badge badge-belum-sertifikat rounded-pill px-2 py-1">
                                         Belum Terbit
                                     </span>
-
                                 <?php endif; ?>
                             </td>
-
                             <td class="text-center">
-
                                 <?php if ($sudahTerbit) : ?>
-
-                                    <a href="<?= base_url('admin/sertifikat/edit/' . $sertifikatId); ?>"
-   class="btn btn-warning btn-sm"
-   title="Edit Sertifikat">
-    <i class="fas fa-edit"></i>
-</a>
-
-                                    <a href="<?= base_url('admin/sertifikat/download-file/' . $sertifikatId); ?>"
-                                        class="btn btn-success btn-sm"
-                                        title="Download Sertifikat">
-                                        <i class="fas fa-download"></i>
-                                    </a>
-
-                                    <?php if (!empty($fileSertifikat)) : ?>
-
-                                        <a href="<?= base_url('admin/sertifikat/download/' . $sertifikatId); ?>"
-                                        target="_blank"
-                                        class="btn btn-outline-primary btn-sm"
-                                         title="Lihat Sertifikat">
-                                        <i class="fas fa-eye"></i>
+                                    <div class="d-inline-flex gap-1">
+                                        <a href="<?= base_url('admin/sertifikat/edit/' . $sertifikatId); ?>"
+                                           class="btn btn-warning btn-sm py-0 px-2" title="Edit Sertifikat">
+                                            <i class="fas fa-edit small"></i>
                                         </a>
-
-                                    <?php endif; ?>
-
+                                        <a href="<?= base_url('admin/sertifikat/download-file/' . $sertifikatId); ?>"
+                                           class="btn btn-success btn-sm py-0 px-2" title="Download Sertifikat">
+                                            <i class="fas fa-download small"></i>
+                                        </a>
+                                        <?php if (!empty($fileSertifikat)) : ?>
+                                            <a href="<?= base_url('admin/sertifikat/download/' . $sertifikatId); ?>"
+                                               target="_blank" class="btn btn-outline-primary btn-sm py-0 px-2" title="Lihat Sertifikat">
+                                                <i class="fas fa-eye small"></i>
+                                            </a>
+                                        <?php endif; ?>
+                                    </div>
                                 <?php else : ?>
-
                                     <a href="<?= base_url('admin/sertifikat/upload?id_user=' . $p['id_user'] . '&id_kelas=' . $p['id_kelas']); ?>"
-                                       class="btn btn-primary-custom btn-sm">
-                                        <i class="fas fa-certificate me-1"></i>
-                                        Terbitkan
+                                       class="btn btn-primary-custom btn-sm py-1 px-2">
+                                        <i class="fas fa-certificate me-1"></i> Terbitkan
                                     </a>
-
                                 <?php endif; ?>
-
                             </td>
-
                         </tr>
-
                     <?php endforeach; ?>
-
                 <?php else : ?>
-
                     <tr>
                         <td colspan="8">
                             <div class="empty-state">
@@ -707,194 +658,106 @@
                             </div>
                         </td>
                     </tr>
-
                 <?php endif; ?>
-
                 </tbody>
-
             </table>
         </div>
 
         <!-- MOBILE LIST -->
-        <div class="px-3 pb-3">
-
+        <div class="p-2">
             <?php if (!empty($pesertaLulus)) : ?>
-
                 <?php foreach ($pesertaLulus as $p) : ?>
-
                     <?php
                         $sudahTerbit = false;
                         $sertifikatId = null;
 
                         foreach ($sertifikat as $s) {
                             if (
-    isset($s['id_user'], $s['id_kelas']) &&
-    $s['id_user'] == $p['id_user'] &&
-    $s['id_kelas'] == $p['id_kelas']
-) {
-    $sudahTerbit = true;
-    $sertifikatId = $s['id_sertifikat'];
-    break;
-}
+                                isset($s['id_user'], $s['id_kelas']) &&
+                                $s['id_user'] == $p['id_user'] &&
+                                $s['id_kelas'] == $p['id_kelas']
+                            ) {
+                                $sudahTerbit = true;
+                                $sertifikatId = $s['id_sertifikat'];
+                                break;
+                            }
                         }
                     ?>
-
                     <div class="certificate-card certificate-mobile"
                          data-nama="<?= esc(strtolower($p['nama_peserta'] ?? '')); ?>"
                          data-email="<?= esc(strtolower($p['email'] ?? '')); ?>"
                          data-lulus="lulus"
                          data-sertifikat="<?= $sudahTerbit ? 'sudah' : 'belum'; ?>">
+                        <div class="name"><?= esc($p['nama_peserta'] ?? '-'); ?></div>
+                        <div class="detail"><i class="fas fa-envelope me-1"></i> <?= esc($p['email'] ?? '-'); ?></div>
+                        <div class="detail"><i class="fas fa-book me-1"></i> <?= esc($p['nama_kelas'] ?? '-'); ?></div>
+                        <div class="detail"><i class="fas fa-star me-1"></i> Nilai: <strong><?= esc($p['nilai'] ?? '-'); ?></strong></div>
 
-                        <div class="name">
-                            <?= esc($p['nama_peserta'] ?? '-'); ?>
-                        </div>
-
-                        <div class="detail">
-                            <i class="fas fa-envelope me-1"></i>
-                            <?= esc($p['email'] ?? '-'); ?>
-                        </div>
-
-                        <div class="detail">
-                            <i class="fas fa-book me-1"></i>
-                            <?= esc($p['nama_kelas'] ?? '-'); ?>
-                        </div>
-
-                        <div class="detail">
-                            <i class="fas fa-star me-1"></i>
-                            Nilai: <strong><?= esc($p['nilai'] ?? '-'); ?></strong>
-                        </div>
-
-                        <div class="mt-2">
-
-                            <span class="badge badge-lulus rounded-pill px-3 py-2">
-                                LULUS
-                            </span>
-
+                        <div class="mt-2 d-flex gap-1">
+                            <span class="badge badge-lulus rounded-pill px-2 py-1">LULUS</span>
                             <?php if ($sudahTerbit) : ?>
-
-                                <span class="badge badge-sertifikat rounded-pill px-3 py-2">
-                                    Sertifikat Terbit
-                                </span>
-
+                                <span class="badge badge-sertifikat rounded-pill px-2 py-1">Sertifikat Terbit</span>
                             <?php else : ?>
-
-                                <span class="badge badge-belum-sertifikat rounded-pill px-3 py-2">
-                                    Belum Terbit
-                                </span>
-
+                                <span class="badge badge-belum-sertifikat rounded-pill px-2 py-1">Belum Terbit</span>
                             <?php endif; ?>
-
                         </div>
 
-                                <div class="actions">
-
-    <?php if ($sudahTerbit) : ?>
-
-        <!-- Edit -->
-        <a href="<?= base_url('admin/sertifikat/edit/' . $sertifikatId); ?>"
-           class="btn btn-warning btn-sm"
-           title="Edit Sertifikat">
-            <i class="fas fa-edit"></i>
-            Edit
-        </a>
-
-        <!-- Lihat -->
-        <a href="<?= base_url('admin/sertifikat/download/' . $sertifikatId); ?>"
-           target="_blank"
-           class="btn btn-outline-primary btn-sm"
-           title="Lihat Sertifikat">
-            <i class="fas fa-eye"></i>
-            Lihat
-        </a>
-
-        <!-- Download -->
-        <a href="<?= base_url('admin/sertifikat/download-file/' . $sertifikatId); ?>"
-           class="btn btn-success btn-sm"
-           title="Download Sertifikat">
-            <i class="fas fa-download"></i>
-            Download
-        </a>
-
-    <?php else : ?>
-
-                                <a href="<?= base_url('admin/sertifikat/upload?id_user=' . $p['id_user'] . '&id_kelas=' . $p['id_kelas']); ?>"
-   class="btn btn-primary-custom btn-sm">
-    <i class="fas fa-certificate me-1"></i>
-    Terbitkan
-</a>
-
+                        <div class="actions">
+                            <?php if ($sudahTerbit) : ?>
+                                <a href="<?= base_url('admin/sertifikat/edit/' . $sertifikatId); ?>" class="btn btn-warning btn-sm" title="Edit">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <a href="<?= base_url('admin/sertifikat/download/' . $sertifikatId); ?>" target="_blank" class="btn btn-outline-primary btn-sm" title="Lihat">
+                                    <i class="fas fa-eye"></i> Lihat
+                                </a>
+                                <a href="<?= base_url('admin/sertifikat/download-file/' . $sertifikatId); ?>" class="btn btn-success btn-sm" title="Download">
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                            <?php else : ?>
+                                <a href="<?= base_url('admin/sertifikat/upload?id_user=' . $p['id_user'] . '&id_kelas=' . $p['id_kelas']); ?>" class="btn btn-primary-custom btn-sm">
+                                    <i class="fas fa-certificate me-1"></i> Terbitkan
+                                </a>
                             <?php endif; ?>
-
                         </div>
-
                     </div>
-
                 <?php endforeach; ?>
-
             <?php endif; ?>
-
         </div>
-
     </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // Tanggal
+    // Tanggal Dinamis
     const currentDate = document.getElementById('current-date');
-
     if (currentDate) {
-        const options = {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        };
-
-        currentDate.innerText =
-            new Date().toLocaleDateString('id-ID', options);
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        currentDate.innerText = new Date().toLocaleDateString('id-ID', options);
     }
 
-    // Filter
+    // Filter Logic
     const searchInput = document.getElementById('searchPeserta');
     const filterSertifikat = document.getElementById('filterSertifikat');
     const filterLulus = document.getElementById('filterLulus');
 
     function applyFilter() {
-
         const search = (searchInput.value || '').toLowerCase().trim();
         const sertifikat = filterSertifikat.value;
         const lulus = filterLulus.value;
 
-        document.querySelectorAll('.certificate-row, .certificate-mobile')
-            .forEach(function (item) {
+        document.querySelectorAll('.certificate-row, .certificate-mobile').forEach(function (item) {
+            const nama = item.dataset.nama || '';
+            const email = item.dataset.email || '';
+            const statusSertifikat = item.dataset.sertifikat || '';
+            const statusLulus = item.dataset.lulus || '';
 
-                const nama = item.dataset.nama || '';
-                const email = item.dataset.email || '';
-                const statusSertifikat = item.dataset.sertifikat || '';
-                const statusLulus = item.dataset.lulus || '';
+            const cocokSearch = nama.includes(search) || email.includes(search);
+            const cocokSertifikat = !sertifikat || statusSertifikat === sertifikat;
+            const cocokLulus = !lulus || statusLulus === lulus;
 
-                const cocokSearch =
-                    nama.includes(search) ||
-                    email.includes(search);
-
-                const cocokSertifikat =
-                    !sertifikat ||
-                    statusSertifikat === sertifikat;
-
-                const cocokLulus =
-                    !lulus ||
-                    statusLulus === lulus;
-
-                item.style.display =
-                    cocokSearch &&
-                    cocokSertifikat &&
-                    cocokLulus
-                        ? ''
-                        : 'none';
-            });
+            item.style.display = (cocokSearch && cocokSertifikat && cocokLulus) ? '' : 'none';
+        });
     }
 
     function resetFilter() {

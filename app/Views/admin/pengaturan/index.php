@@ -2,7 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Mencegah zoom berlebih saat di-zoom atau disentuh di mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title><?= esc($title); ?> - Creativemu Academy</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -20,110 +21,128 @@
             --bg-light: #f7f5fd;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--bg-light);
             overflow-x: hidden;
             margin: 0;
+            font-size: 0.82rem; /* Font global diperkecil */
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f7f5fd;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #b293f0;
+            border-radius: 10px;
         }
 
         /* SIDEBAR UTAMA */
         #sidebar {
-            width: 275px;
+            width: 230px; /* Dikecilkan dari 275px */
             height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
             background-color: var(--sidebar-bg);
             color: #c8bfe7;
-            z-index: 1000;
+            z-index: 1050;
             box-shadow: 8px 0 30px rgba(121, 75, 196, 0.08);
             overflow-y: auto;
         }
         .sidebar-header {
-            padding: 25px 20px;
+            padding: 15px 10px;
             background: rgba(0, 0, 0, 0.2);
             text-align: center;
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         #sidebar .sidebar-header img {
-    width: 240px;
-    height: 95px;
-    object-fit: cover;
-    border-radius: 10px;
-    filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
-    transition: transform 0.3s ease;
-}
-        #sidebar .nav { padding: 20px 14px; }
-        #sidebar .nav-item { margin-bottom: 6px; }
+            width: 180px; /* Dikecilkan */
+            height: 70px;
+            object-fit: cover;
+            border-radius: 8px;
+            filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
+            transition: transform 0.3s ease;
+        }
+        #sidebar .nav { padding: 12px 10px; }
+        #sidebar .nav-item { margin-bottom: 3px; }
         #sidebar .nav-link {
             color: #c8bfe7;
-            padding: 12px 18px;
+            padding: 8px 12px;
             display: flex;
             align-items: center;
             font-weight: 500;
-            border-radius: 12px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 0.9rem;
+            border-radius: 10px;
+            transition: all 0.25s ease;
+            font-size: 0.8rem;
             text-decoration: none;
         }
-        #sidebar .nav-link i { margin-right: 14px; width: 22px; text-align: center; font-size: 1.1rem; }
+        #sidebar .nav-link i { margin-right: 10px; width: 20px; text-align: center; font-size: 0.95rem; }
         #sidebar .nav-link:hover {
             background-color: rgba(121, 75, 196, 0.2);
             color: #ffffff;
-            transform: translateX(6px);
+            transform: translateX(3px);
         }
         #sidebar .nav-link.active {
             background: var(--sidebar-active);
             color: #ffffff;
-            box-shadow: 0 6px 20px rgba(121, 75, 196, 0.4);
+            box-shadow: 0 4px 15px rgba(121, 75, 196, 0.4);
             font-weight: 600;
         }
 
         /* MAIN CONTENT AREA */
         #main-content {
-            margin-left: 275px;
-            padding: 35px;
+            margin-left: 230px; /* Disesuaikan lebar sidebar */
+            padding: 20px 25px;
         }
 
         .top-navbar {
             background: #ffffff;
-            padding: 22px 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(121, 75, 196, 0.04);
-            margin-bottom: 30px;
+            padding: 14px 20px;
+            border-radius: 14px;
+            box-shadow: 0 5px 20px rgba(121, 75, 196, 0.04);
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border: 1px solid rgba(121, 75, 196, 0.04);
-            animation: fadeInDown 0.6s ease;
+            animation: fadeInDown 0.5s ease;
         }
 
         /* CARD STYLE */
         .card-custom {
             background: #ffffff;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(121, 75, 196, 0.04);
+            padding: 20px;
+            border-radius: 14px;
+            box-shadow: 0 5px 20px rgba(121, 75, 196, 0.04);
             border: 1px solid rgba(121, 75, 196, 0.04);
-            animation: fadeIn 0.6s ease;
-            margin-bottom: 25px;
+            animation: fadeIn 0.5s ease;
+            margin-bottom: 20px;
         }
 
-        /* FOTO PREVIEW */
+        /* FOTO PREVIEW - Ukuran Ringkas */
         .profile-avatar-container {
             position: relative;
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 20px;
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 15px;
         }
         .profile-avatar-container img {
-            width: 120px;
-            height: 120px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             object-fit: cover;
-            border: 4px solid #f0ecfa;
-            box-shadow: 0 5px 15px rgba(121, 75, 196, 0.15);
+            border: 3px solid #f0ecfa;
+            box-shadow: 0 4px 10px rgba(121, 75, 196, 0.15);
         }
         .upload-badge {
             position: absolute;
@@ -131,15 +150,16 @@
             right: 0;
             background: var(--primary-purple);
             color: white;
-            width: 35px;
-            height: 35px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
             transition: transform 0.2s ease;
+            font-size: 0.75rem;
         }
         .upload-badge:hover {
             transform: scale(1.1);
@@ -147,45 +167,62 @@
 
         /* FORM CONTROLS */
         .form-label {
-            font-weight: 500;
+            font-weight: 600;
             color: var(--dark-purple);
-            font-size: 0.9rem;
+            font-size: 0.78rem;
+            margin-bottom: 4px;
         }
         .form-control {
-            border-radius: 10px;
-            padding: 11px 15px;
+            border-radius: 8px;
+            padding: 7px 12px;
             border: 1px solid #e2d9f3;
-            font-size: 0.9rem;
+            font-size: 0.78rem;
         }
         .form-control:focus {
             border-color: var(--primary-purple);
-            box-shadow: 0 0 0 0.25rem rgba(121, 75, 196, 0.15);
+            box-shadow: 0 0 0 0.15rem rgba(121, 75, 196, 0.15);
         }
 
         /* TOMBOL UTAMA */
         .btn-purple {
             background: var(--sidebar-active);
             border: none;
-            border-radius: 12px;
-            padding: 11px 25px;
+            border-radius: 8px;
+            padding: 7px 18px;
             color: #fff;
+            font-size: 0.78rem;
             font-weight: 600;
-            box-shadow: 0 4px 15px rgba(121, 75, 196, 0.3);
-            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(121, 75, 196, 0.3);
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
         }
         .btn-purple:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(121, 75, 196, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(121, 75, 196, 0.4);
             color: #fff;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
         @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
+            from { opacity: 0; transform: translateY(-15px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 992px) {
+            #sidebar {
+                transform: translateX(-100%);
+            }
+            #sidebar.show {
+                transform: translateX(0);
+            }
+            #main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
         }
     </style>
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
@@ -196,8 +233,8 @@
     <!-- === SIDEBAR UTAMA === -->
     <nav id="sidebar">
        <div class="sidebar-header">
-    <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
-</div>
+            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
+       </div>
         <ul class="nav flex-column">
             <li class="nav-item"><a href="<?= base_url('admin/dashboard'); ?>" class="nav-link"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
             <li class="nav-item"><a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link"><i class="fas fa-book"></i> <span>Master Kelas</span></a></li>
@@ -210,7 +247,7 @@
             <li class="nav-item"><a href="<?= base_url('admin/laporan'); ?>" class="nav-link"><i class="fas fa-file-lines"></i> <span>Laporan</span></a></li>
             
             <li class="nav-item"><a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link active"><i class="fas fa-gear"></i> <span>Pengaturan</span></a></li>
-            <li class="nav-item mt-4"><a href="<?= base_url('logout'); ?>" class="nav-link text-danger"><i class="fas fa-right-from-bracket"></i> <span>Logout</span></a></li>
+            <li class="nav-item mt-3"><a href="<?= base_url('logout'); ?>" class="nav-link text-danger"><i class="fas fa-right-from-bracket"></i> <span>Logout</span></a></li>
         </ul>
     </nav>
 
@@ -220,17 +257,19 @@
         <!-- TOP NAVBAR -->
         <div class="top-navbar">
             <div>
-                <h3 class="fw-bold m-0" style="color: var(--dark-purple);">Pengaturan Akun</h3>
-                <p class="text-muted m-0 small">Perbarui informasi profil, foto, dan keamanan sandi akun administrator.</p>
+                <h3 class="fw-bold m-0" style="color: var(--dark-purple); font-size: 1.25rem;">Pengaturan Akun</h3>
+                <p class="text-muted m-0" style="font-size: 0.75rem;">Perbarui informasi profil, foto, dan keamanan sandi akun administrator.</p>
             </div>
         </div>
 
         <!-- FORM PENGATURAN -->
-        <div class="row">
+        <div class="row g-3">
             <!-- Kolom Kiri: Profil & Ganti Foto -->
             <div class="col-lg-4">
                 <div class="card-custom text-center">
-                    <h5 class="fw-bold mb-4 text-start" style="color: var(--dark-purple);"><i class="fas fa-user-circle text-purple me-2"></i> Foto Profil</h5>
+                    <h6 class="fw-bold mb-3 text-start" style="color: var(--dark-purple); font-size: 0.9rem;">
+                        <i class="fas fa-user-circle me-1" style="color: var(--primary-purple);"></i> Foto Profil
+                    </h6>
                     
                     <div class="profile-avatar-container">
                         <!-- Tampilkan foto profil admin saat ini -->
@@ -239,14 +278,16 @@
                             <i class="fas fa-camera"></i>
                         </label>
                     </div>
-                    <p class="text-muted small mb-2">Format: JPG, PNG, atau WEBP. Maksimal 2MB.</p>
+                    <p class="text-muted mb-0" style="font-size: 0.72rem;">Format: JPG, PNG, atau WEBP. Maksimal 2MB.</p>
                 </div>
             </div>
 
             <!-- Kolom Kanan: Form Edit Nama & Password -->
             <div class="col-lg-8">
                 <div class="card-custom">
-                    <h5 class="fw-bold mb-4" style="color: var(--dark-purple);"><i class="fas fa-sliders text-purple me-2"></i> Informasi & Keamanan Akun</h5>
+                    <h6 class="fw-bold mb-3" style="color: var(--dark-purple); font-size: 0.9rem;">
+                        <i class="fas fa-sliders me-1" style="color: var(--primary-purple);"></i> Informasi & Keamanan Akun
+                    </h6>
                     
                     <form action="<?= base_url('admin/pengaturan/update'); ?>" method="post" enctype="multipart/form-data">
                         <?= csrf_field(); ?>
@@ -254,39 +295,41 @@
                         <!-- Input File Tersembunyi -->
                         <input type="file" id="fotoInput" name="foto_profil" class="d-none" accept="image/*" onchange="previewFile(this)">
 
+                        <div class="mb-2">
+                            <label class="form-label">Nama Lengkap Administrator</label>
+                            <input type="text" name="nama_admin" class="form-control" value="<?= esc($user['nama']); ?>" required>
+                        </div>
+
                         <div class="mb-3">
-    <label class="form-label">Nama Lengkap Administrator</label>
-    <input type="text" name="nama_admin" class="form-control" value="<?= esc($user['nama']); ?>" required>
-</div>
+                            <label class="form-label">Alamat Email</label>
+                            <input type="email" name="email_admin" class="form-control" value="<?= esc($user['email']); ?>" required>
+                        </div>
 
-<div class="mb-3">
-    <label class="form-label">Alamat Email</label>
-    <input type="email" name="email_admin" class="form-control" value="<?= esc($user['email']); ?>" required>
-</div>
+                        <hr class="my-3" style="border-color: #f0ecfa;">
 
-                        <hr class="my-4" style="border-color: #f0ecfa;">
-
-                        <h6 class="fw-bold mb-3" style="color: var(--dark-purple);"><i class="fas fa-lock text-purple me-2"></i> Ubah Kata Sandi (Opsional)</h6>
+                        <h6 class="fw-bold mb-2" style="color: var(--dark-purple); font-size: 0.85rem;">
+                            <i class="fas fa-lock me-1" style="color: var(--primary-purple);"></i> Ubah Kata Sandi (Opsional)
+                        </h6>
                         
-                        <div class="mb-3">
+                        <div class="mb-2">
                             <label class="form-label">Kata Sandi Saat Ini</label>
                             <input type="password" name="password_lama" class="form-control" placeholder="Kosongkan jika tidak ingin mengubah sandi">
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                        <div class="row g-2">
+                            <div class="col-md-6 mb-2">
                                 <label class="form-label">Kata Sandi Baru</label>
                                 <input type="password" name="password_baru" class="form-control" placeholder="Minimal 6 karakter">
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-2">
                                 <label class="form-label">Konfirmasi Kata Sandi Baru</label>
                                 <input type="password" name="konfirmasi_password" class="form-control" placeholder="Ulangi sandi baru">
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-end mt-4">
+                        <div class="d-flex justify-content-end mt-3">
                             <button type="submit" class="btn btn-purple">
-                                <i class="fas fa-save me-2"></i> Simpan Perubahan
+                                <i class="fas fa-save me-1"></i> Simpan Perubahan
                             </button>
                         </div>
                     </form>

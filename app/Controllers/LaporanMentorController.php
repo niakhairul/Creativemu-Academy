@@ -61,32 +61,85 @@ class LaporanMentorController extends BaseController
         return $mentor;
     }
 
+    public function getLaporanMentorList($filters)
+{
+    $builder = $this->db->table('mentor m');
+    
+    // Pilih kolom mentor sekaligus hitung total peserta berdasarkan tempat pelatihan
+    $builder->select('
+        m.id_mentor,
+        m.nama_mentor,
+        m.nip,
+        m.keahlian,
+        m.pelatihan,
+        m.kelas,
+        
+        -- Hitung jumlah peserta di Kantor Pusat
+        (SELECT COUNT(p.id_pendaftaran) FROM pendaftaran p 
+         WHERE p.id_mentor = m.id_mentor 
+           AND p.tempat_pelatihan = "Kantor Pusat"
+           AND YEAR(p.created_at) = ' . (int)$filters['tahun'] . ' 
+           AND MONTH(p.created_at) = ' . (int)$filters['bulan'] . ') as jumlah_kantor_pusat,
+
+        -- Hitung jumlah peserta di Kantor Cabang
+        (SELECT COUNT(p.id_pendaftaran) FROM pendaftaran p 
+         WHERE p.id_mentor = m.id_mentor 
+           AND p.tempat_pelatihan = "Kantor Cabang"
+           AND YEAR(p.created_at) = ' . (int)$filters['tahun'] . ' 
+           AND MONTH(p.created_at) = ' . (int)$filters['bulan'] . ') as jumlah_kantor_cabang,
+
+        -- Hitung jumlah peserta di Kantor Perwakilan
+        (SELECT COUNT(p.id_pendaftaran) FROM pendaftaran p 
+         WHERE p.id_mentor = m.id_mentor 
+           AND p.tempat_pelatihan = "Kantor Perwakilan"
+           AND YEAR(p.created_at) = ' . (int)$filters['tahun'] . ' 
+           AND MONTH(p.created_at) = ' . (int)$filters['bulan'] . ') as jumlah_kantor_perwakilan
+    ');
+
+    // Filter berdasarkan id_mentor jika dipilih dan bukan "all"
+    if (!empty($filters['id_mentor']) && $filters['id_mentor'] !== 'all') {
+        $builder->where('m.id_mentor', $filters['id_mentor']);
+    }
+
+    // Filter berdasarkan tempat pelatihan jika diperlukan
+    if (!empty($filters['tempat_pelatihan']) && $filters['tempat_pelatihan'] !== 'all') {
+        $builder->where('m.tempat_pelatihan', $filters['tempat_pelatihan']);
+    }
+
+    
+    return $builder->get()->getResultArray();
+}
+
     /**
      * Ekstrak parameter filter dari request GET
      */
     private function parseFilters(): array
-    {
-        $bulan = $this->request->getGet('bulan');
-        $bulan = (!empty($bulan) && is_numeric($bulan)) ? (int) $bulan : (int) date('n');
+{
+    $bulan = $this->request->getGet('bulan');
+    $bulan = (!empty($bulan) && is_numeric($bulan)) ? (int) $bulan : (int) date('n');
 
-        $idMentor = $this->request->getGet('id_mentor') ?: 'all';
-        $kategori = $this->request->getGet('kategori') ?: 'all';
-        $tempatPelatihan = $this->request->getGet('tempat_pelatihan') ?: 'all';
+    // Perbaikan: Menangkap input tahun dari GET, jika kosong gunakan tahun saat ini
+    $tahun = $this->request->getGet('tahun');
+    $tahun = (!empty($tahun) && is_numeric($tahun)) ? (int) $tahun : (int) date('Y');
 
-        $mentorLogin = $this->getMentorData();
-        if ($mentorLogin && session()->get('role') === 'mentor') {
-            $idMentor = (string) $mentorLogin['id_mentor'];
-        }
+    $idMentor = $this->request->getGet('id_mentor') ?: 'all';
+    $kategori = $this->request->getGet('kategori') ?: 'all';
+    $tempatPelatihan = $this->request->getGet('tempat_pelatihan') ?: 'all';
 
-        return [
-            'periode'          => 'bulanan',
-            'tahun'            => (int) date('Y'),
-            'bulan'            => $bulan,
-            'id_mentor'        => $idMentor,
-            'kategori'         => $kategori,
-            'tempat_pelatihan' => $tempatPelatihan,
-        ];
+    $mentorLogin = $this->getMentorData();
+    if ($mentorLogin && session()->get('role') === 'mentor') {
+        $idMentor = (string) $mentorLogin['id_mentor'];
     }
+
+    return [
+        'periode'          => 'bulanan',
+        'tahun'            => $tahun, // Menggunakan variabel tahun yang sudah dinamis
+        'bulan'            => $bulan,
+        'id_mentor'        => $idMentor,
+        'kategori'         => $kategori,
+        'tempat_pelatihan' => $tempatPelatihan,
+    ];
+}
 
     /**
      * Halaman Utama Laporan Mentor
