@@ -96,35 +96,35 @@ class LaporanMentorModel extends Model
     public function getLaporanMentorList($filters)
 {
     $builder = $this->db->table('mentor m');
-    
+
     $builder->select('
         m.id_mentor,
         m.nama_mentor,
         m.nip,
         m.keahlian,
-        
+
         -- Hitung jumlah peserta (mencari kata "pusat" atau "kampus utama" di lokasi pelatihan)
-        (SELECT COUNT(p.id_pendaftaran) FROM pendaftaran p 
+        (SELECT COUNT(p.id_pendaftaran) FROM pendaftaran p
          JOIN kelas k ON k.id_kelas = p.id_kelas
-         WHERE k.id_mentor = m.id_mentor 
+         WHERE k.id_mentor = m.id_mentor
            AND (LOWER(p.lokasi_pelatihan) LIKE "%pusat%" OR LOWER(p.lokasi_pelatihan) LIKE "%kampus utama%")
-           AND YEAR(p.created_at) = ' . (int)$filters['tahun'] . ' 
+           AND YEAR(p.created_at) = ' . (int)$filters['tahun'] . '
            AND MONTH(p.created_at) = ' . (int)$filters['bulan'] . ') as jumlah_kantor_pusat,
 
         -- Hitung jumlah peserta (mencari kata "cabang" di lokasi pelatihan)
-        (SELECT COUNT(p.id_pendaftaran) FROM pendaftaran p 
+        (SELECT COUNT(p.id_pendaftaran) FROM pendaftaran p
          JOIN kelas k ON k.id_kelas = p.id_kelas
-         WHERE k.id_mentor = m.id_mentor 
+         WHERE k.id_mentor = m.id_mentor
            AND LOWER(p.lokasi_pelatihan) LIKE "%cabang%"
-           AND YEAR(p.created_at) = ' . (int)$filters['tahun'] . ' 
+           AND YEAR(p.created_at) = ' . (int)$filters['tahun'] . '
            AND MONTH(p.created_at) = ' . (int)$filters['bulan'] . ') as jumlah_kantor_cabang,
 
         -- Hitung jumlah peserta (mencari kata "perwakilan" di lokasi pelatihan)
-        (SELECT COUNT(p.id_pendaftaran) FROM pendaftaran p 
+        (SELECT COUNT(p.id_pendaftaran) FROM pendaftaran p
          JOIN kelas k ON k.id_kelas = p.id_kelas
-         WHERE k.id_mentor = m.id_mentor 
+         WHERE k.id_mentor = m.id_mentor
            AND LOWER(p.lokasi_pelatihan) LIKE "%perwakilan%"
-           AND YEAR(p.created_at) = ' . (int)$filters['tahun'] . ' 
+           AND YEAR(p.created_at) = ' . (int)$filters['tahun'] . '
            AND MONTH(p.created_at) = ' . (int)$filters['bulan'] . ') as jumlah_kantor_perwakilan
     ');
 
@@ -135,22 +135,22 @@ class LaporanMentorModel extends Model
     $result = $builder->get()->getResultArray();
 
     foreach ($result as &$row) {
-        $row['skor_performa']        = (int)$row['jumlah_kantor_pusat'] 
-                                     + (int)$row['jumlah_kantor_cabang'] 
+        $row['skor_performa']        = (int)$row['jumlah_kantor_pusat']
+                                     + (int)$row['jumlah_kantor_cabang']
                                      + (int)$row['jumlah_kantor_perwakilan'];
-                              
-        $row['persen_keterlambatan'] = 0; 
-        $row['nilai_angket']         = 4.5; 
-        $row['persen_kehadiran']     = 100; 
-        $row['predikat']             = 'Sangat Baik'; 
-        $row['badge_class']          = 'bg-success'; 
-        $row['persen_keaktifan']     = 95; 
-        $row['sesi_terlaksana']      = 12; 
-        $row['total_sesi']           = 12; 
-        $row['total_materi']         = 5;  
-        $row['kelas']                = 'Kelas Reguler & Intensif'; 
-        $row['pelatihan']            = 'Pelatihan Umum'; 
-        $row['tempat_pelatihan']     = 'Kantor Pusat';   
+
+        $row['persen_keterlambatan'] = 0;
+        $row['nilai_angket']         = 3.5;
+        $row['persen_kehadiran']     = 100;
+        $row['predikat']             = 'Sangat Baik';
+        $row['badge_class']          = 'bg-success';
+        $row['persen_keaktifan']     = 95;
+        $row['sesi_terlaksana']      = 12;
+        $row['total_sesi']           = 12;
+        $row['total_materi']         = 5;
+        $row['kelas']                = 'Kelas Reguler & Intensif';
+        $row['pelatihan']            = 'Pelatihan Umum';
+        $row['tempat_pelatihan']     = 'Kantor Pusat';
     }
     unset($row);
 
@@ -226,15 +226,15 @@ class LaporanMentorModel extends Model
         $i = 0;
         foreach (array_slice($list, 0, 3) as $m) {
             $color = $colorPalette[$i % count($colorPalette)];
-            $baseVal = $m['nilai_angket'] > 0 ? $m['nilai_angket'] : 4.6;
+            $baseVal = $m['nilai_angket'] > 0 ? $m['nilai_angket'] : 3.6;
             $radarDatasets[] = [
                 'label'           => $m['nama_mentor'],
                 'data'            => [
-                    round(min(5.0, $baseVal - 0.1), 1),
-                    round(min(5.0, $baseVal), 1),
-                    round(min(5.0, $baseVal + 0.1), 1),
-                    round(min(5.0, $baseVal - 0.05), 1),
-                    round(min(5.0, $baseVal + 0.15), 1)
+                    round(min(4.0, $baseVal - 0.1), 1),
+                    round(min(4.0, $baseVal), 1),
+                    round(min(4.0, $baseVal + 0.1), 1),
+                    round(min(4.0, $baseVal - 0.05), 1),
+                    round(min(4.0, $baseVal + 0.15), 1)
                 ],
                 'borderColor'     => $color,
                 'backgroundColor' => $color . '25', // opacity
@@ -248,7 +248,7 @@ class LaporanMentorModel extends Model
         $trenPerforma = [91, 92, 90, 93, 94, 92, 93, 95, 96, 94, 95, 96];
         $trenKehadiran = [95, 96, 94, 98, 97, 95, 96, 98, 99, 97, 98, 99];
         $trenKeterlambatan = [4, 3, 5, 2, 3, 4, 3, 2, 1, 2, 2, 1];
-        $trenAngket = [4.6, 4.65, 4.7, 4.72, 4.75, 4.8, 4.78, 4.85, 4.9, 4.88, 4.92, 4.95];
+        $trenAngket = [3.6, 3.65, 3.7, 3.72, 3.75, 3.8, 3.78, 3.85, 3.9, 3.88, 3.92, 3.95];
 
         return [
             'kehadiran_donut' => [

@@ -220,7 +220,7 @@
             </tr>
             <tr>
                 <th>Rata-rata Nilai Angket Siswa</th>
-                <td colspan="3"><strong class="text-primary"><?= number_format($stats['avg_angket'], 2); ?> / 5.00</strong> (Skala Kepuasan Peserta)</td>
+                <td colspan="3"><strong class="text-primary"><?= number_format($stats['avg_angket'], 2); ?> / 4.00</strong> (Skala Kepuasan Peserta)</td>
             </tr>
         </table>
 
@@ -266,15 +266,7 @@
         </table>
 
         <!-- 5. LEMBAR PENGESAHAN / TANDA TANGAN -->
-        <div class="ttd-section">
-            <div class="ttd-box">
-                <div>Yogyakarta, <?= date('d F Y'); ?></div>
-                <div class="fw-bold">Pimpinan CreativeMU Academy</div>
-                <div class="ttd-space"></div>
-                <div class="fw-bold text-decoration-underline">( Dr. H. Arifin Wicaksono, M.Kom )</div>
-                <div class="small text-muted">NIP: 19820415 200812 1 002</div>
-            </div>
-        </div>
+        <?= view('admin/laporan/components/ttd_pimpinan'); ?>
 
     </div>
 

@@ -404,7 +404,7 @@
             <?php if (!empty($isMentor)): ?>
                 <li class="nav-item"><a href="<?= base_url('mentor/dashboard'); ?>" class="nav-link"><i class="fas fa-chart-line"></i> <span>Dashboard</span></a></li>
                 <li class="nav-item"><a href="<?= base_url('mentor/kelas'); ?>" class="nav-link"><i class="fas fa-book"></i> <span>Daftar Kelas</span></a></li>
-                
+
                 <!-- Submenu Laporan Mentor -->
                 <li class="nav-item">
                     <a class="nav-link" data-bs-toggle="collapse" href="#submenuLaporanMentor" role="button" aria-expanded="true">
@@ -444,7 +444,7 @@
             </li>
                 <li class="nav-item"><a href="<?= base_url('admin/angket'); ?>" class="nav-link"><i class="fas fa-poll"></i> <span>Angket</span></a></li>
                 <li class="nav-item"><a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link"><i class="fas fa-award"></i> <span>Sertifikat</span></a></li>
-                
+
                 <!-- Submenu Laporan Admin -->
                 <li class="nav-item">
                     <a class="nav-link" data-bs-toggle="collapse" href="#submenuLaporanAdmin" role="button" aria-expanded="true">
@@ -477,7 +477,7 @@
 
     <!-- === KONTEN UTAMA === -->
     <div id="main-content">
-        
+
         <!-- TOP NAVBAR -->
         <div class="top-navbar">
             <div class="d-flex align-items-center">
@@ -489,7 +489,7 @@
             </div>
 
             <!-- ACTION BUTTONS: EXPORT & CETAK -->
-            <?php 
+            <?php
                 $baseUrlReport = $isMentor ? 'mentor/laporan-angket' : 'admin/laporan-angket';
                 $queryString = http_build_query($filters);
             ?>
@@ -516,10 +516,20 @@
                 <div class="row g-3">
 
 
+                    <!-- Tahun -->
+                    <div class="col-12 col-sm-6 col-md-2" >
+                        <label class="form-label small fw-semibold text-muted">Tahun</label>
+                        <select name="tahun" class="form-select">
+                            <?php foreach ($years as $y): ?>
+                                <option value="<?= $y; ?>" <?= ($filters['tahun'] == $y) ? 'selected' : ''; ?>><?= $y; ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
                     <!-- Bulan -->
                     <div class="col-12 col-sm-6 col-md-2" >
                         <label class="form-label small fw-semibold text-muted">Bulan</label>
-                        <select name="bulan" class="form-select form-select-sm">
+                        <select name="bulan" class="form-select">
                             <?php foreach ($bulanNames as $num => $name): ?>
                                 <option value="<?= $num; ?>" <?= ($filters['bulan'] == $num) ? 'selected' : ''; ?>><?= $name; ?></option>
                             <?php endforeach; ?>
@@ -529,7 +539,7 @@
                     <!-- Nama Mentor -->
                     <div class="col-12 col-sm-6 col-md-3">
                         <label class="form-label small fw-semibold text-muted">Nama Mentor</label>
-                        <select name="id_mentor" class="form-select form-select-sm" <?= (!empty($isMentor)) ? 'disabled' : ''; ?>>
+                        <select name="id_mentor" class="form-select" <?= (!empty($isMentor)) ? 'disabled' : ''; ?>>
                             <?php if (empty($isMentor)): ?>
                                 <option value="all">-- Semua Mentor --</option>
                             <?php endif; ?>
@@ -542,9 +552,9 @@
                     </div>
 
                     <!-- Pelatihan / Kelas -->
-                    <div class="col-12 col-sm-6 col-md-3">
+                    <div class="col-12 col-sm-6 col-md-2">
                         <label class="form-label small fw-semibold text-muted">Pelatihan / Kelas</label>
-                        <select name="id_kelas" class="form-select form-select-sm">
+                        <select name="id_kelas" class="form-select">
                             <option value="all">-- Semua Kelas Pelatihan --</option>
                             <?php foreach ($classes as $c): ?>
                                 <option value="<?= $c['id_kelas']; ?>" <?= ($filters['id_kelas'] == $c['id_kelas']) ? 'selected' : ''; ?>>
@@ -557,8 +567,8 @@
                         <label class="form-label small fw-semibold text-muted">Tempat Pelatihan</label>
                         <select name="tempat_pelatihan" class="form-select">
                             <option value="all">-- Semua Tempat --</option>
-                            <?php foreach (($tempatList ?? []) as $tempat): ?>
-                                <option value="<?= esc($tempat); ?>" <?= (($filters['tempat_pelatihan'] ?? 'all') === $tempat) ? 'selected' : ''; ?>><?= esc($tempat); ?></option>
+                            <?php foreach (($tempatList ?? []) as $idLokasi => $namaLokasi): ?>
+                                <option value="<?= esc($idLokasi); ?>" <?= (($filters['tempat_pelatihan'] ?? 'all') == $idLokasi) ? 'selected' : ''; ?>><?= esc(strlen($namaLokasi) > 50 ? substr($namaLokasi, 0, 50) . '...' : $namaLokasi); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -615,8 +625,8 @@
                     </div>
                     <div>
                         <div class="stat-label">Rata-rata Nilai Angket</div>
-                        <div class="stat-value"><?= number_format($stats['avg_nilai_angket'], 2); ?> <span class="fs-6 text-muted">/ 5.0</span></div>
-                        <span class="badge bg-warning bg-opacity-10 text-dark small mt-1">Skala 1.0 - 5.0</span>
+                        <div class="stat-value"><?= number_format($stats['avg_nilai_angket'], 2); ?> <span class="fs-6 text-muted">/ 4.0</span></div>
+                        <span class="badge bg-warning bg-opacity-10 text-dark small mt-1">Skala 1.0 - 4.0</span>
                     </div>
                 </div>
             </div>
@@ -648,7 +658,7 @@
                     </div>
 
                     <div class="row g-3">
-                        <?php 
+                        <?php
                             $medals = ['🥇 Juara 1', '🥈 Juara 2', '🥉 Juara 3'];
                             $podiumBorder = ['#f59e0b', '#94a3b8', '#d97706'];
                             $top3 = array_slice($rankingList, 0, 3);
@@ -664,12 +674,12 @@
                                         <?= esc($top['nama_mentor']); ?>
                                     </h5>
                                     <p class="text-muted small mb-2 text-truncate"><?= esc($top['pelatihan']); ?> • <?= esc($top['kelas']); ?></p>
-                                    
+
                                     <div class="podium-score">
-                                        <?= number_format($top['nilai_rata'], 2); ?> <span class="fs-6 text-muted">/ 5.00</span>
+                                        <?= number_format($top['nilai_rata'], 2); ?> <span class="fs-6 text-muted">/ 4.00</span>
                                     </div>
                                     <div class="small fw-semibold text-success mb-2"><?= $top['persen_kepuasan']; ?>% Kepuasan</div>
-                                    
+
                                     <div class="d-flex justify-content-center gap-2 mt-2">
                                         <span class="badge bg-light text-dark border"><i class="fas fa-users me-1"></i> <?= $top['jumlah_responden']; ?> Responden</span>
                                         <span class="badge <?= $top['badge_class']; ?>"><?= $top['predikat']; ?></span>
@@ -698,7 +708,7 @@
                         <h6 class="fw-bold mb-0" style="color: var(--dark-purple);">
                             <i class="fas fa-chart-column text-primary me-2"></i> Skor per Indikator Pertanyaan Angket
                         </h6>
-                        <span class="badge bg-light text-muted border">Skala 1.0 - 5.0</span>
+                        <span class="badge bg-light text-muted border">Skala 1.0 - 4.0</span>
                     </div>
                     <div class="chart-box">
                         <canvas id="chartIndikator"></canvas>
@@ -753,31 +763,122 @@
                         </span>
                     </div>
 
-                    <div class="row g-3">
-                        <?php foreach ($indikatorList as $ind): ?>
-                        <div class="col-12 col-md-6 col-lg-4">
-                            <div class="p-3 border rounded-3 bg-light bg-opacity-50 h-100">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <span class="badge bg-purple-subtle text-primary fw-semibold px-2 py-1">
-                                        <?= esc($ind['kategori']); ?>
-                                    </span>
-                                    <div class="fw-bold text-dark fs-6">
-                                        <i class="fas fa-star text-warning me-1"></i><?= number_format($ind['nilai'], 2); ?> <small class="text-muted">/ 5.0</small>
+                    <?php
+                    // Kelompokkan indikator berdasarkan kategori
+                    $kategoriGroup = [];
+                    foreach ($indikatorList as $ind) {
+                        $cat = $ind['kategori'] ?? 'Lainnya';
+                        if (!isset($kategoriGroup[$cat])) {
+                            $kategoriGroup[$cat] = [];
+                        }
+                        $kategoriGroup[$cat][] = $ind;
+                    }
+
+                    // Pastikan "Customer Insight" ada di urutan pertama
+                    uksort($kategoriGroup, function($a, $b) {
+                        if ($a === 'Customer Insight') return -1;
+                        if ($b === 'Customer Insight') return 1;
+                        return strcmp($a, $b);
+                    });
+                    ?>
+
+                    <style>
+                    .nav-pills.custom-pills .nav-link {
+                        color: var(--dark-purple);
+                        background-color: #f8f9fa;
+                        border: 1px solid var(--border-soft);
+                        transition: all 0.3s ease;
+                        font-size: 0.95rem;
+                    }
+                    .nav-pills.custom-pills .nav-link:hover {
+                        background-color: var(--light-purple);
+                        color: var(--primary-purple);
+                    }
+                    .nav-pills.custom-pills .nav-link.active {
+                        background-color: var(--primary-purple);
+                        color: #fff;
+                        border-color: var(--primary-purple);
+                        box-shadow: 0 4px 12px rgba(121, 75, 196, 0.2);
+                    }
+                    .nav-pills.custom-pills .nav-link .badge-count {
+                        background-color: #e9ecef;
+                        color: var(--dark-purple);
+                        font-size: 0.75rem;
+                    }
+                    .nav-pills.custom-pills .nav-link.active .badge-count {
+                        background-color: rgba(255,255,255,0.25);
+                        color: #fff;
+                    }
+                    </style>
+
+                    <!-- Nav Tabs Kategori -->
+                    <ul class="nav nav-pills custom-pills mb-4 gap-2" id="indikatorTabs" role="tablist">
+                        <?php $tabIdx = 0; foreach ($kategoriGroup as $cat => $items): ?>
+                        <?php $tabId = 'tab-' . md5($cat); ?>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link <?= $tabIdx === 0 ? 'active' : ''; ?> px-4 fw-semibold rounded-pill d-flex align-items-center"
+                                id="<?= $tabId ?>-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#<?= $tabId ?>-pane"
+                                type="button" role="tab"
+                                aria-controls="<?= $tabId ?>-pane"
+                                aria-selected="<?= $tabIdx === 0 ? 'true' : 'false'; ?>">
+                                <?= esc($cat); ?>
+                                <span class="badge badge-count ms-2 rounded-circle px-2 py-1"><?= count($items); ?></span>
+                            </button>
+                        </li>
+                        <?php $tabIdx++; endforeach; ?>
+                    </ul>
+
+                    <!-- Tab Contents -->
+                    <div class="tab-content" id="indikatorTabsContent">
+                        <?php $tabIdx = 0; foreach ($kategoriGroup as $cat => $items): ?>
+                        <?php $tabId = 'tab-' . md5($cat); ?>
+                        <div class="tab-pane fade <?= $tabIdx === 0 ? 'show active' : ''; ?>"
+                            id="<?= $tabId ?>-pane" role="tabpanel" aria-labelledby="<?= $tabId ?>-tab" tabindex="0">
+
+                            <div class="row g-3">
+                                <?php foreach ($items as $ind): ?>
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    <div class="p-3 border rounded-3 bg-light bg-opacity-50 h-100">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <span class="badge bg-purple-subtle text-primary fw-semibold px-2 py-1">
+                                                <?= esc($ind['kategori']); ?>
+                                            </span>
+                                            <?php if (($ind['tipe'] ?? 'rating') === 'rating'): ?>
+                                                <div class="fw-bold text-dark fs-6">
+                                                    <i class="fas fa-star text-warning me-1"></i><?= number_format($ind['nilai'], 2); ?> <small class="text-muted">/ 4.0</small>
+                                                </div>
+                                            <?php else: ?>
+                                                <div class="fw-bold text-secondary fs-7">
+                                                    <i class="fas fa-comment-dots text-info me-1"></i><?= isset($ind['count']) ? number_format($ind['count']) : 0; ?> Respons
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="fw-semibold text-dark small mb-2 text-truncate" style="max-width: 100%;" title="<?= esc($ind['judul']); ?>">
+                                            <?= esc($ind['judul']); ?>
+                                        </div>
+
+                                        <?php if (($ind['tipe'] ?? 'rating') === 'rating'): ?>
+                                            <div class="d-flex justify-content-between text-muted small mb-1">
+                                                <span>Tingkat Kepuasan</span>
+                                                <span class="fw-bold text-success"><?= $ind['persentase']; ?>%</span>
+                                            </div>
+                                            <div class="progress progress-custom">
+                                                <div class="progress-bar progress-bar-custom" role="progressbar" style="width: <?= $ind['persentase']; ?>%;" aria-valuenow="<?= $ind['persentase']; ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="text-muted small mt-2 fst-italic">
+                                                * Jawaban teks/pilihan tidak memiliki skor rating.
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
-                                <div class="fw-semibold text-dark small mb-2" style="min-height: 40px;">
-                                    <?= esc($ind['judul']); ?>
-                                </div>
-                                <div class="d-flex justify-content-between text-muted small mb-1">
-                                    <span>Tingkat Kepuasan</span>
-                                    <span class="fw-bold text-success"><?= $ind['persentase']; ?>%</span>
-                                </div>
-                                <div class="progress progress-custom">
-                                    <div class="progress-bar progress-bar-custom" role="progressbar" style="width: <?= $ind['persentase']; ?>%;" aria-valuenow="<?= $ind['persentase']; ?>" aria-valuemin="0" aria-valuemax="100"></div>
-                                </div>
+                                <?php endforeach; ?>
                             </div>
+
                         </div>
-                        <?php endforeach; ?>
+                        <?php $tabIdx++; endforeach; ?>
                     </div>
                 </div>
             </div>
@@ -801,16 +902,23 @@
                 <table class="table table-custom align-middle mb-0">
                     <thead>
                         <tr>
-                            <th width="5%" class="text-center">No</th>
-                            <th>Nama Mentor</th>
-                            <th>Pelatihan / Kategori</th>
-                            <th>Kelas Diampu</th>
-                            <th>Tempat Pelatihan</th>
-                            <th class="text-center" width="12%">Responden</th>
-                            <th class="text-center" width="14%">Nilai Rata-rata</th>
-                            <th class="text-center" width="13%">Kepuasan (%)</th>
-                            <th class="text-center" width="12%">Predikat</th>
-                            <th class="text-center" width="10%">Aksi</th>
+                            <th rowspan="2" width="5%" class="text-center align-middle">No</th>
+                            <th rowspan="2" class="align-middle">Nama Mentor</th>
+                            <th rowspan="2" class="align-middle">Pelatihan / Kategori</th>
+                            <th rowspan="2" class="align-middle">Kelas Diampu</th>
+                            <th colspan="3" class="text-center align-middle" style="background-color: #32185d; color: #fff;">
+                                <i class="fas fa-building me-1"></i> Tempat Pelatihan
+                            </th>
+                            <th rowspan="2" class="text-center align-middle" width="12%">Responden</th>
+                            <th rowspan="2" class="text-center align-middle" width="14%">Nilai Rata-rata</th>
+                            <th rowspan="2" class="text-center align-middle" width="13%">Kepuasan (%)</th>
+                            <th rowspan="2" class="text-center align-middle" width="12%">Predikat</th>
+                            <th class="text-center" width="10%" rowspan="2" class="align-middle">Aksi</th>
+                        </tr>
+                        <tr>
+                            <th class="text-center" style="background-color: #32185d; color: #fff; font-size: 0.8rem;">Kantor Pusat</th>
+                            <th class="text-center" style="background-color: #32185d; color: #fff; font-size: 0.8rem;">Kantor Cabang</th>
+                            <th class="text-center" style="background-color: #32185d; color: #fff; font-size: 0.8rem;">Kantor<br>Perwakilan</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -825,12 +933,15 @@
                                         </div>
                                         <div>
                                             <div class="fw-bold text-dark"><?= esc($m['nama_mentor']); ?></div>
-                                            <div class="small text-muted">NIP: <?= esc($m['nip']); ?></div>
+                                            <div class="small text-muted">NIP: <?= esc($m['nip'] ?? '-'); ?></div>
                                         </div>
                                     </div>
                                 </td>
                                 <td><span class="badge bg-light text-dark border"><?= esc($m['pelatihan']); ?></span></td>
                                 <td><span class="fw-semibold text-secondary small"><?= esc($m['kelas']); ?></span></td>
+                                  <td class="text-center fw-semibold text-dark"><?= $m['responden_pusat'] > 0 ? number_format($m['responden_pusat']) : '-'; ?></td>
+                                  <td class="text-center fw-semibold text-dark"><?= $m['responden_cabang'] > 0 ? number_format($m['responden_cabang']) : '-'; ?></td>
+                                  <td class="text-center fw-semibold text-dark"><?= $m['responden_perwakilan'] > 0 ? number_format($m['responden_perwakilan']) : '-'; ?></td>
                                 <td class="text-center">
                                     <span class="fw-bold text-dark"><?= number_format($m['jumlah_responden']); ?></span>
                                     <span class="text-muted small"> Siswa</span>
@@ -839,7 +950,7 @@
                                     <div class="d-inline-flex align-items-center gap-1">
                                         <i class="fas fa-star text-warning"></i>
                                         <span class="fw-bold fs-6 text-primary"><?= number_format($m['nilai_rata'], 2); ?></span>
-                                        <small class="text-muted">/5.0</small>
+                                        <small class="text-muted">/4.0</small>
                                     </div>
                                 </td>
                                 <td class="text-center">
@@ -903,9 +1014,15 @@
                                         <div class="text-muted" style="font-size: 0.75rem;"><?= esc($rev['tanggal']); ?></div>
                                     </div>
                                 </div>
+                                <?php if ($rev['rating'] > 0): ?>
                                 <div class="badge bg-warning bg-opacity-10 text-dark fw-bold">
                                     <i class="fas fa-star text-warning me-1"></i><?= number_format($rev['rating'], 1); ?>
                                 </div>
+                                <?php else: ?>
+                                <div class="badge bg-info bg-opacity-10 text-info fw-bold">
+                                    <i class="fas fa-comment-dots me-1"></i>Feedback
+                                </div>
+                                <?php endif; ?>
                             </div>
                             <div class="small text-muted mb-2">
                                 Kelas: <strong><?= esc($rev['nama_kelas']); ?></strong> • Mentor: <strong><?= esc($rev['nama_mentor']); ?></strong>
@@ -983,7 +1100,6 @@
         }
 
         // Toggle Month Filter based on Periode
-                }
 
         // Chart.js Setup
         document.addEventListener('DOMContentLoaded', function() {
@@ -996,7 +1112,7 @@
                 data: {
                     labels: chartDataServer.chart_indikator.labels,
                     datasets: [{
-                        label: 'Nilai Rata-rata (1 - 5)',
+                        label: 'Nilai Rata-rata (1 - 4)',
                         data: chartDataServer.chart_indikator.data,
                         backgroundColor: 'rgba(121, 75, 196, 0.85)',
                         borderColor: '#794bc4',
@@ -1011,7 +1127,7 @@
                     scales: {
                         y: {
                             beginAtZero: true,
-                            max: 5.0,
+                            max: 4.0,
                             ticks: { stepSize: 1.0 }
                         },
                         x: {
@@ -1027,7 +1143,7 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return ' Skor: ' + context.parsed.y + ' / 5.00';
+                                    return ' Skor: ' + context.parsed.y + ' / 4.00';
                                 }
                             }
                         }
@@ -1073,6 +1189,7 @@
                         borderColor: '#794bc4',
                         backgroundColor: 'rgba(121, 75, 196, 0.12)',
                         fill: true,
+                          spanGaps: true,
                         tension: 0.35,
                         pointBackgroundColor: '#794bc4',
                         pointBorderColor: '#ffffff',
@@ -1086,8 +1203,8 @@
                     maintainAspectRatio: false,
                     scales: {
                         y: {
-                            min: 4.0,
-                            max: 5.0,
+                            min: 0,
+                            max: 4.0,
                             ticks: { stepSize: 0.2 }
                         }
                     },
@@ -1102,7 +1219,7 @@
         function openModalKomentar(idMentor, namaMentor) {
             const modalEl = document.getElementById('modalKomentarPeserta');
             const modal = new bootstrap.Modal(modalEl);
-            
+
             document.getElementById('modalMentorSubtitle').textContent = 'Mentor: ' + namaMentor;
             document.getElementById('modalLoadingSpinner').style.display = 'block';
             document.getElementById('modalContentContainer').style.display = 'none';
@@ -1134,7 +1251,7 @@
                                         <small class="text-muted d-block">${escapeHtml(c.nama_kelas)} • ${escapeHtml(c.tanggal)}</small>
                                     </div>
                                     <div class="badge bg-warning bg-opacity-10 text-dark fw-bold">
-                                        <i class="fas fa-star text-warning me-1"></i>${parseFloat(c.rating).toFixed(1)} / 5.0
+                                        <i class="fas fa-star text-warning me-1"></i>${parseFloat(c.rating).toFixed(1)} / 4.0
                                     </div>
                                 </div>
                                 <p class="mb-0 text-dark small fst-italic" style="background:#faf8fd; padding:10px; border-radius:8px; border-left:3px solid var(--primary-purple);">

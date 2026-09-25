@@ -271,7 +271,7 @@ class LaporanMentorController extends BaseController
             $sheet->setCellValue('B7', number_format($stats['avg_keaktifan'], 1) . '%');
             $sheet->setCellValue('C7', number_format($stats['avg_kehadiran'], 1) . '%');
             $sheet->setCellValue('D7', number_format($stats['avg_keterlambatan'], 1) . '%');
-            $sheet->setCellValue('E7', number_format($stats['avg_angket'], 2) . ' / 5.00');
+            $sheet->setCellValue('E7', number_format($stats['avg_angket'], 2) . ' / 4.00');
 
             // Style Ringkasan
             $sheet->getStyle('A6:E6')->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');

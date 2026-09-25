@@ -269,3 +269,9 @@ $routes->group('mentor', function($routes) {
     $routes->get('laporan-kehadiran/detail', 'LaporanKehadiranController::detailAjax');
     $routes->get('profil', 'Mentor::profil');
 });
+
+$routes->cli('dump', function() {
+    $m = new \App\Models\LaporanAngketModel();
+    file_put_contents('scratch/dump.json', json_encode($m->getChartData([]), JSON_PRETTY_PRINT));
+    echo "Dumped\n";
+});

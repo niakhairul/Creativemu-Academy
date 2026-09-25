@@ -740,7 +740,7 @@
                         <h6 class="fw-bold m-0" style="color: var(--dark-purple); font-size: 0.88rem;">
                             <i class="fas fa-bullseye text-primary me-1"></i> Evaluasi Angket per Indikator
                         </h6>
-                        <small class="text-muted" style="font-size: 0.72rem;">Skala 1.0 - 5.0</small>
+                        <small class="text-muted" style="font-size: 0.72rem;">Skala 1.0 - 4.0</small>
                     </div>
                     <div class="chart-box">
                         <canvas id="chartRadarAngket"></canvas>
@@ -1139,7 +1139,7 @@
                         scales: {
                             r: {
                                 min: 0,
-                                max: 5.0,
+                                max: 4.0,
                                 ticks: { stepSize: 1.0, font: { size: 9 } },
                                 pointLabels: { font: { size: 10 } }
                             }

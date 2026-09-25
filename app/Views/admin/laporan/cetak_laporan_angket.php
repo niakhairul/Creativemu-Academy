@@ -8,7 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
         body {
             font-family: 'Times New Roman', Times, serif;
@@ -158,6 +158,7 @@
         }
 
         /* MEDIA PRINT */
+        @page { size: A4 landscape; margin: 12mm; }
         @media print {
             body { background: #fff !important; }
             .no-print-bar { display: none !important; }
@@ -190,7 +191,7 @@
 
     <!-- PRINT CONTAINER -->
     <div class="print-container">
-        
+
         <!-- 1. KOP SURAT RESMI -->
         <div class="kop-surat">
             <div>
@@ -224,7 +225,7 @@
             </tr>
             <tr>
                 <th>Rata-rata Nilai Angket</th>
-                <td><strong class="text-primary"><?= number_format($stats['avg_nilai_angket'], 2); ?> / 5.00</strong></td>
+                <td><strong class="text-primary"><?= number_format($stats['avg_nilai_angket'], 2); ?> / 4.00</strong></td>
                 <th>Persentase Kepuasan Peserta</th>
                 <td><strong class="text-success"><?= number_format($stats['persen_kepuasan'], 1); ?>%</strong></td>
             </tr>
@@ -238,7 +239,7 @@
                     <th width="5%">No</th>
                     <th>Indikator / Aspek Pertanyaan Evaluasi</th>
                     <th width="18%">Kategori</th>
-                    <th width="15%">Skor (Skala 1-5)</th>
+                    <th width="15%">Skor (Skala 1-4)</th>
                     <th width="15%">Persentase Kepuasan</th>
                 </tr>
             </thead>
@@ -248,8 +249,13 @@
                     <td class="text-center"><?= $iNo++; ?></td>
                     <td><?= esc($ind['judul']); ?></td>
                     <td class="text-center"><span class="badge bg-secondary text-white"><?= esc($ind['kategori']); ?></span></td>
-                    <td class="text-center fw-bold"><?= number_format($ind['nilai'], 2); ?></td>
-                    <td class="text-center fw-bold text-success"><?= number_format($ind['persentase'], 1); ?>%</td>
+                    <?php if (($ind['tipe'] ?? 'rating') === 'rating'): ?>
+                        <td class="text-center fw-bold"><?= number_format($ind['nilai'], 2); ?></td>
+                        <td class="text-center fw-bold text-success"><?= number_format($ind['persentase'], 1); ?>%</td>
+                    <?php else: ?>
+                        <td class="text-center text-muted fst-italic">Teks/Pilihan</td>
+                        <td class="text-center fw-bold text-info"><?= isset($ind['count']) ? number_format($ind['count']) : 0; ?> Respons</td>
+                    <?php endif; ?>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -264,7 +270,9 @@
                     <th>Nama Mentor</th>
                     <th>Pelatihan</th>
                     <th>Kelas Diampu</th>
-                    <th>Tempat Pelatihan</th>
+                    <th>Kantor Pusat</th>
+                      <th>Kantor Cabang</th>
+                      <th>Kantor<br>Perwakilan</th>
                     <th width="12%">Responden</th>
                     <th width="12%">Nilai Rata-rata</th>
                     <th width="12%">Kepuasan (%)</th>
@@ -282,15 +290,17 @@
                         </td>
                         <td><?= esc($m['pelatihan']); ?></td>
                         <td><?= esc($m['kelas']); ?></td>
-                        <td><?= esc($m['tempat_pelatihan'] ?? '-'); ?></td>
+                        <td class="text-center"><?= $m['responden_pusat'] ?: '-'; ?></td>
+                          <td class="text-center"><?= $m['responden_cabang'] ?: '-'; ?></td>
+                          <td class="text-center"><?= $m['responden_perwakilan'] ?: '-'; ?></td>
                         <td class="text-center"><?= number_format($m['jumlah_responden']); ?> Orang</td>
-                        <td class="text-center fw-bold text-primary"><?= number_format($m['nilai_rata'], 2); ?> / 5.00</td>
+                        <td class="text-center fw-bold text-primary"><?= number_format($m['nilai_rata'], 2); ?> / 4.00</td>
                         <td class="text-center fw-bold text-success"><?= number_format($m['persen_kepuasan'], 1); ?>%</td>
                         <td class="text-center"><strong><?= esc($m['predikat']); ?></strong></td>
                     </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <tr><td colspan="9" class="text-center py-3 text-muted">Tidak ada data angket mentor pada periode ini.</td></tr>
+                    <tr><td colspan="11" class="text-center py-4 text-muted">Tidak ada data pada filter yang dipilih.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>
@@ -303,11 +313,15 @@
             <div class="review-card">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                     <div>
-                        <strong><?= esc($rev['nama_peserta']); ?></strong> 
+                        <strong><?= esc($rev['nama_peserta']); ?></strong>
                         <span class="text-muted">(Kelas: <?= esc($rev['nama_kelas']); ?> | Mentor: <?= esc($rev['nama_mentor']); ?>)</span>
                     </div>
                     <div>
-                        <span class="text-warning fw-bold"><i class="fas fa-star"></i> <?= number_format($rev['rating'], 1); ?>/5.0</span>
+                        <?php if ($rev['rating'] > 0): ?>
+                            <span class="text-warning fw-bold"><i class="fas fa-star"></i> <?= number_format($rev['rating'], 1); ?>/4.0</span>
+                        <?php else: ?>
+                            <span class="text-info fw-bold"><i class="fas fa-comment-dots"></i> Feedback</span>
+                        <?php endif; ?>
                         <span class="text-muted ms-2 small"><?= esc($rev['tanggal']); ?></span>
                     </div>
                 </div>
@@ -318,15 +332,7 @@
         <?php endif; ?>
 
         <!-- 7. LEMBAR PENGESAHAN / TANDA TANGAN -->
-        <div class="ttd-section">
-            <div class="ttd-box">
-                <div>Yogyakarta, <?= date('d F Y'); ?></div>
-                <div class="fw-bold">Pimpinan CreativeMU Academy</div>
-                <div class="ttd-space"></div>
-                <div class="fw-bold text-decoration-underline">( Dr. H. Arifin Wicaksono, M.Kom )</div>
-                <div class="small text-muted">NIP: 19820415 200812 1 002</div>
-            </div>
-        </div>
+        <?= view('admin/laporan/components/ttd_pimpinan'); ?>
 
     </div>
 

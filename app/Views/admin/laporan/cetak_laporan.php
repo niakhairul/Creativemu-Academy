@@ -307,15 +307,7 @@
         </table>
 
         <!-- 6. LEMBAR PENGESAHAN / TANDA TANGAN -->
-        <div class="ttd-section">
-            <div class="ttd-box">
-                <div>Yogyakarta, <?= date('d F Y'); ?></div>
-                <div class="fw-bold">Pimpinan CreativeMU Academy</div>
-                <div class="ttd-space"></div>
-                <div class="fw-bold text-decoration-underline">( Dr. H. Arifin Wicaksono, M.Kom )</div>
-                <div class="small text-muted">NIP: 19820415 200812 1 002</div>
-            </div>
-        </div>
+        <?= view('admin/laporan/components/ttd_pimpinan'); ?>
 
     </div>
 
