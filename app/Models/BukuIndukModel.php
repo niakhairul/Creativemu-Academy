@@ -174,7 +174,7 @@ class BukuIndukModel extends Model
                 COALESCE(NULLIF(pendaftaran.pilihan_kelas, ""), kelas.nama_kelas, "-") AS pilihan_kelas,
                 COALESCE(NULLIF(pendaftaran.metode_pembelajaran, ""), "Offline") AS metode,
                 COALESCE(NULLIF(pendaftaran.jenis_kelas, ""), kelas.tipe_kelas, "Reguler") AS jenis_kelas,
-                COALESCE(NULLIF(pendaftaran.lokasi_pelatihan, ""), kelas.lokasi_media, "-") AS lokasi_pelatihan,
+                COALESCE(NULLIF(pendaftaran.lokasi_pelatihan, ""), kelas.lokasi_pelatihan, "-") AS lokasi_pelatihan,
                 COALESCE(NULLIF(pendaftaran.pendidikan_terakhir, ""), "-") AS pendidikan_terakhir,
                 COALESCE(NULLIF(pendaftaran.status, ""), "Aktif") AS status_peserta,
                 COALESCE(NULLIF(pendaftaran.no_hp, ""), users.no_hp, "-") AS no_whatsapp,

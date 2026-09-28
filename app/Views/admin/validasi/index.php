@@ -19,7 +19,6 @@ if (!function_exists('validasi_status_badge')) {
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <!-- Mengunci skala zoom agar tidak ikut membesar secara berlebihan -->
     <meta name="viewport" content="width=device-width, initial-scale=0.85, maximum-scale=1.0, user-scalable=no">
     <title><?= esc($title ?? 'Validasi Pendaftaran'); ?> - Creativemu Academy</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -39,7 +38,6 @@ if (!function_exists('validasi_status_badge')) {
         
         * { box-sizing: border-box; }
 
-        /* Mengatur skala dasar UI menjadi lebih ringkas & kompak (88%) */
         html {
             font-size: 88%;
             -webkit-text-size-adjust: 100%;
@@ -52,10 +50,9 @@ if (!function_exists('validasi_status_badge')) {
             background: #f7f5fd;
             color: #2f2442;
             overflow-x: hidden;
-            zoom: 0.9; /* Mengurangi skala default halaman */
+            zoom: 0.9;
         }
 
-        /* Sidebar Ringkas */
         .sidebar {
             width: 230px;
             background: var(--sidebar-bg);
@@ -95,7 +92,6 @@ if (!function_exists('validasi_status_badge')) {
             color: #fff;
         }
 
-        /* Main Section */
         .main {
             margin-left: 230px;
             width: calc(100% - 230px);
@@ -119,13 +115,11 @@ if (!function_exists('validasi_status_badge')) {
         .page-title { margin: 0; color: var(--dark); font-weight: 800; font-size: 1.25rem; }
         .page-subtitle { color: var(--muted); font-size: 0.78rem; margin: 2px 0 0; }
         
-        /* Admin Profile */
         .admin-profile { display: flex; gap: 8px; align-items: center; min-width: max-content; }
         .admin-profile img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); }
         .admin-profile h6 { margin: 0; color: var(--dark); font-weight: 700; font-size: 0.82rem; }
         .admin-profile small { color: var(--muted); font-size: 0.72rem; }
 
-        /* Metrics */
         .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
         .metric { border-radius: 12px; padding: 12px; }
         .metric-icon {
@@ -142,13 +136,11 @@ if (!function_exists('validasi_status_badge')) {
         .metric-label { color: var(--muted); font-size: 0.72rem; font-weight: 700; }
         .metric-value { font-size: 1.18rem; font-weight: 800; color: var(--dark); }
 
-        /* Panel & Filter */
         .panel { border-radius: 12px; padding: 14px; margin-bottom: 14px; }
         .filter-grid { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr auto; gap: 8px; align-items: end; }
         .form-label { font-size: 0.72rem; font-weight: 800; color: var(--dark); margin-bottom: 4px; }
         .form-control, .form-select { border-radius: 8px; border-color: var(--border); min-height: 34px; font-size: 0.8rem; padding: 4px 10px; }
         
-        /* Buttons */
         .btn-purple {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: #fff;
@@ -171,7 +163,6 @@ if (!function_exists('validasi_status_badge')) {
             font-size: 0.78rem;
         }
 
-        /* Table */
         .table-wrap { overflow-x: auto; }
         .table { margin: 0; vertical-align: middle; font-size: 0.8rem; }
         .table thead th {
@@ -185,7 +176,6 @@ if (!function_exists('validasi_status_badge')) {
         }
         .table tbody td { padding: 8px 10px; border-bottom: 1px solid #f0eafb; color: #443652; }
         
-        /* Badges */
         .nis-badge {
             display: inline-flex;
             border-radius: 999px;
@@ -202,7 +192,6 @@ if (!function_exists('validasi_status_badge')) {
         .actions { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
         .actions .btn-sm { font-size: 0.72rem; padding: 4px 8px; }
 
-        /* Cards Mobile & Detail */
         .mobile-list { display: none; }
         .validation-card { border-radius: 12px; padding: 12px; margin-bottom: 10px; }
         .card-row { display: flex; justify-content: space-between; gap: 8px; border-top: 1px solid #f0eafb; margin-top: 6px; padding-top: 6px; font-size: 0.78rem; }
@@ -218,7 +207,6 @@ if (!function_exists('validasi_status_badge')) {
         .modal-content { border: 0; border-radius: 14px; }
         .offcanvas { background: var(--sidebar-bg); color: var(--sidebar-text); }
 
-        /* Media Queries */
         @media(max-width: 1200px) {
             .filter-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
             .filter-actions { grid-column: 1/-1; display: flex; gap: 8px; }
@@ -227,7 +215,7 @@ if (!function_exists('validasi_status_badge')) {
             .metrics { grid-template-columns: repeat(2, minmax(0,1fr)); }
         }
         @media(max-width: 768px) {
-            body { zoom: 1; } /* Kembali normal di mobile agar pembacaan nyaman */
+            body { zoom: 1; }
             .sidebar { display: none; }
             .sidebar.show { display: block; }
             .mobile-menu { display: inline-flex; }
@@ -358,6 +346,8 @@ if (!function_exists('validasi_status_badge')) {
                 <div class="text-muted" style="font-size:0.75rem">Approve membuat NIS format YYMMNNNN. Reject tidak membuat NIS.</div>
             </div>
         </div>
+
+        <!-- TABEL DESKTOP -->
         <div class="desktop-table table-wrap">
             <table class="table table-hover">
                 <thead>
@@ -365,84 +355,75 @@ if (!function_exists('validasi_status_badge')) {
                 </thead>
                 <tbody>
                     <?php if (!empty($pendaftaran)): ?>
-                        <?php $no=1; foreach ($pendaftaran as $row): ?>
-                            <?php 
-                                [$statusLabel,$statusClass]=validasi_status_badge($row); 
-                                $modalId='validasiDetail'.(int)$row['id_pendaftaran']; 
-                                $isApproved=$statusLabel==='Disetujui'; 
-                                $isRejected=$statusLabel==='Ditolak'; 
-                                
-                                $metodeBayar = strtolower($row['metode_pembayaran'] ?? $row['metode_pembelajaran'] ?? '');
-                                $isCod = str_contains($metodeBayar, 'cod') || str_contains($metodeBayar, 'tempat') || str_contains($metodeBayar, 'tunai');
-                            ?>
+                        <?php $no = 1; foreach ($pendaftaran as $row): ?>
+                            <?php [$statusLabel, $statusClass] = validasi_status_badge($row); ?>
                             <tr>
+                                <?= '<input type="hidden" name="dummy" value="">'; // placeholder jika butuh ?>
                                 <td><?= $no++; ?></td>
                                 <td>
-                                    <strong><?= esc($row['nama'] ?? '-'); ?></strong>
-                                    <div class="text-muted" style="font-size:0.72rem"><?= esc($row['email'] ?? '-'); ?></div>
-                                    <?= !empty($row['nis']) ? '<span class="nis-badge mt-1">'.esc($row['nis']).'</span>' : '<span class="badge bg-warning-subtle text-warning-emphasis rounded-pill mt-1" style="font-size:0.68rem">NIS belum dibuat</span>'; ?>
+                                    <div class="fw-bold"><?= esc($row['nama'] ?? '-'); ?></div>
+                                    <div>
+                                        <?php if (!empty($row['nis'])): ?>
+                                            <span class="nis-badge"><?= esc($row['nis']); ?></span>
+                                        <?php else: ?>
+                                            <span class="text-muted" style="font-size:0.7rem;">Belum ada NIS</span>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                                 <td><?= esc($row['nama_kelas'] ?? $row['pilihan_kelas'] ?? '-'); ?></td>
-                                <td><?= esc(validasi_tanggal($row['created_at'] ?? null)); ?></td>
+                                <td><?= validasi_tanggal($row['created_at'] ?? null); ?></td>
                                 <td>
                                     <?php if (!empty($row['bukti_pembayaran'])): ?>
-                                        <a href="<?= base_url('uploads/bukti/' . $row['bukti_pembayaran']); ?>" target="_blank" class="btn btn-soft btn-sm"><i class="fas fa-receipt me-1"></i>Lihat</a>
-                                    <?php elseif ($isCod): ?>
-                                        <span class="badge bg-info-subtle text-info fw-bold px-2 py-1" style="font-size:0.7rem"><i class="fas fa-handshake me-1"></i>Bayar di Tempat (COD)</span>
+                                        <a href="<?= base_url('uploads/bukti/' . $row['bukti_pembayaran']); ?>" target="_blank" class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:0.7rem;">Lihat</a>
                                     <?php else: ?>
-                                        <span class="text-muted small">Belum ada bukti</span>
+                                        <span class="text-muted" style="font-size:0.7rem;">-</span>
                                     <?php endif; ?>
                                 </td>
                                 <td><span class="badge bg-<?= $statusClass; ?> badge-status"><?= esc($statusLabel); ?></span></td>
-                                <td>
+                                <td class="text-end">
                                     <div class="actions">
-                                        <button class="btn btn-soft btn-sm" data-bs-toggle="modal" data-bs-target="#<?= $modalId; ?>"><i class="fas fa-eye me-1"></i>Detail</button>
-                                        <?php if (!$isApproved): ?>
-                                            <a class="btn btn-success btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('Setujui pendaftaran ini dan buat NIS otomatis?')"><i class="fas fa-check me-1"></i>Setujui</a>
-                                        <?php endif; ?>
-                                        <?php if (!$isRejected): ?>
-                                            <a class="btn btn-danger btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" onclick="return confirm('Tolak pendaftaran ini? NIS tidak akan dibuat.')"><i class="fas fa-xmark me-1"></i>Tolak</a>
-                                        <?php endif; ?>
+                                        <button class="btn btn-soft btn-sm" data-bs-toggle="modal" data-bs-target="#validasiDetail<?= (int)$row['id_pendaftaran']; ?>">Detail</button>
                                     </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox fa-2x mb-2"></i><div>Belum ada data validasi.</div></div></td></tr>
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <i class="fas fa-inbox fa-2x mb-2"></i>
+                                <div>Belum ada data validasi.</div>
+                            </td>
+                        </tr>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
 
+        <!-- LIST MOBILE -->
         <div class="mobile-list">
             <?php if (!empty($pendaftaran)): ?>
                 <?php foreach ($pendaftaran as $row): ?>
-                    <?php 
-                        [$statusLabel,$statusClass]=validasi_status_badge($row); 
-                        $modalId='validasiMobile'.(int)$row['id_pendaftaran']; 
-                        $isApproved=$statusLabel==='Disetujui'; 
-                        $isRejected=$statusLabel==='Ditolak'; 
-                        $metodeBayar = strtolower($row['metode_pembayaran'] ?? $row['metode_pembelajaran'] ?? '');
-                        $isCod = str_contains($metodeBayar, 'cod') || str_contains($metodeBayar, 'tempat') || str_contains($metodeBayar, 'tunai');
-                    ?>
-                    <article class="validation-card">
-                        <div class="d-flex justify-content-between gap-2">
+                    <?php [$statusLabel, $statusClass] = validasi_status_badge($row); ?>
+                    <div class="validation-card">
+                        <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <strong><?= esc($row['nama'] ?? '-'); ?></strong>
-                                <div class="text-muted" style="font-size:0.72rem"><?= esc($row['email'] ?? '-'); ?></div>
+                                <h6 class="fw-bold mb-1" style="color:var(--dark); font-size:0.85rem;"><?= esc($row['nama'] ?? '-'); ?></h6>
+                                <div class="text-muted" style="font-size:0.72rem;"><?= esc($row['nama_kelas'] ?? $row['pilihan_kelas'] ?? '-'); ?></div>
                             </div>
-                            <span class="badge bg-<?= $statusClass; ?> badge-status align-self-start"><?= esc($statusLabel); ?></span>
+                            <span class="badge bg-<?= $statusClass; ?> badge-status"><?= esc($statusLabel); ?></span>
                         </div>
-                        <div class="card-row"><span>NIS</span><span><?= esc($row['nis'] ?: 'Belum dibuat'); ?></span></div>
-                        <div class="card-row"><span>Kelas</span><span><?= esc($row['nama_kelas'] ?? $row['pilihan_kelas'] ?? '-'); ?></span></div>
-                        <div class="card-row"><span>Metode / Bukti</span><span><?= $isCod ? 'Bayar di Tempat (COD)' : (!empty($row['bukti_pembayaran']) ? 'Ada Bukti Transfer' : 'Tidak ada'); ?></span></div>
-                        <div class="card-row"><span>Tanggal Daftar</span><span><?= esc(validasi_tanggal($row['created_at'] ?? null)); ?></span></div>
-                        <div class="actions mt-2">
-                            <button class="btn btn-soft btn-sm" data-bs-toggle="modal" data-bs-target="#<?= $modalId; ?>">Detail</button>
-                            <?php if (!$isApproved): ?><a class="btn btn-success btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('Setujui pendaftaran ini dan buat NIS otomatis?')">Setujui</a><?php endif; ?>
-                            <?php if (!$isRejected): ?><a class="btn btn-danger btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" onclick="return confirm('Tolak pendaftaran ini?')">Tolak</a><?php endif; ?>
+                        <div class="card-row">
+                            <span>NIS</span>
+                            <span><?= !empty($row['nis']) ? esc($row['nis']) : '-'; ?></span>
                         </div>
-                    </article>
+                        <div class="card-row">
+                            <span>Tanggal</span>
+                            <span><?= validasi_tanggal($row['created_at'] ?? null); ?></span>
+                        </div>
+                        <div class="mt-2 text-end">
+                            <button class="btn btn-soft btn-sm w-100" data-bs-toggle="modal" data-bs-target="#validasiMobile<?= (int)$row['id_pendaftaran']; ?>">Detail & Aksi</button>
+                        </div>
+                    </div>
                 <?php endforeach; ?>
             <?php else: ?>
                 <div class="empty-state"><i class="fas fa-inbox fa-2x mb-2"></i><div>Belum ada data validasi.</div></div>
@@ -472,8 +453,8 @@ if (!function_exists('validasi_status_badge')) {
 <?php foreach (($pendaftaran ?? []) as $row): ?>
     <?php foreach (['validasiDetail','validasiMobile'] as $prefix): ?>
         <?php 
-            $modalId=$prefix.(int)$row['id_pendaftaran']; 
-            [$statusLabel,$statusClass]=validasi_status_badge($row); 
+            $modalId = $prefix . (int)$row['id_pendaftaran']; 
+            [$statusLabel, $statusClass] = validasi_status_badge($row); 
             $metodeBayar = strtolower($row['metode_pembayaran'] ?? $row['metode_pembelajaran'] ?? '');
             $isCod = str_contains($metodeBayar, 'cod') || str_contains($metodeBayar, 'tempat') || str_contains($metodeBayar, 'tunai');
         ?>
@@ -506,7 +487,7 @@ if (!function_exists('validasi_status_badge')) {
                                 <div class="detail-item"><div class="detail-label">Kelas</div><div class="detail-value"><?= esc($row['nama_kelas'] ?? $row['pilihan_kelas'] ?? '-'); ?></div></div>
                                 <div class="detail-item"><div class="detail-label">Jenis Kelas</div><div class="detail-value"><?= esc($row['jenis_kelas'] ?? '-'); ?></div></div>
                                 <div class="detail-item"><div class="detail-label">Metode Pembelajaran</div><div class="detail-value"><?= esc($row['metode_pembelajaran'] ?? '-'); ?></div></div>
-                                <div class="detail-item"><div class="detail-label">Lokasi</div><div class="detail-value"><?= esc($row['lokasi_pelatihan'] ?? $row['lokasi_media'] ?? '-'); ?></div></div>
+                                <div class="detail-item"><div class="detail-label">Lokasi</div><div class="detail-value"><?= esc($row['lokasi_pelatihan'] ?? '-'); ?></div></div>
                                 <div class="detail-item"><div class="detail-label">Tanggal Mulai</div><div class="detail-value"><?= esc(validasi_tanggal($row['tanggal_mulai_kelas'] ?? $row['tanggal_mulai_master'] ?? null)); ?></div></div>
                                 <div class="detail-item"><div class="detail-label">Tanggal Daftar</div><div class="detail-value"><?= esc(validasi_tanggal($row['created_at'] ?? null)); ?></div></div>
                                 <div class="detail-item">
@@ -531,7 +512,7 @@ if (!function_exists('validasi_status_badge')) {
                             <a class="btn btn-success btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('Setujui pendaftaran ini dan buat NIS otomatis?')">Setujui</a>
                         <?php endif; ?>
                         <?php if ($statusLabel !== 'Ditolak'): ?>
-                            <a class="btn btn-danger btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" onclick="return confirm('Tolak pendaftaran me-1?')">Tolak</a>
+                            <a class="btn btn-danger btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" onclick="return confirm('Tolak pendaftaran ini?')">Tolak</a>
                         <?php endif; ?>
                     </div>
                 </div>

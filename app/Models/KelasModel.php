@@ -59,18 +59,30 @@ class KelasModel extends Model
         return $kelas;
     }
 
+    // Method baru khusus detail kelas untuk menghindari sisa cache error sintaks
+    public function getDetailKelasFix($id)
+    {
+        $db = \Config\Database::connect();
+
+        return $db->table('kelas')
+            ->select('kelas.*, mentor.nama_mentor, mentor.keahlian, mentor.email AS email_mentor, mentor.telepon AS telepon_mentor')
+            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+            ->where('kelas.id_kelas', $id)
+            ->get()
+            ->getRowArray();
+    }
+
     // Mengambil data detail satu kelas beserta informasi lengkap mentornya (Menggunakan Array Select)
+    // Mengambil data detail satu kelas beserta informasi mentor dengan aman
     public function getKelasByIdWithMentor($id)
     {
-        return $this->select([
-                        'kelas.*', 
-                        'mentor.nama_mentor', 
-                        'mentor.keahlian', 
-                        'mentor.email AS email_mentor', 
-                        'mentor.telepon AS telepon_mentor'
-                    ])
-                    ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-                    ->where('kelas.id_kelas', $id)
-                    ->first();
+        $db = \Config\Database::connect();
+
+        return $db->table('kelas')
+            ->select('kelas.*, mentor.nama_mentor, mentor.keahlian, mentor.email AS email_mentor, mentor.telepon AS telepon_mentor')
+            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+            ->where('kelas.id_kelas', $id)
+            ->get()
+            ->getRowArray();
     }
 }

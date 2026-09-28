@@ -103,7 +103,7 @@ class CompleteAcademyWorkflow extends Migration
             'harga' => ['type' => 'DECIMAL', 'constraint' => '12,2', 'default' => 0],
             'status' => ['type' => 'VARCHAR', 'constraint' => 30, 'default' => 'Aktif'],
             'tipe_kelas' => ['type' => 'VARCHAR', 'constraint' => 30, 'null' => true],
-            'lokasi_media' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
+            'lokasi_pelatihan' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
             'thumbnail' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
             'created_at' => ['type' => 'DATETIME', 'null' => true],
             'updated_at' => ['type' => 'DATETIME', 'null' => true],

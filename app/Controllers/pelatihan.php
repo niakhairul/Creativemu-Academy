@@ -123,83 +123,105 @@ class Pelatihan extends BaseController
 }
 
     public function dashboard()
-   {
-        $session = session();
-        $userId = $session->get('id_users') ?? session()->get('id_user');
-        $userEmail = $session->get('email');
+{
+    $session = session();
+    $userId = $session->get('id_users') ?? session()->get('id_user');
+    $userEmail = $session->get('email');
 
-        // Tangkap pilihan id_kelas dari URL (jika peserta mengklik kelas tertentu)
-        $idKelas = $this->request->getGet('id_kelas');
+    // Tangkap pilihan id_kelas dari URL (jika peserta mengklik kelas tertentu)
+    $idKelas = $this->request->getGet('id_kelas');
 
-        $pendaftaranModel = new \App\Models\PendaftaranModel();
-        $userModel = new \App\Models\UserModel();
-        $jadwalModel = new \App\Models\JadwalModel();
+    $pendaftaranModel = new \App\Models\PendaftaranModel();
+    $userModel = new \App\Models\UserModel();
+    $jadwalModel = new \App\Models\JadwalModel();
 
-        $pendaftaran = null;
-        if ($userId) {
-            $builder = $pendaftaranModel->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas as jadwal_kelas, mentor.nama_mentor')
-                ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-                ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-                ->where('pendaftaran.id_users', $userId);
+    // 1. AMBIL SEMUA DATA PENDAFTARAN PESERTA (Hanya kolom tabel pendaftaran, kelas, dan mentor yang aman)
+    $semuaPendaftaran = [];
+    if ($userId) {
+        $builder = $pendaftaranModel->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas as jadwal_kelas, mentor.nama_mentor')
+            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+            ->where('pendaftaran.id_users', $userId);
 
-            // Jika ada parameter id_kelas di URL, ambil kelas tersebut. Jika tidak, ambil yang terbaru.
-            if (!empty($idKelas)) {
-                $builder->where('pendaftaran.id_kelas', $idKelas);
+        $semuaPendaftaran = $builder->orderBy('pendaftaran.id_pendaftaran', 'DESC')->findAll();
+    }
+
+    if (empty($semuaPendaftaran) && $userEmail) {
+        $builder = $pendaftaranModel->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas as jadwal_kelas, mentor.nama_mentor')
+            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+            ->where('pendaftaran.email', $userEmail);
+
+        $semuaPendaftaran = $builder->orderBy('pendaftaran.id_pendaftaran', 'DESC')->findAll();
+    }
+
+    // 2. TENTUKAN KELAS AKTIF YANG SEDANG DILIHAT DETAILNYA
+    $pendaftaran = null;
+    if (!empty($semuaPendaftaran)) {
+        if (!empty($idKelas)) {
+            foreach ($semuaPendaftaran as $p) {
+                if ($p['id_kelas'] == $idKelas) {
+                    $pendaftaran = $p;
+                    break;
+                }
             }
-
-            $pendaftaran = $builder->orderBy('pendaftaran.id_pendaftaran', 'DESC')->first();
         }
-
-        if (!$pendaftaran && $userEmail) {
-            $builder = $pendaftaranModel->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas as jadwal_kelas, mentor.nama_mentor')
-                ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-                ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-                ->where('pendaftaran.email', $userEmail);
-
-            if (!empty($idKelas)) {
-                $builder->where('pendaftaran.id_kelas', $idKelas);
-            }
-
-            $pendaftaran = $builder->orderBy('pendaftaran.id_pendaftaran', 'DESC')->first();
+        // Jika tidak ada id_kelas di URL atau tidak ketemu, ambil yang pertama/terbaru
+        if (!$pendaftaran) {
+            $pendaftaran = $semuaPendaftaran[0];
         }
+    }
 
-        if ($pendaftaran) {
-            $pendaftaran['jadwal'] = $pendaftaran['jadwal_kelas'] ?? $pendaftaran['tanggal_mulai_kelas'] ?? '-';
-            $pendaftaran['nama_mentor'] = $pendaftaran['nama_mentor'] ?? 'Mentor Belum Ditentukan';
-        }
+    if ($pendaftaran) {
+        $pendaftaran['jadwal'] = $pendaftaran['jadwal_kelas'] ?? $pendaftaran['tanggal_mulai_kelas'] ?? '-';
+        $pendaftaran['nama_mentor'] = $pendaftaran['nama_mentor'] ?? 'Mentor Belum Ditentukan';
+    }
 
+    // Ambil data user dari database
+    $userData = null;
+    if ($userId) {
         $userData = $userModel->find($userId);
-        if (!$userData && $userEmail) {
-            $userData = $userModel->where('email', $userEmail)->first();
-        }
+    }
+    if (!$userData && $userEmail) {
+        $userData = $userModel->where('email', $userEmail)->first();
+    }
 
-        // Ambil daftar seluruh kelas yang pernah diikuti peserta untuk menu dropdown/pilihan di dashboard
-        $semuaKelasPeserta = [];
-        if ($userId) {
-            $semuaKelasPeserta = $pendaftaranModel->select('pendaftaran.id_kelas, kelas.nama_kelas')
-                ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-                ->where('pendaftaran.id_users', $userId)
-                ->findAll();
-        }
+    // Pastikan variabel $userData selalu berupa array dan memiliki key 'nama' & 'email'
+    if (!is_array($userData)) {
+        $userData = [];
+    }
+    if (empty($userData['nama'])) {
+        $userData['nama'] = $session->get('nama') 
+            ?? ($pendaftaran['nama'] ?? null) 
+            ?? 'Peserta';
+    }
+    if (empty($userData['email'])) {
+        $userData['email'] = $session->get('email') 
+            ?? ($pendaftaran['email'] ?? null) 
+            ?? '-';
+    }
 
-        $list_jadwal = [];
-        if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
-            $list_jadwal = $jadwalModel->select('jadwal.*, jadwal.absensi_dibuka')
-                                   ->where('id_kelas', $pendaftaran['id_kelas'])
-                                   ->orderBy('pertemuan_ke', 'ASC')
-                                   ->findAll();
-        }
+    $list_jadwal = [];
+    if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
+        $list_jadwal = $jadwalModel->select('jadwal.*, jadwal.absensi_dibuka')
+                                 ->where('id_kelas', $pendaftaran['id_kelas'])
+                                 ->orderBy('pertemuan_ke', 'ASC')
+                                 ->findAll();
+    }
 
-        $data = [
-            'title'               => 'Dashboard Peserta',
-            'pendaftaran'         => $pendaftaran,
-            'user'                => $userData ?? ['nama' => session()->get('nama') ?? 'Peserta'],
-            'list_jadwal'         => $list_jadwal,
-            'semua_kelas_peserta' => $semuaKelasPeserta, // Kirim variabel ini ke view
-        ];
+    $data = [
+        'title'               => 'Dashboard Peserta',
+        'pendaftaran'         => $pendaftaran,        
+        'semua_pendaftaran'   => $semuaPendaftaran,   
+        'user'                => $userData, 
+        'list_jadwal'         => $list_jadwal,
+        'semua_kelas_peserta' => $semuaPendaftaran,   
+    ];
 
-        return view('peserta/dashboard', $data);
-   }
+    return view('peserta/dashboard', $data);
+}
+
+
     public function profil()
     {
         if ($redirect = $this->requireLogin()) {

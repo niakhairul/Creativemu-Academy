@@ -354,7 +354,7 @@
                             </div>
                             <div class="col-md-6 mb-3" id="wrapper-lokasi-media">
                                 <label class="form-label" id="label-lokasi-media">Link Zoom / Platform Online</label>
-                                <input type="text" class="form-control" name="lokasi_media" id="input-lokasi-media" placeholder="Contoh: https://zoom.us/j/xxxxxx">
+                                <input type="text" class="form-control" name="lokasi_pelatihan" id="input-lokasi-media" placeholder="Contoh: https://zoom.us/j/xxxxxx">
                             </div>
                         </div>
 

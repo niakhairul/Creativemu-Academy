@@ -156,7 +156,7 @@
                 <div class="col-md-6">
                     <div class="info-box">
                         <span class="text-muted d-block" style="font-size: 0.7rem;"><i class="bi bi-geo-alt-fill text-primary me-1"></i> Lokasi / Media Kelas</span>
-                        <strong class="text-dark" style="font-size: 0.8rem;"><?= esc($kelas['lokasi_media'] ?? 'Belum diatur') ?></strong>
+                        <strong class="text-dark" style="font-size: 0.8rem;"><?= esc($kelas['lokasi_pelatihan'] ?? 'Belum diatur') ?></strong>
                     </div>
                 </div>
             </div>
