@@ -26,7 +26,7 @@ class KelasModel extends Model
         'harga_privat',
         'status',
         'tipe_kelas',
-        'lokasi_media',
+        'lokasi_pelatihan',
         'thumbnail'
     ];
 
@@ -34,34 +34,43 @@ class KelasModel extends Model
     // dan menghitung kapasitas yang masih tersedia
     public function getKelasWithMentor()
     {
-        $kelas = $this->select('kelas.*, mentor.nama_mentor')
-            ->join(
-                'mentor',
-                'mentor.id_mentor = kelas.id_mentor',
-                'left'
-            )
-            ->findAll();
-
         $db = \Config\Database::connect();
 
+        $kelas = $db->table('kelas')
+            ->select('kelas.*, mentor.nama_mentor')
+            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+            ->get()
+            ->getResultArray();
+
         foreach ($kelas as &$item) {
-
-            // Hitung jumlah peserta yang sudah disetujui
             $jumlahDisetujui = $db->table('pendaftaran')
-    ->where('id_kelas', $item['id_kelas'])
-    ->where('status_pembayaran', 'valid')
-    ->countAllResults();
+                ->where('id_kelas', $item['id_kelas'])
+                ->where('status_pembayaran', 'valid')
+                ->countAllResults();
 
-            // Hitung kapasitas yang masih tersedia
             $item['kapasitas_tersedia'] =
                 max(0, (int) $item['kapasitas'] - $jumlahDisetujui);
 
-            // Jumlah peserta yang sudah disetujui
             $item['jumlah_peserta'] = $jumlahDisetujui;
         }
 
         unset($item);
 
         return $kelas;
+    }
+
+    // Mengambil data detail satu kelas beserta informasi lengkap mentornya (Menggunakan Array Select)
+    public function getKelasByIdWithMentor($id)
+    {
+        return $this->select([
+                        'kelas.*', 
+                        'mentor.nama_mentor', 
+                        'mentor.keahlian', 
+                        'mentor.email AS email_mentor', 
+                        'mentor.telepon AS telepon_mentor'
+                    ])
+                    ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+                    ->where('kelas.id_kelas', $id)
+                    ->first();
     }
 }

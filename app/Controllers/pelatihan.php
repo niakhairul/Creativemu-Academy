@@ -1092,39 +1092,24 @@ if ($kelas && !empty($jadwal)) {
     ]);
 }
 
-    public function detail($id)
+    public function detailKelas($id = null)
 {
-    $kelasModel = new \App\Models\KelasModel();
-
-    // Mengambil data kelas berdasarkan ID beserta data mentornya
-    $data['kelas'] = $kelasModel
-        ->select('kelas.*, mentor.nama_mentor')
-        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-        ->find($id);
-
-    // Jika data kelas tidak ditemukan
-    if (empty($data['kelas'])) {
-        throw new \CodeIgniter\Exceptions\PageNotFoundException(
-            "Kelas dengan ID $id tidak ditemukan."
-        );
+    if ($id === null) {
+        return redirect()->to(base_url('admin/master-kelas'))->with('error', 'ID Kelas tidak valid.');
     }
 
-    // Hitung jumlah peserta yang sudah disetujui Admin
-    $db = \Config\Database::connect();
+    $kelasModel = new \App\Models\KelasModel();
+    
+    // Panggil method yang baru saja kita ubah
+    $data['kelas'] = $kelasModel->getKelasByIdWithMentor($id);
 
-    $jumlahDisetujui = $db->table('pendaftaran')
-        ->where('id_kelas', $id)
-        ->where('status_pembayaran', 'valid')
-        ->countAllResults();
+    if (empty($data['kelas'])) {
+        return redirect()->to(base_url('admin/master-kelas'))->with('error', 'Data kelas tidak ditemukan.');
+    }
 
-    // Hitung kapasitas yang masih tersedia
-    $data['kelas']['kapasitas_tersedia'] = max(
-        0,
-        (int) $data['kelas']['kapasitas'] - $jumlahDisetujui
-    );
+    $data['title'] = 'Detail Kelas: ' . $data['kelas']['nama_kelas'];
 
-    // Tampilkan ke view detail
-    return view('peserta/detail_kelas', $data);
+    return view('admin/master_kelas/detail', $data);
 }
 
     public function detailJadwal($idJadwal)

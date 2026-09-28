@@ -77,17 +77,21 @@ class LaporanMentorModel extends Model
     /**
      * Ambil daftar tempat pelatihan dari Master Kelas
      */
+    /**
+     * Ambil daftar tempat pelatihan dari Master Kelas
+     */
     public function getFilterTempatPelatihan(): array
     {
         $rows = $this->db->table('kelas')
-            ->select('lokasi_media')
+            ->select('lokasi_pelatihan AS tempat_pelatihan')
             ->distinct()
-            ->where('lokasi_media IS NOT NULL')
-            ->where('lokasi_media !=', '')
-            ->orderBy('lokasi_media', 'ASC')
+            ->where('lokasi_pelatihan IS NOT NULL')
+            ->where('lokasi_pelatihan !=', '')
+            ->orderBy('lokasi_pelatihan', 'ASC')
             ->get()->getResultArray();
 
-        return array_values(array_filter(array_column($rows, 'lokasi_media')));
+        // Ambil berdasarkan alias 'tempat_pelatihan' yang sudah dibentuk oleh select
+        return array_values(array_filter(array_column($rows, 'tempat_pelatihan')));
     }
 
     /**

@@ -38,7 +38,7 @@ class LaporanPesertaModel extends Model
     public function getFilterClasses(?int $idMentor = null): array
     {
         $builder = $this->db->table('kelas')
-            ->select('kelas.id_kelas, kelas.nama_kelas, kelas.kategori, kelas.lokasi_media, mentor.nama_mentor')
+            ->select('kelas.id_kelas, kelas.nama_kelas, kelas.kategori, mentor.nama_mentor') // [PERBAIKAN] Menghapus 'kelas.,' yang bikin syntax error #1064
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left');
 
         if ($idMentor !== null) {
@@ -71,14 +71,14 @@ class LaporanPesertaModel extends Model
     public function getFilterTempatPelatihan(): array
     {
         $rows = $this->db->table('kelas')
-            ->select('lokasi_media')
+            ->select('lokasi_pelatihan')
             ->distinct()
-            ->where('lokasi_media IS NOT NULL')
-            ->where('lokasi_media !=', '')
-            ->orderBy('lokasi_media', 'ASC')
+            ->where('lokasi_pelatihan IS NOT NULL')
+            ->where('lokasi_pelatihan !=', '')
+            ->orderBy('lokasi_pelatihan', 'ASC')
             ->get()->getResultArray();
 
-        return array_values(array_filter(array_column($rows, 'lokasi_media')));
+        return array_values(array_filter(array_column($rows, 'lokasi_pelatihan')));
     }
 
     /**
@@ -99,7 +99,7 @@ class LaporanPesertaModel extends Model
                 pendaftaran.created_at AS tanggal_daftar,
                 kelas.nama_kelas,
                 kelas.kategori,
-                kelas.lokasi_media AS tempat_pelatihan,
+                kelas.lokasi_pelatihan AS tempat_pelatihan,
                 kelas.tanggal_mulai_kelas,
                 kelas.jumlah_pertemuan,
                 kelas.kapasitas,
@@ -148,7 +148,7 @@ class LaporanPesertaModel extends Model
         }
 
         if (!empty($filters['tempat_pelatihan']) && $filters['tempat_pelatihan'] !== 'all') {
-            $builder->where('kelas.lokasi_media', $filters['tempat_pelatihan']);
+            $builder->where('kelas.lokasi_pelatihan', $filters['tempat_pelatihan']);
         }
 
         // Filter Mentor jika akses mentor
@@ -237,7 +237,6 @@ class LaporanPesertaModel extends Model
         // Hitung total kelas yang relevan
         $totalKelas = count($kelasIds);
         if ($totalKelas === 0) {
-            // Jika tidak ada peserta, cek apakah ada kelas yang terdaftar sesuai filter kategori/mentor
             $kBuilder = $this->db->table('kelas');
             if (!empty($filters['id_kelas']) && $filters['id_kelas'] !== 'all') {
                 $kBuilder->where('id_kelas', (int) $filters['id_kelas']);
@@ -267,7 +266,7 @@ class LaporanPesertaModel extends Model
     public function getInformasiPelatihan(array $filters): array
     {
         $kBuilder = $this->db->table('kelas')
-            ->select('kelas.*, kelas.lokasi_media AS tempat_pelatihan, mentor.nama_mentor')
+            ->select('kelas.*, kelas.lokasi_pelatihan AS tempat_pelatihan, mentor.nama_mentor')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left');
 
         if (!empty($filters['id_kelas']) && $filters['id_kelas'] !== 'all') {
@@ -280,12 +279,11 @@ class LaporanPesertaModel extends Model
             $kBuilder->where('kelas.id_mentor', (int) $filters['id_mentor']);
         }
         if (!empty($filters['tempat_pelatihan']) && $filters['tempat_pelatihan'] !== 'all') {
-            $kBuilder->where('kelas.lokasi_media', $filters['tempat_pelatihan']);
+            $kBuilder->where('kelas.lokasi_pelatihan', $filters['tempat_pelatihan']); // [PERBAIKAN] Memperbaiki typo 'lokasi_pealtihan'
         }
 
         $kelasList = $kBuilder->orderBy('kelas.nama_kelas', 'ASC')->get()->getResultArray();
 
-        // Hitung jumlah peserta terfilter untuk setiap kelas
         $tahun = !empty($filters['tahun']) ? (int) $filters['tahun'] : (int) date('Y');
         $periode = $filters['periode'] ?? 'tahunan';
         $bulan = !empty($filters['bulan']) ? (int) $filters['bulan'] : null;
@@ -364,7 +362,6 @@ class LaporanPesertaModel extends Model
     {
         $allFilteredRows = $this->buildFilteredBuilder($filters)->get()->getResultArray();
 
-        // 1. Grafik Batang: Peserta Per Kelas
         $kelasCount = [];
         foreach ($allFilteredRows as $row) {
             $namaKelas = $row['nama_kelas'] ?: 'Kelas Lainnya';
@@ -374,7 +371,6 @@ class LaporanPesertaModel extends Model
         $barLabels = array_keys($kelasCount);
         $barValues = array_values($kelasCount);
 
-        // Jika kosong, sediakan label kelas terdaftar agar grafik tidak kosong melompong
         if (empty($barLabels)) {
             $sampleKelas = $this->getFilterClasses($filters['id_mentor'] ?? null);
             foreach ($sampleKelas as $sk) {
@@ -383,7 +379,6 @@ class LaporanPesertaModel extends Model
             }
         }
 
-        // 2. Grafik Donat: Gender Peserta
         $lakiCount = 0;
         $perempuanCount = 0;
         foreach ($allFilteredRows as $row) {
@@ -395,7 +390,6 @@ class LaporanPesertaModel extends Model
             }
         }
 
-        // 3. Grafik Donat: Status Kelulusan
         $lulusCount = 0;
         $tidakLulusCount = 0;
         $prosesCount = 0;
@@ -410,7 +404,6 @@ class LaporanPesertaModel extends Model
             }
         }
 
-        // 4. Grafik Garis: Tren Perkembangan Peserta
         $tahun = !empty($filters['tahun']) ? (int) $filters['tahun'] : (int) date('Y');
         $isBulanan = (!empty($filters['periode']) && $filters['periode'] === 'bulanan');
 
@@ -418,7 +411,6 @@ class LaporanPesertaModel extends Model
             $bulan = (int) $filters['bulan'];
             $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun);
             
-            // Kelompokkan per minggu agar rapi
             $lineLabels = ['Mg 1 (Tgl 1-7)', 'Mg 2 (Tgl 8-14)', 'Mg 3 (Tgl 15-21)', 'Mg 4 (Tgl 22-28)', 'Mg 5 (Tgl 29-' . $daysInMonth . ')'];
             $lineValues = [0, 0, 0, 0, 0];
 
@@ -439,7 +431,6 @@ class LaporanPesertaModel extends Model
                 }
             }
         } else {
-            // Fallback tren bulanan 12 bulan
             $lineLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
             $lineValues = array_fill(0, 12, 0);
 
@@ -477,13 +468,12 @@ class LaporanPesertaModel extends Model
     /**
      * Ambil data detail peserta lengkap untuk tabel
      */
-    public function getDetailPeserta(array $filters): array
+    public function getDetailPeserta($filters = [])
     {
+        // [PERBAIKAN] Langsung gunakan buildFilteredBuilder agar bersih dan terhindar dari duplikasi query
         return $this->buildFilteredBuilder($filters)
             ->orderBy('pendaftaran.created_at', 'DESC')
             ->get()
             ->getResultArray();
     }
-
-    
 }

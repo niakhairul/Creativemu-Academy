@@ -68,6 +68,10 @@ class LaporanKehadiranModel extends Model
      */
     public function getFilterCategories(): array
     {
+        if (!$this->db->tableExists('kelas')) {
+            return [];
+        }
+
         $rows = $this->db->table('kelas')
             ->select('kategori')
             ->distinct()
@@ -84,8 +88,11 @@ class LaporanKehadiranModel extends Model
      */
     public function getFilterClasses(): array
     {
+        $hasLokasiMedia = $this->db->fieldExists('lokasi_media', 'kelas');
+        $lokasiField = $hasLokasiMedia ? 'kelas.lokasi_media' : "'-' AS lokasi_media";
+
         return $this->db->table('kelas')
-            ->select('kelas.id_kelas, kelas.nama_kelas, kelas.kategori, kelas.lokasi_media, mentor.nama_mentor')
+            ->select('kelas.id_kelas, kelas.nama_kelas, kelas.kategori, ' . $lokasiField . ', mentor.nama_mentor')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
             ->orderBy('kelas.nama_kelas', 'ASC')
             ->get()->getResultArray();
@@ -115,6 +122,10 @@ class LaporanKehadiranModel extends Model
      */
     public function getFilterTempatPelatihan(): array
     {
+        if (!$this->db->tableExists('kelas') || !$this->db->fieldExists('lokasi_media', 'kelas')) {
+            return [];
+        }
+
         $rows = $this->db->table('kelas')
             ->select('lokasi_media')
             ->distinct()
@@ -141,6 +152,9 @@ class LaporanKehadiranModel extends Model
         $keyword         = strtolower(trim((string) ($filters['keyword'] ?? '')));
         $tempatPelatihan = $filters['tempat_pelatihan'] ?? 'all';
 
+        $hasLokasiMedia = $this->db->fieldExists('lokasi_media', 'kelas');
+        $lokasiSelect = $hasLokasiMedia ? 'kelas.lokasi_media AS tempat_pelatihan' : "'-' AS tempat_pelatihan";
+
         // 1. Ambil pendaftaran peserta dengan relasi kelas & users
         $pBuilder = $this->db->table('pendaftaran')
             ->select('
@@ -154,7 +168,7 @@ class LaporanKehadiranModel extends Model
                 pendaftaran.created_at,
                 kelas.nama_kelas,
                 kelas.kategori,
-                kelas.lokasi_media AS tempat_pelatihan,
+                ' . $lokasiSelect . ',
                 kelas.id_mentor,
                 mentor.nama_mentor
             ')
@@ -174,20 +188,15 @@ class LaporanKehadiranModel extends Model
             $pBuilder->where('pendaftaran.id_pendaftaran', (int) $idPeserta);
         }
 
-        if ($tempatPelatihan !== 'all' && !empty($tempatPelatihan)) {
+        if ($hasLokasiMedia && $tempatPelatihan !== 'all' && !empty($tempatPelatihan)) {
             $pBuilder->where('kelas.lokasi_media', $tempatPelatihan);
-        }
-
-        // Filter periode tahunan/bulanan berdasarkan created_at pendaftaran jika diperlukan
-        if ($periode === 'bulanan' && $bulan) {
-            // Kita bisa fleksibel: jika ada absensi di bulan ini atau mendaftar di bulan ini
         }
 
         $pesertaRows = $pBuilder->orderBy('nama_lengkap', 'ASC')->get()->getResultArray();
 
         // 2. Ambil seluruh jadwal/pertemuan sesuai periode dan kelas
         $jBuilder = $this->db->table('jadwal')
-            ->select('jadwal.*, kelas.nama_kelas, kelas.lokasi_media AS tempat_pelatihan, mentor.nama_mentor')
+            ->select('jadwal.*, kelas.nama_kelas, ' . $lokasiSelect . ', mentor.nama_mentor')
             ->join('kelas', 'kelas.id_kelas = jadwal.id_kelas', 'left')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left');
 
@@ -226,7 +235,6 @@ class LaporanKehadiranModel extends Model
             $kelasId = (int) $peserta['id_kelas'];
             $userId  = (int) $peserta['id_users'];
             
-            // Cari user ID alternatif jika di pendaftaran belum terisi tapi email/nama cocok di tabel users
             if ($userId <= 0 && !empty($peserta['email'])) {
                 $uMatch = $this->db->table('users')->where('email', $peserta['email'])->get()->getRowArray();
                 if ($uMatch) {
@@ -237,9 +245,7 @@ class LaporanKehadiranModel extends Model
             $schedules = $jadwalPerKelas[$kelasId] ?? [];
             $totalPertemuan = count($schedules);
 
-            // Jika kelas belum memiliki jadwal di tabel jadwal, gunakan baseline standar (misal 4 pertemuan)
             if ($totalPertemuan === 0) {
-                // Ambil jadwal umum kelas dari tabel jadwal tanpa filter tahun jika tahun ini belum ada
                 $fallbackJadwal = $this->db->table('jadwal')->where('id_kelas', $kelasId)->get()->getResultArray();
                 $totalPertemuan = count($fallbackJadwal) > 0 ? count($fallbackJadwal) : 4;
             }
@@ -250,7 +256,6 @@ class LaporanKehadiranModel extends Model
             $alpaCount      = 0;
             $terlambatCount = 0;
 
-            // Hitung presensi peserta di tiap jadwal
             foreach ($schedules as $sch) {
                 $schId = (int) $sch['id_jadwal'];
                 $schDate = $sch['tanggal_kbm'];
@@ -271,7 +276,6 @@ class LaporanKehadiranModel extends Model
                     $st = strtolower(trim((string) $foundAbsensi['status']));
                     $waktuAbsen = $foundAbsensi['waktu_absen'] ?? null;
 
-                    // Cek keterlambatan (> 15 menit dari jam mulai)
                     $isLate = false;
                     if ($st === 'terlambat') {
                         $isLate = true;
@@ -295,7 +299,6 @@ class LaporanKehadiranModel extends Model
                         $alpaCount++;
                     }
                 } else {
-                    // Jika sesi sudah berlalu, anggap alpa; jika belum, tidak dihitung alpa
                     $schTimestamp = strtotime($schDate . ' ' . $schTime);
                     if ($schTimestamp && $schTimestamp < time()) {
                         $alpaCount++;
@@ -303,38 +306,25 @@ class LaporanKehadiranModel extends Model
                 }
             }
 
-            // Jika peserta belum ada presensi sama sekali di database dan total jadwal sudah lewat, berikan simulasi proporsional
             if (($hadirCount + $izinCount + $sakitCount + $alpaCount + $terlambatCount) === 0) {
-                // Tentukan data kehadiran realistis berdasarkan keaktifan siswa di pendaftaran
                 $idP = (int) $peserta['id_pendaftaran'];
                 if ($idP % 3 === 0) {
                     $hadirCount     = max(0, $totalPertemuan - 1);
                     $terlambatCount = 1;
-                    $izinCount      = 0;
-                    $sakitCount     = 0;
-                    $alpaCount      = 0;
                 } elseif ($idP % 2 === 0) {
                     $hadirCount     = max(0, $totalPertemuan - 2);
                     $izinCount      = 1;
-                    $sakitCount     = 0;
-                    $terlambatCount = 0;
                     $alpaCount      = max(0, $totalPertemuan - ($hadirCount + 1));
                 } else {
                     $hadirCount     = $totalPertemuan;
-                    $terlambatCount = 0;
-                    $izinCount      = 0;
-                    $sakitCount     = 0;
-                    $alpaCount      = 0;
                 }
             }
 
-            // Kalkulasi persentase kehadiran: (Hadir + Terlambat) / Total Pertemuan
             $totalRecorded = $hadirCount + $izinCount + $sakitCount + $alpaCount + $terlambatCount;
             $denominator   = max($totalPertemuan, $totalRecorded, 1);
             $persenHadir   = round((($hadirCount + $terlambatCount) / $denominator) * 100, 1);
             if ($persenHadir > 100) $persenHadir = 100.0;
 
-            // Tentukan status monitoring (Baik, Cukup, Perlu Perhatian)
             if ($persenHadir >= 85) {
                 $predikat   = 'Baik';
                 $badgeClass = 'bg-success';
@@ -369,7 +359,6 @@ class LaporanKehadiranModel extends Model
                 'badge_class'          => $badgeClass,
             ];
 
-            // Filter keyword (nama, nis, kelas, email)
             if (!empty($keyword)) {
                 $targetStr = strtolower($item['nama_peserta'] . ' ' . $item['nis'] . ' ' . $item['kelas'] . ' ' . $item['email']);
                 if (strpos($targetStr, $keyword) === false) {
@@ -377,7 +366,6 @@ class LaporanKehadiranModel extends Model
                 }
             }
 
-            // Filter status kehadiran
             if ($statusFilter !== 'all' && !empty($statusFilter)) {
                 if ($statusFilter === 'hadir' && $item['hadir'] === 0) continue;
                 if ($statusFilter === 'izin' && $item['izin'] === 0) continue;
@@ -469,17 +457,13 @@ class LaporanKehadiranModel extends Model
     }
 
     /**
-     * Ambil data terstruktur untuk 3 grafik Chart.js:
-     * 1. Donut: Persentase status kehadiran (Hadir, Izin, Sakit, Alpa, Terlambat)
-     * 2. Bar: Rata-rata kehadiran per kelas
-     * 3. Line: Tren kehadiran per bulan (12 bulan)
+     * Ambil data terstruktur untuk 3 grafik Chart.js
      */
     public function getChartData(array $filters): array
     {
         $stats = $this->getRingkasanStats($filters);
         $list  = $this->getLaporanKehadiranList($filters);
 
-        // 1. Chart Donut: Distribusi Status Kehadiran
         $donutLabels = ['Hadir Tepat Waktu', 'Terlambat', 'Izin', 'Sakit', 'Alpa'];
         $donutData   = [
             $stats['total_hadir'],
@@ -493,7 +477,6 @@ class LaporanKehadiranModel extends Model
             $donutData = [12, 2, 1, 1, 0];
         }
 
-        // 2. Chart Bar: Kehadiran Rata-rata per Kelas
         $kelasMap = [];
         foreach ($list as $item) {
             $kName = $item['kelas'];
@@ -517,7 +500,6 @@ class LaporanKehadiranModel extends Model
             $barData   = [95.0, 92.5];
         }
 
-        // 3. Chart Line: Tren Kehadiran per Bulan (12 Bulan)
         $monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         $trenBulanan = [91.2, 92.0, 93.5, 92.8, 94.0, 95.2, 94.8, 96.0, 95.5, 96.2, 96.8, 97.0];
 
@@ -538,11 +520,13 @@ class LaporanKehadiranModel extends Model
     }
 
     /**
-     * Ambil detail riwayat kehadiran peserta per pertemuan (untuk modal interaktif)
+     * Ambil detail riwayat kehadiran peserta per pertemuan
      */
     public function getDetailRiwayatPeserta(int $idPendaftaran, array $filters = []): ?array
     {
-        // Cari data peserta dari pendaftaran
+        $hasLokasiMedia = $this->db->fieldExists('lokasi_media', 'kelas');
+        $lokasiSelect = $hasLokasiMedia ? 'kelas.lokasi_media AS tempat_pelatihan' : "'-' AS tempat_pelatihan";
+
         $peserta = $this->db->table('pendaftaran')
             ->select('
                 pendaftaran.*,
@@ -552,7 +536,7 @@ class LaporanKehadiranModel extends Model
                 COALESCE(NULLIF(pendaftaran.no_hp, ""), users.no_hp) AS no_hp,
                 kelas.nama_kelas,
                 kelas.kategori,
-                kelas.lokasi_media AS tempat_pelatihan,
+                ' . $lokasiSelect . ',
                 mentor.nama_mentor
             ')
             ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
@@ -573,14 +557,12 @@ class LaporanKehadiranModel extends Model
             if ($uMatch) $userId = (int) $uMatch['id_users'];
         }
 
-        // Ambil jadwal untuk kelas ini
         $schedules = $this->db->table('jadwal')
             ->where('id_kelas', $kelasId)
             ->orderBy('pertemuan_ke', 'ASC')
             ->orderBy('tanggal_kbm', 'ASC')
             ->get()->getResultArray();
 
-        // Jika jadwal kosong, sediakan jadwal standar
         if (empty($schedules)) {
             $schedules = [
                 ['id_jadwal' => 1, 'pertemuan_ke' => 1, 'tanggal_kbm' => '2026-09-02', 'waktu_mulai' => '13:00:00', 'waktu_selesai' => '16:00:00', 'materi' => 'Pengenalan & Instalasi Lingkungan Kerja'],
@@ -646,7 +628,6 @@ class LaporanKehadiranModel extends Model
                     $totalHadir++;
                 }
             } else {
-                // Sesi kehadiran default
                 $status = 'Hadir';
                 $badgeClass = 'bg-success';
                 $jamMasuk = $wMulai . ' WIB';

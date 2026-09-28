@@ -939,9 +939,9 @@
                                 </td>
                                 <td><span class="badge bg-light text-dark border"><?= esc($m['pelatihan']); ?></span></td>
                                 <td><span class="fw-semibold text-secondary small"><?= esc($m['kelas']); ?></span></td>
-                                  <td class="text-center fw-semibold text-dark"><?= $m['responden_pusat'] > 0 ? number_format($m['responden_pusat']) : '-'; ?></td>
-                                  <td class="text-center fw-semibold text-dark"><?= $m['responden_cabang'] > 0 ? number_format($m['responden_cabang']) : '-'; ?></td>
-                                  <td class="text-center fw-semibold text-dark"><?= $m['responden_perwakilan'] > 0 ? number_format($m['responden_perwakilan']) : '-'; ?></td>
+                                <td class="text-center fw-semibold text-dark"><?= ($m['responden_pusat'] ?? 0) > 0 ? number_format($m['responden_pusat']) : '-'; ?></td>
+                                <td class="text-center fw-semibold text-dark"><?= ($m['responden_cabang'] ?? 0) > 0 ? number_format($m['responden_cabang']) : '-'; ?></td>
+                                <td class="text-center fw-semibold text-dark"><?= ($m['responden_perwakilan'] ?? 0) > 0 ? number_format($m['responden_perwakilan']) : '-'; ?></td>
                                 <td class="text-center">
                                     <span class="fw-bold text-dark"><?= number_format($m['jumlah_responden']); ?></span>
                                     <span class="text-muted small"> Siswa</span>

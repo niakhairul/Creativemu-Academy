@@ -308,7 +308,7 @@ public function masterKelas()
 
     'tipe_kelas'          => $this->request->getPost('tipe_kelas'),
 
-    'lokasi_media'    => $this->request->getPost('lokasi_media') ?: '-',
+    'lokasi_pelatihan'    => $this->request->getPost('lokasi_pelatihan') ?: '-',
 
     'thumbnail'           => $namaThumbnail,
 
@@ -408,7 +408,7 @@ public function masterKelas()
 
     'status'              => $this->request->getPost('status'),
 
-    'lokasi_media'    => $this->request->getPost('lokasi_media') ?: '-',
+    'lokasi_pelatihan'    => $this->request->getPost('lokasi_pelatihan') ?: '-',
 
 ];
 
@@ -1388,7 +1388,7 @@ $data = [
 
                     kelas.kategori AS kategori_kelas_master,
 
-                    COALESCE(NULLIF(kelas.lokasi_media, "-"), NULLIF(kelas.lokasi_media, ""), pendaftaran.lokasi_pelatihan, "-") AS tempat_pelatihan
+                    COALESCE(NULLIF(kelas.lokasi_pelatihan, "-"), NULLIF(kelas.lokasi_pelatihan, ""), pendaftaran.lokasi_pelatihan, "-") AS tempat_pelatihan
 
                 ')
 
@@ -1436,7 +1436,7 @@ $data = [
 
                 $builder->groupStart()
 
-                    ->where('kelas.lokasi_media', $tempatPelatihan)
+                    ->where('kelas.lokasi_pelatihan', $tempatPelatihan)
 
                     ->orWhere('pendaftaran.lokasi_pelatihan', $tempatPelatihan)
 
@@ -1537,12 +1537,18 @@ $data = [
         // Ambil opsi tempat pelatihan unik yang tidak kosong
 
         $tempatPelatihanOptions = $db->table('kelas')
-            ->select('lokasi_media AS lokasi_pelatihan')
-            ->where('lokasi_media IS NOT NULL')
-            ->where('lokasi_media !=', '')
-            ->where('lokasi_media !=', '-')
-            ->groupBy('lokasi_media')
-            ->orderBy('lokasi_media', 'ASC')
+
+            ->select('lokasi_pelatihan AS lokasi_pelatihan')
+
+            ->where('lokasi_pelatihan IS NOT NULL')
+
+            ->where('lokasi_pelatihan !=', '')
+
+            ->where('lokasi_pelatihan !=', '-')
+
+            ->groupBy('lokasi_pelatihan')
+
+            ->orderBy('lokasi_pelatihan', 'ASC')
 
             ->get()
 
@@ -1679,13 +1685,11 @@ $data = [
         $bulan = trim((string) ($this->request->getGet('bulan') ?? '')); // <-- 1. Tangkap parameter bulan
 
 
-
         $builder = $db->table('pendaftaran')
 
-            ->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas AS tanggal_mulai_master, kelas.lokasi_media')
+            ->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas AS tanggal_mulai_master')
 
             ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left');
-
 
 
         if ($keyword !== '') {
@@ -2364,7 +2368,7 @@ private function generateNisPendaftaran($db, array $pendaftaran): string
 
         ->select('aq.*')
 
-        ->select('kelas.nama_kelas, kelas.tanggal_mulai_kelas, kelas.lokasi_media')
+        ->select('kelas.nama_kelas, kelas.tanggal_mulai_kelas, kelas.lokasi_pelatihan')
 
         ->select('mentor.nama_mentor')
 
@@ -2738,7 +2742,7 @@ public function update($id)
 
     $angket = $db->table('angket_pertanyaan aq')
 
-        ->select('aq.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas, kelas.lokasi_media, mentor.nama_mentor')
+        ->select('aq.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas, kelas.lokasi_pelatihan, mentor.nama_mentor')
 
         ->join('kelas', 'kelas.id_kelas = aq.id_kelas', 'left')
 
@@ -4287,77 +4291,41 @@ public function downloadFileSertifikat($id)
 
 
     public function updatePengaturan()
-
     {
-
         $session = session();
-
         $userId = $session->get('id_users');
 
-
-
         $namaAdmin    = $this->request->getPost('nama_admin');
-
         $emailAdmin   = $this->request->getPost('email_admin');
-
         $passwordBaru = $this->request->getPost('password_baru');
 
-
-
         $dataUpdate = [
-
             'nama'  => $namaAdmin,
-
             'email' => $emailAdmin
-
         ];
 
-
-
         $fileFoto = $this->request->getFile('foto_profil');
-
         if ($fileFoto && $fileFoto->isValid() && !$fileFoto->hasMoved()) {
-
             $namaFile = $fileFoto->getRandomName();
-
             $fileFoto->move('assets/img', $namaFile);
 
-
-
             $dataUpdate['foto_profil'] = $namaFile;
-
             $session->set('foto_profil', $namaFile);
-
         }
-
-
 
         if (!empty($passwordBaru)) {
-
-            $dataUpdate['password'] = password_hash($passwordBaru, PASSWORD_DEFAULT);
-
+            $dataUpdate['password'] = password_hash($passwordBaru, PASSWORD_DEFAULT); // <-- Diperbaiki dari $password_baru menjadi $passwordBaru
         }
 
-
-
         $db = \Config\Database::connect();
-
         $db->table('users')
-
            ->where('id_users', $userId)
-
            ->update($dataUpdate);
 
-
-
         $session->set('nama', $namaAdmin);
-
         $session->set('email', $emailAdmin);
 
-
-
         return redirect()->to(base_url('admin/pengaturan'))->with('success', 'Pengaturan berhasil diperbarui!');
-
     }
 
 

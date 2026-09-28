@@ -481,7 +481,7 @@
                                 : base_url('assets/img/default-class.jpg');
 
                             $isOnline = strtolower($k['tipe_kelas'] ?? '') === 'online';
-                            $lokasi = $isOnline ? 'Online (Virtual Class)' : (!empty($k['lokasi_media']) && $k['lokasi_media'] !== '-' ? $k['lokasi_media'] : 'Kantor Pusat Yogyakarta');
+                            $lokasi = $isOnline ? 'Online (Virtual Class)' : (!empty($k['lokasi_pelatihan']) && $k['lokasi_pelatihan'] !== '-' ? $k['lokasi_pelatihan'] : 'Kantor Pusat Yogyakarta');
                         ?>
                         <div class="col-xl-4 col-md-6 col-12">
                             <div class="course-card">
