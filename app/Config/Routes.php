@@ -27,6 +27,9 @@ $routes->get('pelatihan/pendaftaran', 'Pelatihan::pendaftaran');
 $routes->post('pendaftaran/store', 'PendaftaranController::store');
 $routes->get('pendaftaran/sukses', 'PendaftaranController::sukses');
 
+// Rute Detail Pendaftaran Peserta (Baru ditambahkan)
+$routes->get('pelatihan/detailPendaftaran/(:num)', 'Pelatihan::detailPendaftaran/$1');
+
 // Rute Daftar & Simpan Pendaftaran
 $routes->get('pelatihan/daftar', 'Pelatihan::daftar');
 $routes->match(['get', 'post'], 'pelatihan/simpan-pendaftaran', 'Pelatihan::simpanPendaftaran');
@@ -104,11 +107,7 @@ $routes->post('pelatihan/update-password', 'Pelatihan::updatePassword');
 // ===== MENU ABSENSI PESERTA =====
 $routes->get('pelatihan/absensi', 'Pelatihan::absensi');
 $routes->match(['get', 'post'], 'peserta/proses-absen', 'Pelatihan::prosesAbsen');
-//$routes->post('peserta/proses-absen', 'Peserta::prosesAbsen'); // Sesuaikan nama controller peserta jika berbeda
 $routes->post('pelatihan/proses-absen/(:num)', 'Pelatihan::prosesAbsen/$1');
-
-// === UBAH BAGIAN INI DENGAN MEMBERI KOMENTAR (//) ===
-// $routes->match(['get', 'post'], 'peserta/proses-absen', 'Peserta::prosesAbsen');
 
 $routes->get('mentor/kelas/(:num)/buka-absen/(:num)', 'Mentor::bukaAbsen/$1/$2');
 $routes->get('mentor/kelas/(:num)/tutup-absen/(:num)', 'Mentor::tutupAbsen/$1/$2');
@@ -125,7 +124,7 @@ $routes->group('admin', function($routes) {
     $routes->get('master-kelas/jadwal/(:num)', 'Admin::jadwalKelas/$1');
     $routes->match(['get', 'post'], 'jadwal/tambah', 'Admin::simpanJadwal'); 
     $routes->match(['get', 'post'], 'jadwal/update/(:num)', 'Admin::updateJadwal/$1');
-    $routes->get('jadwal/hapus/(:num)', 'Admin::hapusJadwal/$1');// <--- TAMBAHKAN BARIS INI DI SINI
+    $routes->get('jadwal/hapus/(:num)', 'Admin::hapusJadwal/$1');
     $routes->match(['get', 'post'], 'master-kelas/tambah', 'Admin::simpanKelas');
     $routes->match(['get', 'post'], 'master-kelas/update/(:num)', 'Admin::updateKelas/$1');
     $routes->match(['get', 'post'], 'master-kelas/store', 'Admin::simpanKelas');
@@ -224,7 +223,6 @@ $routes->group('mentor', function($routes) {
     $routes->post('kelas/(:num)/absensi/sesi', 'Mentor::simpanJadwal/$1');
     $routes->post('kelas/(:num)/absensi/(:num)', 'Mentor::simpanAbsensi/$1/$2');
     
-    // Perbaiki baris rute live token di sini (cukup satu dan sesuaikan jalurnya)
     $routes->get('jadwal/get-live-token/(:num)', 'Mentor::getLiveToken/$1');
 
     $routes->post('kelas/(:num)/absensi/(:num)/buka', 'Mentor::bukaAbsensi/$1/$2');
@@ -240,7 +238,6 @@ $routes->group('mentor', function($routes) {
     $routes->post('kelas/(:num)/materi/(:num)', 'Mentor::ubahMateri/$1/$2');
     $routes->post('kelas/(:num)/materi/(:num)/hapus', 'Mentor::hapusMateri/$1/$2');
     
-    // Submenu Laporan Mentor
     $routes->get('laporan', 'LaporanPesertaController::index');
     $routes->get('laporan-peserta', 'LaporanPesertaController::index');
     $routes->get('laporan/export-excel', 'LaporanPesertaController::exportExcel');
@@ -252,7 +249,6 @@ $routes->group('mentor', function($routes) {
     $routes->get('laporan-mentor/export-pdf', 'LaporanMentorController::cetak');
     $routes->get('laporan-mentor/detail/(:num)', 'LaporanMentorController::detailAjax/$1');
 
-    // Submenu Laporan Angket Mentor
     $routes->get('laporan-angket', 'LaporanAngketController::index');
     $routes->get('laporan-angket/export-excel', 'LaporanAngketController::exportExcel');
     $routes->get('laporan-angket/cetak', 'LaporanAngketController::cetak');
@@ -260,7 +256,6 @@ $routes->group('mentor', function($routes) {
     $routes->get('laporan-angket/detail-komentar/(:num)', 'LaporanAngketController::detailKomentarAjax/$1');
     $routes->get('laporan-angket/detail-komentar', 'LaporanAngketController::detailKomentarAjax');
 
-    // Submenu Laporan Kehadiran Peserta
     $routes->get('laporan-kehadiran', 'LaporanKehadiranController::index');
     $routes->get('laporan-kehadiran/export-excel', 'LaporanKehadiranController::exportExcel');
     $routes->get('laporan-kehadiran/cetak', 'LaporanKehadiranController::cetak');

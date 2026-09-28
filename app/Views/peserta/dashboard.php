@@ -380,7 +380,7 @@
     <div class="main-content">
         <div class="container-fluid py-2">
 
-            <!-- HEADER SAMBUTAN & DROPDOWN PILIHAN KELAS AKTIF (DIPERBAIKI) -->
+            <!-- HEADER SAMBUTAN & DROPDOWN PILIHAN KELAS AKTIF -->
             <div class="row mb-4 align-items-center">
                 <div class="col-lg-7 mb-3 mb-lg-0">
                     <h2 class="fw-bold mb-1" style="color: #5b3fd6;">
@@ -391,7 +391,7 @@
                     </p>
                 </div>
                 
-                <!-- DROPDOWN PILL PILIHAN KELAS AKTIF YANG ELEGAN -->
+                <!-- DROPDOWN PILL PILIHAN KELAS AKTIF -->
                 <div class="col-lg-5 text-lg-end">
                     <?php if (!empty($semua_kelas_peserta) && count($semua_kelas_peserta) > 0): ?>
                         <div class="dropdown d-inline-block w-100" style="max-width: 300px;">
@@ -591,8 +591,11 @@
                                                         <i class="bi <?= $statusIcon ?> me-1"></i> <?= $labelStatus ?>
                                                     </span>
                                                     <div>
-                                                        <?php $idDetail = $kelasItem['id_kelas'] ?? ''; ?>
-                                                        <a href="<?= base_url('peserta/dashboard?id_kelas=' . $idDetail) ?>" class="text-decoration-none fw-bold text-purple-custom" style="font-size: 0.75rem;">
+                                                        <?php 
+                                                        // Diperbaiki menggunakan id_pendaftaran agar mengarah ke halaman detail pendaftaran
+                                                        $idPendaftaranItem = $kelasItem['id_pendaftaran'] ?? ''; 
+                                                        ?>
+                                                        <a href="<?= base_url('pelatihan/detailPendaftaran/' . $idPendaftaranItem) ?>" class="text-decoration-none fw-bold text-purple-custom" style="font-size: 0.75rem;">
                                                             Detail &rarr;
                                                         </a>
                                                     </div>
@@ -600,9 +603,6 @@
                                             </div>
                                         </div>
                                     <?php endforeach; ?>
-                                    <a href="<?= base_url('pelatihan/daftar-kelas') ?>" class="btn-tambah-kelas-bottom mt-2">
-                                        <i class="bi bi-plus-circle me-2"></i> Tambah Kelas Lainnya
-                                    </a>
                                 </div>
                             <?php endif; ?>
 

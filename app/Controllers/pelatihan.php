@@ -128,8 +128,8 @@ class Pelatihan extends BaseController
     $userId = $session->get('id_users') ?? session()->get('id_user');
     $userEmail = $session->get('email');
 
-    // Tangkap pilihan id_kelas dari URL (jika peserta mengklik kelas tertentu)
-    $idKelas = $this->request->getGet('id_kelas');
+    $idKelasDipilih = $this->request->getGet('id_kelas');
+  
 
     $pendaftaranModel = new \App\Models\PendaftaranModel();
     $userModel = new \App\Models\UserModel();
@@ -919,6 +919,53 @@ public function setujuiPendaftaran($id_pendaftaran)
     return view('peserta/daftar_kelas', $data);
 }
 
+    public function detailPendaftaran($id_pendaftaran = null)
+{
+    if ($redirect = $this->requireLogin()) {
+        return $redirect;
+    }
+
+    $db = \Config\Database::connect();
+    $userId = $this->userId();
+
+    // Pastikan id_pendaftaran ada
+    if (!$id_pendaftaran) {
+        // Coba ambil pendaftaran terbaru milik user jika parameter URL kosong
+        $pendaftaranTerakhir = $db->table('pendaftaran')
+            ->where('id_users', $userId)
+            ->orderBy('id_pendaftaran', 'DESC')
+            ->get()
+            ->getRowArray();
+
+        if ($pendaftaranTerakhir) {
+            $id_pendaftaran = $pendaftaranTerakhir['id_pendaftaran'];
+        } else {
+            return redirect()->to(base_url('peserta/dashboard'))->with('error', 'Belum ada data pendaftaran yang ditemukan.');
+        }
+    }
+
+    // Ambil data pendaftaran secara lengkap beserta relasi kelas dan mentor
+    $detail = $db->table('pendaftaran')
+        ->select('pendaftaran.*, kelas.nama_kelas, kelas.deskripsi, kelas.tipe_kelas, kelas.tanggal_mulai_kelas, kelas.kapasitas, mentor.nama_mentor')
+        ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+        ->where('pendaftaran.id_pendaftaran', $id_pendaftaran)
+        ->where('pendaftaran.id_users', $userId)
+        ->get()
+        ->getRowArray();
+
+    if (!$detail) {
+        return redirect()->to(base_url('peserta/dashboard'))->with('error', 'Data detail pendaftaran dengan ID ' . $id_pendaftaran . ' tidak ditemukan.');
+    }
+
+    $data = [
+        'title'  => 'Detail Status Pendaftaran - Creativemu Academy',
+        'detail' => $detail,
+        'user'   => (new \App\Models\UserModel())->find($userId),
+    ];
+
+    return view('peserta/detail_pendaftaran', $data);
+}
 
     // Method tambahan untuk mengatasi error "Controller method is not found: kelas"
     // Method untuk halaman KBM (Absen, Materi, Ujian, Sertifikat, Angket)
