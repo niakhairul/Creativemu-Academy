@@ -25,12 +25,12 @@
             box-sizing: border-box;
         }
 
-        body {
+        html, body {
             font-family: 'Poppins', sans-serif;
             background-color: #f7f5fd;
             overflow-x: hidden;
             margin: 0;
-            font-size: 0.82rem; /* Font global diperkecil */
+            font-size: 14px;
         }
 
         ::-webkit-scrollbar {
@@ -47,81 +47,26 @@
         }
 
         /* SIDEBAR - Ukuran diperkecil */
-        #sidebar {
-            width: 230px; /* Dikecilkan dari 275px */
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background-color: var(--sidebar-bg);
-            color: var(--sidebar-text);
-            transition: all 0.3s ease;
-            z-index: 1050;
-            box-shadow: 8px 0 30px rgba(121, 75, 196, 0.08);
-            overflow-y: auto;
-        }
+        
 
-        #sidebar .sidebar-header {
-            padding: 15px 10px;
-            background: rgba(0, 0, 0, 0.25);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            text-align: center;
-        }
+        
 
-        #sidebar .sidebar-header img {
-            width: 180px; /* Dikecilkan */
-            height: 70px;
-            object-fit: cover;
-            border-radius: 8px;
-            filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
-        }
+        
 
-        #sidebar .nav {
-            padding: 12px 10px;
-        }
+        
 
-        #sidebar .nav-item {
-            margin-bottom: 3px;
-        }
+        
 
-        #sidebar .nav-link {
-            color: var(--sidebar-text);
-            padding: 8px 12px;
-            display: flex;
-            align-items: center;
-            font-weight: 500;
-            border-radius: 10px;
-            transition: all 0.25s ease;
-            font-size: 0.8rem;
-            text-decoration: none;
-        }
+        
 
-        #sidebar .nav-link i {
-            margin-right: 10px;
-            font-size: 0.95rem;
-            width: 20px;
-            text-align: center;
-        }
+        
 
-        #sidebar .nav-link:hover {
-            background-color: rgba(121, 75, 196, 0.2);
-            color: #fff;
-            transform: translateX(3px);
-        }
+        
 
-        #sidebar .nav-link.active {
-            background: var(--sidebar-active-gradient);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(121, 75, 196, 0.4);
-            font-weight: 600;
-        }
+        
 
         /* MAIN CONTENT - Margin disesuaikan */
-        #main-content {
-            margin-left: 230px; /* Disesuaikan dengan lebar sidebar */
-            padding: 20px 25px;
-            animation: mainFadeIn 0.5s ease;
-        }
+        
 
         .top-navbar {
             background: #fff;
@@ -307,25 +252,16 @@
         }
 
         @media (max-width: 992px) {
-            #sidebar {
-                transform: translateX(-100%);
-            }
-            #sidebar.show {
-                transform: translateX(0);
-            }
-            #main-content {
-                margin-left: 0;
-                padding: 15px;
-            }
+            
+            
+            
             .top-navbar {
                 padding: 14px;
             }
         }
 
         @media (max-width: 576px) {
-            #main-content {
-                padding: 10px;
-            }
+            
 
             .top-navbar {
                 flex-direction: column;
@@ -380,6 +316,39 @@
                 padding: 4px 8px;
             }
         }
+
+        #main-content {
+            margin-left: 240px;
+            padding: 20px;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 992px) {
+            #main-content {
+                margin-left: 70px;
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            #main-content {
+                padding: 10px;
+            }
+        }
+
+        /* STANDAR TYPOGRAPHY */
+        .page-title, .top-navbar h3, .top-navbar h4, h3.fw-bold, .dash-header h3 { font-size: 1.25rem !important; font-weight: 700 !important; }
+        .page-subtitle, .top-navbar p, p.text-muted, .dash-header p { font-size: 0.8rem !important; }
+        .admin-info h6 { font-size: 0.88rem !important; font-weight: 600 !important; }
+        small, .text-muted, .admin-info small { font-size: 0.78rem !important; }
+        .form-label { font-size: 0.8rem !important; font-weight: 600 !important; }
+        .form-control, .form-select { font-size: 0.85rem !important; }
+        .btn { font-size: 0.82rem; font-weight: 600; }
+        .table thead th { font-size: 0.75rem !important; font-weight: 600 !important; padding: 10px 12px !important; }
+        .table tbody td { font-size: 0.8rem !important; padding: 10px 12px !important; }
+        .badge { font-size: 0.75rem; font-weight: 600; }
+
     </style>
 
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
@@ -389,82 +358,7 @@
 <body>
 
 <!-- SIDEBAR -->
-<nav id="sidebar">
-    <div class="sidebar-header">
-        <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>"
-             alt="Creativemu Academy"
-             class="img-fluid">
-    </div>
-
-    <ul class="nav flex-column">
-        <li class="nav-item">
-            <a href="<?= base_url('admin/dashboard'); ?>" class="nav-link">
-                <i class="fas fa-chart-pie"></i>
-                <span>Dashboard</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link">
-                <i class="fas fa-book"></i>
-                <span>Master Kelas</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="<?= base_url('admin/mentor'); ?>" class="nav-link">
-                <i class="fas fa-chalkboard-user"></i>
-                <span>Instruktur</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link">
-                <i class="fas fa-users"></i>
-                <span>Data Peserta</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="<?= base_url('admin/validasi'); ?>" class="nav-link">
-                <i class="fas fa-clipboard-check"></i>
-                <span>Validasi Pendaftaran</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
-                <i class="fas fa-book-open"></i>
-                <span>Buku Induk</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="<?= base_url('admin/angket'); ?>" class="nav-link">
-                <i class="fas fa-award"></i>
-                <span>Angket</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link active">
-                <i class="fas fa-certificate"></i>
-                <span>Sertifikat</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="<?= base_url('admin/laporan'); ?>" class="nav-link">
-                <i class="fas fa-file-lines"></i>
-                <span>Laporan</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link">
-                <i class="fas fa-gear"></i>
-                <span>Pengaturan</span>
-            </a>
-        </li>
-        <li class="nav-item mt-3">
-            <a href="<?= base_url('logout'); ?>" class="nav-link text-danger">
-                <i class="fas fa-right-from-bracket"></i>
-                <span>Logout</span>
-            </a>
-        </li>
-    </ul>
-</nav>
+    <?= view('admin/layouts/sidebar_universal', ['isMentor' => isset($isMentor) ? $isMentor : false]); ?>
 
 <!-- MAIN CONTENT -->
 <div id="main-content">
@@ -774,3 +668,5 @@
 
 </body>
 </html>
+
+

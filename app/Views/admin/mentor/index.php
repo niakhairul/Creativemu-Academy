@@ -39,98 +39,33 @@
         ::-webkit-scrollbar-thumb { background: #b293f0; border-radius: 10px; }
 
         /* --- Sidebar Styling --- */
-        #sidebar {
-            width: 240px;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background-color: var(--sidebar-bg);
-            color: var(--sidebar-text);
-            transition: all 0.3s ease;
-            z-index: 1000;
-            box-shadow: 4px 0 20px rgba(121, 75, 196, 0.08);
-            overflow-y: auto;
-        }
+        
 
         /* Sidebar Header & Logo Card */
-        #sidebar .sidebar-header {
-            padding: 20px 15px 15px 15px;
-            background: transparent;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            text-align: center;
-        }
+        
 
-        #sidebar .logo-card {
-            background-color: #ffffff;
-            border-radius: 14px;
-            padding: 10px 14px;
-            display: inline-block;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            width: 85%;
-        }
+        
 
-        #sidebar .logo-card img {
-            max-width: 100%;
-            height: 45px;
-            object-fit: contain;
-        }
+        
 
-        #sidebar .panel-title {
-            color: #a497c6;
-            font-size: 0.78rem;
-            font-weight: 700;
-            letter-spacing: 1.2px;
-            margin-top: 12px;
-            margin-bottom: 0;
-            text-transform: uppercase;
-        }
+        
 
         /* Navigation Links */
-        #sidebar .nav { padding: 12px 10px; }
-        #sidebar .nav-item { margin-bottom: 4px; }
         
-        #sidebar .nav-link {
-            color: var(--sidebar-text);
-            padding: 9px 14px;
-            display: flex;
-            align-items: center;
-            font-weight: 500;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            font-size: 0.85rem;
-        }
+        
+        
+        
 
-        #sidebar .nav-link i {
-            margin-right: 10px;
-            font-size: 0.95rem;
-            width: 18px;
-            text-align: center;
-        }
+        
 
-        #sidebar .nav-link:hover {
-            background-color: rgba(121, 75, 196, 0.2);
-            color: #ffffff;
-        }
+        
 
-        #sidebar .nav-link.active {
-            background: var(--sidebar-active-gradient);
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(121, 75, 196, 0.3);
-            font-weight: 600;
-        }
+        
 
-        #sidebar .nav-link.text-danger:hover {
-            background-color: rgba(220, 53, 69, 0.2);
-            color: #ff6b6b !important;
-        }
+        
 
         /* --- Main Content Area --- */
-        #main-content {
-            margin-left: 240px;
-            padding: 20px;
-            transition: all 0.3s ease;
-        }
+        
 
         /* --- Top Navbar --- */
         .top-navbar {
@@ -294,51 +229,27 @@
 
         /* --- Responsive Mobile --- */
         @media (max-width: 992px) {
-            #sidebar {
-                width: 70px;
-            }
+            
 
-            #sidebar .logo-card {
-                padding: 6px;
-                width: 100%;
-            }
+            
 
-            #sidebar .logo-card img {
-                height: 30px;
-            }
+            
 
-            #sidebar .panel-title,
-            #sidebar span {
-                display: none;
-            }
+            
 
-            #sidebar .sidebar-header {
-                padding: 15px 8px;
-            }
+            
 
-            #sidebar .nav {
-                padding: 10px 6px;
-            }
+            
 
-            #sidebar .nav-link {
-                justify-content: center;
-                padding: 9px;
-            }
+            
 
-            #sidebar .nav-link i {
-                margin-right: 0;
-            }
+            
 
-            #main-content {
-                margin-left: 70px;
-                padding: 15px;
-            }
+            
         }
 
         @media (max-width: 576px) {
-            #main-content {
-                padding: 10px;
-            }
+            
 
             .top-navbar {
                 padding: 12px 15px;
@@ -366,6 +277,26 @@
                 border-radius: 12px;
             }
         }
+
+        /* --- Main Content Area --- */
+        #main-content {
+            margin-left: 240px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 992px) {
+            #main-content {
+                margin-left: 70px;
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            #main-content {
+                padding: 10px;
+            }
+        }
     </style>
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
     <script defer src="<?= base_url('assets/js/admin-responsive.js'); ?>"></script>
@@ -373,71 +304,7 @@
 <body>
 
     <!-- === SIDEBAR MENU === -->
-    <nav id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo-card">
-                <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy">
-            </div>
-            <div class="panel-title">PANEL ADMIN</div>
-        </div>
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a href="<?= base_url('admin/dashboard'); ?>" class="nav-link">
-                    <i class="fas fa-chart-pie"></i> <span>Dashboard</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link">
-                    <i class="fas fa-book"></i> <span>Master Kelas</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/mentor'); ?>" class="nav-link active">
-                    <i class="fas fa-chalkboard-user"></i> <span>Instruktur</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link">
-                    <i class="fas fa-users"></i> <span>Data Peserta</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/validasi'); ?>" class="nav-link">
-                    <i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
-                    <i class="fas fa-book-open"></i> <span>Buku Induk</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/angket'); ?>" class="nav-link">
-                    <i class="fas fa-poll"></i> <span>Angket</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link">
-                    <i class="fas fa-award"></i> <span>Sertifikat</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/laporan'); ?>" class="nav-link">
-                    <i class="fas fa-file-lines"></i> <span>Laporan</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link">
-                    <i class="fas fa-gear"></i> <span>Pengaturan</span>
-                </a>
-            </li>
-            <li class="nav-item mt-3">
-                <a href="<?= base_url('logout'); ?>" class="nav-link text-danger">
-                    <i class="fas fa-right-from-bracket"></i> <span>Logout</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
+        <?= view('admin/layouts/sidebar_universal', ['isMentor' => isset($isMentor) ? $isMentor : false]); ?>
 
     <!-- === MAIN CONTENT === -->
     <div id="main-content">
@@ -638,3 +505,5 @@
     </script>
 </body>
 </html>
+
+

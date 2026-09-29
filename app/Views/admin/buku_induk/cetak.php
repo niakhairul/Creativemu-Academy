@@ -255,8 +255,8 @@
         <div class="signature-box">
             <div>Mengetahui,</div>
             <div>Pimpinan CreativeMU Academy</div>
-            <div class="signature-line">Drs. M. Fajar Siddiq, M.Kom.</div>
-            <div style="font-size: 7.5pt; color: #555;">Direktur Pelatihan</div>
+            <div class="signature-line">Agus Susanto</div>
+            <div style="font-size: 7.5pt; color: #555;">Direktur</div>
         </div>
         <div class="signature-box">
             <div>Diverifikasi oleh,</div>

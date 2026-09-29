@@ -421,3 +421,4 @@ class BukuIndukModel extends Model
         return array_values(array_filter(array_column($rows, 'kategori')));
     }
 }
+

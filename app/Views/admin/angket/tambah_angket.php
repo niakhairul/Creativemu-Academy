@@ -19,43 +19,56 @@
             --dark-purple: #1e0f33;
         }
 
-        body { font-family: 'Poppins', sans-serif; background-color: #f7f5fd; margin: 0; }
+        html, body { font-family: 'Poppins', sans-serif; background-color: #f7f5fd; margin: 0; font-size: 14px; }
 
-        #sidebar {
-            width: 275px;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background-color: var(--sidebar-bg);
-            color: var(--sidebar-text);
-            z-index: 1000;
-            overflow-y: auto;
-        }
-        .sidebar-header { padding: 25px 20px; background: rgba(0, 0, 0, 0.25); text-align: center; }
-        #sidebar .sidebar-header img {
-    width: 240px;
-    height: 95px;
-    object-fit: cover;
-    border-radius: 10px;
-    filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
-    transition: transform 0.3s ease;
-}
+        
+        
+        
         .nav-link { color: var(--sidebar-text); padding: 12px 18px; display: flex; align-items: center; border-radius: 12px; margin: 0 14px 6px; transition: 0.3s; }
         .nav-link:hover, .nav-link.active { background: var(--sidebar-active-gradient); color: #ffffff; }
 
-        #main-content { margin-left: 275px; padding: 35px; }
+        
         .top-navbar { background: #ffffff; padding: 22px 30px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+
+        .top-navbar h3 { font-size: 1.25rem; font-weight: 700; }
+        .top-navbar p { font-size: 0.8rem; }
 
         .btn-purple {
             background: var(--sidebar-active-gradient);
             color: #ffffff;
             border: none;
             border-radius: 12px;
-            padding: 12px 25px;
-            font-weight: 600;
+            padding: 8px 16px; font-weight: 600; font-size: 0.82rem;
         }
         .btn-purple:hover { color: #ffffff; opacity: 0.9; }
+
+        #main-content {
+            margin-left: 240px;
+            padding: 20px;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 992px) {
+            #main-content {
+                margin-left: 70px;
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            #main-content {
+                padding: 10px;
+            }
+        }
+
+        .form-label { font-size: 0.8rem; font-weight: 600; }
+        .form-control, .form-select { font-size: 0.85rem; }
+        .text-muted.small, small.text-muted { font-size: 0.78rem; }
+        h5.fw-bold { font-size: 1.25rem !important; font-weight: 700 !important; }
+        .form-label.fw-bold { font-size: 0.85rem; font-weight: 700; }
+        #tambah-pertanyaan-btn { font-size: 0.82rem !important; font-weight: 600 !important; }
+        .badge { font-size: 0.75rem; font-weight: 600; }
     </style>
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
     <script defer src="<?= base_url('assets/js/admin-responsive.js'); ?>"></script>
@@ -63,24 +76,7 @@
 <body>
 
     <!-- Sidebar -->
-    <nav id="sidebar">
-        <div class="sidebar-header">
-           <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
-        </div>
-        <ul class="nav flex-column mt-3">
-            <li class="nav-item"><a href="<?= base_url('admin/dashboard'); ?>" class="nav-link"><i class="fas fa-chart-pie me-3"></i> Dashboard</a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link"><i class="fas fa-book me-3"></i> Master Kelas</a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/mentor'); ?>" class="nav-link"><i class="fas fa-chalkboard-user me-3"></i> Instruktur</a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link"><i class="fas fa-users me-3"></i> Data Peserta</a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/validasi'); ?>" class="nav-link"><i class="fas fa-clipboard-check me-3"></i> Validasi</a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link"><i class="fas fa-book-open me-3"></i> Buku Induk</a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/angket'); ?>" class="nav-link active"><i class="fas fa-award me-3"></i> Angket</a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link"><i class="fas fa-certificate me-3"></i> Sertifikat</a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/laporan'); ?>" class="nav-link"><i class="fas fa-file-lines me-3"></i> Laporan</a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link"><i class="fas fa-gear me-3"></i> Pengaturan</a></li>
-            <li class="nav-item mt-4"><a href="<?= base_url('logout'); ?>" class="nav-link text-danger"><i class="fas fa-right-from-bracket me-3"></i> Logout</a></li>
-        </ul>
-    </nav>
+        <?= view('admin/layouts/sidebar_universal', ['isMentor' => isset($isMentor) ? $isMentor : false]); ?>
 
     <!-- Main Content -->
     <div id="main-content">
@@ -478,3 +474,7 @@
 </script>
 </body>
 </html>
+
+
+
+

@@ -30,101 +30,37 @@
         /* MENCEGAH LAYOUT PECAH SAAT ZOOM */
         html, body {
             width: 100%;
-            min-width: 1200px;
+
             overflow-x: auto;
             font-family: 'Poppins', sans-serif;
             background-color: #f7f5fd;
             margin: 0;
             color: #495057;
-            font-size: 0.8125rem;
+            font-size: 14px;
         }
 
         /* SIDEBAR STYLING */
-        #sidebar {
-            width: 250px !important;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background-color: var(--sidebar-bg);
-            color: var(--sidebar-text);
-            z-index: 1000;
-            box-shadow: 4px 0 20px rgba(121, 75, 196, 0.08);
-            overflow-y: auto;
-            flex-shrink: 0;
-            transition: all 0.3s ease;
-        }
+        
 
-        #sidebar .sidebar-header {
-            padding: 16px 12px;
-            background: rgba(0, 0, 0, 0.25);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            text-align: center;
-        }
+        
 
         /* LOGO PERSEGI PANJANG - LEBIH BESAR & PROPORSIONAL */
-        #sidebar .sidebar-header img {
-            width: 100%;
-            max-width: 210px;
-            height: auto;
-            max-height: 80px;
-            object-fit: contain;
-            border-radius: 8px;
-            padding: 6px 10px;
-            background: #ffffff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
-            display: block;
-            margin: 0 auto;
-        }
+        
 
-        #sidebar .nav {
-            padding: 12px 10px;
-        }
+        
 
-        #sidebar .nav-item {
-            margin-bottom: 4px;
-        }
+        
 
-        #sidebar .nav-link {
-            color: var(--sidebar-text);
-            padding: 8px 12px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            font-weight: 500;
-            font-size: 0.825rem;
-            text-decoration: none;
-            transition: all 0.25s ease;
-        }
+        
 
-        #sidebar .nav-link i {
-            width: 24px;
-            font-size: 0.95rem;
-        }
+        
 
-        #sidebar .nav-link:hover {
-            color: #ffffff;
-            background-color: rgba(255, 255, 255, 0.08);
-            transform: translateX(3px);
-        }
+        
 
-        #sidebar .nav-link.active {
-            color: #ffffff;
-            background: var(--sidebar-active-gradient);
-            box-shadow: 0 3px 10px rgba(121, 75, 196, 0.35);
-            font-weight: 600;
-        }
+        
 
         /* MAIN CONTENT MENYESUAIKAN DENGAN PRESISI */
-        #main-content {
-            margin-left: 250px !important;
-            width: calc(100% - 250px) !important;
-            min-width: 950px;
-            padding: 20px;
-            min-height: 100vh;
-            box-sizing: border-box;
-            transition: margin-left 0.3s ease;
-        }
+        
 
         .top-navbar {
             background: #ffffff;
@@ -351,13 +287,8 @@
 
         /* MATIKAN MEDIA QUERY MOBILE AGAR TAMPILAN DESKTOP KONSISTEN SAAT ZOOM */
         @media (max-width: 991px) {
-            #sidebar {
-                transform: none !important;
-            }
-            #main-content {
-                margin-left: 250px !important;
-                width: calc(100% - 250px) !important;
-            }
+            
+            
             .mobile-toggle-btn {
                 display: none !important;
             }
@@ -371,6 +302,38 @@
             color: var(--dark-purple);
             margin-right: 10px;
         }
+
+        #main-content {
+            margin-left: 240px;
+            padding: 20px;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 992px) {
+            #main-content {
+                margin-left: 70px;
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            #main-content {
+                padding: 10px;
+            }
+        }
+
+        /* STANDAR TYPOGRAPHY */
+        .page-title, .top-navbar h3, .top-navbar h4, h3.fw-bold, .dash-header h3 { font-size: 1.25rem !important; font-weight: 700 !important; }
+        .page-subtitle, .top-navbar p, p.text-muted, .dash-header p { font-size: 0.8rem !important; }
+        .admin-info h6 { font-size: 0.88rem !important; font-weight: 600 !important; }
+        small, .text-muted, .admin-info small { font-size: 0.78rem !important; }
+        .form-label { font-size: 0.8rem !important; font-weight: 600 !important; }
+        .form-control, .form-select { font-size: 0.85rem !important; }
+        .btn { font-size: 0.82rem; font-weight: 600; }
+        .table thead th { font-size: 0.75rem !important; font-weight: 600 !important; padding: 10px 12px !important; }
+        .table tbody td { font-size: 0.8rem !important; padding: 10px 12px !important; }
+        .badge { font-size: 0.75rem; font-weight: 600; }
     </style>
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
     <script defer src="<?= base_url('assets/js/admin-responsive.js'); ?>"></script>
@@ -378,79 +341,7 @@
 <body>
 
     <!-- === SIDEBAR === -->
-    <nav id="sidebar">
-        <div class="sidebar-header">
-            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy">
-            <?php if (!empty($isMentor)): ?>
-                <div class="mt-2 text-white-50 super-small fw-semibold" style="font-size: 0.7rem;">PANEL MENTOR</div>
-            <?php else: ?>
-                <div class="mt-2 text-white-50 super-small fw-semibold" style="font-size: 0.7rem;">PANEL ADMIN</div>
-            <?php endif; ?>
-        </div>
-
-        <ul class="nav flex-column">
-            <?php if (!empty($isMentor)): ?>
-                <li class="nav-item"><a href="<?= base_url('mentor/dashboard'); ?>" class="nav-link"><i class="fas fa-chart-line"></i> <span>Dashboard</span></a></li>
-                <li class="nav-item"><a href="<?= base_url('mentor/kelas'); ?>" class="nav-link"><i class="fas fa-book"></i> <span>Daftar Kelas</span></a></li>
-                <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="collapse" href="#submenuLaporanMentor" role="button" aria-expanded="true">
-                        <i class="fas fa-file-lines"></i> <span>Laporan</span>
-                        <i class="fas fa-chevron-down ms-auto" style="font-size: 0.65rem;"></i>
-                    </a>
-                    <div class="collapse show" id="submenuLaporanMentor">
-                        <ul class="nav flex-column ms-2">
-                            <li class="nav-item submenu-item">
-                                <a href="<?= base_url('mentor/laporan-peserta'); ?>" class="nav-link <?= (url_is('mentor/laporan-peserta*')) ? 'active' : ''; ?>"><i class="fas fa-chart-pie me-2"></i> <span>Laporan Peserta</span></a>
-                            </li>
-                            <li class="nav-item submenu-item">
-                                <a href="<?= base_url('mentor/laporan-mentor'); ?>" class="nav-link <?= (url_is('mentor/laporan-mentor*')) ? 'active' : ''; ?>"><i class="fas fa-chalkboard-user me-2"></i> <span>Laporan Mentor</span></a>
-                            </li>
-                            <li class="nav-item submenu-item">
-                                <a href="<?= base_url('mentor/laporan-angket'); ?>" class="nav-link <?= (url_is('mentor/laporan-angket*')) ? 'active' : ''; ?>"><i class="fas fa-star-half-stroke me-2"></i> <span>Laporan Angket Mentor</span></a>
-                            </li>
-                            <li class="nav-item submenu-item">
-                                <a href="<?= base_url('mentor/laporan-kehadiran'); ?>" class="nav-link <?= (url_is('mentor/laporan-kehadiran*')) ? 'active' : ''; ?>"><i class="fas fa-calendar-check me-2"></i> <span>Laporan Kehadiran Peserta</span></a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-                <li class="nav-item"><a href="<?= base_url('mentor/profil'); ?>" class="nav-link"><i class="fas fa-user"></i> <span>Profil Mentor</span></a></li>
-            <?php else: ?>
-                <li class="nav-item"><a href="<?= base_url('admin/dashboard'); ?>" class="nav-link"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
-                <li class="nav-item"><a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link"><i class="fas fa-book"></i> <span>Master Kelas</span></a></li>
-                <li class="nav-item"><a href="<?= base_url('admin/mentor'); ?>" class="nav-link"><i class="fas fa-chalkboard-user"></i> <span>Mentor</span></a></li>
-                <li class="nav-item"><a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link"><i class="fas fa-users"></i> <span>Data Peserta</span></a></li>
-                <li class="nav-item"><a href="<?= base_url('admin/validasi'); ?>" class="nav-link"><i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span></a></li>
-                <li class="nav-item"><a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link"><i class="fas fa-book-open"></i> <span>Buku Induk</span></a></li>
-                <li class="nav-item"><a href="<?= base_url('admin/angket'); ?>" class="nav-link"><i class="fas fa-poll"></i> <span>Angket</span></a></li>
-                <li class="nav-item"><a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link"><i class="fas fa-award"></i> <span>Sertifikat</span></a></li>
-                <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="collapse" href="#submenuLaporanAdmin" role="button" aria-expanded="true">
-                        <i class="fas fa-chart-simple"></i> <span>Laporan</span>
-                        <i class="fas fa-chevron-down ms-auto" style="font-size: 0.65rem;"></i>
-                    </a>
-                    <div class="collapse show" id="submenuLaporanAdmin">
-                        <ul class="nav flex-column ms-2">
-                            <li class="nav-item submenu-item">
-                                <a href="<?= base_url('admin/laporan-peserta'); ?>" class="nav-link <?= (url_is('admin/laporan-peserta*')) ? 'active' : ''; ?>"><i class="fas fa-chart-pie me-2"></i> <span>Laporan Peserta</span></a>
-                            </li>
-                            <li class="nav-item submenu-item">
-                                <a href="<?= base_url('admin/laporan-mentor'); ?>" class="nav-link <?= (url_is('admin/laporan-mentor*')) ? 'active' : ''; ?>"><i class="fas fa-chalkboard-user me-2"></i> <span>Laporan Mentor</span></a>
-                            </li>
-                            <li class="nav-item submenu-item">
-                                <a href="<?= base_url('admin/laporan-angket'); ?>" class="nav-link <?= (url_is('admin/laporan-angket*')) ? 'active' : ''; ?>"><i class="fas fa-star-half-stroke me-2"></i> <span>Laporan Angket Mentor</span></a>
-                            </li>
-                            <li class="nav-item submenu-item">
-                                <a href="<?= base_url('admin/laporan-kehadiran'); ?>" class="nav-link <?= (url_is('admin/laporan-kehadiran*')) ? 'active' : ''; ?>"><i class="fas fa-calendar-check me-2"></i> <span>Laporan Kehadiran Peserta</span></a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-                <li class="nav-item"><a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link"><i class="fas fa-gear"></i> <span>Pengaturan</span></a></li>
-            <?php endif; ?>
-            <li class="nav-item mt-3"><a href="<?= base_url('logout'); ?>" class="nav-link text-danger"><i class="fas fa-right-from-bracket"></i> <span>Logout</span></a></li>
-        </ul>
-    </nav>
+        <?= view('admin/layouts/sidebar_universal', ['isMentor' => isset($isMentor) ? $isMentor : false]); ?>
 
     <!-- === MAIN CONTENT === -->
     <div id="main-content">
@@ -1041,3 +932,6 @@
     </script>
 </body>
 </html>
+
+
+

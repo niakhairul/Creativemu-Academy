@@ -24,84 +24,33 @@
             --dark-purple: #1e0f33;
         }
 
-        body {
+        html, body {
             font-family: 'Poppins', sans-serif;
             background-color: #f7f5fd;
             color: #2b263b;
             overflow-x: hidden;
             margin: 0;
-            font-size: 0.82rem; /* Diperkecil dari default */
+            font-size: 14px;
         }
 
         /* SIDEBAR STYLING - Ukuran Diperkecil */
-        #sidebar {
-            width: 230px; /* Dikecilkan dari 275px */
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background-color: var(--sidebar-bg);
-            color: var(--sidebar-text);
-            transition: all 0.3s ease;
-            z-index: 1050;
-            overflow-y: auto;
-            box-shadow: 8px 0 30px rgba(121, 75, 196, 0.08);
-        }
+        
 
-        #sidebar .sidebar-header {
-            padding: 15px 10px;
-            background: rgba(0, 0, 0, 0.25);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            text-align: center;
-        }
+        
 
-        #sidebar .sidebar-header img {
-            width: 180px; /* Dikecilkan */
-            height: 70px;
-            object-fit: cover;
-            border-radius: 8px;
-            filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
-        }
+        
 
-        #sidebar .nav {
-            padding: 12px 10px;
-        }
+        
 
-        #sidebar .nav-item {
-            margin-bottom: 3px;
-        }
+        
 
-        #sidebar .nav-link {
-            color: var(--sidebar-text);
-            padding: 8px 12px;
-            display: flex;
-            align-items: center;
-            font-weight: 500;
-            border-radius: 10px;
-            transition: all 0.25s ease;
-            font-size: 0.8rem; /* Font diperkecil */
-            text-decoration: none;
-        }
+        
 
-        #sidebar .nav-link i {
-            margin-right: 10px;
-            font-size: 0.95rem;
-            width: 20px;
-            text-align: center;
-        }
+        
 
-        #sidebar .nav-link:hover {
-            background-color: rgba(121, 75, 196, 0.2);
-            color: #ffffff;
-            transform: translateX(3px);
-        }
+        
 
-        #sidebar .nav-link.active {
-            background: var(--sidebar-active-gradient);
-            color: #ffffff;
-            box-shadow: 0 4px 15px rgba(121, 75, 196, 0.4);
-            font-weight: 600;
-        }
+        
 
         .submenu-item .nav-link {
             padding-left: 24px !important;
@@ -109,12 +58,7 @@
         }
 
         /* MAIN CONTENT AREA - Margin disesuaikan */
-        #main-content {
-            margin-left: 230px; /* Sesuaikan dengan sidebar baru */
-            padding: 20px 25px;
-            transition: all 0.3s ease;
-            min-height: 100vh;
-        }
+        
 
         /* TOP NAVBAR */
         .top-navbar {
@@ -130,7 +74,7 @@
         }
 
         .top-navbar h4 {
-            font-size: 1.1rem;
+            font-size: 1.25rem;
         }
 
         /* FILTER & CONTENT CARDS */
@@ -145,10 +89,10 @@
 
         /* BUTTONS - Ukuran Kompak */
         .btn-creative-primary, .btn-excel, .btn-print {
-            padding: 6px 14px;
+            padding: 7px 14px;
             border-radius: 8px;
             font-weight: 600;
-            font-size: 0.78rem;
+            font-size: 0.82rem;
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -240,9 +184,9 @@
         }
 
         @media (max-width: 991px) {
-            #sidebar { transform: translateX(-100%); }
-            #sidebar.show { transform: translateX(0); }
-            #main-content { margin-left: 0; padding: 15px; }
+            
+            
+            
             .mobile-toggle-btn { display: inline-block !important; }
         }
 
@@ -254,92 +198,40 @@
             color: var(--dark-purple);
             margin-right: 12px;
         }
+
+        /* --- Main Content Area --- */
+        #main-content {
+            margin-left: 240px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 992px) {
+            #main-content {
+                margin-left: 70px;
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            #main-content {
+                padding: 10px;
+            }
+        }
+        @media (max-width: 768px) {
+            .top-navbar { flex-direction: column; align-items: stretch; gap: 12px; }
+            .top-navbar .d-flex { justify-content: flex-start; }
+            .btn-excel, .btn-print { flex: 1; text-align: center; justify-content: center; }
+        }
     </style>
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
+    <script defer src="<?= base_url('assets/js/admin-responsive.js'); ?>"></script>
 </head>
 <body>
 
     <!-- SIDEBAR -->
-    <nav id="sidebar">
-        <div class="sidebar-header">
-            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
-            <div class="mt-2 text-white-50 small fw-semibold" style="font-size: 0.7rem;">PANEL ADMINISTRATOR</div>
-        </div>
-
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a href="<?= base_url('admin/dashboard'); ?>" class="nav-link">
-                    <i class="fas fa-chart-pie"></i> <span>Dashboard</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link">
-                    <i class="fas fa-book"></i> <span>Master Kelas</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/mentor'); ?>" class="nav-link">
-                    <i class="fas fa-chalkboard-user"></i> <span>Instruktur</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link">
-                    <i class="fas fa-users"></i> <span>Data Peserta</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/validasi'); ?>" class="nav-link">
-                    <i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link active">
-                    <i class="fas fa-book-open"></i> <span>Buku Induk</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/angket'); ?>" class="nav-link">
-                    <i class="fas fa-poll"></i> <span>Angket</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link">
-                    <i class="fas fa-award"></i> <span>Sertifikat</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="collapse" href="#submenuLaporanAdmin" role="button" aria-expanded="false">
-                    <i class="fas fa-chart-simple"></i> <span>Laporan</span>
-                    <i class="fas fa-chevron-down ms-auto" style="font-size: 0.65rem;"></i>
-                </a>
-                <div class="collapse" id="submenuLaporanAdmin">
-                    <ul class="nav flex-column ms-2">
-                        <li class="nav-item submenu-item">
-                            <a href="<?= base_url('admin/laporan-peserta'); ?>" class="nav-link"><i class="fas fa-chart-pie me-2"></i> <span>Laporan Peserta</span></a>
-                        </li>
-                        <li class="nav-item submenu-item">
-                            <a href="<?= base_url('admin/laporan-mentor'); ?>" class="nav-link"><i class="fas fa-chalkboard-user me-2"></i> <span>Laporan Instruktur</span></a>
-                        </li>
-                        <li class="nav-item submenu-item">
-                            <a href="<?= base_url('admin/laporan-angket'); ?>" class="nav-link"><i class="fas fa-star-half-stroke me-2"></i> <span>Laporan Angket Instruktur</span></a>
-                        </li>
-                        <li class="nav-item submenu-item">
-                            <a href="<?= base_url('admin/laporan-kehadiran'); ?>" class="nav-link"><i class="fas fa-calendar-check me-2"></i> <span>Laporan Kehadiran</span></a>
-                        </li>
-                    </ul>
-                </div>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link">
-                    <i class="fas fa-gear"></i> <span>Pengaturan</span>
-                </a>
-            </li>
-            <li class="nav-item mt-3">
-                <a href="<?= base_url('logout'); ?>" class="nav-link text-danger">
-                    <i class="fas fa-right-from-bracket"></i> <span>Logout</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
+        <?= view('admin/layouts/sidebar_universal', ['isMentor' => isset($isMentor) ? $isMentor : false]); ?>
 
     <!-- KONTEN UTAMA -->
     <div id="main-content">
@@ -880,3 +772,8 @@
     </script>
 </body>
 </html>
+
+
+
+
+

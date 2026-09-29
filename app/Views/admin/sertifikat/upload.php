@@ -29,78 +29,25 @@
             margin: 0;
         }
 
-        #sidebar {
-            width: 275px;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background-color: var(--sidebar-bg);
-            color: var(--sidebar-text);
-            z-index: 1000;
-            box-shadow: 8px 0 30px rgba(121, 75, 196, 0.08);
-            overflow-y: auto;
-        }
+        
 
-        #sidebar .sidebar-header {
-            padding: 25px 20px;
-            background: rgba(0, 0, 0, 0.25);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            text-align: center;
-        }
+        
 
-        #sidebar .sidebar-header img {
-            width: 240px;
-            height: 95px;
-            object-fit: cover;
-            border-radius: 10px;
-            filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
-        }
+        
 
-        #sidebar .nav {
-            padding: 20px 14px;
-        }
+        
 
-        #sidebar .nav-item {
-            margin-bottom: 6px;
-        }
+        
 
-        #sidebar .nav-link {
-            color: var(--sidebar-text);
-            padding: 12px 18px;
-            display: flex;
-            align-items: center;
-            font-weight: 500;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
+        
 
-        #sidebar .nav-link i {
-            margin-right: 14px;
-            font-size: 1.1rem;
-            width: 22px;
-            text-align: center;
-        }
+        
 
-        #sidebar .nav-link:hover {
-            background-color: rgba(121, 75, 196, 0.2);
-            color: #fff;
-            transform: translateX(6px);
-        }
+        
 
-        #sidebar .nav-link.active {
-            background: var(--sidebar-active-gradient);
-            color: #fff;
-            box-shadow: 0 6px 20px rgba(121, 75, 196, 0.4);
-            font-weight: 600;
-        }
+        
 
-        #main-content {
-            margin-left: 275px;
-            padding: 35px;
-            animation: mainFadeIn 0.7s ease;
-        }
+        
 
         .top-navbar {
             background: #fff;
@@ -216,16 +163,11 @@
         }
 
         @media (max-width: 992px) {
-            #main-content {
-                margin-left: 0;
-                padding: 20px;
-            }
+            
         }
 
         @media (max-width: 576px) {
-            #main-content {
-                padding: 12px;
-            }
+            
 
             .top-navbar {
                 flex-direction: column;
@@ -257,95 +199,7 @@
 <body>
 
 <!-- SIDEBAR -->
-<nav id="sidebar">
-
-    <div class="sidebar-header">
-        <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>"
-             alt="Creativemu Academy"
-             class="img-fluid">
-    </div>
-
-    <ul class="nav flex-column">
-
-        <li class="nav-item">
-            <a href="<?= base_url('admin/dashboard'); ?>" class="nav-link">
-                <i class="fas fa-chart-pie"></i>
-                <span>Dashboard</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link">
-                <i class="fas fa-book"></i>
-                <span>Master Kelas</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a href="<?= base_url('admin/mentor'); ?>" class="nav-link">
-                <i class="fas fa-chalkboard-user"></i>
-                <span>Instruktur</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link">
-                <i class="fas fa-users"></i>
-                <span>Data Peserta</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a href="<?= base_url('admin/validasi'); ?>" class="nav-link">
-                <i class="fas fa-clipboard-check"></i>
-                <span>Validasi Pendaftaran</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
-                <i class="fas fa-book-open"></i>
-                <span>Buku Induk</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a href="<?= base_url('admin/angket'); ?>" class="nav-link">
-                <i class="fas fa-award"></i>
-                <span>Angket</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link active">
-                <i class="fas fa-certificate"></i>
-                <span>Sertifikat</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a href="<?= base_url('admin/laporan'); ?>" class="nav-link">
-                <i class="fas fa-file-lines"></i>
-                <span>Laporan</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link">
-                <i class="fas fa-gear"></i>
-                <span>Pengaturan</span>
-            </a>
-        </li>
-
-        <li class="nav-item mt-4">
-            <a href="<?= base_url('logout'); ?>" class="nav-link text-danger">
-                <i class="fas fa-right-from-bracket"></i>
-                <span>Logout</span>
-            </a>
-        </li>
-
-    </ul>
-</nav>
+    <?= view('admin/layouts/sidebar_universal', ['isMentor' => isset($isMentor) ? $isMentor : false]); ?>
 
 <!-- MAIN -->
 <div id="main-content">
@@ -630,3 +484,4 @@ if (pesertaSelect) {
 
 </body>
 </html>
+

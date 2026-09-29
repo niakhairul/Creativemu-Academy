@@ -88,8 +88,8 @@ class LaporanKehadiranModel extends Model
      */
     public function getFilterClasses(): array
     {
-        $hasLokasiMedia = $this->db->fieldExists('lokasi_media', 'kelas');
-        $lokasiField = $hasLokasiMedia ? 'kelas.lokasi_media' : "'-' AS lokasi_media";
+        $hasLokasiMedia = $this->db->fieldExists('lokasi_pelatihan', 'kelas');
+        $lokasiField = $hasLokasiMedia ? 'kelas.lokasi_pelatihan' : "'-' AS lokasi_pelatihan";
 
         return $this->db->table('kelas')
             ->select('kelas.id_kelas, kelas.nama_kelas, kelas.kategori, ' . $lokasiField . ', mentor.nama_mentor')
@@ -122,19 +122,19 @@ class LaporanKehadiranModel extends Model
      */
     public function getFilterTempatPelatihan(): array
     {
-        if (!$this->db->tableExists('kelas') || !$this->db->fieldExists('lokasi_media', 'kelas')) {
+        if (!$this->db->tableExists('kelas') || !$this->db->fieldExists('lokasi_pelatihan', 'kelas')) {
             return [];
         }
 
         $rows = $this->db->table('kelas')
-            ->select('lokasi_media')
+            ->select('lokasi_pelatihan')
             ->distinct()
-            ->where('lokasi_media IS NOT NULL')
-            ->where('lokasi_media !=', '')
-            ->orderBy('lokasi_media', 'ASC')
+            ->where('lokasi_pelatihan IS NOT NULL')
+            ->where('lokasi_pelatihan !=', '')
+            ->orderBy('lokasi_pelatihan', 'ASC')
             ->get()->getResultArray();
 
-        return array_values(array_filter(array_column($rows, 'lokasi_media')));
+        return array_values(array_filter(array_column($rows, 'lokasi_pelatihan')));
     }
 
     /**
@@ -152,8 +152,8 @@ class LaporanKehadiranModel extends Model
         $keyword         = strtolower(trim((string) ($filters['keyword'] ?? '')));
         $tempatPelatihan = $filters['tempat_pelatihan'] ?? 'all';
 
-        $hasLokasiMedia = $this->db->fieldExists('lokasi_media', 'kelas');
-        $lokasiSelect = $hasLokasiMedia ? 'kelas.lokasi_media AS tempat_pelatihan' : "'-' AS tempat_pelatihan";
+        $hasLokasiMedia = $this->db->fieldExists('lokasi_pelatihan', 'kelas');
+        $lokasiSelect = $hasLokasiMedia ? 'kelas.lokasi_pelatihan AS tempat_pelatihan' : "'-' AS tempat_pelatihan";
 
         // 1. Ambil pendaftaran peserta dengan relasi kelas & users
         $pBuilder = $this->db->table('pendaftaran')
@@ -189,7 +189,7 @@ class LaporanKehadiranModel extends Model
         }
 
         if ($hasLokasiMedia && $tempatPelatihan !== 'all' && !empty($tempatPelatihan)) {
-            $pBuilder->where('kelas.lokasi_media', $tempatPelatihan);
+            $pBuilder->where('kelas.lokasi_pelatihan', $tempatPelatihan);
         }
 
         $pesertaRows = $pBuilder->orderBy('nama_lengkap', 'ASC')->get()->getResultArray();
@@ -524,8 +524,8 @@ class LaporanKehadiranModel extends Model
      */
     public function getDetailRiwayatPeserta(int $idPendaftaran, array $filters = []): ?array
     {
-        $hasLokasiMedia = $this->db->fieldExists('lokasi_media', 'kelas');
-        $lokasiSelect = $hasLokasiMedia ? 'kelas.lokasi_media AS tempat_pelatihan' : "'-' AS tempat_pelatihan";
+        $hasLokasiMedia = $this->db->fieldExists('lokasi_pelatihan', 'kelas');
+        $lokasiSelect = $hasLokasiMedia ? 'kelas.lokasi_pelatihan AS tempat_pelatihan' : "'-' AS tempat_pelatihan";
 
         $peserta = $this->db->table('pendaftaran')
             ->select('

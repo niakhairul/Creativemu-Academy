@@ -25,13 +25,7 @@
             box-sizing: border-box;
         }
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-light);
-            overflow-x: hidden;
-            margin: 0;
-            font-size: 0.82rem; /* Font global diperkecil */
-        }
+        html, body { font-family: 'Poppins', sans-serif; background-color: #f7f5fd; font-size: 14px; overflow-x: hidden; margin: 0; }
 
         ::-webkit-scrollbar {
             width: 5px;
@@ -47,63 +41,18 @@
         }
 
         /* SIDEBAR UTAMA */
-        #sidebar {
-            width: 230px; /* Dikecilkan dari 275px */
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background-color: var(--sidebar-bg);
-            color: #c8bfe7;
-            z-index: 1050;
-            box-shadow: 8px 0 30px rgba(121, 75, 196, 0.08);
-            overflow-y: auto;
-        }
-        .sidebar-header {
-            padding: 15px 10px;
-            background: rgba(0, 0, 0, 0.2);
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        #sidebar .sidebar-header img {
-            width: 180px; /* Dikecilkan */
-            height: 70px;
-            object-fit: cover;
-            border-radius: 8px;
-            filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
-            transition: transform 0.3s ease;
-        }
-        #sidebar .nav { padding: 12px 10px; }
-        #sidebar .nav-item { margin-bottom: 3px; }
-        #sidebar .nav-link {
-            color: #c8bfe7;
-            padding: 8px 12px;
-            display: flex;
-            align-items: center;
-            font-weight: 500;
-            border-radius: 10px;
-            transition: all 0.25s ease;
-            font-size: 0.8rem;
-            text-decoration: none;
-        }
-        #sidebar .nav-link i { margin-right: 10px; width: 20px; text-align: center; font-size: 0.95rem; }
-        #sidebar .nav-link:hover {
-            background-color: rgba(121, 75, 196, 0.2);
-            color: #ffffff;
-            transform: translateX(3px);
-        }
-        #sidebar .nav-link.active {
-            background: var(--sidebar-active);
-            color: #ffffff;
-            box-shadow: 0 4px 15px rgba(121, 75, 196, 0.4);
-            font-weight: 600;
-        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
         /* MAIN CONTENT AREA */
-        #main-content {
-            margin-left: 230px; /* Disesuaikan lebar sidebar */
-            padding: 20px 25px;
-        }
+        
 
         .top-navbar {
             background: #ffffff;
@@ -213,17 +162,40 @@
         }
 
         @media (max-width: 992px) {
-            #sidebar {
-                transform: translateX(-100%);
-            }
-            #sidebar.show {
-                transform: translateX(0);
-            }
+            
+            
+            
+        }
+
+        #main-content {
+            margin-left: 240px;
+            padding: 20px;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 992px) {
             #main-content {
-                margin-left: 0;
+                margin-left: 70px;
                 padding: 15px;
             }
         }
+
+        @media (max-width: 576px) {
+            #main-content {
+                padding: 10px;
+            }
+        }
+
+        /* STANDAR TYPOGRAPHY */
+        .page-title, .top-navbar h3, .top-navbar h4, h3.fw-bold, .dash-header h3 { font-size: 1.25rem !important; font-weight: 700 !important; }
+        .page-subtitle, .top-navbar p, p.text-muted, .dash-header p { font-size: 0.8rem !important; }
+        .admin-info h6 { font-size: 0.88rem !important; font-weight: 600 !important; }
+        small, .text-muted, .admin-info small, .form-text { font-size: 0.78rem !important; font-weight: 400 !important; }
+        .form-label { font-size: 0.8rem !important; font-weight: 600 !important; }
+        .form-control, .form-select { font-size: 0.85rem !important; font-weight: 400 !important; }
+        .btn { font-size: 0.82rem !important; font-weight: 600 !important; padding: 8px 16px !important; }
+        .card-custom h6.fw-bold { font-size: 1rem !important; font-weight: 700 !important; }
     </style>
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
     <script defer src="<?= base_url('assets/js/admin-responsive.js'); ?>"></script>
@@ -231,25 +203,7 @@
 <body>
 
     <!-- === SIDEBAR UTAMA === -->
-    <nav id="sidebar">
-       <div class="sidebar-header">
-            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
-       </div>
-        <ul class="nav flex-column">
-            <li class="nav-item"><a href="<?= base_url('admin/dashboard'); ?>" class="nav-link"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link"><i class="fas fa-book"></i> <span>Master Kelas</span></a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/mentor'); ?>" class="nav-link"><i class="fas fa-chalkboard-user"></i> <span>Instruktur</span></a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link"><i class="fas fa-users"></i> <span>Data Peserta</span></a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/validasi'); ?>" class="nav-link"><i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span></a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link"><i class="fas fa-book-open"></i> <span>Buku Induk</span></a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/angket'); ?>" class="nav-link"><i class="fas fa-award"></i> <span>Angket</span></a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link"><i class="fas fa-award"></i> <span>Sertifikat</span></a></li>
-            <li class="nav-item"><a href="<?= base_url('admin/laporan'); ?>" class="nav-link"><i class="fas fa-file-lines"></i> <span>Laporan</span></a></li>
-            
-            <li class="nav-item"><a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link active"><i class="fas fa-gear"></i> <span>Pengaturan</span></a></li>
-            <li class="nav-item mt-3"><a href="<?= base_url('logout'); ?>" class="nav-link text-danger"><i class="fas fa-right-from-bracket"></i> <span>Logout</span></a></li>
-        </ul>
-    </nav>
+        <?= view('admin/layouts/sidebar_universal', ['isMentor' => isset($isMentor) ? $isMentor : false]); ?>
 
     <!-- === KONTEN UTAMA === -->
     <div id="main-content">
@@ -357,3 +311,5 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+

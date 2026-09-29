@@ -22,11 +22,12 @@
             --dark-purple: #1e0f33;
         }
 
-        body {
+        html, body {
             font-family: 'Poppins', sans-serif;
             background-color: #f7f5fd;
             overflow-x: hidden;
             margin: 0;
+            font-size: 14px;
         }
 
         /* --- Custom Scrollbar --- */
@@ -35,83 +36,27 @@
         ::-webkit-scrollbar-thumb { background: #b293f0; border-radius: 10px; }
 
         /* --- Sidebar Styling --- */
-        #sidebar {
-            width: 275px;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background-color: var(--sidebar-bg);
-            color: var(--sidebar-text);
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-            z-index: 1000;
-            box-shadow: 8px 0 30px rgba(121, 75, 196, 0.08);
-            overflow-y: auto;
-        }
-
-        #sidebar .sidebar-header {
-            padding: 25px 20px;
-            background: rgba(0, 0, 0, 0.25);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            text-align: center;
-        }
-
-        #sidebar .sidebar-header img {
-    width: 240px;
-    height: 95px;
-    object-fit: cover;
-    border-radius: 10px;
-    filter: drop-shadow(0 2px 8px rgba(121, 75, 196, 0.4));
-    transition: transform 0.3s ease;
-}
-
-        #sidebar .nav { padding: 20px 14px; }
-        #sidebar .nav-item { margin-bottom: 6px; }
         
-        #sidebar .nav-link {
-            color: var(--sidebar-text);
-            padding: 12px 18px;
-            display: flex;
-            align-items: center;
-            font-weight: 500;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
 
-        #sidebar .nav-link i {
-            margin-right: 14px;
-            font-size: 1.1rem;
-            width: 22px;
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
+        
 
-        #sidebar .nav-link:hover {
-            background-color: rgba(121, 75, 196, 0.2);
-            color: #ffffff;
-            transform: translateX(6px);
-        }
+        
 
-        #sidebar .nav-link.active {
-            background: var(--sidebar-active-gradient);
-            color: #ffffff;
-            box-shadow: 0 6px 20px rgba(121, 75, 196, 0.4);
-            font-weight: 600;
-        }
+        
+        
+        
+        
 
-        #sidebar .nav-link.text-danger:hover {
-            background-color: rgba(220, 53, 69, 0.2);
-            color: #ff6b6b !important;
-        }
+        
+
+        
+
+        
+
+        
 
         /* --- Main Content Area --- */
-        #main-content {
-            margin-left: 275px;
-            padding: 35px;
-            transition: all 0.4s ease;
-            animation: mainFadeIn 0.7s cubic-bezier(0.165, 0.84, 0.44, 1);
-        }
+        
 
         /* --- Top Navbar --- */
         .top-navbar {
@@ -127,15 +72,14 @@
         }
 
         .dash-header h3 {
-            font-weight: 800;
+            font-weight: 700;
             color: var(--dark-purple);
-            font-size: 1.6rem;
-            letter-spacing: -0.5px;
+            font-size: 1.25rem;
         }
         
         .dash-header p {
             color: #8c83a5;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             margin-bottom: 0;
         }
 
@@ -156,14 +100,14 @@
 
         .admin-info h6 {
             margin: 0;
-            font-weight: 700;
+            font-weight: 600;
             color: var(--dark-purple);
-            font-size: 0.98rem;
+            font-size: 0.88rem;
         }
 
         .admin-info small {
             color: #8c83a5;
-            font-size: 0.78rem;
+            font-size: 0.72rem;
         }
 
         /* --- Content Cards --- */
@@ -177,10 +121,10 @@
         }
 
         .card-title-custom {
-            font-weight: 800;
+            font-weight: 700;
             color: var(--dark-purple);
             margin-bottom: 0;
-            font-size: 1.15rem;
+            font-size: 1rem;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -221,14 +165,14 @@
         .form-label {
             font-weight: 600;
             color: var(--dark-purple);
-            font-size: 0.88rem;
+            font-size: 0.8rem;
         }
 
         .form-control, .form-select {
             border-radius: 12px;
-            padding: 12px 15px;
+            padding: 8px 12px;
             border: 1.5px solid #e2d9f3;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             transition: all 0.3s ease;
             background-color: #fcfbfe;
         }
@@ -244,9 +188,9 @@
             color: #ffffff;
             border: none;
             border-radius: 12px;
-            padding: 12px 25px;
+            padding: 8px 18px;
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             box-shadow: 0 6px 20px rgba(121, 75, 196, 0.3);
             transition: all 0.3s ease;
         }
@@ -290,6 +234,27 @@
             from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* --- Main Content Area --- */
+        #main-content {
+            margin-left: 240px;
+            padding: 20px;
+            transition: all 0.4s ease;
+            animation: mainFadeIn 0.7s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        @media (max-width: 992px) {
+            #main-content {
+                margin-left: 70px;
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            #main-content {
+                padding: 10px;
+            }
+        }
     </style>
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
     <script defer src="<?= base_url('assets/js/admin-responsive.js'); ?>"></script>
@@ -297,69 +262,7 @@
 <body>
 
     <!-- === SIDEBAR MENU === -->
-    <nav id="sidebar">
-        <div class="sidebar-header">
-            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
-        </div>
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a href="<?= base_url('admin/dashboard'); ?>" class="nav-link">
-                    <i class="fas fa-chart-pie"></i> <span>Dashboard</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link">
-                    <i class="fas fa-book"></i> <span>Master Kelas</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/mentor'); ?>" class="nav-link active">
-                    <i class="fas fa-chalkboard-user"></i> <span>Instruktur</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link">
-                    <i class="fas fa-users"></i> <span>Data Peserta</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/validasi'); ?>" class="nav-link">
-                    <i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
-                    <i class="fas fa-book-open"></i> <span>Buku Induk</span>
-                </a>
-            </li>
-             <li class="nav-item">
-                <a href="<?= base_url('admin/angket'); ?>" class="nav-link">
-                    <i class="fas fa-poll"></i> <span>Angket</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link">
-                    <i class="fas fa-award"></i> <span>Sertifikat</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/laporan'); ?>" class="nav-link">
-                    <i class="fas fa-file-lines"></i> <span>Laporan</span>
-                </a>
-            </li>
-            
-            <li class="nav-item">
-                <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link">
-                    <i class="fas fa-gear"></i> <span>Pengaturan</span>
-                </a>
-            </li>
-            <li class="nav-item mt-4">
-                <a href="<?= base_url('logout'); ?>" class="nav-link text-danger">
-                    <i class="fas fa-right-from-bracket"></i> <span>Logout</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
+        <?= view('admin/layouts/sidebar_universal', ['isMentor' => isset($isMentor) ? $isMentor : false]); ?>
 
     <!-- === MAIN CONTENT === -->
     <div id="main-content">
@@ -487,3 +390,9 @@
     </script>
 </body>
 </html>
+
+
+
+
+
+

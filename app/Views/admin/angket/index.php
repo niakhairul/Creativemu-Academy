@@ -32,42 +32,42 @@ if (!function_exists('rating_stars_admin_angket')) {
             --muted-text: #817796;
         }
         * { box-sizing: border-box; }
-        body { margin: 0; font-family: 'Poppins', sans-serif; background: #f7f5fd; color: #2f2442; overflow-x: hidden; }
-        #sidebar { width: 275px; height: 100vh; position: fixed; inset: 0 auto 0 0; background: var(--sidebar-bg); color: var(--sidebar-text); z-index: 1000; overflow-y: auto; box-shadow: 8px 0 28px rgba(34, 19, 60, .12); }
-        #sidebar .sidebar-header { padding: 22px 18px; background: rgba(0,0,0,.22); text-align: center; }
-        #sidebar .sidebar-header img { width: 230px; max-width: 100%; height: 92px; object-fit: cover; border-radius: 10px; }
-        #sidebar .nav { padding: 18px 12px 28px; }
-        #sidebar .nav-link { color: var(--sidebar-text); padding: 12px 16px; display: flex; align-items: center; gap: 12px; border-radius: 12px; margin-bottom: 6px; font-weight: 500; font-size: .92rem; transition: .2s ease; }
-        #sidebar .nav-link i { width: 21px; text-align: center; }
-        #sidebar .nav-link:hover, #sidebar .nav-link.active { background: var(--sidebar-active-gradient); color: #fff; box-shadow: 0 8px 20px rgba(121,75,196,.28); }
-        #main-content { margin-left: 275px; padding: 32px; min-height: 100vh; }
+        body { margin: 0; font-family: 'Poppins', sans-serif; background: #f7f5fd; color: #2f2442; overflow-x: hidden; font-size: 14px; }
+        
+        
+        
+        
+        
+        
+        
+        
         .top-navbar, .panel, .metric-card, .survey-mobile-card { background: #fff; border: 1px solid rgba(121,75,196,.08); box-shadow: 0 14px 34px rgba(64,36,105,.06); }
         .top-navbar { border-radius: 18px; padding: 22px 26px; display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 24px; }
-        .page-title { font-size: clamp(1.25rem, 2vw, 1.75rem); color: var(--dark-purple); font-weight: 800; margin: 0; }
-        .page-subtitle { color: var(--muted-text); margin: 6px 0 0; font-size: .92rem; }
+        .page-title { font-size: 1.25rem; color: var(--dark-purple); font-weight: 700; margin: 0; }
+        .page-subtitle { color: var(--muted-text); margin: 6px 0 0; font-size: 0.8rem; }
         .admin-profile { display: flex; align-items: center; gap: 12px; min-width: max-content; }
         .admin-profile img { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-purple); }
-        .admin-info h6 { margin: 0; color: var(--dark-purple); font-weight: 700; font-size: .92rem; }
+        .admin-info h6 { margin: 0; color: var(--dark-purple); font-weight: 600; font-size: 0.88rem; }
         .admin-info small { color: var(--muted-text); }
         .metrics-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
         .metric-card { border-radius: 16px; padding: 18px; position: relative; overflow: hidden; }
         .metric-card:after { content: ''; position: absolute; right: -34px; top: -40px; width: 100px; height: 100px; border-radius: 50%; background: rgba(121,75,196,.09); }
         .metric-icon { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; color: #fff; background: var(--sidebar-active-gradient); margin-bottom: 13px; }
         .metric-label { color: var(--muted-text); font-size: .82rem; font-weight: 600; margin-bottom: 4px; }
-        .metric-value { color: var(--dark-purple); font-size: 1.55rem; font-weight: 800; line-height: 1.1; }
+        .metric-value { color: var(--dark-purple); font-size: 1.55rem; font-weight: 700; line-height: 1.1; }
         .panel { border-radius: 18px; padding: 22px; margin-bottom: 20px; }
         .filter-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr .85fr auto; gap: 12px; align-items: end; }
-        .form-label { color: var(--dark-purple); font-size: .78rem; font-weight: 700; }
-        .form-control, .form-select { border-radius: 12px; border-color: var(--soft-border); min-height: 44px; font-size: .9rem; }
+        .form-label { color: var(--dark-purple); font-size: .78rem; font-weight: 600; }
+        .form-control, .form-select { border-radius: 12px; border-color: var(--soft-border); padding: 8px 12px; font-size: 0.85rem; }
         .form-control:focus, .form-select:focus { border-color: var(--primary-purple); box-shadow: 0 0 0 .2rem rgba(121,75,196,.15); }
-        .btn-purple { background: var(--sidebar-active-gradient); color: #fff; border: none; border-radius: 12px; min-height: 44px; padding: 10px 16px; font-weight: 700; }
+        .btn-purple { background: var(--sidebar-active-gradient); color: #fff; border: none; border-radius: 12px; padding: 8px 16px; font-weight: 600; font-size: 0.82rem; }
         .btn-purple:hover { color: #fff; filter: brightness(.98); transform: translateY(-1px); }
-        .btn-soft { background: var(--light-purple); color: var(--primary-purple); border: 1px solid var(--soft-border); border-radius: 12px; min-height: 44px; padding: 10px 15px; font-weight: 700; }
+        .btn-soft { background: var(--light-purple); color: var(--primary-purple); border: 1px solid var(--soft-border); border-radius: 12px; padding: 8px 16px; font-weight: 600; font-size: 0.82rem; }
         .table-wrap { overflow-x: auto; }
         .table { margin: 0; vertical-align: middle; }
-        .table thead th { background: #faf8ff; color: #5931a0; border-bottom: 1px solid var(--soft-border); padding: 14px 16px; font-size: .82rem; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; }
-        .table tbody td { padding: 16px; border-bottom: 1px solid #f0eafb; color: #443652; }
-        .survey-title { color: var(--dark-purple); font-weight: 800; margin-bottom: 4px; }
+        .table thead th { background: #faf8ff; color: #5931a0; border-bottom: 1px solid var(--soft-border); padding: 10px 12px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; }
+        .table tbody td { padding: 10px 12px; font-size: 0.8rem; border-bottom: 1px solid #f0eafb; color: #443652; }
+        .survey-title { color: var(--dark-purple); font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; }
         .meta-text { color: var(--muted-text); font-size: .84rem; }
         .rating-stars { color: #f5b301; letter-spacing: 1px; white-space: nowrap; font-size: 1.02rem; }
         .rating-score { color: var(--dark-purple); font-weight: 800; }
@@ -79,46 +79,19 @@ if (!function_exists('rating_stars_admin_angket')) {
         .mobile-row span:last-child { text-align: right; font-weight: 600; color: var(--dark-purple); }
         @media (max-width: 1100px) { .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .filter-actions { grid-column: 1 / -1; display: flex; gap: 10px; } }
         @media (max-width: 768px) {
-    #sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 275px;
-        height: 100vh;
-        z-index: 1100;
-        display: none;
-        overflow-y: auto;
-    }
+    
 
-    #sidebar.show {
-        display: block;
-    }
+    
 
-    #sidebar .sidebar-header {
-        padding: 14px;
-    }
+    
 
-    #sidebar .sidebar-header img {
-        width: 190px;
-        height: 74px;
-    }
+    
 
-    #sidebar .nav {
-        padding: 12px;
-        display: block;
-    }
+    
 
-    #sidebar .nav-link {
-        margin-bottom: 6px;
-        min-height: 46px;
-        font-size: .82rem;
-        padding: 10px 12px;
-    }
+    
 
-    #main-content {
-        margin-left: 0;
-        padding: 18px;
-    }
+    
 
     .top-navbar {
         align-items: flex-start;
@@ -155,93 +128,32 @@ if (!function_exists('rating_stars_admin_angket')) {
     }
 }
         @media (max-width: 430px) { #sidebar .nav { grid-template-columns: 1fr; } .filter-actions { grid-template-columns: 1fr; } .metric-value { font-size: 1.35rem; } }
+
+        #main-content {
+            margin-left: 240px;
+            padding: 24px;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 992px) {
+            #main-content {
+                margin-left: 70px;
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            #main-content {
+                padding: 10px;
+            }
+        }
     </style>
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
     <script defer src="<?= base_url('assets/js/admin-responsive.js'); ?>"></script>
 </head>
 <body>
-    <nav id="sidebar">
-        <div class="sidebar-header">
-            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" class="img-fluid">
-        </div>
-
-        <ul class="nav flex-column mt-3">
-            <li class="nav-item">
-                <a href="<?= base_url('admin/dashboard'); ?>" class="nav-link">
-                    <i class="fas fa-chart-pie me-3"></i> Dashboard
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link">
-                    <i class="fas fa-book me-3"></i> Master Kelas
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="<?= base_url('admin/mentor'); ?>" class="nav-link">
-                    <i class="fas fa-chalkboard-user me-3"></i> Instruktur
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link">
-                    <i class="fas fa-users me-3"></i> Data Peserta
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="<?= base_url('admin/validasi'); ?>" class="nav-link">
-                    <i class="fas fa-clipboard-check me-3"></i> Validasi Pendaftaran
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
-                    <i class="fas fa-book-open me-3"></i> Buku Induk
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="<?= base_url('admin/angket'); ?>" class="nav-link active">
-                    <i class="fas fa-award me-3"></i> Angket
-                </a>
-
-                <ul class="nav flex-column ms-3 mt-1">
-                    <li class="nav-item">
-                        <a href="<?= base_url('admin/hasil_angket'); ?>" class="nav-link py-2" style="font-size: 0.9rem;">
-                            <i class="fas fa-poll-h me-2"></i> Hasil Angket
-                        </a>
-                    </li>
-                </ul>
-            </li>
-
-            <li class="nav-item">
-                <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link">
-                    <i class="fas fa-certificate me-3"></i> Sertifikat
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="<?= base_url('admin/laporan'); ?>" class="nav-link">
-                    <i class="fas fa-file-lines me-3"></i> Laporan
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link">
-                    <i class="fas fa-gear me-3"></i> Pengaturan
-                </a>
-            </li>
-
-            <li class="nav-item mt-4">
-                <a href="<?= base_url('logout'); ?>" class="nav-link text-danger">
-                    <i class="fas fa-right-from-bracket me-3"></i> Logout
-                </a>
-            </li>
-        </ul>
-        </ul>
-    </nav>
+        <?= view('admin/layouts/sidebar_universal', ['isMentor' => isset($isMentor) ? $isMentor : false]); ?>
 
     <main id="main-content">
         <section class="top-navbar">
@@ -420,3 +332,8 @@ if (!function_exists('rating_stars_admin_angket')) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+
+
+
+

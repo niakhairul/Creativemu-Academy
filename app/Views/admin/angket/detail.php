@@ -23,14 +23,14 @@ $tanggalPelatihan = !empty($angket['tanggal_mulai_kelas']) ? date('d M Y', strto
         :root { --sidebar-bg:#22133c; --sidebar-active-gradient:linear-gradient(135deg,#794bc4 0%,#5931a0 100%); --sidebar-text:#c8bfe7; --primary-purple:#794bc4; --dark-purple:#1e0f33; --light-purple:#f4f0fc; --soft-border:#eadffb; --muted-text:#817796; }
         * { box-sizing: border-box; }
         body { margin:0; font-family:'Poppins',sans-serif; background:#f7f5fd; color:#2f2442; overflow-x:hidden; }
-        #sidebar { width:275px; height:100vh; position:fixed; inset:0 auto 0 0; background:var(--sidebar-bg); z-index:1000; overflow-y:auto; box-shadow:8px 0 28px rgba(34,19,60,.12); }
-        #sidebar .sidebar-header { padding:22px 18px; background:rgba(0,0,0,.22); text-align:center; }
-        #sidebar .sidebar-header img { width:230px; max-width:100%; height:92px; object-fit:cover; border-radius:10px; }
-        #sidebar .nav { padding:18px 12px 28px; }
-        #sidebar .nav-link { color:var(--sidebar-text); padding:12px 16px; display:flex; align-items:center; gap:12px; border-radius:12px; margin-bottom:6px; font-weight:500; font-size:.92rem; transition:.2s ease; }
-        #sidebar .nav-link i { width:21px; text-align:center; }
-        #sidebar .nav-link:hover, #sidebar .nav-link.active { background:var(--sidebar-active-gradient); color:#fff; box-shadow:0 8px 20px rgba(121,75,196,.28); }
-        #main-content { margin-left:275px; padding:32px; min-height:100vh; }
+        
+        
+        
+        
+        
+        
+        
+        
         .top-navbar, .panel, .info-card, .score-card, .comment-card { background:#fff; border:1px solid rgba(121,75,196,.08); box-shadow:0 14px 34px rgba(64,36,105,.06); }
         .top-navbar { border-radius:18px; padding:22px 26px; display:flex; justify-content:space-between; align-items:center; gap:18px; margin-bottom:24px; }
         .page-title { font-size:clamp(1.25rem,2vw,1.75rem); color:var(--dark-purple); font-weight:800; margin:0; }
@@ -68,85 +68,25 @@ $tanggalPelatihan = !empty($angket['tanggal_mulai_kelas']) ? date('d M Y', strto
         .empty-state { text-align:center; color:var(--muted-text); padding:34px 12px; }
         @media (max-width:992px) { .detail-grid { grid-template-columns:1fr; } }
         @media (max-width:768px) {
-            #sidebar { position:relative; width:100%; height:auto; }
-            #sidebar .sidebar-header { padding:14px; }
-            #sidebar .sidebar-header img { width:190px; height:74px; }
-            #sidebar .nav { padding:12px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
-            #sidebar .nav-link { margin:0; min-height:46px; font-size:.82rem; padding:10px 12px; }
-            #main-content { margin-left:0; padding:18px; }
+            
+            
+            
+            
+            
+            
             .top-navbar { flex-direction:column; align-items:flex-start; padding:18px; border-radius:14px; }
             .admin-profile { width:100%; }
             .panel { padding:16px; border-radius:14px; }
             .info-grid { grid-template-columns:1fr; }
             .comment-top { flex-direction:column; }
         }
-        @media (max-width:430px) { #sidebar .nav { grid-template-columns:1fr; } .avg-value { font-size:1.7rem; } }
+        @media (max-width:430px) {  .avg-value { font-size:1.7rem; } }
     </style>
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
     <script defer src="<?= base_url('assets/js/admin-responsive.js'); ?>"></script>
 </head>
 <body>
-    <nav id="sidebar">
-        <div class="sidebar-header"><img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy"></div>
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a href="<?= base_url('admin/dashboard'); ?>" class="nav-link">
-                    <i class="fas fa-chart-pie"></i> <span>Dashboard</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/master-kelas'); ?>" class="nav-link">
-                    <i class="fas fa-book"></i> <span>Master Kelas</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/mentor'); ?>" class="nav-link">
-                    <i class="fas fa-chalkboard-user"></i> <span>Instruktur</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/data-peserta'); ?>" class="nav-link">
-                    <i class="fas fa-users"></i> <span>Data Peserta</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/validasi'); ?>" class="nav-link">
-                    <i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link">
-                    <i class="fas fa-book-open"></i> <span>Buku Induk</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/angket'); ?>" class="nav-link active">
-                    <i class="fas fa-award"></i> <span>Angket</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/sertifikat'); ?>" class="nav-link">
-                    <i class="fas fa-certificate"></i> <span>Sertifikat</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="<?= base_url('admin/laporan'); ?>" class="nav-link">
-                    <i class="fas fa-file-lines"></i> <span>Laporan</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="<?= base_url('admin/pengaturan'); ?>" class="nav-link">
-                    <i class="fas fa-gear"></i> <span>Pengaturan</span>
-                </a>
-            </li>
-            <li class="nav-item mt-4">
-                <a href="<?= base_url('logout'); ?>" class="nav-link text-danger">
-                    <i class="fas fa-right-from-bracket"></i> <span>Logout</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
+        <?= view('admin/layouts/sidebar_universal', ['isMentor' => isset($isMentor) ? $isMentor : false]); ?>
 
     <main id="main-content">
         <section class="top-navbar">
@@ -299,3 +239,5 @@ $tanggalPelatihan = !empty($angket['tanggal_mulai_kelas']) ? date('d M Y', strto
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+
