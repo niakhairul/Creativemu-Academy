@@ -791,7 +791,7 @@
                             </div>
 
                             <div class="d-flex gap-2 mt-1">
-                                <a href="<?= base_url('pelatihan/detail/' . $k['id_kelas']) ?>" class="btn btn-outline-detail flex-fill text-center">
+                                <a href="<?= base_url('pelatihan/detail-kelas/' . $k['id_kelas']) ?>" class="btn btn-outline-detail flex-fill text-center">
                                     <i class="bi bi-arrow-right-circle"></i> Lihat Detail
                                 </a>
                             </div>
@@ -942,3 +942,4 @@ function lakukanCekStatus() {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

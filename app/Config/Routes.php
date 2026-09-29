@@ -54,7 +54,7 @@ $routes->post('pelatihan/register', 'PelatihanController::register');
 
 $routes->get('pelatihan/daftar-kelas-peserta', 'Pelatihan::daftarKelasPeserta');
 $routes->get('pelatihan/tambah-kelas', 'Pelatihan::tambahKelas');
-$routes->get('pelatihan/detail-kelas', 'Pelatihan::detailKelas');
+$routes->get('pelatihan/detail-kelas/(:num)', 'Pelatihan::detailKelas/$1');
 $routes->get('pelatihan/materi', 'Pelatihan::materi');
 $routes->get('pelatihan/materi/(:num)', 'Pelatihan::materi/$1');
 $routes->get('pelatihan/daftar-materi', 'Pelatihan::daftarMateri');
@@ -270,3 +270,4 @@ $routes->cli('dump', function() {
     file_put_contents('scratch/dump.json', json_encode($m->getChartData([]), JSON_PRETTY_PRINT));
     echo "Dumped\n";
 });
+

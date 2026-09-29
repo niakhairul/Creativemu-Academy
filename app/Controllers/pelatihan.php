@@ -1164,7 +1164,7 @@ if ($kelas && !empty($jadwal)) {
     public function detailKelas($id = null)
 {
     if ($id === null) {
-        return redirect()->to(base_url('admin/master-kelas'))->with('error', 'ID Kelas tidak valid.');
+        return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('error', 'ID Kelas tidak valid.');
     }
 
     $kelasModel = new \App\Models\KelasModel();
@@ -1173,12 +1173,12 @@ if ($kelas && !empty($jadwal)) {
     $data['kelas'] = $kelasModel->getKelasByIdWithMentor($id);
 
     if (empty($data['kelas'])) {
-        return redirect()->to(base_url('admin/master-kelas'))->with('error', 'Data kelas tidak ditemukan.');
+        return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('error', 'Data kelas tidak ditemukan.');
     }
 
     $data['title'] = 'Detail Kelas: ' . $data['kelas']['nama_kelas'];
 
-    return view('admin/master_kelas/detail', $data);
+    return view('peserta/detail_kelas', $data);
 }
 
     public function detailJadwal($idJadwal)

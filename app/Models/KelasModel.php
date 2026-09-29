@@ -78,11 +78,24 @@ class KelasModel extends Model
     {
         $db = \Config\Database::connect();
 
-        return $db->table('kelas')
+        $kelas = $db->table('kelas')
             ->select('kelas.*, mentor.nama_mentor, mentor.keahlian, mentor.email AS email_mentor, mentor.telepon AS telepon_mentor')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
             ->where('kelas.id_kelas', $id)
             ->get()
             ->getRowArray();
+
+        if ($kelas) {
+            $jumlahDisetujui = $db->table('pendaftaran')
+                ->where('id_kelas', $id)
+                ->where('status_pembayaran', 'valid')
+                ->countAllResults();
+
+            $kelas['kapasitas_tersedia'] = max(0, (int) $kelas['kapasitas'] - $jumlahDisetujui);
+            $kelas['jumlah_peserta'] = $jumlahDisetujui;
+        }
+
+        return $kelas;
     }
 }
+
