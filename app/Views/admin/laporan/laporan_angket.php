@@ -379,14 +379,14 @@
             <div class="d-flex align-items-center">
                 <button class="mobile-toggle-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
                 <div>
-                    <h4 class="mb-0 fw-bold" style="color: var(--dark-purple);">Laporan Angket Mentor</h4>
+                    <h4 class="mb-0 fw-bold" style="color: var(--dark-purple);">Laporan Angket Instrukur</h4>
                     <p class="text-muted small mb-0">Hasil evaluasi, kepuasan peserta, dan analisis indikator penilaian pengajar</p>
                 </div>
             </div>
 
             <!-- ACTION BUTTONS: EXPORT & CETAK -->
             <?php
-                $baseUrlReport = $isMentor ? 'mentor/laporan-angket' : 'admin/laporan-angket';
+                $baseUrlReport = $isMentor ? 'instruktur/laporan-angket' : 'admin/laporan-angket';
                 $queryString = http_build_query($filters);
             ?>
             <div class="d-flex gap-2">
@@ -434,10 +434,10 @@
 
                     <!-- Nama Mentor -->
                     <div class="col-12 col-sm-6 col-md-3">
-                        <label class="form-label small fw-semibold text-muted">Nama Mentor</label>
+                        <label class="form-label small fw-semibold text-muted">Nama Instruktur</label>
                         <select name="id_mentor" class="form-select" <?= (!empty($isMentor)) ? 'disabled' : ''; ?>>
                             <?php if (empty($isMentor)): ?>
-                                <option value="all">-- Semua Mentor --</option>
+                                <option value="all">-- Semua Instruktur --</option>
                             <?php endif; ?>
                             <?php foreach ($mentors as $m): ?>
                                 <option value="<?= $m['id_mentor']; ?>" <?= ($filters['id_mentor'] == $m['id_mentor']) ? 'selected' : ''; ?>>
@@ -485,14 +485,14 @@
 
         <!-- 2. DASHBOARD RINGKASAN METRIK (4 KARTU STATISTIK) -->
         <div class="row g-4 mb-4">
-            <!-- Total Mentor Dinilai -->
+            <!-- Total Instruktur Dinilai -->
             <div class="col-12 col-sm-6 col-xl-3">
                 <div class="stat-card stat-theme-purple">
                     <div class="stat-icon">
                         <i class="fas fa-chalkboard-user"></i>
                     </div>
                     <div>
-                        <div class="stat-label">Total Mentor Dinilai</div>
+                        <div class="stat-label">Total Instruktur Dinilai</div>
                         <div class="stat-value"><?= number_format($stats['total_mentor_dinilai']); ?></div>
                         <span class="badge bg-light text-muted small mt-1">Instruktur Aktif</span>
                     </div>
@@ -542,13 +542,13 @@
             </div>
         </div>
 
-        <!-- 3. SECTION LEADERBOARD / PODIUM PERFORMA MENTOR (TOP 3) -->
+        <!-- 3. SECTION LEADERBOARD / PODIUM PERFORMA INSTRUKTUR (TOP 3) -->
         <div class="row g-4 mb-4">
             <div class="col-12">
                 <div class="custom-card">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-bold mb-0" style="color: var(--dark-purple);">
-                            <i class="fas fa-trophy text-warning me-2"></i> Leaderboard Performa & Kepuasan Mentor
+                            <i class="fas fa-trophy text-warning me-2"></i> Leaderboard Performa & Kepuasan Instruktur
                         </h6>
                         <span class="badge bg-purple-subtle text-primary fw-normal">Diurutkan Berdasarkan Nilai Angket & Jumlah Responden</span>
                     </div>
@@ -588,7 +588,7 @@
                             </div>
                             <?php $podiumIdx++; endforeach; ?>
                         <?php else: ?>
-                            <div class="col-12 text-center text-muted py-4">Belum ada data evaluasi mentor pada filter ini.</div>
+                            <div class="col-12 text-center text-muted py-4">Belum ada data evaluasi instruktur pada filter ini.</div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -819,17 +819,17 @@
             </div>
         </div>
 
-        <!-- 6. TABEL UTAMA: REKAPITULASI PENILAIAN MENTOR -->
+        <!-- 6. TABEL UTAMA: REKAPITULASI PENILAIAN INSTRUKTUR -->
         <div class="custom-card">
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
                 <div>
                     <h6 class="fw-bold mb-0" style="color: var(--dark-purple);">
-                        <i class="fas fa-table-list text-primary me-2"></i> Tabel Rekapitulasi Penilaian Mentor
+                        <i class="fas fa-table-list text-primary me-2"></i> Tabel Rekapitulasi Penilaian Instruktur
                     </h6>
                     <small class="text-muted">Hasil nilai rata-rata, jumlah responden, predikat, dan detail umpan balik peserta</small>
                 </div>
                 <div class="badge bg-light text-dark border px-3 py-2">
-                    Menampilkan <strong><?= count($angketList); ?></strong> Mentor
+                    Menampilkan <strong><?= count($angketList); ?></strong> Instruktur
                 </div>
             </div>
 
@@ -838,7 +838,7 @@
                     <thead>
                         <tr>
                             <th rowspan="2" width="5%" class="text-center align-middle">No</th>
-                            <th rowspan="2" class="align-middle">Nama Mentor</th>
+                            <th rowspan="2" class="align-middle">Nama Instruktur</th>
                             <th rowspan="2" class="align-middle">Pelatihan / Kategori</th>
                             <th rowspan="2" class="align-middle">Kelas Diampu</th>
                             <th colspan="3" class="text-center align-middle" style="background-color: #32185d; color: #fff;">
@@ -911,7 +911,7 @@
                                 <td colspan="9" class="text-center py-5 text-muted">
                                     <i class="fas fa-clipboard-question fa-3x text-muted mb-3 opacity-50"></i>
                                     <h6>Tidak ada data penilaian angket ditemukan</h6>
-                                    <p class="small">Silakan sesuaikan filter tahun, bulan, atau nama mentor.</p>
+                                    <p class="small">Silakan sesuaikan filter tahun, bulan, atau nama instruktur.</p>
                                 </td>
                             </tr>
                         <?php endif; ?>
@@ -960,7 +960,7 @@
                                 <?php endif; ?>
                             </div>
                             <div class="small text-muted mb-2">
-                                Kelas: <strong><?= esc($rev['nama_kelas']); ?></strong> • Mentor: <strong><?= esc($rev['nama_mentor']); ?></strong>
+                                Kelas: <strong><?= esc($rev['nama_kelas']); ?></strong> • Instruktur: <strong><?= esc($rev['nama_mentor']); ?></strong>
                             </div>
                             <div class="text-dark small fst-italic" style="background: #faf8fd; padding: 10px; border-radius: 8px; border-left: 3px solid var(--primary-purple);">
                                 "<?= esc($rev['ulasan']); ?>"
@@ -983,7 +983,7 @@
                 <div class="modal-header text-white" style="background: var(--dark-purple);">
                     <div>
                         <h5 class="modal-title fw-bold" id="modalKomentarLabel">Detail Ulasan & Komentar Peserta</h5>
-                        <p class="mb-0 small text-white-50" id="modalMentorSubtitle">Mentor: -</p>
+                        <p class="mb-0 small text-white-50" id="modalMentorSubtitle">Instruktur: -</p>
                     </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -996,7 +996,7 @@
                     </div>
 
                     <div id="modalContentContainer" style="display: none;">
-                        <!-- Mentor Quick Header -->
+                        <!-- Instruktur Quick Header -->
                         <div class="p-3 bg-white border rounded-3 mb-3 d-flex justify-content-between align-items-center shadow-sm">
                             <div class="d-flex align-items-center">
                                 <div class="stat-icon me-3" style="width: 45px; height: 45px; border-radius: 12px; background: #f3effa; color: var(--primary-purple);">

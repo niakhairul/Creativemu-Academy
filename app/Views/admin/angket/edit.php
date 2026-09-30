@@ -22,11 +22,13 @@
             --dark-purple: #1e0f33;
         }
 
-        body {
+        html, body {
             font-family: 'Poppins', sans-serif;
             background-color: #f7f5fd;
+            color: #2b263b;
             overflow-x: hidden;
             margin: 0;
+            font-size: 14px;
         }
 
         /* --- Custom Scrollbar --- */
@@ -34,206 +36,99 @@
         ::-webkit-scrollbar-track { background: #f7f5fd; }
         ::-webkit-scrollbar-thumb { background: #b293f0; border-radius: 10px; }
 
-        /* --- Sidebar Styling --- */
-        
-
-        
-
-     
-
-        
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
         /* --- Main Content Area --- */
-        
+        #main-content {
+            margin-left: 240px;
+            padding: 20px;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 992px) {
+            #main-content { margin-left: 70px; padding: 15px; }
+        }
+
+        @media (max-width: 576px) {
+            #main-content { padding: 10px; }
+        }
 
         /* --- Top Navbar --- */
         .top-navbar {
             background: #ffffff;
-            padding: 22px 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(121, 75, 196, 0.05);
-            margin-bottom: 30px;
+            padding: 16px 24px;
+            border-radius: 14px;
+            box-shadow: 0 5px 20px rgba(121, 75, 196, 0.04);
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid rgba(121, 75, 196, 0.04);
-        }
-
-        .dash-header h3 {
-            font-weight: 800;
-            color: var(--dark-purple);
-            font-size: 1.6rem;
-            letter-spacing: -0.5px;
-        }
-
-        .dash-header p {
-            color: #8c83a5;
-            font-size: 0.9rem;
-            margin-bottom: 0;
-        }
-
-        .admin-profile {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .admin-profile img {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2.5px solid var(--primary-purple);
-            box-shadow: 0 4px 12px rgba(121, 75, 196, 0.2);
-        }
-
-        .admin-info h6 {
-            margin: 0;
-            font-weight: 700;
-            color: var(--dark-purple);
-            font-size: 0.98rem;
-        }
-
-        .admin-info small {
-            color: #8c83a5;
-            font-size: 0.78rem;
-        }
-
-        /* --- Content Cards --- */
-        .content-card {
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(121, 75, 196, 0.04);
-            margin-bottom: 30px;
             border: 1px solid rgba(121, 75, 196, 0.05);
         }
 
-        .card-title-custom {
-            font-weight: 800;
-            color: var(--dark-purple);
-            margin-bottom: 0;
-            font-size: 1.15rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .admin-profile { display: flex; align-items: center; gap: 12px; }
+        .admin-profile img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-purple); }
+        .admin-info { display: flex; flex-direction: column; }
+        .admin-info h6 { margin: 0; font-weight: 600; color: var(--dark-purple); font-size: 0.88rem; }
+        .admin-info small { color: #8c83a5; font-size: 0.78rem; }
 
-        .card-title-custom i {
-            color: var(--primary-purple);
-        }
-
-        /* --- Modal Customization --- */
-        .modal-content {
-            border-radius: 20px;
-            border: none;
-            box-shadow: 0 20px 50px rgba(30, 15, 51, 0.2);
-        }
-
-        .modal-header {
-            background-color: var(--light-purple);
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-            padding: 20px 25px;
-            border-bottom: 1px solid rgba(121, 75, 196, 0.08);
-        }
-
-        .modal-body {
-            padding: 25px;
-        }
-
-        .modal-footer {
-            background-color: #fcfbfe;
-            border-bottom-left-radius: 20px;
-            border-bottom-right-radius: 20px;
-            padding: 15px 25px;
-            border-top: 1px solid rgba(121, 75, 196, 0.08);
+        /* --- Content Cards --- */
+        .content-card, .card-custom {
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(121, 75, 196, 0.04);
+            margin-bottom: 20px;
+            border: 1px solid rgba(121, 75, 196, 0.05);
         }
 
         /* --- Form Styling --- */
         .form-label {
             font-weight: 600;
             color: var(--dark-purple);
-            font-size: 0.88rem;
+            font-size: 0.8rem !important;
+            margin-bottom: 6px;
         }
 
         .form-control, .form-select {
-            border-radius: 12px;
-            padding: 12px 15px;
-            border: 1.5px solid #e2d9f3;
-            font-size: 0.9rem;
+            border-radius: 8px;
+            padding: 8px 12px;
+            border: 1px solid #e2d9f3;
+            font-size: 0.85rem !important;
             transition: all 0.3s ease;
             background-color: #fcfbfe;
         }
 
         .form-control:focus, .form-select:focus {
             border-color: var(--primary-purple);
-            box-shadow: 0 0 0 4px rgba(121, 75, 196, 0.1);
+            box-shadow: 0 0 0 3px rgba(121, 75, 196, 0.1);
             background-color: #ffffff;
+        }
+
+        .btn {
+            font-size: 0.82rem !important;
+            font-weight: 600 !important;
+            padding: 8px 16px !important;
+            border-radius: 8px;
         }
 
         .btn-purple {
             background: var(--sidebar-active-gradient);
             color: #ffffff;
             border: none;
-            border-radius: 12px;
-            padding: 12px 25px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            box-shadow: 0 6px 20px rgba(121, 75, 196, 0.3);
-            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(121, 75, 196, 0.25);
+            transition: all 0.25s ease;
         }
 
         .btn-purple:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(121, 75, 196, 0.4);
-            color: #ffffff;
+            box-shadow: 0 5px 15px rgba(121, 75, 196, 0.35);
+            color: white;
         }
 
-        /* --- Table Styling --- */
-        .table-custom {
-            vertical-align: middle;
-            font-size: 0.9rem;
-        }
-
-        .table-custom th {
-            background-color: var(--light-purple);
-            color: var(--dark-purple);
-            font-weight: 700;
-            padding: 15px;
-            border: none;
-        }
-
-        .table-custom td {
-            padding: 15px;
-            border-bottom: 1px solid #f0edf6;
-            color: #4a4259;
-        }
-
-        .table-hover tbody tr {
-            transition: all 0.2s ease;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: var(--light-purple);
-            transform: scale(1.005);
-        }
-
-        @keyframes mainFadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        /* STANDAR TYPOGRAPHY */
+        .dash-header h3 { font-size: 1.25rem !important; font-weight: 700 !important; color: var(--dark-purple); margin-bottom: 4px; }
+        .dash-header p { font-size: 0.8rem !important; color: #8c83a5; margin-bottom: 0; }
+        .card-title-custom, h4.card-title-custom { font-size: 1rem !important; font-weight: 700 !important; color: var(--dark-purple); display: flex; align-items: center; gap: 8px; }
     </style>
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
     <script defer src="<?= base_url('assets/js/admin-responsive.js'); ?>"></script>
@@ -278,13 +173,13 @@
                         <form action="<?= base_url('admin/angket/update/' . $id); ?>" method="post">
     <!-- Judul Angket -->
     <div class="mb-3">
-        <label class="form-label fw-bold">Judul Angket</label>
+        <label class="form-label">Judul Angket</label>
         <input type="text" name="judul_angket" class="form-control" value="<?= esc($angket['judul_angket'] ?? ''); ?>" required>
     </div>
 
     <!-- Kelas (Opsional) -->
     <div class="mb-4">
-        <label class="form-label fw-bold">Berlaku untuk Kelas</label>
+        <label class="form-label">Berlaku untuk Kelas</label>
         <select name="id_kelas" class="form-select">
             <option value="">-- Berlaku Untuk Semua Kelas (Global) --</option>
             <?php foreach ($kelas as $k) : ?>
@@ -298,10 +193,10 @@
     <hr class="my-4">
 
     <!-- Pertanyaan -->
-    <div class="card p-4 mb-4 border-light shadow-sm">
+    <div class="border rounded p-3 mb-4" style="background-color: #fcfbfe; border-color: #e2d9f3 !important;">
         <div class="row">
             <div class="col-md-12 mb-3">
-                <label class="form-label fw-bold">Kategori Penilaian</label>
+                <label class="form-label">Kategori Penilaian</label>
                 <select name="kategori" class="form-select" required>
                     <option value="">-- Pilih Kategori --</option>
                     <option value="Customer Insight" <?= ($angket['kategori'] === 'Customer Insight') ? 'selected' : ''; ?>>Customer Insight</option>
@@ -311,12 +206,12 @@
             </div>
 
             <div class="col-md-12 mb-3">
-                <label class="form-label fw-bold">Isi Pertanyaan</label>
+                <label class="form-label">Isi Pertanyaan</label>
                 <input type="text" name="pertanyaan" class="form-control" value="<?= esc($angket['pertanyaan']); ?>" required>
             </div>
 
             <div class="col-md-12 mb-3">
-                <label class="form-label fw-bold">Jenis Jawaban</label>
+                <label class="form-label">Jenis Jawaban</label>
                 <select name="tipe" class="form-select" id="jenis_jawaban" required>
                     <option value="rating" <?= ($angket['tipe'] === 'rating') ? 'selected' : ''; ?>>Rating (Bintang 1-4)</option>
                     <option value="pilihan" <?= ($angket['tipe'] === 'pilihan') ? 'selected' : ''; ?>>Pilihan Ganda</option>
@@ -325,7 +220,7 @@
             </div>
 
             <div class="col-md-12 mb-3" id="opsi_jawaban_container" style="display: <?= ($angket['tipe'] === 'pilihan') ? 'block' : 'none'; ?>;">
-                <label class="form-label fw-bold">Opsi Jawaban</label>
+                <label class="form-label">Opsi Jawaban</label>
                 <div id="opsi_list">
                     <?php
                     $opsi = json_decode($angket['opsi_jawaban'], true) ?? [];
@@ -337,14 +232,14 @@
                         </div>
                     <?php endforeach; ?>
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="tambah_opsi">+ Tambah Opsi</button>
+                <button type="button" class="btn btn-outline-primary mt-2 btn-sm" id="tambah_opsi">+ Tambah Opsi</button>
             </div>
         </div>
     </div>
 
     <!-- Status -->
     <div class="mb-4">
-        <label class="form-label fw-bold">Status Pertanyaan</label>
+        <label class="form-label">Status Pertanyaan</label>
         <select name="status" class="form-select">
             <option value="Aktif" <?= ($angket['status'] == 'Aktif') ? 'selected' : ''; ?>>Aktif</option>
             <option value="Nonaktif" <?= ($angket['status'] == 'Nonaktif') ? 'selected' : ''; ?>>Nonaktif</option>
@@ -352,8 +247,8 @@
     </div>
 
     <div class="d-flex justify-content-end gap-2">
-        <a href="<?= base_url('admin/angket'); ?>" class="btn btn-light px-4 border">Batal</a>
-        <button type="submit" class="btn btn-purple px-5">Simpan Perubahan</button>
+        <a href="<?= base_url('admin/angket'); ?>" class="btn btn-light border">Batal</a>
+        <button type="submit" class="btn btn-purple">Simpan Perubahan</button>
     </div>
 </form>
 
