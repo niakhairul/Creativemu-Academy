@@ -30,6 +30,17 @@ if (!empty($pertanyaan)) {
 <div class="container-fluid">
     <!-- Header -->
     <div class="mb-4">
+        <?php
+        $fallback_url = base_url('pelatihan/daftar-kelas-peserta');
+        $back_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : $fallback_url;
+        // Mencegah infinite loop jika di-refresh
+        if (strpos($back_url, 'pelatihan/angket') !== false) {
+            $back_url = base_url('pelatihan/kelas'); 
+        }
+        ?>
+        <a href="<?= esc($back_url) ?>" class="btn btn-primary btn-sm mb-3 shadow-sm" style="border-radius: 8px; font-weight: 500; padding: 6px 16px; transition: all 0.2s ease;">
+            <i class="bi bi-arrow-left me-1"></i> Kembali
+        </a>
         <h2 class="fw-bold">Angket Evaluasi Pelatihan</h2>
         <p class="text-muted">Silakan isi angket sebagai evaluasi terhadap pelatihan yang telah Anda ikuti.</p>
     </div>
