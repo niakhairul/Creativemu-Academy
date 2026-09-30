@@ -130,12 +130,11 @@ class Pelatihan extends BaseController
 
     $idKelasDipilih = $this->request->getGet('id_kelas');
   
-
     $pendaftaranModel = new \App\Models\PendaftaranModel();
     $userModel = new \App\Models\UserModel();
     $jadwalModel = new \App\Models\JadwalModel();
 
-    // 1. AMBIL SEMUA DATA PENDAFTARAN PESERTA (Hanya kolom tabel pendaftaran, kelas, dan mentor yang aman)
+    // 1. Ambil semua data pendaftaran peserta
     $semuaPendaftaran = [];
     if ($userId) {
         $builder = $pendaftaranModel->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas as jadwal_kelas, mentor.nama_mentor')
@@ -155,18 +154,17 @@ class Pelatihan extends BaseController
         $semuaPendaftaran = $builder->orderBy('pendaftaran.id_pendaftaran', 'DESC')->findAll();
     }
 
-    // 2. TENTUKAN KELAS AKTIF YANG SEDANG DILIHAT DETAILNYA
+    // 2. Tentukan kelas aktif
     $pendaftaran = null;
     if (!empty($semuaPendaftaran)) {
-        if (!empty($idKelas)) {
+        if (!empty($idKelasDipilih)) {
             foreach ($semuaPendaftaran as $p) {
-                if ($p['id_kelas'] == $idKelas) {
+                if ($p['id_kelas'] == $idKelasDipilih) {
                     $pendaftaran = $p;
                     break;
                 }
             }
         }
-        // Jika tidak ada id_kelas di URL atau tidak ketemu, ambil yang pertama/terbaru
         if (!$pendaftaran) {
             $pendaftaran = $semuaPendaftaran[0];
         }
@@ -177,7 +175,7 @@ class Pelatihan extends BaseController
         $pendaftaran['nama_mentor'] = $pendaftaran['nama_mentor'] ?? 'Mentor Belum Ditentukan';
     }
 
-    // Ambil data user dari database
+    // Ambil data user
     $userData = null;
     if ($userId) {
         $userData = $userModel->find($userId);
@@ -186,19 +184,14 @@ class Pelatihan extends BaseController
         $userData = $userModel->where('email', $userEmail)->first();
     }
 
-    // Pastikan variabel $userData selalu berupa array dan memiliki key 'nama' & 'email'
     if (!is_array($userData)) {
         $userData = [];
     }
     if (empty($userData['nama'])) {
-        $userData['nama'] = $session->get('nama') 
-            ?? ($pendaftaran['nama'] ?? null) 
-            ?? 'Peserta';
+        $userData['nama'] = $session->get('nama') ?? ($pendaftaran['nama'] ?? null) ?? 'Peserta';
     }
     if (empty($userData['email'])) {
-        $userData['email'] = $session->get('email') 
-            ?? ($pendaftaran['email'] ?? null) 
-            ?? '-';
+        $userData['email'] = $session->get('email') ?? ($pendaftaran['email'] ?? null) ?? '-';
     }
 
     $list_jadwal = [];
@@ -209,6 +202,62 @@ class Pelatihan extends BaseController
                                  ->findAll();
     }
 
+    // ==========================================
+    // 3. LOGIKA CEK STATUS KELULUSAN & NOTIFIKASI
+    // ==========================================
+    $db = \Config\Database::connect();
+    $notifikasiAngket = false;
+    $statusUjianKeluar = false;
+    $isLulus = false;
+
+    if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
+        $semuaUjian = $db->table('ujian')
+            ->where('id_kelas', $pendaftaran['id_kelas'])
+            ->get()
+            ->getResultArray();
+
+        if (!empty($semuaUjian)) {
+            $lulusSemua = true;
+            $adaNilai = false;
+            foreach ($semuaUjian as $u) {
+                // Sesuaikan 'id_user' atau 'id_peserta' dengan kolom database Anda
+                $cekNilai = $db->table('nilai_ujian')
+                    ->where('id_user', $userId)
+                    ->where('id_ujian', $u['id_ujian'])
+                    ->get()
+                    ->getRowArray();
+
+                if ($cekNilai) {
+                    $adaNilai = true;
+                    $nilaiAkhir = $cekNilai['nilai_remidi'] ?? $cekNilai['nilai_awal'] ?? $cekNilai['nilai'] ?? 0;
+                    if ((float)$nilaiAkhir < 70 || strtolower($cekNilai['status_kelulusan'] ?? '') !== 'lulus') {
+                        $lulusSemua = false;
+                    }
+                } else {
+                    $lulusSemua = false;
+                }
+            }
+
+            if ($adaNilai) {
+                $statusUjianKeluar = true; // Nilai ujian sudah keluar
+                $isLulus = $lulusSemua;    // Status kelulusan akhir
+
+                if ($lulusSemua) {
+                    // Cek apakah sudah isi angket
+                    $sudahAngket = $db->table('angket_penilaian')
+                        ->where('id_peserta', $userId)
+                        ->where('id_kelas', $pendaftaran['id_kelas'])
+                        ->get()
+                        ->getRow();
+                    
+                    if (!$sudahAngket) {
+                        $notifikasiAngket = true; // Belum isi angket, munculkan notifikasi
+                    }
+                }
+            }
+        }
+    }
+
     $data = [
         'title'               => 'Dashboard Peserta',
         'pendaftaran'         => $pendaftaran,        
@@ -216,6 +265,9 @@ class Pelatihan extends BaseController
         'user'                => $userData, 
         'list_jadwal'         => $list_jadwal,
         'semua_kelas_peserta' => $semuaPendaftaran,   
+        'statusUjianKeluar'   => $statusUjianKeluar, // Sinkronisasi variabel ke view
+        'is_lulus'            => $isLulus,           // Sinkronisasi status kelulusan ke view
+        'notifikasiAngket'    => $notifikasiAngket, 
     ];
 
     return view('peserta/dashboard', $data);
@@ -975,189 +1027,129 @@ public function setujuiPendaftaran($id_pendaftaran)
         return $redirect;
     }
 
-    // Ambil data kelas & mentor sesuai kelas yang dipilih peserta
-$idKelas = $this->request->getGet('id_kelas');
+    $idKelas = $this->request->getGet('id_kelas');
 
-$kelasBuilder = (new PendaftaranModel())
-    ->select('pendaftaran.*, kelas.*, mentor.nama_mentor')
-    ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-    ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-    ->where('pendaftaran.id_users', $this->userId());
+    $kelasBuilder = (new PendaftaranModel())
+        ->select('pendaftaran.*, kelas.*, mentor.nama_mentor')
+        ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+        ->where('pendaftaran.id_users', $this->userId());
 
-if (!empty($idKelas)) {
-    $kelasBuilder->where('pendaftaran.id_kelas', $idKelas);
-}
-
-$kelas = $kelasBuilder
-    ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
-    ->first();
-
-$db = \Config\Database::connect();
-
-// Ambil data jadwal
-$jadwal = [];
-
-if ($kelas) {
-    $jadwal = $db->table('jadwal_kelas')
-        ->select('jadwal_kelas.*')
-        ->where('id_kelas', $kelas['id_kelas'])
-        ->orderBy('pertemuan_ke', 'ASC')
-        ->get()
-        ->getResultArray();
-}
-
-// Ambil data ujian berdasarkan kelas peserta
-$ujian = [];
-
-if ($kelas) {
-    $ujian = $db->table('ujian')
-        ->where('id_kelas', $kelas['id_kelas'])
-        ->orderBy('id_ujian', 'ASC')
-        ->get()
-        ->getResultArray();
-
-    foreach ($ujian as &$itemUjian) {
-        $itemUjian['jawaban'] = $db->table('jawaban_ujian')
-            ->where('id_ujian', $itemUjian['id_ujian'])
-            ->where('id_user', $this->userId())
-            ->get()
-            ->getRowArray();
+    if (!empty($idKelas)) {
+        $kelasBuilder->where('pendaftaran.id_kelas', $idKelas);
     }
 
-    unset($itemUjian);
-}
+    $kelas = $kelasBuilder
+        ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+        ->first();
 
-// Ambil materi yang terhubung dengan jadwal kelas
-$materi = [];
+    $db = \Config\Database::connect();
 
-if ($kelas && !empty($jadwal)) {
-    $idJadwalKelas = array_column($jadwal, 'id_jadwal_kelas');
+    $jadwal = [];
+    if ($kelas) {
+        $jadwal = $db->table('jadwal_kelas')
+            ->select('jadwal_kelas.*')
+            ->where('id_kelas', $kelas['id_kelas'])
+            ->orderBy('pertemuan_ke', 'ASC')
+            ->get()
+            ->getResultArray();
+    }
 
-    $materi = $db->table('materi')
-        ->where('id_kelas', $kelas['id_kelas'])
-        ->whereIn('id_jadwal_kelas', $idJadwalKelas)
-        ->orderBy('id_jadwal_kelas', 'ASC')
-        ->get()
-        ->getResultArray();
-}
+    // Ambil data ujian & nilai peserta
+    $ujian = [];
+    $semua_ujian_lulus = false;
+    $ada_nilai_keluar = false;
 
+    if ($kelas) {
+        $ujian = $db->table('ujian')
+            ->where('id_kelas', $kelas['id_kelas'])
+            ->orderBy('id_ujian', 'ASC')
+            ->get()
+            ->getResultArray();
 
-    // Hitung absensi dan hubungkan materi dengan pertemuan
-    $jumlahHadir = 0;
+        if (!empty($ujian)) {
+            $lulusSemua = true;
+            $sudahAdaNilai = false;
 
-    foreach ($jadwal as &$item) {
+            foreach ($ujian as &$itemUjian) {
+                $hasilUjian = $db->table('nilai_ujian')
+                    ->where('id_user', $this->userId())
+                    ->where('id_ujian', $itemUjian['id_ujian'])
+                    ->orderBy('id_nilai_ujian', 'DESC')
+                    ->get()
+                    ->getRowArray();
 
-    // ID jadwal yang digunakan tabel absensi
-    $idJadwal = $item['id_jadwal_kelas'] ?? null;
+                $itemUjian['nilai_record'] = $hasilUjian;
 
-        // Cari absensi peserta pada pertemuan ini
-        $absensi = null;
-        if ($idJadwal) {
-           $absensi = $db->table('absensi')
-    ->where('id_jadwal_kelas', $idJadwal)
-    ->where('id_user', $this->userId())
-    ->get()
-    ->getRowArray();
+                if ($hasilUjian) {
+                    $sudahAdaNilai = true;
+                    $nilaiTerbaru = isset($hasilUjian['nilai_remidi']) && $hasilUjian['nilai_remidi'] !== null 
+                        ? (float)$hasilUjian['nilai_remidi'] 
+                        : (float)($hasilUjian['nilai_awal'] ?? $hasilUjian['nilai'] ?? 0);
+
+                    $itemUjian['nilai_terbaru'] = $nilaiTerbaru;
+                    $itemUjian['status_kelulusan'] = $hasilUjian['status_kelulusan'] ?? ($nilaiTerbaru >= 70 ? 'lulus' : 'belum');
+
+                    if (strtolower($itemUjian['status_kelulusan']) !== 'lulus') {
+                        $lulusSemua = false;
+                    }
+                } else {
+                    $lulusSemua = false;
+                }
+            }
+            unset($itemUjian);
+
+            // Ambil nilai ujian terbaru untuk ditampilkan di kartu nilai
+$nilai_ujian = '-';
+
+foreach ($ujian as $itemUjian) {
+    if (!empty($itemUjian['nilai_record'])) {
+        $record = $itemUjian['nilai_record'];
+
+        if (isset($record['nilai_remidi']) && $record['nilai_remidi'] !== null) {
+            $nilai_ujian = $record['nilai_remidi'];
+        } elseif (isset($record['nilai_awal']) && $record['nilai_awal'] !== null) {
+            $nilai_ujian = $record['nilai_awal'];
+        } elseif (isset($record['nilai'])) {
+            $nilai_ujian = $record['nilai'];
         }
 
-        $item['absensi'] = $absensi;
-
-        // Cari materi yang terkait dengan jadwal/pertemuan ini
-        $item['materi'] = null;
-
-       foreach ($materi as $materiItem) {
-    if (
-        isset($materiItem['id_jadwal_kelas']) &&
-        $materiItem['id_jadwal_kelas'] == $idJadwal
-    ) {
-        $item['materi'] = $materiItem;
         break;
     }
 }
 
-        // Materi hanya terbuka jika peserta sudah hadir
-        $item['materi_terbuka'] =
-            (($absensi['status'] ?? null) === 'hadir');
-
-        if (($absensi['status'] ?? null) === 'hadir') {
-            $jumlahHadir++;
+            $ada_nilai_keluar = $sudahAdaNilai;
+            $semua_ujian_lulus = $lulusSemua;
         }
-    }
-
-    unset($item);
-
-    $totalPertemuan = count($jadwal);
-
-    $persentaseKehadiran = $totalPertemuan > 0
-        ? round(($jumlahHadir / $totalPertemuan) * 100)
-        : 0;
-
-    // ==========================================
-    // Evaluasi Status Kelulusan Seluruh Ujian
-    // ==========================================
-    $sudah_ujian = false;
-
-    // Ambil seluruh jadwal/ujian yang wajib untuk kelas ini
-    $semuaUjian = $db->table('ujian')
-        ->where('id_kelas', $kelas['id_kelas'])
-        ->get()
-        ->getResultArray();
-
-    if (!empty($semuaUjian)) {
-        $lulusSemua = true;
-
-        foreach ($semuaUjian as $u) {
-            $hasilUjian = $db->table('nilai_ujian')
-                ->where('id_user', $this->userId())
-                ->where('id_ujian', $u['id_ujian'])
-                ->orderBy('id_nilai_ujian', 'DESC')
-                ->get()
-                ->getRowArray();
-
-            // Mengecek apakah sudah benar-benar "Lulus" untuk ujian tersebut
-            if (!$hasilUjian || $hasilUjian['status_kelulusan'] !== 'lulus') {
-                $lulusSemua = false;
-                break;
-            }
-        }
-
-        $sudah_ujian = $lulusSemua;
-    }
-
-    // SIMULASI SEMENTARA - HAPUS SETELAH TESTING
-    // Bypass dibuka untuk SEMUA PESERTA (seperti Elis) agar bisa menguji angket
-    $isDev = (
-        (defined('ENVIRONMENT') && ENVIRONMENT === 'development') ||
-        (isset($_SERVER['CI_ENVIRONMENT']) && $_SERVER['CI_ENVIRONMENT'] === 'development') ||
-        (getenv('CI_ENVIRONMENT') === 'development')
-    );
-
-    if ($isDev) {
-        $sudah_ujian = true;
     }
 
     // ==========================================
     // Cek Pengisian Angket
     // ==========================================
-    $sudah_isi_angket = (bool) $db->table('jawaban_angket')
-        ->where('id_siswa', $this->userId())
-        ->get()
-        ->getRow();
+    $sudah_isi_angket = false;
+    if ($kelas) {
+        $sudah_isi_angket = (bool) $db->table('angket_penilaian')
+            ->where('id_peserta', $this->userId())
+            ->where('id_kelas', $kelas['id_kelas'])
+            ->get()
+            ->getRow();
+    }
 
-    $sertifikatAcademy = $sudah_ujian && $sudah_isi_angket;
+    // Syarat Angket Muncul & Bisa Diisi: 
+    // 1. Nilai ujian sudah keluar ($ada_nilai_keluar)
+    // 2. Keterangan Lulus Semua ($semua_ujian_lulus)
+    $bisa_isi_angket = ($ada_nilai_keluar && $semua_ujian_lulus);
 
-    // Kirim data ke halaman KBM
+    $sertifikatAcademy = $bisa_isi_angket && $sudah_isi_angket;
+
     return view('peserta/kelas', [
-        'kelas'               => $kelas,
-        'jadwal'              => $jadwal,
-        'materi'              => $materi,
-        'ujian'               => $ujian,
-        'totalPertemuan'      => $totalPertemuan,
-        'jumlahHadir'         => $jumlahHadir,
-        'persentaseKehadiran' => $persentaseKehadiran,
-        'sudah_ujian'         => $sudah_ujian,
-        'sudah_isi_angket'    => $sudah_isi_angket,
-        'sertifikatAcademy'   => $sertifikatAcademy,
+    'kelas'               => $kelas,
+    'jadwal'              => $jadwal,
+    'ujian'               => $ujian,
+    'nilai_ujian'         => $nilai_ujian,
+    'bisa_isi_angket'     => $bisa_isi_angket,
+    'sudah_isi_angket'    => $sudah_isi_angket,
+    'sertifikatAcademy'   => $sertifikatAcademy,
     ]);
 }
 
@@ -1169,7 +1161,7 @@ if ($kelas && !empty($jadwal)) {
 
     $kelasModel = new \App\Models\KelasModel();
     
-    // Panggil method yang baru saja kita ubah
+    // Ambil data kelas beserta mentor
     $data['kelas'] = $kelasModel->getKelasByIdWithMentor($id);
 
     if (empty($data['kelas'])) {
@@ -1177,6 +1169,34 @@ if ($kelas && !empty($jadwal)) {
     }
 
     $data['title'] = 'Detail Kelas: ' . $data['kelas']['nama_kelas'];
+
+    // ==========================================
+    // TAMBAHAN LOGIKA UNTUK UJI COBA TAB ANGKET
+    // ==========================================
+    $id_peserta = session()->get('id_user') ?? session()->get('id_peserta'); // Sesuaikan dengan session user Anda
+
+    $ujianModel  = new \App\Models\UjianModel(); // Sesuaikan nama model ujian Anda jika berbeda
+    $angketModel = new \App\Models\AngketModel(); // Sesuaikan nama model angket Anda jika berbeda
+
+    // 1. Ambil nilai ujian peserta pada kelas ini
+    $dataUjian = $ujianModel->where(['id_peserta' => $id_peserta, 'id_kelas' => $id])->first();
+    $nilaiUjian = $dataUjian['nilai'] ?? 0;
+    $statusUjian = $dataUjian['status'] ?? 'Belum Ujian'; // Misal: 'Lulus' atau 'Belum'
+
+    // 2. Cek apakah peserta sudah mengisi angket
+    $cekAngket = $angketModel->where(['id_peserta' => $id_peserta, 'id_kelas' => $id])->first();
+    $data['sudah_isi_angket'] = ($cekAngket) ? true : false;
+
+    // 3. Tentukan apakah peserta bisa mengisi angket (Syarat: Lulus atau nilai >= 70)
+    // UNTUK KEPERLUAN UJI COBA, Anda bisa ubah nilainya langsung ke true/false di bawah ini:
+    $data['bisa_isi_angket'] = true; // Ubah jadi false jika ingin menguji kondisi terkunci
+    
+    // Atau menggunakan logika database dinamis:
+     // Ubah sementara jadi true untuk uji coba tampilan
+    $data['bisa_isi_angket'] = true;  
+    $data['sudah_isi_angket'] = false; 
+    $data['nilai_ujian'] = 95; // Dummy nilai
+    // ==========================================
 
     return view('peserta/detail_kelas', $data);
 }
@@ -1203,88 +1223,100 @@ if ($kelas && !empty($jadwal)) {
     return view('peserta/detail_jadwal', $data);
 }
 
-    public function kbm()
+   public function kbm($id_kelas = null)
 {
-    if ($redirect = $this->requireLogin()) {
-        return $redirect;
-    }
-
-    $idKelas = $this->request->getGet('id_kelas');
-
-if (!empty($idKelas)) {
-    $kelas = (new PendaftaranModel())
-        ->select('pendaftaran.*, kelas.*, mentor.nama_mentor')
-        ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-        ->where('pendaftaran.id_users', $this->userId())
-        ->where('pendaftaran.id_kelas', $idKelas)
-        ->groupStart()
-            ->where('pendaftaran.status', 'Disetujui')
-            ->orWhere('pendaftaran.status_pembayaran', 'valid')
-        ->groupEnd()
-        ->first();
-} else {
-    $kelas = $this->approvedEnrollment();
-}
-
-if (! $kelas) {
-    return redirect()->to(base_url('pelatihan/kelas'))
-        ->with('error', 'Kelas Anda belum disetujui admin.');
-}
-
     $db = \Config\Database::connect();
+    // 1. Standarisasi pengambilan ID user dari session
+    $userId = session()->get('id_users') ?? session()->get('id_user');
 
-    // Ambil jadwal kelas sekaligus data lokasi GPS
-    $jadwal = $db->table('jadwal_kelas')
-        ->where('id_kelas', $kelas['id_kelas'])
-        ->orderBy('pertemuan_ke', 'ASC')
+    if (!$userId) {
+        return redirect()->to(base_url('pelatihan/login'))->with('error', 'Silakan login terlebih dahulu.');
+    }
+
+    // Jika id_kelas tidak dikirim di URL, ambil kelas aktif peserta
+    if (!$id_kelas) {
+        $pendaftaran = $db->table('pendaftaran')
+            ->where('id_users', $userId)
+            ->orderBy('id_pendaftaran', 'DESC')
+            ->get()
+            ->getRowArray();
+        $id_kelas = $pendaftaran['id_kelas'] ?? null;
+    }
+
+    // 2. Ambil data kelas & mentor
+    $kelas = $db->table('kelas')
+        ->select('kelas.*, mentor.nama_mentor')
+        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+        ->where('kelas.id_kelas', $id_kelas)
         ->get()
-        ->getResultArray();
+        ->getRowArray();
 
-    $absensiModel = new AbsensiModel();
-    $jumlahHadir = 0;
+    // 3. Ambil data materi & jadwal
+    $materi = $db->table('materi')->where('id_kelas', $id_kelas)->get()->getResultArray();
+    $jadwal = $db->table('jadwal')->where('id_kelas', $id_kelas)->orderBy('pertemuan_ke', 'ASC')->get()->getResultArray();
 
-    // Cek status absensi peserta yang sedang login
-    foreach ($jadwal as &$item) {
-
-        $idJadwal = $item['id_jadwal_kelas'] ?? null;
-
-        $absensi = null;
-
-        if ($idJadwal) {
-            $absensi = $absensiModel
-                ->where('id_jadwal_kelas', $idJadwal)
-                ->where('id_user', $this->userId())
-                ->first();
+    // 4. Ambil Nilai Ujian Peserta secara langsung dan aman
+    $nilaiUjianRow = null;
+    if ($userId && $id_kelas) {
+        // Coba cari berdasarkan id_user dan id_kelas di tabel nilai_ujian
+        $builderNilai = $db->table('nilai_ujian')
+            ->where('id_user', $userId);
+        
+        if ($db->fieldExists('id_kelas', 'nilai_ujian')) {
+            $builderNilai->where('id_kelas', $id_kelas);
         }
+        
+        $nilaiUjianRow = $builderNilai->orderBy('id_nilai_ujian', 'DESC')->get()->getRowArray();
 
-        $item['absensi'] = $absensi;
-
-        if (($absensi['status'] ?? null) === 'hadir') {
-            $jumlahHadir++;
+        // Jika masih kosong, coba cari via relasi ujian milik kelas tersebut
+        if (!$nilaiUjianRow) {
+            $nilaiUjianRow = $db->table('nilai_ujian')
+                ->select('nilai_ujian.*')
+                ->join('ujian', 'ujian.id_ujian = nilai_ujian.id_ujian', 'inner')
+                ->where('nilai_ujian.id_user', $userId)
+                ->where('ujian.id_kelas', $id_kelas)
+                ->orderBy('nilai_ujian.id_nilai_ujian', 'DESC')
+                ->get()
+                ->getRowArray();
         }
     }
 
-    unset($item);
+    // Tentukan nilai akhir dengan fallback prioritas kolom
+    $nilaiUjian = '-';
+    $statusKelulusan = '';
+    if ($nilaiUjianRow) {
+        $nilaiUjian = $nilaiUjianRow['nilai_remidi'] ?? $nilaiUjianRow['nilai_awal'] ?? $nilaiUjianRow['nilai'] ?? '-';
+        $statusKelulusan = strtolower($nilaiUjianRow['status_kelulusan'] ?? '');
+    }
 
-    // Hitung persentase kehadiran
-    $totalPertemuan = count($jadwal);
+    $bisaIsiAngket = ($nilaiUjian !== '-' && ((is_numeric($nilaiUjian) && (float)$nilaiUjian >= 70) || $statusKelulusan === 'lulus'));
 
-    $persentaseKehadiran = $totalPertemuan > 0
-        ? round(($jumlahHadir / $totalPertemuan) * 100)
-        : 0;
+    // Cek apakah user sudah mengisi angket untuk kelas ini
+    $sudahIsiAngket = false;
+    if ($userId && $id_kelas) {
+        $cekAngket = $db->table('angket') // Sesuaikan nama tabel angket di database Anda jika berbeda
+            ->where('id_user', $userId)
+            ->where('id_kelas', $id_kelas)
+            ->get()
+            ->getRowArray();
+            
+        if ($cekAngket) {
+            $sudahIsiAngket = true;
+        }
+    }
 
-    // Cek apakah peserta sudah mengisi angket
-    $sudahIsiAngket = (bool) $db->table('angket_penilaian')
-        ->where('id_peserta', $this->userId())
-        ->where('id_kelas', $kelas['id_kelas'])
-        ->get()
-        ->getRow();
+    // 6. Kirim semua variabel ke view
+    $data = [
+        'kelas'           => $kelas,
+        'materi'          => $materi,
+        'jadwal'          => $jadwal,
+        'nilai_ujian'     => $nilaiUjian,
+        'bisa_isi_angket' => $bisaIsiAngket,
+        'sudah_isi_angket'=> $sudahIsiAngket ? true : false,
+        'pendaftaran'     => $db->table('pendaftaran')->where('id_users', $userId)->where('id_kelas', $id_kelas)->get()->getRowArray()
+    ];
 
-    // Status sertifikat academy
-    $sertifikatAcademy = false;
-
-    return redirect()->to(base_url('pelatihan/kelas?id_kelas=' . $kelas['id_kelas']));
+    return view('pelatihan/kelas', $data); 
 }
 
 

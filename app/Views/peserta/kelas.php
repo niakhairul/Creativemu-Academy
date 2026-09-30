@@ -482,7 +482,7 @@
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
 <!-- Sidebar -->
-<nav class="sidebar">
+<nav class="sidebar" id="sidebarMenu">
         <a href="#" class="sidebar-brand d-flex align-items-center">
             <!-- Menggunakan file gambar logo dari folder assets -->
             <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Logo Creativemu" class="rounded-3 me-2 shadow-sm object-fit-cover" style="width: 38px; height: 38px;">
@@ -495,9 +495,8 @@
         <button type="button" class="sidebar-close-btn" id="sidebarClose" aria-label="Tutup Menu">
             <i class="bi bi-x-lg"></i>
         </button>
-    </div>
 
-    <ul class="sidebar-menu">
+    <ul class="sidebar-menu mt-3">
         <li>
             <a href="<?= base_url('peserta/dashboard') ?>">
                 <i class="bi bi-grid-fill"></i> Dashboard
@@ -729,54 +728,128 @@
                 </div>
 
 
-                <!-- ================= TAB 3 : UJIAN (Hanya Menampilkan Nilai Ujian) ================= -->
-                <div class="tab-pane fade" id="ujian" role="tabpanel">
-                    <div class="card">
-                        <div class="card-body p-4 text-center py-5">
-                            <div class="mb-3">
-                                <span class="badge bg-purple bg-opacity-10 text-purple px-3 py-2 rounded-pill fw-bold" style="background-color: #f3e8ff; color: #7c3aed;">
-                                    <i class="fas fa-award me-1"></i> Hasil Evaluasi Ujian Akhir
-                                </span>
-                            </div>
-                            <h4 class="fw-bold text-dark mb-1">Nilai Ujian Anda</h4>
-                            <p class="text-muted mb-4">Berikut adalah perolehan nilai akhir yang berhasil Anda raih pada ujian pelatihan ini.</p>
+                <!-- ================= TAB 3 : UJIAN (Desain Elegan & Modern) ================= -->
+<div class="tab-pane fade" id="ujian" role="tabpanel">
+    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,245,255,0.95) 100%); border-radius: 24px;">
+        <div class="card-body p-4 p-lg-5">
+            
+            <!-- Header Section -->
+            <div class="row align-items-center mb-5">
+                <div class="col-lg-8">
+                    <span class="badge px-3 py-2 rounded-pill fw-bold mb-3 shadow-sm" style="background: #ede9fe; color: #7c3aed; font-size: 0.8rem; letter-spacing: 0.5px;">
+                        <i class="fas fa-award me-1"></i> EVALUASI AKHIR PELATIHAN
+                    </span>
+                    <h3 class="fw-bold text-dark mb-1">Hasil Ujian & Kompetensi</h3>
+                    <p class="text-muted mb-0">Transparansi pencapaian akademik dan status kelulusan Anda pada program pelatihan ini.</p>
+                </div>
+            </div>
 
-                            <div class="row justify-content-center">
-                                <div class="col-md-6 col-lg-5">
-                                    <div class="score-card-wrapper">
-                                        <div class="score-circle">
-                                            <span class="score-number"><?= esc($nilai_ujian ?? $nilai ?? '-'); ?></span>
-                                            <span class="score-label">Skor Akhir</span>
-                                        </div>
-                                        <h5 class="fw-bold text-dark mt-3 mb-1">Status Kelulusan Ujian</h5>
-                                        <p class="text-muted small mb-0">Terus tingkatkan semangat belajar dan kompetensi Anda di Creativemu Academy!</p>
-                                    </div>
-                                </div>
-                            </div>
+            <?php 
+                $skorNilai = $nilai_ujian ?? $nilai ?? '-';
+                $isLulus = false;
+                if (is_numeric($skorNilai)) {
+                    $isLulus = ((float)$skorNilai >= 70);
+                }
+            ?>
+
+            <!-- Main Content Grid -->
+            <div class="row g-4 align-items-center">
+                
+                <!-- Kotak Skor Utama (Clean & Minimalist) -->
+                <div class="col-lg-5">
+                    <div class="p-4 p-xl-5 rounded-4 text-center position-relative overflow-hidden" style="background: white; border: 1px solid #e9d5ff; box-shadow: 0 10px 30px rgba(124, 58, 237, 0.06);">
+                        <div class="position-absolute top-0 start-0 w-100 h-1" style="background: linear-gradient(90deg, #7c3aed, #c084fc);"></div>
+                        
+                        <span class="text-uppercase text-muted fw-bold d-block mb-3" style="font-size: 0.75rem; letter-spacing: 1.5px;">Skor Akhir Anda</span>
+                        
+                        <div class="display-3 fw-extrabold mb-2" style="color: #4c1d95; font-weight: 800; letter-spacing: -2px;">
+                            <?= esc($skorNilai); ?>
+                        </div>
+                        
+                        <div class="d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill bg-light text-muted small mt-2">
+                            <i class="bi bi-shield-check text-primary"></i> Standar Kelulusan: <strong class="text-dark">70</strong>
                         </div>
                     </div>
                 </div>
+
+                <!-- Kotak Keterangan Status (Modern Alert Card) -->
+                <div class="col-lg-7">
+                    <div class="p-4 p-xl-4 rounded-4 h-100 d-flex flex-column justify-content-center" style="background: #ffffff; border: 1px solid #f3e8ff; box-shadow: 0 8px 25px rgba(0,0,0,0.02);">
+                        
+                        <?php if ($skorNilai === '-'): ?>
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="rounded-3 p-3 bg-secondary bg-opacity-10 text-secondary fs-4 lh-1">
+                                    <i class="bi bi-clock-history"></i>
+                                </div>
+                                <div>
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary mb-1 px-2 py-1 rounded-pill fw-semibold" style="font-size: 0.7rem;">MENUNGGU PENILAIAN</span>
+                                    <h5 class="fw-bold text-dark mb-1">Nilai Belum Direkap</h5>
+                                    <p class="text-muted small mb-0">Anda belum mengikuti ujian atau hasil evaluasi Anda sedang dalam proses rekapitulasi oleh mentor pengampu.</p>
+                                </div>
+                            </div>
+                        <?php elseif ($isLulus): ?>
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="rounded-3 p-3 bg-success bg-opacity-10 text-success fs-4 lh-1">
+                                    <i class="bi bi-patch-check-fill"></i>
+                                </div>
+                                <div>
+                                    <span class="badge bg-success bg-opacity-10 text-success mb-1 px-2 py-1 rounded-pill fw-semibold" style="font-size: 0.7rem;">STATUS: KOMPETEN / LULUS</span>
+                                    <h5 class="fw-bold text-dark mb-1">Selamat, Anda Dinyatakan Lulus!</h5>
+                                    <p class="text-muted small mb-0">Pencapaian nilai Anda telah memenuhi ambang batas minimal kelulusan. Silakan lanjutkan ke menu <strong>Angket Evaluasi</strong> untuk merampungkan tahapan pelatihan.</p>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="rounded-3 p-3 bg-danger bg-opacity-10 text-danger fs-4 lh-1">
+                                    <i class="bi bi-exclamation-octagon-fill"></i>
+                                </div>
+                                <div>
+                                    <span class="badge bg-danger bg-opacity-10 text-danger mb-1 px-2 py-1 rounded-pill fw-semibold" style="font-size: 0.7rem;">STATUS: BELUM LULUS</span>
+                                    <h5 class="fw-bold text-dark mb-1">Belum Memenuhi Batas Kelulusan</h5>
+                                    <p class="text-muted small mb-0">Nilai Anda masih berada di bawah angka 70. Jangan patah semangat, silakan koordinasikan dengan mentor terkait jadwal ujian perbaikan atau remidi.</p>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer Motivasi -->
+            <div class="mt-4 pt-4 border-top d-flex align-items-center justify-content-between flex-wrap gap-2 text-muted small">
+                <span><i class="bi bi-mortarboard text-purple me-1"></i> Creativemu Academy Learning System</span>
+                <span>Tetap semangat tingkatkan portofolio keahlian Anda!</span>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 
                 <!-- ================= TAB 4 : ANGKET EVALUASI ================= -->
                 <div class="tab-pane fade" id="angket" role="tabpanel">
                     <div class="card">
                         <div class="card-body p-4">
-                            <h5 class="fw-bold mb-2 text-dark">Angket Evaluasi Pelatihan</h5>
-                            <?php if (isset($sudah_ujian) && $sudah_ujian): ?>
-                                <?php if (isset($sudah_isi_angket) && $sudah_isi_angket): ?>
-                                    <div class="alert alert-success border-0 bg-success bg-opacity-10 text-success mb-0 rounded-4 p-3">
-                                        <i class="bi bi-check-circle-fill me-2"></i> Terima kasih, Anda sudah mengisi angket evaluasi pelatihan ini.
+                            <?php if (!empty($bisa_isi_angket) && $bisa_isi_angket): ?>
+                                <?php if (!$sudah_isi_angket): ?>
+                                    <div class="card border-left-success shadow mb-4">
+                                        <div class="card-body">
+                                            <h5 class="font-weight-bold text-success">Formulir Angket Evaluasi Pelatihan Tersedia</h5>
+                                            <p>Nilai ujian Anda telah diverifikasi dan dinyatakan LULUS. Silakan isi angket di bawah ini untuk merampungkan rangkaian pelatihan.</p>
+                                            <a href="<?= base_url('pelatihan/angket?id_kelas=' . $kelas['id_kelas']) ?>" class="btn btn-success">
+                                                <i class="fas fa-file-alt mr-1"></i> Isi Angket Penilaian
+                                            </a>
+                                        </div>
                                     </div>
                                 <?php else: ?>
-                                    <p class="text-muted mb-4">Silakan isi angket evaluasi untuk membantu meningkatkan kualitas pelatihan kami ke depannya.</p>
-                                    <a href="<?= base_url('pelatihan/angket'); ?>" class="btn text-white fw-bold px-4 py-2 rounded-pill shadow-sm" style="background: linear-gradient(135deg, #7c3aed, #4c1d95);">
-                                        <i class="fas fa-clipboard-list me-2"></i> Isi Angket Sekarang
-                                    </a>
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle mr-1"></i> Anda telah mengisi angket evaluasi pelatihan ini. Terima kasih!
+                                    </div>
                                 <?php endif; ?>
                             <?php else: ?>
-                                <div class="alert alert-warning border-0 bg-warning bg-opacity-10 text-dark mb-0 rounded-4 p-3">
-                                    <i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i> <strong>Belum tersedia.</strong> Angket evaluasi akan terbuka setelah Anda menyelesaikan seluruh ujian.
+                                <div class="alert alert-secondary">
+                                    <i class="fas fa-info-circle mr-1"></i> Menu angket akan terbuka otomatis di sini jika nilai ujian Anda sudah keluar dan dinyatakan <strong>Lulus</strong>.
                                 </div>
                             <?php endif; ?>
                         </div>
