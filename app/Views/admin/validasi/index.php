@@ -1,6 +1,8 @@
 <?php
 $filters = $filters ?? ['keyword' => '', 'status' => '', 'id_kelas' => '', 'bulan' => ''];
 $summary = $summary ?? ['total' => count($pendaftaran ?? []), 'menunggu' => 0, 'disetujui' => 0, 'ditolak' => 0];
+$pagination = $pagination ?? ['offset' => 0, 'totalPages' => 1, 'page' => 1, 'perPage' => 10, 'totalRows' => count($pendaftaran ?? [])];
+
 if (!function_exists('validasi_status_badge')) {
     function validasi_status_badge(array $row): array
     {
@@ -35,6 +37,12 @@ if (!function_exists('validasi_status_badge')) {
             --soft: #f4f0fc;
             --border: #eadffb;
             --muted: #817796;
+            --success-bg: #e1fcef;
+            --success-text: #0d6832;
+            --warning-bg: #fff5db;
+            --warning-text: #8c6100;
+            --danger-bg: #fde8e8;
+            --danger-text: #9b1c1c;
         }
         
         * { box-sizing: border-box; }
@@ -49,10 +57,9 @@ if (!function_exists('validasi_status_badge')) {
         body {
             margin: 0;
             font-family: 'Poppins', sans-serif;
-            background: #f7f5fd;
+            background: #f8f6fc;
             color: #2f2442;
             overflow-x: hidden;
-            
         }
 
         /* Layout Utama Desktop */
@@ -61,136 +68,154 @@ if (!function_exists('validasi_status_badge')) {
                 margin-left: 240px !important;
                 width: calc(100% - 240px) !important;
                 box-sizing: border-box;
+                padding: 20px;
             }
         }
 
         /* Sidebar Ringkas */
         .zoom-wrapper { zoom: 0.9; }
-        
-        
-        
-        
-        
-        
-        
 
-        /* Main Section */
-        
+        /* Main Section & Cards */
         .topbar, .panel, .metric, .validation-card {
             background: #fff;
-            border: 1px solid rgba(121,75,196,.08);
-            box-shadow: 0 8px 20px rgba(64,36,105,.04);
+            border: 1px solid rgba(121, 75, 196, 0.08);
+            box-shadow: 0 4px 20px rgba(64, 36, 105, 0.03);
+            transition: all 0.2s ease;
         }
+
         .topbar {
-            border-radius: 12px;
-            padding: 14px 18px;
+            border-radius: 16px;
+            padding: 16px 22px;
             display: flex;
             justify-content: space-between;
             gap: 12px;
             align-items: center;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
         }
         .mobile-menu { display: none; }
-        .page-title { margin: 0; color: var(--dark); font-weight: 800; font-size: 1.25rem; }
-        .page-subtitle { color: var(--muted); font-size: 0.78rem; margin: 2px 0 0; }
+        .page-title { margin: 0; color: var(--dark); font-weight: 800; font-size: 1.3rem; letter-spacing: -0.3px; }
+        .page-subtitle { color: var(--muted); font-size: 0.8rem; margin: 3px 0 0; }
         
         /* Admin Profile */
-        .admin-profile { display: flex; gap: 8px; align-items: center; min-width: max-content; }
-        .admin-profile img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); }
+        .admin-profile { display: flex; gap: 10px; align-items: center; min-width: max-content; background: var(--soft); padding: 6px 12px; border-radius: 50px; border: 1px solid var(--border); }
+        .admin-profile img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); }
         .admin-profile h6 { margin: 0; color: var(--dark); font-weight: 700; font-size: 0.82rem; }
         .admin-profile small { color: var(--muted); font-size: 0.72rem; }
 
         /* Metrics */
-        .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
-        .metric { border-radius: 12px; padding: 12px; }
+        .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
+        .metric { border-radius: 16px; padding: 16px; position: relative; overflow: hidden; }
+        .metric::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0;
+            width: 4px;
+            background: var(--primary);
+            opacity: 0.5;
+        }
         .metric-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
             display: grid;
             place-items: center;
             color: #fff;
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            margin-bottom: 8px;
-            font-size: 0.85rem;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 10px rgba(121, 75, 196, 0.2);
         }
-        .metric-label { color: var(--muted); font-size: 0.72rem; font-weight: 700; }
-        .metric-value { font-size: 1.18rem; font-weight: 800; color: var(--dark); }
+        .metric-label { color: var(--muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+        .metric-value { font-size: 1.35rem; font-weight: 800; color: var(--dark); margin-top: 2px; }
 
         /* Panel & Filter */
-        .panel { border-radius: 12px; padding: 14px; margin-bottom: 14px; }
-        .filter-grid { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr auto; gap: 8px; align-items: end; }
-        .form-label { font-size: 0.72rem; font-weight: 800; color: var(--dark); margin-bottom: 4px; }
-        .form-control, .form-select { border-radius: 8px; border-color: var(--border); min-height: 34px; font-size: 0.8rem; padding: 4px 10px; }
+        .panel { border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+        .filter-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; }
+        .form-label { font-size: 0.75rem; font-weight: 800; color: var(--dark); margin-bottom: 6px; letter-spacing: .3px; }
+        .form-control, .form-select { border-radius: 10px; border-color: var(--border); min-height: 38px; font-size: 0.82rem; padding: 6px 12px; background-color: #fcfbfe; transition: all 0.2s; }
+        .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(121, 75, 196, 0.12); background-color: #fff; }
         
         /* Buttons */
         .btn-purple {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: #fff;
             border: 0;
-            border-radius: 8px;
-            min-height: 34px;
-            padding: 6px 12px;
+            border-radius: 10px;
+            min-height: 38px;
+            padding: 6px 16px;
             font-weight: 700;
-            font-size: 0.78rem;
+            font-size: 0.8rem;
+            box-shadow: 0 4px 12px rgba(121, 75, 196, 0.25);
+            transition: all 0.2s;
         }
-        .btn-purple:hover { color: #fff; }
+        .btn-purple:hover { color: #fff; transform: translateY(-1px); box-shadow: 0 6px 15px rgba(121, 75, 196, 0.35); }
         .btn-soft {
             background: var(--soft);
             color: var(--primary);
             border: 1px solid var(--border);
-            border-radius: 8px;
-            min-height: 34px;
-            padding: 6px 12px;
+            border-radius: 10px;
+            min-height: 38px;
+            padding: 6px 14px;
             font-weight: 700;
-            font-size: 0.78rem;
+            font-size: 0.8rem;
+            transition: all 0.2s;
         }
+        .btn-soft:hover { background: #ebdffe; color: var(--primary-dark); }
 
-        /* Table */
-        .table-wrap { overflow-x: auto; }
-        .table { margin: 0; vertical-align: middle; font-size: 0.8rem; }
+        /* Table Styling */
+        .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+        .table { margin: 0; vertical-align: middle; font-size: 0.82rem; }
         .table thead th {
-            background: #faf8ff;
+            background: #f5f0fd;
             color: var(--primary-dark);
-            border-bottom: 1px solid var(--border);
-            padding: 8px 10px;
-            font-size: 0.72rem;
+            border-bottom: 2px solid var(--border);
+            padding: 12px 14px;
+            font-size: 0.75rem;
             text-transform: uppercase;
+            letter-spacing: .5px;
             white-space: nowrap;
+            font-weight: 800;
         }
-        .table tbody td { padding: 8px 10px; border-bottom: 1px solid #f0eafb; color: #443652; }
+        .table tbody td { padding: 12px 14px; border-bottom: 1px solid #f2ecfb; color: #3b2d4c; background: #fff; }
+        .table tbody tr:hover td { background-color: #fbf9ff; }
         
         /* Badges */
         .nis-badge {
             display: inline-flex;
-            border-radius: 999px;
+            border-radius: 6px;
             background: #f4f0fc;
             color: #5931a0;
             border: 1px solid #ded0f7;
             padding: 3px 8px;
             font-weight: 800;
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             letter-spacing: .04em;
             font-family: Consolas, monospace;
         }
-        .badge-status { border-radius: 999px; padding: 4px 8px; font-weight: 800; font-size: 0.7rem; }
-        .actions { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
-        .actions .btn-sm { font-size: 0.72rem; padding: 4px 8px; }
+        .badge-status { border-radius: 30px; padding: 6px 12px; font-weight: 800; font-size: 0.72rem; letter-spacing: .3px; text-transform: uppercase; }
+        .badge.bg-success { background-color: var(--success-bg) !important; color: var(--success-text) !important; border: 1px solid #a3e8c0; }
+        .badge.bg-warning { background-color: var(--warning-bg) !important; color: var(--warning-text) !important; border: 1px solid #fce2a3; }
+        .badge.bg-danger { background-color: var(--danger-bg) !important; color: var(--danger-text) !important; border: 1px solid #f5b7b7; }
+
+        .actions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+        .actions .btn-sm { font-size: 0.75rem; padding: 5px 10px; border-radius: 8px; font-weight: 600; }
 
         /* Cards Mobile & Detail */
         .mobile-list { display: none; }
-        .validation-card { border-radius: 12px; padding: 12px; margin-bottom: 10px; }
-        .card-row { display: flex; justify-content: space-between; gap: 8px; border-top: 1px solid #f0eafb; margin-top: 6px; padding-top: 6px; font-size: 0.78rem; }
-        .card-row span:first-child { color: var(--muted); font-size: 0.72rem; font-weight: 800; }
+        .validation-card { border-radius: 14px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); }
+        .card-row { display: flex; justify-content: space-between; gap: 8px; border-top: 1px solid #f4effb; margin-top: 8px; padding-top: 8px; font-size: 0.8rem; }
+        .card-row span:first-child { color: var(--muted); font-size: 0.75rem; font-weight: 800; }
         .card-row span:last-child { text-align: right; font-weight: 700; color: var(--dark); }
-        .detail-section { margin-bottom: 12px; }
-        .detail-section h6 { font-weight: 800; color: var(--dark); margin-bottom: 8px; font-size: 0.85rem; }
-        .detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-        .detail-item { background: #fcfbff; border: 1px solid #f0eafb; border-radius: 8px; padding: 8px 10px; }
-        .detail-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); font-weight: 800; }
-        .detail-value { color: var(--dark); font-weight: 700; font-size: 0.78rem; overflow-wrap: anywhere; }
-        .empty-state { text-align: center; color: var(--muted); padding: 24px 10px; font-size: 0.8rem; }
-        .modal-content { border: 0; border-radius: 14px; }
+        
+        .detail-section { margin-bottom: 16px; }
+        .detail-section h6 { font-weight: 800; color: var(--dark); margin-bottom: 10px; font-size: 0.9rem; border-left: 3px solid var(--primary); padding-left: 8px; }
+        .detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .detail-item { background: #fbf9ff; border: 1px solid #f2ecfb; border-radius: 10px; padding: 10px 12px; }
+        .detail-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 800; margin-bottom: 2px; }
+        .detail-value { color: var(--dark); font-weight: 700; font-size: 0.82rem; overflow-wrap: anywhere; }
+        
+        .empty-state { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 0.85rem; }
+        .modal-content { border: 0; border-radius: 18px; box-shadow: 0 15px 35px rgba(30, 15, 51, 0.15); overflow: hidden; }
         .offcanvas { background: var(--sidebar-bg); color: var(--sidebar-text); }
 
         /* Media Queries */
@@ -203,17 +228,14 @@ if (!function_exists('validasi_status_badge')) {
         }
         @media(max-width: 768px) {
             .zoom-wrapper { zoom: 1; } /* Kembali normal di mobile agar pembacaan nyaman */
-            
-            
             .mobile-menu { display: inline-flex; }
-            
-            .topbar { align-items: flex-start; flex-direction: column; border-radius: 12px; padding: 12px; position: relative; }
-            .admin-profile { width: 100%; }
+            .topbar { align-items: flex-start; flex-direction: column; border-radius: 14px; padding: 14px; position: relative; }
+            .admin-profile { width: 100%; justify-content: flex-start; }
             .metrics, .filter-grid { grid-template-columns: 1fr; }
             .filter-actions { display: grid; grid-template-columns: 1fr 1fr; }
             .desktop-table { display: none; }
             .mobile-list { display: block; }
-            .panel { padding: 12px; border-radius: 12px; }
+            .panel { padding: 14px; border-radius: 14px; }
             .detail-grid { grid-template-columns: 1fr; }
             .actions { justify-content: stretch; }
             .actions .btn { width: 100%; }
@@ -221,7 +243,7 @@ if (!function_exists('validasi_status_badge')) {
         }
         @media(max-width: 430px) {
             .filter-actions { grid-template-columns: 1fr; }
-            .metric-value { font-size: 1.1rem; }
+            .metric-value { font-size: 1.2rem; }
         }
     </style>
     <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
@@ -250,7 +272,7 @@ if (!function_exists('validasi_status_badge')) {
 
     <?php foreach (['success' => 'success', 'error' => 'danger', 'warning' => 'warning'] as $flash => $type): ?>
         <?php if (session()->getFlashdata($flash)): ?>
-            <div class="alert alert-<?= $type; ?> border-0 rounded-3 py-2 px-3 mb-3 small"><?= session()->getFlashdata($flash); ?></div>
+            <div class="alert alert-<?= $type; ?> border-0 rounded-3 py-2 px-3 mb-3 small shadow-sm"><?= session()->getFlashdata($flash); ?></div>
         <?php endif; ?>
     <?php endforeach; ?>
 
@@ -313,7 +335,7 @@ if (!function_exists('validasi_status_badge')) {
     </section>
 
     <section class="panel">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
             <div>
                 <h2 class="h6 fw-bold mb-0" style="color:var(--dark)">Daftar Validasi</h2>
                 <div class="text-muted" style="font-size:0.75rem">Approve membuat NIS format YYMMNNNN. Reject tidak membuat NIS.</div>
@@ -326,7 +348,7 @@ if (!function_exists('validasi_status_badge')) {
                 </thead>
                 <tbody>
                     <?php if (!empty($pendaftaran)): ?>
-                        <?php $no=1; foreach ($pendaftaran as $row): ?>
+                        <?php $no = $pagination['offset'] + 1; foreach ($pendaftaran as $row): ?>
                             <?php 
                                 [$statusLabel,$statusClass]=validasi_status_badge($row); 
                                 $modalId='validasiDetail'.(int)$row['id_pendaftaran']; 
@@ -337,7 +359,7 @@ if (!function_exists('validasi_status_badge')) {
                                 $isCod = str_contains($metodeBayar, 'cod') || str_contains($metodeBayar, 'tempat') || str_contains($metodeBayar, 'tunai');
                             ?>
                             <tr>
-                                <td><?= $no++; ?></td>
+                                <td class="fw-bold text-muted"><?= $no++; ?></td>
                                 <td>
                                     <strong><?= esc($row['nama'] ?? '-'); ?></strong>
                                     <div class="text-muted" style="font-size:0.72rem"><?= esc($row['email'] ?? '-'); ?></div>
@@ -369,7 +391,7 @@ if (!function_exists('validasi_status_badge')) {
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox fa-2x mb-2"></i><div>Belum ada data validasi.</div></div></td></tr>
+                        <tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox fa-3x mb-3 text-purple opacity-50"></i><div>Belum ada data validasi.</div></div></td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
@@ -398,7 +420,7 @@ if (!function_exists('validasi_status_badge')) {
                         <div class="card-row"><span>Kelas</span><span><?= esc($row['nama_kelas'] ?? $row['pilihan_kelas'] ?? '-'); ?></span></div>
                         <div class="card-row"><span>Metode / Bukti</span><span><?= $isCod ? 'Bayar di Tempat (COD)' : (!empty($row['bukti_pembayaran']) ? 'Ada Bukti Transfer' : 'Tidak ada'); ?></span></div>
                         <div class="card-row"><span>Tanggal Daftar</span><span><?= esc(validasi_tanggal($row['created_at'] ?? null)); ?></span></div>
-                        <div class="actions mt-2">
+                        <div class="actions mt-3">
                             <button class="btn btn-soft btn-sm" data-bs-toggle="modal" data-bs-target="#<?= $modalId; ?>">Detail</button>
                             <?php if (!$isApproved): ?><a class="btn btn-success btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('Setujui pendaftaran ini dan buat NIS otomatis?')">Setujui</a><?php endif; ?>
                             <?php if (!$isRejected): ?><a class="btn btn-danger btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" onclick="return confirm('Tolak pendaftaran ini?')">Tolak</a><?php endif; ?>
@@ -406,9 +428,38 @@ if (!function_exists('validasi_status_badge')) {
                     </article>
                 <?php endforeach; ?>
             <?php else: ?>
-                <div class="empty-state"><i class="fas fa-inbox fa-2x mb-2"></i><div>Belum ada data validasi.</div></div>
+                <div class="empty-state"><i class="fas fa-inbox fa-3x mb-3 text-purple opacity-50"></i><div>Belum ada data validasi.</div></div>
             <?php endif; ?>
         </div>
+
+        <!-- NAVIGASI PAGINASI (1 2 dst) -->
+        <?php if (isset($pagination) && $pagination['totalPages'] > 1): ?>
+            <div class="d-flex justify-content-between align-items-center mt-3 px-2 flex-wrap gap-2">
+                <div class="text-muted" style="font-size: 0.78rem;">
+                    Menampilkan data ke-<?= $pagination['offset'] + 1; ?> sampai <?= min($pagination['offset'] + $pagination['perPage'], $pagination['totalRows']); ?> dari total <?= $pagination['totalRows']; ?> data
+                </div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <!-- Tombol Previous -->
+                        <li class="page-item <?= ($pagination['page'] <= 1) ? 'disabled' : ''; ?>">
+                            <a class="page-link" href="<?= base_url('admin/validasi?' . http_build_query(array_merge($filters, ['page' => $pagination['page'] - 1]))); ?>">Sebelumnya</a>
+                        </li>
+
+                        <!-- Nomor Halaman -->
+                        <?php for ($i = 1; $i <= $pagination['totalPages']; $i++): ?>
+                            <li class="page-item <?= ($pagination['page'] == $i) ? 'active' : ''; ?>">
+                                <a class="page-link" href="<?= base_url('admin/validasi?' . http_build_query(array_merge($filters, ['page' => $i]))); ?>"><?= $i; ?></a>
+                            </li>
+                        <?php endfor; ?>
+
+                        <!-- Tombol Next -->
+                        <li class="page-item <?= ($pagination['page'] >= $pagination['totalPages']) ? 'disabled' : ''; ?>">
+                            <a class="page-link" href="<?= base_url('admin/validasi?' . http_build_query(array_merge($filters, ['page' => $pagination['page'] + 1]))); ?>">Berikutnya</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        <?php endif; ?>
     </section>
     </div>
 </div>
@@ -441,14 +492,14 @@ if (!function_exists('validasi_status_badge')) {
         <div class="modal fade" id="<?= $modalId; ?>" tabindex="-1">
             <div class="modal-dialog modal-lg modal-dialog-scrollable">
                 <div class="modal-content">
-                    <div class="modal-header py-2 px-3">
+                    <div class="modal-header py-3 px-4 bg-light">
                         <div>
                             <h5 class="modal-title fw-bold fs-6">Detail Validasi Pendaftaran</h5>
                             <div class="text-muted" style="font-size:0.75rem"><?= esc($row['nama'] ?? '-'); ?> | <?= esc($row['nama_kelas'] ?? $row['pilihan_kelas'] ?? '-'); ?></div>
                         </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="modal-body p-3">
+                    <div class="modal-body p-4">
                         <div class="detail-section">
                             <h6>Data Peserta</h6>
                             <div class="detail-grid">
@@ -458,7 +509,7 @@ if (!function_exists('validasi_status_badge')) {
                                 <div class="detail-item"><div class="detail-label">No. WhatsApp</div><div class="detail-value"><?= esc($row['no_hp'] ?? '-'); ?></div></div>
                                 <div class="detail-item"><div class="detail-label">Jenis Kelamin</div><div class="detail-value"><?= esc($row['jenis_kelamin'] ?? '-'); ?></div></div>
                                 <div class="detail-item"><div class="detail-label">Pendidikan</div><div class="detail-value"><?= esc($row['pendidikan_terakhir'] ?? '-'); ?></div></div>
-                                <div class="detail-item"><div class="detail-label">Alamat</div><div class="detail-value"><?= esc($row['alamat'] ?? '-'); ?></div></div>
+                                <div class="detail-item" style="grid-column: span 2;"><div class="detail-label">Alamat</div><div class="detail-value"><?= esc($row['alamat'] ?? '-'); ?></div></div>
                             </div>
                         </div>
                         <div class="detail-section">
@@ -470,11 +521,11 @@ if (!function_exists('validasi_status_badge')) {
                                 <div class="detail-item"><div class="detail-label">Lokasi</div><div class="detail-value"><?= esc($row['lokasi_pelatihan'] ?? $row['lokasi_media'] ?? '-'); ?></div></div>
                                 <div class="detail-item"><div class="detail-label">Tanggal Mulai</div><div class="detail-value"><?= esc(validasi_tanggal($row['tanggal_mulai_kelas'] ?? $row['tanggal_mulai_master'] ?? null)); ?></div></div>
                                 <div class="detail-item"><div class="detail-label">Tanggal Daftar</div><div class="detail-value"><?= esc(validasi_tanggal($row['created_at'] ?? null)); ?></div></div>
-                                <div class="detail-item">
+                                <div class="detail-item" style="grid-column: span 2;">
                                     <div class="detail-label">Bukti Pembayaran / Metode</div>
                                     <div class="detail-value">
                                         <?php if (!empty($row['bukti_pembayaran'])): ?>
-                                            <a href="<?= base_url('uploads/bukti/' . $row['bukti_pembayaran']); ?>" target="_blank">Lihat bukti transfer</a>
+                                            <a href="<?= base_url('uploads/bukti/' . $row['bukti_pembayaran']); ?>" target="_blank" class="text-decoration-none fw-bold text-primary"><i class="fas fa-external-link-alt me-1"></i> Lihat bukti transfer</a>
                                         <?php elseif ($isCod): ?>
                                             <span class="text-primary fw-bold"><i class="fas fa-handshake me-1"></i> Tunai / Bayar di Tempat (COD) - Kwitansi fisik</span>
                                         <?php else: ?>
@@ -482,17 +533,17 @@ if (!function_exists('validasi_status_badge')) {
                                         <?php endif; ?>
                                     </div>
                                 </div>
-                                <div class="detail-item"><div class="detail-label">Status Validasi</div><div class="detail-value"><span class="badge bg-<?= $statusClass; ?>"><?= esc($statusLabel); ?></span></div></div>
+                                <div class="detail-item" style="grid-column: span 2;"><div class="detail-label">Status Validasi</div><div class="detail-value"><span class="badge bg-<?= $statusClass; ?> badge-status"><?= esc($statusLabel); ?></span></div></div>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer py-2 px-3">
+                    <div class="modal-footer py-3 px-4 bg-light">
                         <button class="btn btn-soft btn-sm" data-bs-dismiss="modal">Tutup</button>
                         <?php if ($statusLabel !== 'Disetujui'): ?>
                             <a class="btn btn-success btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('Setujui pendaftaran ini dan buat NIS otomatis?')">Setujui</a>
                         <?php endif; ?>
                         <?php if ($statusLabel !== 'Ditolak'): ?>
-                            <a class="btn btn-danger btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" onclick="return confirm('Tolak pendaftaran me-1?')">Tolak</a>
+                            <a class="btn btn-danger btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" onclick="return confirm('Tolak pendaftaran ini?')">Tolak</a>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -504,10 +555,3 @@ if (!function_exists('validasi_status_badge')) {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-

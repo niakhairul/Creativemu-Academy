@@ -199,28 +199,26 @@
                 <th style="width: 25px;">No</th>
                 <th>NIS</th>
                 <th>Nama Peserta</th>
-                <th>Tgl Masuk</th>
-                <th>Kelas</th>
-                <th>Tgl Selesai</th>
+                <th>Tanggal Masuk</th>
+                <th>Selesai</th>
                 <th>Status Sertifikat</th>
-                <th>Diterima</th>
-                <th>Kategori</th>
+                <th>Kategori Kelas</th>
                 <th>Pilihan Kelas</th>
                 <th>Metode</th>
-                <th>Jenis</th>
+                <th>Jenis Kelas</th>
                 <th>Lokasi</th>
-                <th>Pendidikan</th>
-                <th>Status</th>
-                <th>No. WhatsApp</th>
-                <th>Gender</th>
-                <th>Tempat, Tgl Lahir</th>
+                <th>Pendidikan Terakhir</th>
+                <th>Status Peserta</th>
+                <th>No. WA</th>
+                <th>Jenis Kelamin</th>
+                <th>TTL</th>
                 <th>Alamat</th>
             </tr>
         </thead>
         <tbody>
             <?php if (empty($pesertaList)): ?>
                 <tr>
-                    <td colspan="19" class="text-center" style="padding: 20px;">Tidak ada data peserta untuk filter yang dipilih.</td>
+                    <td colspan="17" class="text-center" style="padding: 20px;">Tidak ada data peserta untuk filter yang dipilih.</td>
                 </tr>
             <?php else: ?>
                 <?php $no = 1; foreach ($pesertaList as $p): ?>
@@ -229,16 +227,14 @@
                         <td class="text-center fw-bold"><?= esc($p['nis']); ?></td>
                         <td class="fw-bold"><?= esc($p['nama_peserta']); ?></td>
                         <td class="text-center"><?= !empty($p['tanggal_masuk']) && $p['tanggal_masuk'] !== '-' ? date('d/m/Y', strtotime($p['tanggal_masuk'])) : '-'; ?></td>
-                        <td><?= esc($p['nama_kelas']); ?></td>
                         <td class="text-center"><?= !empty($p['tanggal_selesai_kelas']) && $p['tanggal_selesai_kelas'] !== '-' ? date('d/m/Y', strtotime($p['tanggal_selesai_kelas'])) : '-'; ?></td>
                         <td class="text-center"><?= esc($p['status_sertifikat']); ?></td>
-                        <td class="text-center"><?= esc($p['diterima']); ?></td>
                         <td><?= esc($p['kategori_kelas']); ?></td>
                         <td><?= esc($p['pilihan_kelas']); ?></td>
                         <td class="text-center"><?= ucfirst(esc($p['metode'])); ?></td>
                         <td class="text-center"><?= ucfirst(esc($p['jenis_kelas'])); ?></td>
                         <td><?= esc($p['lokasi_pelatihan']); ?></td>
-                        <td><?= esc($p['pendidikan_terakhir']); ?></td>
+                        <td class="text-center"><?= esc($p['pendidikan_terakhir']); ?></td>
                         <td class="text-center"><?= ucfirst(esc($p['status_peserta'])); ?></td>
                         <td><?= esc($p['no_whatsapp']); ?></td>
                         <td class="text-center"><?= esc($p['jenis_kelamin']); ?></td>

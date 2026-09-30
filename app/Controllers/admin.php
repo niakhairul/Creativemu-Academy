@@ -1671,182 +1671,125 @@ $data = [
 
 
     public function validasi()
+{
+    $db = \Config\Database::connect();
+    $keyword = trim((string) ($this->request->getGet('keyword') ?? ''));
+    $status = strtolower(trim((string) ($this->request->getGet('status') ?? '')));
+    $idKelas = trim((string) ($this->request->getGet('id_kelas') ?? ''));
+    $bulan = trim((string) ($this->request->getGet('bulan') ?? ''));
+    
+    // Konfigurasi Paginasi (10 data per halaman)
+    $perPage = 10;
+    $page = max(1, (int) ($this->request->getGet('page') ?? 1));
+    $offset = ($page - 1) * $perPage;
 
-    {
-
-        $db = \Config\Database::connect();
-
-        $keyword = trim((string) ($this->request->getGet('keyword') ?? ''));
-
-        $status = strtolower(trim((string) ($this->request->getGet('status') ?? '')));
-
-        $idKelas = trim((string) ($this->request->getGet('id_kelas') ?? ''));
-
-        $bulan = trim((string) ($this->request->getGet('bulan') ?? '')); // <-- 1. Tangkap parameter bulan
-
-
+    $buildQuery = function () use ($db, $keyword, $status, $idKelas, $bulan) {
         $builder = $db->table('pendaftaran')
-
             ->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas AS tanggal_mulai_master')
-
             ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left');
 
-
         if ($keyword !== '') {
-
             $builder->groupStart()
-
                 ->like('pendaftaran.nama', $keyword)
-
                 ->orLike('pendaftaran.email', $keyword)
-
                 ->orLike('pendaftaran.no_hp', $keyword)
-
                 ->orLike('pendaftaran.nis', $keyword)
-
                 ->orLike('kelas.nama_kelas', $keyword)
-
             ->groupEnd();
-
         }
-
-
 
         if ($idKelas !== '') {
-
             $builder->where('pendaftaran.id_kelas', $idKelas);
-
         }
-
-
-
-        // --- 2. TAMBAHKAN FILTER BULAN KE QUERY BUILDER ---
 
         if ($bulan !== '') {
-
             $builder->where('MONTH(pendaftaran.created_at)', (int) $bulan);
-
         }
-
-        // -------------------------------------------------
-
-
 
         if ($status !== '') {
-
             if (in_array($status, ['disetujui', 'valid'], true)) {
-
                 $builder->groupStart()
-
                     ->where('pendaftaran.status_pembayaran', 'valid')
-
                     ->orWhere('pendaftaran.status_pendaftaran', 'Disetujui')
-
                 ->groupEnd();
-
             } elseif (in_array($status, ['ditolak', 'rejected'], true)) {
-
                 $builder->groupStart()
-
                     ->where('pendaftaran.status_pembayaran', 'rejected')
-
                     ->orWhere('pendaftaran.status_pendaftaran', 'Ditolak')
-
                 ->groupEnd();
-
             } elseif (in_array($status, ['menunggu', 'pending'], true)) {
-
                 $builder->groupStart()
-
                     ->where('pendaftaran.status_pembayaran', 'pending')
-
                     ->orWhere('pendaftaran.status_pendaftaran', 'Menunggu')
-
                     ->orWhere('pendaftaran.status_pendaftaran IS NULL', null, false)
-
                 ->groupEnd();
-
             }
-
         }
 
+        return $builder;
+    };
 
-
-        $pendaftaran = $builder
-
-            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
-
-            ->get()
-
-            ->getResultArray();
-
-
-
-        $kelasList = $db->table('kelas')
-
-            ->select('id_kelas, nama_kelas')
-
-            ->orderBy('nama_kelas', 'ASC')
-
-            ->get()
-
-            ->getResultArray();
-
-
-
-        $summary = ['total' => count($pendaftaran), 'menunggu' => 0, 'disetujui' => 0, 'ditolak' => 0];
-
-        foreach ($pendaftaran as $row) {
-
-            $statusGabungan = strtolower(($row['status_pembayaran'] ?? '') . ' ' . ($row['status_pendaftaran'] ?? '') . ' ' . ($row['status'] ?? ''));
-
-            if (str_contains($statusGabungan, 'valid') || str_contains($statusGabungan, 'disetujui')) {
-
-                $summary['disetujui']++;
-
-            } elseif (str_contains($statusGabungan, 'rejected') || str_contains($statusGabungan, 'ditolak')) {
-
-                $summary['ditolak']++;
-
-            } else {
-
-                $summary['menunggu']++;
-
-            }
-
-        }
-
-
-
-        $data = [
-
-            'title'       => 'Validasi Pendaftaran - Panel Admin',
-
-            'pendaftaran' => $pendaftaran,
-
-            'kelasList'   => $kelasList,
-
-            'filters'     => [
-
-                'keyword'  => $keyword,
-
-                'status'   => $status,
-
-                'id_kelas' => $idKelas,
-
-                'bulan'    => $bulan, // <-- 3. Sertakan kembali agar dropdown tidak reset
-
-            ],
-
-            'summary'     => $summary,
-
-        ];
-
-
-
-        return view('admin/validasi/index', $data);
-
+    // Hitung total data untuk paginasi
+    $totalRows = $buildQuery()->countAllResults(false);
+    $totalPages = max(1, (int) ceil($totalRows / $perPage));
+    if ($page > $totalPages) {
+        $page = $totalPages;
+        $offset = ($page - 1) * $perPage;
     }
+
+    // Ambil data sesuai halaman aktif (limit 10)
+    $pendaftaran = $buildQuery()
+        ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+        ->limit($perPage, $offset)
+        ->get()
+        ->getResultArray();
+
+    $kelasList = $db->table('kelas')
+        ->select('id_kelas, nama_kelas')
+        ->orderBy('nama_kelas', 'ASC')
+        ->get()
+        ->getResultArray();
+
+    // Hitung ringkasan total keseluruhan data (tanpa limit)
+    $allDataForSummary = $buildQuery()->get()->getResultArray();
+    $summary = ['total' => $totalRows, 'menunggu' => 0, 'disetujui' => 0, 'ditolak' => 0];
+    
+    // Jika ingin summary menghitung keseluruhan status tanpa terpengaruh filter status:
+    $summaryRows = $db->table('pendaftaran')->select('status_pembayaran, status_pendaftaran, status')->get()->getResultArray();
+    $summary['total'] = count($summaryRows);
+    foreach ($summaryRows as $row) {
+        $statusGabungan = strtolower(($row['status_pembayaran'] ?? '') . ' ' . ($row['status_pendaftaran'] ?? '') . ' ' . ($row['status'] ?? ''));
+        if (str_contains($statusGabungan, 'valid') || str_contains($statusGabungan, 'disetujui')) {
+            $summary['disetujui']++;
+        } elseif (str_contains($statusGabungan, 'rejected') || str_contains($statusGabungan, 'ditolak')) {
+            $summary['ditolak']++;
+        } else {
+            $summary['menunggu']++;
+        }
+    }
+
+    $data = [
+        'title'       => 'Validasi Pendaftaran - Panel Admin',
+        'pendaftaran' => $pendaftaran,
+        'kelasList'   => $kelasList,
+        'filters'     => [
+            'keyword'  => $keyword,
+            'status'   => $status,
+            'id_kelas' => $idKelas,
+            'bulan'    => $bulan,
+        ],
+        'summary'     => $summary,
+        'pagination'  => [
+            'page'       => $page,
+            'perPage'    => $perPage,
+            'totalRows'  => $totalRows,
+            'totalPages' => $totalPages,
+            'offset'     => $offset,
+        ],
+    ];
+
+    return view('admin/validasi/index', $data);
+}
 
 
 

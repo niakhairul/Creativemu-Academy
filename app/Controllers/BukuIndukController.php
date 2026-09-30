@@ -56,7 +56,7 @@ class BukuIndukController extends Controller
 
         // Pagination
         $page = max(1, (int) ($this->request->getGet('page') ?? 1));
-        $perPage = 15;
+        $perPage = 10;
         $offset = ($page - 1) * $perPage;
 
         $totalData = $this->bukuIndukModel->countBukuInduk($filters);
