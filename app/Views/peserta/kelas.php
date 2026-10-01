@@ -857,44 +857,67 @@
                 </div>
 
 
-                <!-- ================= TAB 5 : SERTIFIKAT ================= -->
-                <div class="tab-pane fade" id="sertifikat" role="tabpanel">
-                    <div class="card">
-                        <div class="card-body p-4">
-                            <h5 class="fw-bold mb-3 text-dark">Sertifikat Pelatihan</h5>
-                            <?php 
-                                $kategoriKelas = '';
-                                if (!empty($pendaftaran) && is_array($pendaftaran)) {
-                                    $kategoriKelas = trim($pendaftaran['kategori_kelas'] ?? '');
-                                }
-                                $isSertifikasi = (strcasecmp($kategoriKelas, 'Pelatihan Sertifikasi') === 0 || stripos($kategoriKelas, 'sertifikasi') !== false);
-                            ?>
+               <!-- ================= TAB 5 : SERTIFIKAT ================= -->
+<div class="tab-pane fade" id="sertifikat" role="tabpanel">
+    <div class="card">
+        <div class="card-body p-4">
 
-                            <?php if ($isSertifikasi): ?>
-                                <?php if (isset($sertifikatTerbit) && $sertifikatTerbit): ?>
-                                    <div class="alert alert-success border-0 bg-success bg-opacity-10 text-success mb-3 rounded-4 p-3">
-                                        <i class="bi bi-check-circle-fill me-2"></i> Selamat! Sertifikat kelas sertifikasi Anda sudah terbit dan siap diunduh.
-                                    </div>
-                                    <a href="<?= base_url('pelatihan/sertifikat/' . ($pendaftaran['id_kelas'] ?? '')) ?>" class="btn btn-success rounded-pill px-4 py-2 shadow-sm">
-                                        <i class="bi bi-download me-1"></i> Unduh Sertifikat PDF
-                                    </a>
-                                <?php elseif (isset($sudah_isi_angket) && $sudah_isi_angket): ?>
-                                    <div class="alert alert-info border-0 bg-info bg-opacity-10 text-info mb-0 rounded-4 p-3">
-                                        <i class="bi bi-info-circle me-2"></i> Terima kasih telah mengisi angket evaluasi. Sertifikat Anda sedang dalam proses verifikasi oleh admin.
-                                    </div>
-                                <?php else: ?>
-                                    <div class="alert alert-warning border-0 bg-warning bg-opacity-10 text-dark mb-0 rounded-4 p-3">
-                                        <i class="bi bi-exclamation-circle me-2 text-warning"></i> Sertifikat belum dapat diunduh. Pastikan Anda sudah menyelesaikan ujian dan mengisi angket evaluasi terlebih dahulu.
-                                    </div>
-                                <?php endif; ?>
-                            <?php else: ?>
-                                <div class="alert alert-secondary border-0 bg-secondary bg-opacity-10 text-secondary mb-0 rounded-4 p-3">
-                                    <i class="bi bi-info-circle me-2"></i> Anda terdaftar pada kelas tipe <strong>Basic</strong>. Kelas tipe Basic tidak menerbitkan sertifikat kelulusan.
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
+            <h5 class="fw-bold mb-3 text-dark">
+                Sertifikat Pelatihan
+            </h5>
+
+            <?php if (!empty($sertifikatTerbit)): ?>
+
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle mr-1"></i>
+                    Selamat! Sertifikat pelatihan Anda sudah diterbitkan.
                 </div>
+
+                <div class="mb-3">
+                    <strong>Nomor Sertifikat:</strong>
+                    <?= esc($sertifikatTerbit['nomor_sertifikat'] ?? '-') ?>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Tanggal Terbit:</strong>
+                    <?= !empty($sertifikatTerbit['tanggal_terbit'])
+                        ? date('d-m-Y', strtotime($sertifikatTerbit['tanggal_terbit']))
+                        : '-' ?>
+                </div>
+
+                <?php if (!empty($sertifikatTerbit['file_sertifikat'])): ?>
+
+                    <a href="<?= base_url('pelatihan/download-sertifikat/' . $sertifikatTerbit['id_sertifikat']) ?>"
+                       class="btn btn-success">
+                        <i class="fas fa-download mr-1"></i>
+                        Unduh Sertifikat
+                    </a>
+
+                <?php else: ?>
+
+                    <div class="alert alert-warning">
+                        File sertifikat belum tersedia.
+                    </div>
+
+                <?php endif; ?>
+
+            <?php else: ?>
+
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Sertifikat belum tersedia.
+                </div>
+
+                <p class="text-muted mb-0">
+                    Sertifikat akan muncul setelah admin menerbitkan
+                    sertifikat untuk Anda.
+                </p>
+
+            <?php endif; ?>
+
+        </div>
+    </div>
+</div>
 
             </div>
 

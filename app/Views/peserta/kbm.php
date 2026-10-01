@@ -1164,7 +1164,7 @@
                             2. Sertifikat Pelatihan
                         </h5>
 
-                        <?php if ($sertifikatAcademy): ?>
+                        <?php if ($sertifikatTerbit): ?>
 
                             <div class="alert alert-success">
 

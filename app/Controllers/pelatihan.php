@@ -12,6 +12,7 @@ use App\Models\LokasiPelatihanModel;
 use App\Models\PendaftaranModel;
 use App\Models\PengumpulanTugasModel;
 use App\Models\UserModel;
+use App\Models\SertifikatModel;
 
 
 class Pelatihan extends BaseController
@@ -1140,7 +1141,14 @@ foreach ($ujian as $itemUjian) {
     // 2. Keterangan Lulus Semua ($semua_ujian_lulus)
     $bisa_isi_angket = ($ada_nilai_keluar && $semua_ujian_lulus);
 
-    $sertifikatAcademy = $bisa_isi_angket && $sudah_isi_angket;
+    $sertifikatTerbit = null;
+
+if ($kelas) {
+    $sertifikatTerbit = (new SertifikatModel())
+        ->where('id_user', $this->userId())
+        ->where('id_kelas', $kelas['id_kelas'])
+        ->first();
+}
 
     return view('peserta/kelas', [
     'kelas'               => $kelas,
@@ -1149,8 +1157,8 @@ foreach ($ujian as $itemUjian) {
     'nilai_ujian'         => $nilai_ujian,
     'bisa_isi_angket'     => $bisa_isi_angket,
     'sudah_isi_angket'    => $sudah_isi_angket,
-    'sertifikatAcademy'   => $sertifikatAcademy,
-    ]);
+    'sertifikatTerbit'    => $sertifikatTerbit,
+]);
 }
 
     public function detailKelas($id = null)
@@ -1227,7 +1235,7 @@ foreach ($ujian as $itemUjian) {
 {
     $db = \Config\Database::connect();
     // 1. Standarisasi pengambilan ID user dari session
-    $userId = session()->get('id_users') ?? session()->get('id_user');
+    $userId = $this->userId();
 
     if (!$userId) {
         return redirect()->to(base_url('pelatihan/login'))->with('error', 'Silakan login terlebih dahulu.');
@@ -2524,54 +2532,12 @@ public function simpanJawabanUjian()
     $pendaftaran = $this->approvedEnrollment();
 
     if (! $pendaftaran) {
-        return redirect()
-            ->to(base_url('peserta/dashboard'))
-            ->with('error', 'Kelas Anda belum divalidasi.');
+        return redirect()->to(base_url('pelatihan/kelas'))->with('error', 'Kelas tidak ditemukan.');
     }
 
-    $idKelas = $pendaftaran['id_kelas'];
-    $idPeserta = $this->userId();
-
-    // Ambil pertanyaan angket aktif untuk kelas peserta
-    // atau pertanyaan yang berlaku untuk semua kelas.
-    $pertanyaan = $this->db
-        ->table('angket_pertanyaan')
-        ->where('status', 'Aktif')
-        ->groupStart()
-            ->where('id_kelas', $idKelas)
-            ->orWhere('id_kelas IS NULL', null, false)
-        ->groupEnd()
-        ->orderBy('id_angket_pertanyaan', 'ASC')
-        ->get()
-        ->getResultArray();
-
-    // Ambil daftar kelas dari tabel kelas
-    $semuaKelas = $this->db
-        ->table('kelas')
-        ->where('status', 'Aktif')
-        ->get()
-        ->getResultArray();
-
-    // Cek apakah peserta sudah mengisi angket.
-    $sudahIsi = $this->db
-        ->table('jawaban_angket ja')
-        ->join(
-            'angket_pertanyaan ap',
-            'ap.id_angket_pertanyaan = ja.id_pertanyaan',
-            'inner'
-        )
-        ->where('ja.id_siswa', $idPeserta)
-        ->where('ap.id_kelas IS NULL OR ap.id_kelas = ' . $this->db->escape($idKelas), null, false)
-        ->get()
-        ->getRowArray();
-
-    return view('peserta/angket', [
-        'pendaftaran' => $pendaftaran,
-        'pertanyaan' => $pertanyaan,
-        'semuaKelas' => $semuaKelas,
-        'sudahIsi' => $sudahIsi
-    ]);
+    return view('peserta/angket', ['pendaftaran' => $pendaftaran]);
 }
+
     public function simpanAngket()
     {
         if ($redirect = $this->requireLogin()) {
@@ -2653,9 +2619,44 @@ public function simpanJawabanUjian()
         return view('peserta/sertifikat', [
             'statusLulus' => $statusLulus,
             'statusAngket' => $statusAngket,
-            'sertifikatAcademy' => $statusLulus && $statusAngket,
+            'sertifikatTarget' => $statusLulus && $statusAngket,
         ]);
     }
+
+    public function downloadSertifikat($id)
+{
+    if ($redirect = $this->requireLogin()) {
+        return $redirect;
+    }
+
+    $sertifikatModel = new SertifikatModel();
+
+    $sertifikat = $sertifikatModel
+        ->where('id_sertifikat', $id)
+        ->where('id_user', $this->userId())
+        ->first();
+
+    if (!$sertifikat) {
+        return redirect()->back()
+            ->with('error', 'Sertifikat tidak ditemukan.');
+    }
+
+    if (empty($sertifikat['file_sertifikat'])) {
+        return redirect()->back()
+            ->with('error', 'File sertifikat belum tersedia.');
+    }
+
+    $namaFile = $sertifikat['file_sertifikat'];
+
+    $path = FCPATH . 'uploads/sertifikat/' . $namaFile;
+
+    if (!is_file($path)) {
+        return redirect()->back()
+            ->with('error', 'File sertifikat tidak ditemukan di server.');
+    }
+
+    return $this->response->download($path, null);
+}
 
     public function absensi()
     {
@@ -2934,7 +2935,7 @@ if (!$pendaftaran && !empty($user['email'])) {
     // 6. DATA TAMBAHAN
     // =========================================================
     $sudahIsiAngket = false;
-    $sertifikatAcademy = false;
+    $sertifikatTerbit = false;
 
     // =========================================================
     // 7. KIRIM KE VIEW
@@ -2959,7 +2960,7 @@ if (!$pendaftaran && !empty($user['email'])) {
 
         'sudahIsiAngket'      => $sudahIsiAngket,
 
-        'sertifikatAcademy'   => $sertifikatAcademy,
+        'sertifikatTerbit'   => $sertifikatTerbit,
     ]);
 }
 public function updateProfil()

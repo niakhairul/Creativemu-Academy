@@ -819,7 +819,7 @@
                                 if (!empty($pendaftaran) && is_array($pendaftaran)) {
                                     $kategoriKelas = trim($pendaftaran['kategori_kelas'] ?? '');
                                 }
-                                $isSertifikasi = (strcasecmp($kategoriKelas, 'Pelatihan Sertifikasi') === 0 || stripos($kategoriKelas, 'sertifikasi') !== false);
+                                $isSertifikasi = (stripos($kategoriKelas, 'sertifikasi') !== false || stripos($kategoriKelas, 'basic') !== false);
                             ?>
 
                             <?php if ($isSertifikasi): ?>

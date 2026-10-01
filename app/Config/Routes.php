@@ -87,6 +87,19 @@ $routes->get('pelatihan/ujian/hasil', 'Pelatihan::hasilUjian');
 $routes->get('pelatihan/angket', 'Pelatihan::angket');
 $routes->post('pelatihan/angket/simpan', 'Pelatihan::simpanAngket');
 $routes->get('pelatihan/sertifikat', 'Pelatihan::sertifikat');
+
+// Download sertifikat peserta
+$routes->get(
+    'pelatihan/download-sertifikat/(:num)',
+    'Pelatihan::downloadSertifikat/$1'
+);
+
+$routes->get('admin/sertifikat/download-file/(:num)', 'Admin::downloadFileSertifikat/$1');
+
+// ===== MENU ANGKET & SERTIFIKAT PESERTA =====
+$routes->get('pelatihan/angket', 'Pelatihan::angket');
+$routes->post('pelatihan/angket/simpan', 'Pelatihan::simpanAngket');
+$routes->get('pelatihan/sertifikat', 'Pelatihan::sertifikat');
 $routes->get('admin/sertifikat/download-file/(:num)', 'Admin::downloadFileSertifikat/$1');
 
 // ===== SERTIFIKAT ADMIN =====
