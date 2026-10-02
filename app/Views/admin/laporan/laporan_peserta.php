@@ -385,17 +385,19 @@
                     <div class="col-12 col-sm-6 col-md-2">
                         <label class="form-label mb-1 super-small fw-semibold text-muted" style="font-size: 0.725rem;">Bulan</label>
                         <select name="bulan" class="form-select form-select-sm">
-                            <option value="all">-- Semua Bulan --</option>
+                            <?php $currentBulan = $filters['bulan'] ?? 'all'; ?>
+                            <option value="all" <?= ($currentBulan === 'all') ? 'selected' : ''; ?>>-- Semua Bulan --</option>
                             <?php 
                             $listBulan = [
                                 '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
                                 '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
                                 '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
                             ];
-                            $currentBulan = $filters['bulan'] ?? date('m');
                             foreach ($listBulan as $bKey => $bVal): 
+                                // Memastikan tipe integer cocok dengan string bKey
+                                $isSelected = ($currentBulan !== 'all' && (int)$currentBulan === (int)$bKey) ? 'selected' : '';
                             ?>
-                                <option value="<?= $bKey; ?>" <?= ($currentBulan === $bKey) ? 'selected' : ''; ?>><?= $bVal; ?></option>
+                                <option value="<?= $bKey; ?>" <?= $isSelected; ?>><?= $bVal; ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -403,9 +405,9 @@
                     <div class="col-12 col-sm-6 col-md-2">
                         <label class="form-label mb-1 super-small fw-semibold text-muted" style="font-size: 0.725rem;">Tahun</label>
                         <select name="tahun" class="form-select form-select-sm">
-                            <option value="all">-- Semua Tahun --</option>
+                            <?php $currentTahun = $filters['tahun'] ?? 'all'; ?>
+                            <option value="all" <?= ($currentTahun === 'all') ? 'selected' : ''; ?>>-- Semua Tahun --</option>
                             <?php 
-                            $currentTahun = $filters['tahun'] ?? date('Y');
                             $startYear = 2020;
                             $endYear = date('Y') + 1;
                             for ($y = $endYear; $y >= $startYear; $y--): 
@@ -418,9 +420,10 @@
                     <div class="col-12 col-sm-6 col-md-3">
                         <label class="form-label mb-1 super-small fw-semibold text-muted" style="font-size: 0.725rem;">Kelas</label>
                         <select name="id_kelas" class="form-select form-select-sm">
-                            <option value="all">-- Semua Kelas --</option>
+                            <?php $currentKelas = $filters['id_kelas'] ?? 'all'; ?>
+                            <option value="all" <?= ($currentKelas === 'all' || $currentKelas === '') ? 'selected' : ''; ?>>-- Semua Kelas --</option>
                             <?php foreach ($classes as $c): ?>
-                                <option value="<?= $c['id_kelas']; ?>" <?= ((string)($filters['id_kelas'] ?? '') === (string)$c['id_kelas']) ? 'selected' : ''; ?>>
+                                <option value="<?= $c['id_kelas']; ?>" <?= ((string)$currentKelas === (string)$c['id_kelas']) ? 'selected' : ''; ?>>
                                     <?= esc($c['nama_kelas']); ?> (<?= esc($c['nama_mentor'] ?? 'Mentor -'); ?>)
                                 </option>
                             <?php endforeach; ?>
@@ -430,9 +433,10 @@
                     <div class="col-12 col-sm-6 col-md-2">
                         <label class="form-label mb-1 super-small fw-semibold text-muted" style="font-size: 0.725rem;">Pelatihan / Kategori</label>
                         <select name="kategori" class="form-select form-select-sm">
-                            <option value="all">-- Semua Pelatihan --</option>
+                            <?php $currentKategori = $filters['kategori'] ?? 'all'; ?>
+                            <option value="all" <?= ($currentKategori === 'all' || $currentKategori === '') ? 'selected' : ''; ?>>-- Semua Pelatihan --</option>
                             <?php foreach ($categories as $cat): ?>
-                                <option value="<?= esc($cat); ?>" <?= (($filters['kategori'] ?? '') === $cat) ? 'selected' : ''; ?>>
+                                <option value="<?= esc($cat); ?>" <?= ($currentKategori === $cat) ? 'selected' : ''; ?>>
                                     <?= esc($cat); ?>
                                 </option>
                             <?php endforeach; ?>
@@ -442,11 +446,11 @@
                     <div class="col-12 col-sm-6 col-md-3">
                         <label class="form-label mb-1 super-small fw-semibold text-muted" style="font-size: 0.725rem;">Tempat Pelatihan</label>
                         <select name="tempat_pelatihan" class="form-select form-select-sm">
-                            <option value="all">-- Semua Tempat --</option>
                             <?php 
                             $selectedTempat = $filters['tempat_pelatihan'] ?? 'all';
                             $listTempatOpt = $tempatList ?? ['Kantor Pusat', 'Kantor Cabang', 'Kantor Perwakilan'];
                             ?>
+                            <option value="all" <?= ($selectedTempat === 'all' || $selectedTempat === '') ? 'selected' : ''; ?>>-- Semua Tempat --</option>
                             <?php foreach ($listTempatOpt as $tempat): ?>
                                 <option value="<?= esc($tempat); ?>" <?= ($selectedTempat === $tempat) ? 'selected' : ''; ?>><?= esc($tempat); ?></option>
                             <?php endforeach; ?>

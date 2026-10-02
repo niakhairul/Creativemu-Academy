@@ -128,11 +128,13 @@ class LaporanPesertaModel extends Model
             ->join('sertifikat s', 's.id_user = pendaftaran.id_users AND s.id_kelas = pendaftaran.id_kelas', 'left');
 
         // Filter Tahun
-        $tahun = !empty($filters['tahun']) ? (int) $filters['tahun'] : (int) date('Y');
-        $builder->where("YEAR(pendaftaran.created_at) = {$tahun}");
+        if (isset($filters['tahun']) && $filters['tahun'] !== 'all') {
+            $tahun = (int) $filters['tahun'];
+            $builder->where("YEAR(pendaftaran.created_at) = {$tahun}");
+        }
 
-        // Filter Bulan (Jika jenis periode bulanan)
-        if (!empty($filters['periode']) && $filters['periode'] === 'bulanan' && !empty($filters['bulan'])) {
+        // Filter Bulan
+        if (isset($filters['bulan']) && $filters['bulan'] !== 'all') {
             $bulan = (int) $filters['bulan'];
             $builder->where("MONTH(pendaftaran.created_at) = {$bulan}");
         }
@@ -284,17 +286,18 @@ class LaporanPesertaModel extends Model
 
         $kelasList = $kBuilder->orderBy('kelas.nama_kelas', 'ASC')->get()->getResultArray();
 
-        $tahun = !empty($filters['tahun']) ? (int) $filters['tahun'] : (int) date('Y');
-        $periode = $filters['periode'] ?? 'tahunan';
-        $bulan = !empty($filters['bulan']) ? (int) $filters['bulan'] : null;
+        $tahun = $filters['tahun'] ?? 'all';
+        $bulan = $filters['bulan'] ?? 'all';
 
         foreach ($kelasList as &$k) {
             $pBuilder = $this->db->table('pendaftaran')
-                ->where('id_kelas', $k['id_kelas'])
-                ->where("YEAR(created_at) = {$tahun}");
+                ->where('id_kelas', $k['id_kelas']);
 
-            if ($periode === 'bulanan' && $bulan !== null) {
-                $pBuilder->where("MONTH(created_at) = {$bulan}");
+            if ($tahun !== 'all') {
+                $pBuilder->where("YEAR(created_at) = " . (int)$tahun);
+            }
+            if ($bulan !== 'all') {
+                $pBuilder->where("MONTH(created_at) = " . (int)$bulan);
             }
 
             $k['jumlah_peserta_filter'] = $pBuilder->countAllResults();
@@ -404,10 +407,10 @@ class LaporanPesertaModel extends Model
             }
         }
 
-        $tahun = !empty($filters['tahun']) ? (int) $filters['tahun'] : (int) date('Y');
+        $tahun = (isset($filters['tahun']) && $filters['tahun'] !== 'all') ? (int) $filters['tahun'] : (int) date('Y');
         $isBulanan = (!empty($filters['periode']) && $filters['periode'] === 'bulanan');
 
-        if ($isBulanan && !empty($filters['bulan'])) {
+        if ($isBulanan && !empty($filters['bulan']) && $filters['bulan'] !== 'all') {
             $bulan = (int) $filters['bulan'];
             $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun);
             

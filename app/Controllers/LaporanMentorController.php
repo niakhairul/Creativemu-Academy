@@ -384,20 +384,20 @@ class LaporanMentorController extends BaseController
         $output = fopen('php://output', 'w');
         fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF)); // BOM
 
-        fputcsv($output, ['CREATIVEMU ACADEMY - LAPORAN MENTOR & KINERJA PENGAJAR']);
+        fputcsv($output, ['CREATIVEMU ACADEMY - LAPORAN INSTRUKTUR & KINERJA PENGAJAR']);
         fputcsv($output, ['Periode Laporan', $periodeText]);
         fputcsv($output, ['Tanggal Ekspor', date('d-m-Y H:i:s')]);
         fputcsv($output, []);
 
-        fputcsv($output, ['=== RINGKASAN STATISTIK MENTOR ===']);
-        fputcsv($output, ['Total Mentor', $stats['total_mentor']]);
+        fputcsv($output, ['=== RINGKASAN STATISTIK INSTRUKTUR ===']);
+        fputcsv($output, ['Total Instruktur', $stats['total_mentor']]);
         fputcsv($output, ['Rata-rata Keaktifan', $stats['avg_keaktifan'] . '%']);
         fputcsv($output, ['Rata-rata Kehadiran', $stats['avg_kehadiran'] . '%']);
         fputcsv($output, ['Rata-rata Keterlambatan', $stats['avg_keterlambatan'] . '%']);
         fputcsv($output, ['Rata-rata Angket', $stats['avg_angket']]);
         fputcsv($output, []);
 
-        fputcsv($output, ['No', 'Nama Mentor', 'Kategori Pelatihan', 'Kelas Diampu', 'Tempat Pelatihan', 'Keaktifan (%)', 'Kehadiran (%)', 'Keterlambatan (%)', 'Nilai Angket', 'Predikat']);
+        fputcsv($output, ['No', 'Nama Instruktur', 'Kategori Pelatihan', 'Kelas Diampu', 'Tempat Pelatihan', 'Keaktifan (%)', 'Kehadiran (%)', 'Keterlambatan (%)', 'Nilai Angket', 'Predikat']);
         $no = 1;
         foreach ($mentorList as $m) {
             fputcsv($output, [

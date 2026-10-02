@@ -97,73 +97,166 @@ class LaporanMentorModel extends Model
     /**
      * Ambil data komprehensif performa per mentor berdasarkan filter
      */
-    public function getLaporanMentorList($filters)
-{
-    $builder = $this->db->table('mentor m');
+        public function getLaporanMentorList($filters)
+    {
+        $tahun = (isset($filters['tahun']) && $filters['tahun'] !== 'all') ? (int) $filters['tahun'] : (int) date('Y');
+        $bulan = (isset($filters['bulan']) && $filters['bulan'] !== 'all') ? (int) $filters['bulan'] : (int) date('n');
 
-    $builder->select('
-        m.id_mentor,
-        m.nama_mentor,
-        m.nip,
-        m.keahlian,
+        $builder = $this->db->table('mentor m');
+        $builder->select('
+            m.id_mentor,
+            m.id_users,
+            m.nama_mentor,
+            m.nip,
+            m.keahlian
+        ');
 
-        -- Hitung jumlah peserta (mencari kata "pusat" atau "kampus utama" di lokasi pelatihan)
-        (SELECT COUNT(p.id_pendaftaran) FROM pendaftaran p
-         JOIN kelas k ON k.id_kelas = p.id_kelas
-         WHERE k.id_mentor = m.id_mentor
-           AND (LOWER(p.lokasi_pelatihan) LIKE "%pusat%" OR LOWER(p.lokasi_pelatihan) LIKE "%kampus utama%")
-           AND YEAR(p.created_at) = ' . (int)$filters['tahun'] . '
-           AND MONTH(p.created_at) = ' . (int)$filters['bulan'] . ') as jumlah_kantor_pusat,
+        if (!empty($filters['id_mentor']) && $filters['id_mentor'] !== 'all') {
+            $builder->where('m.id_mentor', $filters['id_mentor']);
+        }
 
-        -- Hitung jumlah peserta (mencari kata "cabang" di lokasi pelatihan)
-        (SELECT COUNT(p.id_pendaftaran) FROM pendaftaran p
-         JOIN kelas k ON k.id_kelas = p.id_kelas
-         WHERE k.id_mentor = m.id_mentor
-           AND LOWER(p.lokasi_pelatihan) LIKE "%cabang%"
-           AND YEAR(p.created_at) = ' . (int)$filters['tahun'] . '
-           AND MONTH(p.created_at) = ' . (int)$filters['bulan'] . ') as jumlah_kantor_cabang,
+        $mentors = $builder->get()->getResultArray();
+        
+        $kategori = $filters['kategori'] ?? 'all';
+        $tempat = $filters['tempat_pelatihan'] ?? 'all';
 
-        -- Hitung jumlah peserta (mencari kata "perwakilan" di lokasi pelatihan)
-        (SELECT COUNT(p.id_pendaftaran) FROM pendaftaran p
-         JOIN kelas k ON k.id_kelas = p.id_kelas
-         WHERE k.id_mentor = m.id_mentor
-           AND LOWER(p.lokasi_pelatihan) LIKE "%perwakilan%"
-           AND YEAR(p.created_at) = ' . (int)$filters['tahun'] . '
-           AND MONTH(p.created_at) = ' . (int)$filters['bulan'] . ') as jumlah_kantor_perwakilan
-    ');
+        // Filter and enrich
+        $result = [];
+        foreach ($mentors as $m) {
+            $idMentor = (int) $m['id_mentor'];
+            $idUser = (int) $m['id_users'];
 
-    if (!empty($filters['id_mentor']) && $filters['id_mentor'] !== 'all') {
-        $builder->where('m.id_mentor', $filters['id_mentor']);
+            // Find all classes taught by this mentor matching filters
+            $kBuilder = $this->db->table('kelas')->where('id_mentor', $idMentor);
+            if ($kategori !== 'all') $kBuilder->where('kategori', $kategori);
+            if ($tempat !== 'all') $kBuilder->where('lokasi_pelatihan', $tempat);
+            
+            $kelasList = $kBuilder->get()->getResultArray();
+            if (empty($kelasList)) continue; // Skip if no matching classes based on filter
+
+            $kelasIds = array_column($kelasList, 'id_kelas');
+            
+            // Get valid Jadwal for the filtered month/year
+            $jBuilder = $this->db->table('jadwal')->whereIn('id_kelas', $kelasIds);
+            if (isset($filters['tahun']) && $filters['tahun'] !== 'all') {
+                $jBuilder->where("YEAR(tanggal_kbm) = {$tahun}");
+            }
+            if (isset($filters['bulan']) && $filters['bulan'] !== 'all') {
+                $jBuilder->where("MONTH(tanggal_kbm) = {$bulan}");
+            }
+            $jadwalList = $jBuilder->get()->getResultArray();
+            $jadwalIds = array_column($jadwalList, 'id_jadwal');
+
+            $sesiTotal = count($jadwalList);
+            $sesiHadir = 0;
+            $sesiTelat = 0;
+            
+            
+            if ($sesiTotal > 0 && !empty($jadwalIds)) {
+                $absensiList = $this->db->table('absensi')
+                    ->groupStart()
+                    ->whereIn('id_jadwal', $jadwalIds)
+                    ->orWhereIn('id_jadwal_kelas', $jadwalIds)
+                    ->groupEnd()
+                    ->where('id_user', $idUser)
+                    ->get()->getResultArray();
+
+                // To prevent double counting
+                $processedJadwalIds = [];
+
+                foreach ($absensiList as $absen) {
+                    // Match to correct jadwal
+                    $jMatch = null;
+                    foreach($jadwalList as $jl) {
+                        if($jl['id_jadwal'] == $absen['id_jadwal'] || $jl['id_jadwal'] == $absen['id_jadwal_kelas']) {
+                            $jMatch = $jl; break;
+                        }
+                    }
+
+                    if ($jMatch && !in_array($jMatch['id_jadwal'], $processedJadwalIds)) {
+                        $processedJadwalIds[] = $jMatch['id_jadwal'];
+                        
+                        $st = strtolower(trim($absen['status']));
+                        if ($st === 'hadir' || $st === 'terlambat') {
+                            $sesiHadir++;
+                            if ($st === 'terlambat') {
+                                $sesiTelat++;
+                            } else {
+                                // Calculate lateness strictly based on datetime of jadwal and absen
+                                $waktuAbsen = $absen['waktu_absen'];
+                                if ($jMatch['tanggal_kbm'] && $jMatch['waktu_mulai'] && $waktuAbsen) {
+                                    $tglKbm = $jMatch['tanggal_kbm'];
+                                    $waktuMulai = $jMatch['waktu_mulai'];
+                                    $jadwalStartObj = strtotime("$tglKbm $waktuMulai");
+                                    $absenObj = strtotime($waktuAbsen);
+                                    
+                                    // if absence is strictly 15 mins after the schedule start time (regardless of day)
+                                    // Because sometimes test data is weird, we just compare the absolute timestamp if possible, 
+                                    // but if it's test data, maybe we just compare time?
+                                    // Let's compare just time as requested if dates mismatch, or compare full timestamp.
+                                    // User said: "Keterlambatan harus dihitung terhadap tanggal sesi yang benar. Jangan membandingkan waktu dari tanggal yang berbeda."
+                                    // Actually user says: "Jika tanggal absensi dan tanggal jadwal tidak cocok... jangan menghasilkan keterlambatan... Keterlambatan harus dihitung terhadap tanggal sesi yang benar."
+                                    
+                                    if (date('Y-m-d', $absenObj) === $tglKbm) {
+                                        $limitLateness = strtotime("$tglKbm $waktuMulai + 15 minutes");
+                                        if ($absenObj > $limitLateness) {
+                                            $sesiTelat++;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            
+            $persenKehadiran = $sesiTotal > 0 ? round(($sesiHadir / $sesiTotal) * 100, 1) : 0;
+            $persenKeterlambatan = $sesiHadir > 0 ? round(($sesiTelat / $sesiHadir) * 100, 1) : 0;
+
+            // Get Angket
+            $angketData = $this->db->table('angket_penilaian')
+                ->selectAvg('rating')
+                ->whereIn('id_kelas', $kelasIds)
+                ->where('rating >', 0)
+                ->get()->getRowArray();
+            $nilaiAngket = $angketData['rating'] ? round($angketData['rating'], 1) : 0;
+
+            // Populate row
+            $m['sesi_total'] = $sesiTotal;
+            $m['total_sesi'] = $sesiTotal;
+            $m['sesi_terlaksana'] = $sesiHadir;
+            $m['total_materi'] = 0;
+            $m['sesi_hadir'] = $sesiHadir;
+            $m['sesi_telat'] = $sesiTelat;
+            
+            $m['persen_keaktifan'] = 0; // Belum ada tabel spesifik keaktifan instruktur
+            $m['persen_kehadiran'] = $persenKehadiran;
+            $m['persen_keterlambatan'] = $persenKeterlambatan;
+            $m['nilai_angket'] = $nilaiAngket;
+
+            // Skor performa = 0 (Belum ada formula final)
+            $m['skor_performa'] = 0;
+
+            $m['kelas'] = count($kelasList) > 0 ? $kelasList[0]['nama_kelas'] . (count($kelasList) > 1 ? ' (+' . (count($kelasList)-1) . ')' : '') : '-';
+            $m['pelatihan'] = count($kelasList) > 0 ? $kelasList[0]['kategori'] : '-';
+            $m['tempat_pelatihan'] = count($kelasList) > 0 ? $kelasList[0]['lokasi_pelatihan'] : '-';
+
+            $m['predikat'] = 'Belum Dinilai';
+            $m['badge_class'] = 'bg-secondary';
+            
+            if ($sesiTotal > 0) {
+                if ($persenKehadiran >= 90) { $m['predikat'] = 'Sangat Baik'; $m['badge_class'] = 'bg-success'; }
+                elseif ($persenKehadiran >= 70) { $m['predikat'] = 'Baik'; $m['badge_class'] = 'bg-primary'; }
+                else { $m['predikat'] = 'Kurang'; $m['badge_class'] = 'bg-warning text-dark'; }
+            }
+
+            $result[] = $m;
+        }
+
+        return $result;
     }
 
-    $result = $builder->get()->getResultArray();
-
-    foreach ($result as &$row) {
-        $row['skor_performa']        = (int)$row['jumlah_kantor_pusat']
-                                     + (int)$row['jumlah_kantor_cabang']
-                                     + (int)$row['jumlah_kantor_perwakilan'];
-
-        $row['persen_keterlambatan'] = 0;
-        $row['nilai_angket']         = 3.5;
-        $row['persen_kehadiran']     = 100;
-        $row['predikat']             = 'Sangat Baik';
-        $row['badge_class']          = 'bg-success';
-        $row['persen_keaktifan']     = 95;
-        $row['sesi_terlaksana']      = 12;
-        $row['total_sesi']           = 12;
-        $row['total_materi']         = 5;
-        $row['kelas']                = 'Kelas Reguler & Intensif';
-        $row['pelatihan']            = 'Pelatihan Umum';
-        $row['tempat_pelatihan']     = 'Kantor Pusat';
-    }
-    unset($row);
-
-    return $result;
-}
-
-    /**
-     * Hitung ringkasan statistik (5 Kartu Dashboard)
-     */
     public function getRingkasanStats(array $filters): array
     {
         $list = $this->getLaporanMentorList($filters);
@@ -206,13 +299,7 @@ class LaporanMentorModel extends Model
         $totSakit = array_sum(array_column($list, 'sesi_sakit'));
         $totAlpa  = array_sum(array_column($list, 'sesi_alpa'));
 
-        // Jika total sesi belum ada, defaultkan hadir proporsional
-        if (($totHadir + $totIzin + $totSakit + $totAlpa) === 0) {
-            $totHadir = 10;
-            $totIzin  = 1;
-            $totSakit = 0;
-            $totAlpa  = 0;
-        }
+
 
         // 2. Bar Chart Keterlambatan per Mentor
         $barMentorNames = [];
@@ -228,24 +315,10 @@ class LaporanMentorModel extends Model
         $colorPalette = ['#794bc4', '#3a86ff', '#06d6a0', '#ff006e', '#ff9f1c'];
 
         $i = 0;
-        foreach (array_slice($list, 0, 3) as $m) {
-            $color = $colorPalette[$i % count($colorPalette)];
-            $baseVal = $m['nilai_angket'] > 0 ? $m['nilai_angket'] : 3.6;
-            $radarDatasets[] = [
-                'label'           => $m['nama_mentor'],
-                'data'            => [
-                    round(min(4.0, $baseVal - 0.1), 1),
-                    round(min(4.0, $baseVal), 1),
-                    round(min(4.0, $baseVal + 0.1), 1),
-                    round(min(4.0, $baseVal - 0.05), 1),
-                    round(min(4.0, $baseVal + 0.15), 1)
-                ],
-                'borderColor'     => $color,
-                'backgroundColor' => $color . '25', // opacity
-                'pointBackgroundColor' => $color,
-            ];
-            $i++;
-        }
+        // Radar chart memerlukan indikator spesifik yang saat ini belum ada di tabel angket_penilaian (hanya rating umum).
+        // Sehingga kita kosongkan dataset-nya.
+        $radarDatasets = [];
+
 
         // 4. Line Chart Tren Bulanan
         $monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];

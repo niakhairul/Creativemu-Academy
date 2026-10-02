@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= esc($title ?? 'Cetak Laporan Mentor'); ?></title>
+    <title><?= esc($title ?? 'Cetak Laporan Instruktur'); ?></title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
@@ -165,7 +165,7 @@
     <!-- FLOATING ACTION BAR FOR SCREEN ONLY -->
     <div class="no-print-bar">
         <div>
-            <strong><i class="fas fa-print me-2"></i> Pratinjau Cetak Laporan Mentor</strong>
+            <strong><i class="fas fa-print me-2"></i> Pratinjau Cetak Laporan Instruktur</strong>
             <span class="ms-2 opacity-75 small">(Format Siap Cetak & Export PDF)</span>
         </div>
         <div class="d-flex gap-2">
@@ -204,10 +204,10 @@
         </div>
 
         <!-- 3. RINGKASAN STATISTIK -->
-        <h6 class="fw-bold mb-2">I. Ringkasan Statistik Kinerja Mentor</h6>
+        <h6 class="fw-bold mb-2">I. Ringkasan Statistik Kinerja Instruktur</h6>
         <table class="stats-table">
             <tr>
-                <th>Total Mentor Dievaluasi</th>
+                <th>Total Instruktur Dievaluasi</th>
                 <td><strong><?= number_format($stats['total_mentor']); ?></strong> Orang</td>
                 <th>Rata-rata Keaktifan Sesi</th>
                 <td><strong><?= number_format($stats['avg_keaktifan'], 1); ?>%</strong></td>
@@ -224,13 +224,13 @@
             </tr>
         </table>
 
-        <!-- 4. TABEL UTAMA LAPORAN MENTOR -->
+        <!-- 4. TABEL UTAMA LAPORAN INSTRUKTUR -->
         <h6 class="fw-bold mb-2">II. Rekapitulasi Data Kinerja & Evaluasi Pengajar</h6>
         <table class="table-data">
             <thead>
                 <tr>
                     <th width="4%">No</th>
-                    <th>Nama Mentor</th>
+                    <th>Nama Instruktur</th>
                     <th>Pelatihan</th>
                     <th>Kelas Diampu</th>
                     <th>Tempat Pelatihan</th>
@@ -260,7 +260,7 @@
                     </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <tr><td colspan="11" class="text-center py-3 text-muted">Tidak ada data mentor pada periode yang dipilih.</td></tr>
+                    <tr><td colspan="11" class="text-center py-3 text-muted">Tidak ada data instruktur pada periode yang dipilih.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>

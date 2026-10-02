@@ -78,11 +78,16 @@
             box-shadow: 0 10px 24px rgba(122, 63, 242, 0.18);
         }
 
-        .navbar-brand span {
+        .brand-text {
             max-width: 260px;
             line-height: 1.15;
             font-weight: 800;
             color: var(--purple-strong);
+            font-size: 1.5rem;
+        }
+        .btn-auth-mobile {
+            padding: 8px 18px;
+            font-size: 0.95rem;
         }
 
         .nav-link {
@@ -192,15 +197,15 @@
         .hero-eyebrow {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 14px;
-            margin-bottom: 16px;
+            gap: 6px;
+            padding: 6px 12px;
+            margin-bottom: 12px;
             border: 1px solid rgba(255, 255, 255, 0.28);
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.13);
             color: rgba(255, 255, 255, 0.92);
-            font-size: 0.82rem;
-            font-weight: 800;
+            font-size: 0.75rem;
+            font-weight: 700;
             backdrop-filter: blur(10px);
         }
 
@@ -208,8 +213,8 @@
             max-width: 780px;
             margin: 0;
             color: #ffffff;
-            font-size: clamp(2.05rem, 5vw, 4.25rem);
-            line-height: 1.02;
+            font-size: clamp(1.8rem, 4vw, 3.2rem);
+            line-height: 1.15;
             font-weight: 800;
         }
 
@@ -217,6 +222,9 @@
             max-width: 650px;
             color: rgba(255, 255, 255, 0.82);
             font-weight: 500;
+            font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+            line-height: 1.6;
+            margin-top: 10px;
         }
 
         .hero-highlight {
@@ -595,11 +603,12 @@
         }
 
         @media (max-width: 575.98px) {
-            .container { padding-left: 18px; padding-right: 18px; }
-            .navbar-logo { width: 40px; height: 40px; border-radius: 12px; }
-            .navbar-brand span { max-width: 185px; font-size: 1rem !important; }
+            .container { padding-left: 10px; padding-right: 10px; }
+            .navbar-logo { width: 28px; height: 28px; border-radius: 8px; }
+            .brand-text { max-width: 80px; font-size: 0.75rem !important; line-height: 1.1; white-space: normal; }
+            .btn-auth-mobile { padding: 4px 8px !important; font-size: 0.72rem !important; border-radius: 6px !important; min-height: 30px !important; display: inline-flex; align-items: center; }
             .hero-section { padding: 34px 0 68px; }
-            .hero-eyebrow { font-size: 0.76rem; }
+            .hero-eyebrow { font-size: 0.7rem; padding: 4px 10px; }
             .hero-highlight { width: 100%; padding: 16px; border-radius: 20px; }
             .hero-stat { min-height: 82px; padding: 13px; }
             .hero-stat strong { font-size: 1.18rem; }
@@ -629,24 +638,113 @@
             .btn-custom-auth:hover,
             .btn-outline-custom-auth:hover { transform: none; }
         }
+
+        @media (max-width: 767.98px) {
+            #modalCekStatus .modal-dialog {
+                margin: 20px auto;
+                width: 92%;
+                max-width: 350px;
+            }
+            #modalCekStatus .modal-content {
+                padding: 20px 16px !important;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+            #modalCekStatus .modal-header {
+                padding-bottom: 0;
+                margin-bottom: 12px;
+                padding-left: 0;
+                padding-right: 0;
+            }
+            #modalCekStatus .modal-title {
+                font-size: 20px !important;
+                line-height: 1.3 !important;
+                display: flex;
+                align-items: flex-start;
+            }
+            #modalCekStatus .modal-title i {
+                margin-top: 3px;
+            }
+            #modalCekStatus .btn-close {
+                margin-top: -4px;
+            }
+            #modalCekStatus .modal-body {
+                padding: 0 !important;
+            }
+            #modalCekStatus .text-muted.small {
+                font-size: 13px !important;
+                line-height: 1.4 !important;
+                margin-bottom: 16px !important;
+            }
+            #modalCekStatus .input-group {
+                margin-bottom: 16px !important;
+            }
+            #keywordStatus {
+                height: 46px !important;
+                font-size: 14px !important;
+                padding: 8px 14px !important;
+            }
+            #btnCek {
+                height: 46px !important;
+                font-size: 14px !important;
+                padding: 8px 16px !important;
+            }
+            #hasilPencarianModal .card {
+                padding: 14px !important;
+            }
+            #hasilPencarianModal h6 {
+                font-size: 14px !important;
+                margin-bottom: 10px !important;
+            }
+            #hasilPencarianModal .row.small,
+            #hasilPencarianModal .small {
+                font-size: 13px !important;
+                margin-bottom: 6px !important;
+            }
+            #hasilPencarianModal .alert {
+                font-size: 13px !important;
+                line-height: 1.4 !important;
+                padding: 12px 14px !important;
+                margin-top: 10px !important;
+                margin-bottom: 10px !important;
+            }
+            #hasilPencarianModal .btn {
+                height: 44px !important;
+                font-size: 14px !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-top: 8px !important;
+            }
+            #modalCekStatus .alert-light {
+                margin-top: 16px !important;
+                padding: 12px !important;
+                font-size: 12px !important;
+            }
+        }
     </style>
 </head>
 <body>
 
 <!-- Navbar Atas -->
 <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
-    <div class="container px-lg-4">
-        <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none" href="<?= base_url('/') ?>">
+    <div class="container px-2 px-lg-4 flex-wrap flex-lg-nowrap">
+        <a class="navbar-brand d-flex align-items-center gap-1 gap-lg-2 text-decoration-none me-0 me-lg-3" href="<?= base_url('/') ?>">
             <img src="<?= base_url('assets/img/logo_creativemu.jpg') ?>" alt="Logo Creativemu" class="navbar-logo shadow-sm" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/3413/3413535.png';">
-            <span class="fs-4">Creativemu Academy</span>
+            <span class="brand-text">Creativemu Academy</span>
         </a>
 
-        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <div class="d-flex align-items-center ms-auto gap-1 gap-lg-2 order-lg-last">
+            <a href="<?= base_url('auth/login') ?>" class="btn btn-outline-custom-auth btn-auth-mobile">Login</a>
+            <a href="<?= base_url('auth/register') ?>" class="btn btn-custom-auth btn-auth-mobile">Sign Up</a>
+            
+            <button class="navbar-toggler border-0 shadow-none p-1 ms-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon" style="width: 1.3em; height: 1.3em;"></span>
+            </button>
+        </div>
 
-        <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
-            <ul class="navbar-nav gap-4">
+        <div class="collapse navbar-collapse justify-content-center order-last order-lg-0" id="navbarNav">
+            <ul class="navbar-nav gap-2 gap-lg-4 mt-3 mt-lg-0">
                 <li class="nav-item"><a class="nav-link active" href="<?= base_url('pelatihan/daftar-kelas') ?>">Program</a></li>
                 <li class="nav-item">
                     <a class="nav-link fw-semibold" data-bs-toggle="modal" data-bs-target="#modalCekStatus" style="cursor: pointer;">
@@ -654,11 +752,6 @@
                     </a>
                 </li>
             </ul>
-        </div>
-
-        <div class="d-none d-lg-flex align-items-center gap-2">
-            <a href="<?= base_url('auth/login') ?>" class="btn btn-outline-custom-auth px-3">Login</a>
-            <a href="<?= base_url('auth/register') ?>" class="btn btn-custom-auth px-3">Sign Up</a>
         </div>
     </div>
 </nav>

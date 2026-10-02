@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= esc($title ?? 'Laporan Mentor'); ?> - Creativemu Academy</title>
+    <title><?= esc($title ?? 'Laporan Instruktur'); ?> - Creativemu Academy</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
@@ -401,7 +401,7 @@
             <div class="d-flex align-items-center">
                 <button class="mobile-toggle-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
                 <div>
-                    <h5 class="fw-bold m-0" style="color: var(--dark-purple);">Laporan Kinerja & Keaktifan Mentor</h5>
+                    <h5 class="fw-bold m-0" style="color: var(--dark-purple);">Laporan Kinerja & Keaktifan Instruktur</h5>
                     <p class="text-muted m-0" style="font-size: 0.78rem;">Analisis komparatif kehadiran, keterlambatan, dan evaluasi kepuasan peserta.</p>
                 </div>
             </div>
@@ -424,7 +424,7 @@
         <div class="custom-card">
             <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
                 <h6 class="fw-bold m-0" style="color: var(--dark-purple);">
-                    <i class="fas fa-filter text-purple me-1" style="color: var(--primary-purple);"></i> Filter Laporan Mentor
+                    <i class="fas fa-filter text-purple me-1" style="color: var(--primary-purple);"></i> Filter Laporan Instruktur
                 </h6>
                 <span class="badge bg-light text-muted border px-2 py-1" style="font-size: 0.75rem;">Periode: <?= esc($periodeText); ?></span>
             </div>
@@ -445,9 +445,9 @@
 
                     <!-- Filter Mentor -->
                     <div class="col-12 col-md-6 col-lg-3">
-                        <label class="form-label small fw-semibold text-muted mb-1">Mentor</label>
+                        <label class="form-label small fw-semibold text-muted mb-1">Instruktur</label>
                         <select name="id_mentor" class="form-select" <?= (!empty($isMentor) ? 'disabled' : ''); ?>>
-                            <option value="all">-- Semua Mentor --</option>
+                            <option value="all">-- Semua Instruktur --</option>
                             <?php foreach ($mentors as $men): ?>
                                 <option value="<?= $men['id_mentor']; ?>" <?= ((string)$filters['id_mentor'] === (string)$men['id_mentor']) ? 'selected' : ''; ?>>
                                     <?= esc($men['nama_mentor']); ?>
@@ -460,9 +460,10 @@
                     <div class="col-12 col-md-6 col-lg-3">
                         <label class="form-label small fw-semibold text-muted mb-1">Pelatihan</label>
                         <select name="kategori" class="form-select">
-                            <option value="all">-- Semua Pelatihan --</option>
+                            <?php $currKat = $filters['kategori'] ?? 'all'; ?>
+                            <option value="all" <?= ($currKat === 'all') ? 'selected' : ''; ?>>-- Semua Pelatihan --</option>
                             <?php foreach ($categories as $cat): ?>
-                                <option value="<?= esc($cat); ?>" <?= ($filters['kategori'] === $cat) ? 'selected' : ''; ?>>
+                                <option value="<?= esc($cat); ?>" <?= ($currKat === $cat) ? 'selected' : ''; ?>>
                                     <?= esc($cat); ?>
                                 </option>
                             <?php endforeach; ?>
@@ -499,12 +500,12 @@
         <!-- DASHBOARD STATISTIK (5 CARDS) -->
         <div class="row g-2 mb-3">
             
-            <!-- Card 1: Total Mentor -->
+            <!-- Card 1: Total Instruktur -->
             <div class="col-12 col-sm-6 col-xl">
                 <div class="stat-card">
                     <div class="stat-icon bg-grad-purple"><i class="fas fa-chalkboard-user"></i></div>
                     <div class="stat-value"><?= number_format($stats['total_mentor']); ?></div>
-                    <div class="stat-label">Total Mentor</div>
+                    <div class="stat-label">Total Instruktur</div>
                 </div>
             </div>
 
@@ -546,14 +547,14 @@
 
         </div>
 
-        <!-- SECTION ⭐ RANKING & PERFORMA MENTOR (LEADERBOARD) -->
+        <!-- SECTION ⭐ RANKING & PERFORMA INSTRUKTUR (LEADERBOARD) -->
         <div class="custom-card">
             <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
                 <div>
                     <h6 class="fw-bold m-0" style="color: var(--dark-purple);">
-                        <i class="fas fa-award text-warning me-1"></i> ⭐ Leaderboard & Ranking Performa Mentor
+                        <i class="fas fa-award text-warning me-1"></i> ⭐ Leaderboard & Ranking Performa Instruktur
                     </h6>
-                    <small class="text-muted" style="font-size: 0.72rem;">Kalkulasi bobot transparan: Kehadiran 35% | Keaktifan 30% | Ketepatan 15% | Angket 20%</small>
+                    <small class="text-muted" style="font-size: 0.72rem;">Kalkulasi bobot belum tersedia (menggunakan nilai default/0)</small>
                 </div>
                 <span class="badge bg-light text-primary border px-2 py-1" style="font-size: 0.72rem;">Top Performers</span>
             </div>
@@ -647,7 +648,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <div>
                             <h6 class="fw-bold m-0" style="color: var(--dark-purple); font-size: 0.88rem;">
-                                <i class="fas fa-chart-line text-purple me-1" style="color: var(--primary-purple);"></i> Perkembangan Performa Mentor Sepanjang Tahun (12 Bulan)
+                                <i class="fas fa-chart-line text-purple me-1" style="color: var(--primary-purple);"></i> Perkembangan Performa Instruktur Sepanjang Tahun (12 Bulan)
                             </h6>
                             <small class="text-muted" style="font-size: 0.72rem;">Tren skor performa, kehadiran, dan evaluasi angket Januari s/d Desember</small>
                         </div>
@@ -705,14 +706,14 @@
             </div>
         </div>
 
-        <!-- TABEL UTAMA LAPORAN MENTOR -->
+        <!-- TABEL UTAMA LAPORAN INSTRUKTUR -->
         <div class="custom-card">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-2 pb-2 border-bottom">
                 <div>
                     <h6 class="fw-bold m-0" style="color: var(--dark-purple);">
-                        <i class="fas fa-table-list me-1" style="color: var(--primary-purple);"></i> Tabel Data Laporan Mentor
+                        <i class="fas fa-table-list me-1" style="color: var(--primary-purple);"></i> Tabel Data Laporan Instruktur
                     </h6>
-                    <small class="text-muted" style="font-size: 0.72rem;">Total <?= count($mentorList); ?> mentor dievaluasi pada periode <?= esc($periodeText); ?></small>
+                    <small class="text-muted" style="font-size: 0.72rem;">Total <?= count($mentorList); ?> instruktur dievaluasi pada periode <?= esc($periodeText); ?></small>
                 </div>
 
                 <!-- Live Search -->
@@ -727,7 +728,7 @@
                     <thead>
                         <tr>
                             <th rowspan="2" width="4%" class="text-center align-middle">No</th>
-                            <th rowspan="2" class="align-middle">Nama Mentor</th>
+                            <th rowspan="2" class="align-middle">Nama Instruktur</th>
                             <th rowspan="2" class="align-middle">Pelatihan</th>
                             <th rowspan="2" class="align-middle">Kelas Diampu</th>
 
@@ -794,7 +795,7 @@
                             <tr>
                                 <td colspan="13" class="text-center py-4 text-muted" style="font-size: 0.82rem;">
                                     <i class="fas fa-user-slash fa-2x mb-2 opacity-50 d-block"></i>
-                                    <h6 class="fw-semibold mb-1" style="font-size: 0.88rem;">Belum ada data laporan mentor pada periode yang dipilih.</h6>
+                                    <h6 class="fw-semibold mb-1" style="font-size: 0.88rem;">Belum ada data laporan instruktur pada periode yang dipilih.</h6>
                                     <p class="text-muted m-0" style="font-size: 0.75rem;">Silakan pilih periode atau pelatihan lainnya di bagian filter atas.</p>
                                 </td>
                             </tr>
@@ -805,19 +806,19 @@
 
             <div id="noMentorMatch" class="text-center py-3 text-muted d-none" style="font-size: 0.82rem;">
                 <i class="fas fa-filter-circle-xmark fa-2x mb-1 opacity-50"></i>
-                <p class="m-0 fw-semibold">Tidak ada mentor yang cocok dengan kata kunci pencarian.</p>
+                <p class="m-0 fw-semibold">Tidak ada instruktur yang cocok dengan kata kunci pencarian.</p>
             </div>
         </div>
 
     </div>
 
-    <!-- === MODAL DETAIL MENTOR === -->
+    <!-- === MODAL DETAIL INSTRUKTUR === -->
     <div class="modal fade" id="detailMentorModal" tabindex="-1" aria-labelledby="detailMentorModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content border-0 rounded-4 shadow">
                 <div class="modal-header border-0 pb-0" style="background: var(--light-purple);">
                     <div>
-                        <h5 class="modal-title fw-bold text-dark" id="modalNamaMentor" style="font-size: 1rem;">Detail Kinerja Mentor</h5>
+                        <h5 class="modal-title fw-bold text-dark" id="modalNamaMentor" style="font-size: 1rem;">Detail Kinerja Instruktur</h5>
                         <p class="small text-muted m-0" id="modalKeahlianMentor" style="font-size: 0.75rem;">Informasi profil & riwayat sesi mengajar</p>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -827,7 +828,7 @@
                         <div class="spinner-border text-primary spinner-border-sm" role="status">
                             <span class="visually-hidden">Memuat...</span>
                         </div>
-                        <p class="small text-muted mt-2" style="font-size: 0.75rem;">Mengambil data mentor...</p>
+                        <p class="small text-muted mt-2" style="font-size: 0.75rem;">Mengambil data instruktur...</p>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
@@ -873,14 +874,14 @@
             }
         }
 
-        // AJAX Modal Detail Mentor
+        // AJAX Modal Detail Instruktur
         function openDetailModal(idMentor) {
             const modal = new bootstrap.Modal(document.getElementById('detailMentorModal'));
             const modalBody = document.getElementById('modalDetailBody');
             modalBody.innerHTML = `
                 <div class="text-center py-4">
                     <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
-                    <p class="small text-muted mt-2" style="font-size: 0.75rem;">Mengambil data mentor...</p>
+                    <p class="small text-muted mt-2" style="font-size: 0.75rem;">Mengambil data instruktur...</p>
                 </div>
             `;
             modal.show();
@@ -959,7 +960,7 @@
                     `;
                 })
                 .catch(() => {
-                    modalBody.innerHTML = `<div class="alert alert-danger py-2" style="font-size: 0.8rem;">Terjadi kesalahan saat memuat data mentor.</div>`;
+                    modalBody.innerHTML = `<div class="alert alert-danger py-2" style="font-size: 0.8rem;">Terjadi kesalahan saat memuat data instruktur.</div>`;
                 });
         }
 

@@ -1060,6 +1060,7 @@ public function setujuiPendaftaran($id_pendaftaran)
     $ujian = [];
     $semua_ujian_lulus = false;
     $ada_nilai_keluar = false;
+    $nilai_ujian = '-'; // Pastikan variabel selalu terdefinisi
 
     if ($kelas) {
         $ujian = $db->table('ujian')
@@ -1101,8 +1102,6 @@ public function setujuiPendaftaran($id_pendaftaran)
             unset($itemUjian);
 
             // Ambil nilai ujian terbaru untuk ditampilkan di kartu nilai
-$nilai_ujian = '-';
-
 foreach ($ujian as $itemUjian) {
     if (!empty($itemUjian['nilai_record'])) {
         $record = $itemUjian['nilai_record'];
@@ -1178,32 +1177,16 @@ if ($kelas) {
 
     $data['title'] = 'Detail Kelas: ' . $data['kelas']['nama_kelas'];
 
-    // ==========================================
-    // TAMBAHAN LOGIKA UNTUK UJI COBA TAB ANGKET
-    // ==========================================
-    $id_peserta = session()->get('id_user') ?? session()->get('id_peserta'); // Sesuaikan dengan session user Anda
-
-    $ujianModel  = new \App\Models\UjianModel(); // Sesuaikan nama model ujian Anda jika berbeda
-    $angketModel = new \App\Models\AngketModel(); // Sesuaikan nama model angket Anda jika berbeda
 
     // 1. Ambil nilai ujian peserta pada kelas ini
-    $dataUjian = $ujianModel->where(['id_peserta' => $id_peserta, 'id_kelas' => $id])->first();
-    $nilaiUjian = $dataUjian['nilai'] ?? 0;
-    $statusUjian = $dataUjian['status'] ?? 'Belum Ujian'; // Misal: 'Lulus' atau 'Belum'
 
     // 2. Cek apakah peserta sudah mengisi angket
-    $cekAngket = $angketModel->where(['id_peserta' => $id_peserta, 'id_kelas' => $id])->first();
-    $data['sudah_isi_angket'] = ($cekAngket) ? true : false;
 
     // 3. Tentukan apakah peserta bisa mengisi angket (Syarat: Lulus atau nilai >= 70)
     // UNTUK KEPERLUAN UJI COBA, Anda bisa ubah nilainya langsung ke true/false di bawah ini:
-    $data['bisa_isi_angket'] = true; // Ubah jadi false jika ingin menguji kondisi terkunci
     
     // Atau menggunakan logika database dinamis:
      // Ubah sementara jadi true untuk uji coba tampilan
-    $data['bisa_isi_angket'] = true;  
-    $data['sudah_isi_angket'] = false; 
-    $data['nilai_ujian'] = 95; // Dummy nilai
     // ==========================================
 
     return view('peserta/detail_kelas', $data);
@@ -1302,9 +1285,10 @@ if ($kelas) {
     // Cek apakah user sudah mengisi angket untuk kelas ini
     $sudahIsiAngket = false;
     if ($userId && $id_kelas) {
-        $cekAngket = $db->table('angket') // Sesuaikan nama tabel angket di database Anda jika berbeda
-            ->where('id_user', $userId)
-            ->where('id_kelas', $id_kelas)
+        $cekAngket = $db->table('jawaban_angket ja')
+            ->join('angket_pertanyaan ap', 'ap.id_angket_pertanyaan = ja.id_pertanyaan', 'inner')
+            ->where('ja.id_siswa', $userId)
+            ->where('(ap.id_kelas IS NULL OR ap.id_kelas = ' . $db->escape($id_kelas) . ')', null, false)
             ->get()
             ->getRowArray();
             
@@ -2535,7 +2519,46 @@ public function simpanJawabanUjian()
         return redirect()->to(base_url('pelatihan/kelas'))->with('error', 'Kelas tidak ditemukan.');
     }
 
-    return view('peserta/angket', ['pendaftaran' => $pendaftaran]);
+    $idPeserta = $this->userId();
+    $idKelas = $pendaftaran['id_kelas'];
+
+    // Ambil pertanyaan angket aktif untuk kelas peserta
+    // atau pertanyaan yang berlaku untuk semua kelas.
+    $pertanyaan = $this->db
+        ->table('angket_pertanyaan')
+        ->where('status', 'Aktif')
+        ->groupStart()
+            ->where('id_kelas', $idKelas)
+            ->orWhere('id_kelas IS NULL', null, false)
+        ->groupEnd()
+        ->orderBy('id_angket_pertanyaan', 'ASC')
+        ->get()
+        ->getResultArray();
+
+    // Ambil daftar kelas dari tabel kelas
+    $semuaKelas = $this->db
+        ->table('kelas')
+        ->where('status', 'aktif')
+        ->get()
+        ->getResultArray();
+
+    // Cek apakah sudah mengisi angket untuk kelas ini
+    $sudahIsiCheck = $this->db
+        ->table('jawaban_angket ja')
+        ->join('angket_pertanyaan ap', 'ap.id_angket_pertanyaan = ja.id_pertanyaan', 'inner')
+        ->where('ja.id_siswa', $idPeserta)
+        ->where('(ap.id_kelas IS NULL OR ap.id_kelas = ' . $this->db->escape($idKelas) . ')', null, false)
+        ->get()
+        ->getRowArray();
+
+    $sudahIsi = $sudahIsiCheck ? true : false;
+
+    return view('peserta/angket', [
+        'pendaftaran' => $pendaftaran,
+        'pertanyaan'  => $pertanyaan,
+        'semuaKelas'  => $semuaKelas,
+        'sudahIsi'    => $sudahIsi
+    ]);
 }
 
     public function simpanAngket()

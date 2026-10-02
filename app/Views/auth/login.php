@@ -60,34 +60,33 @@
             position: relative;
             z-index: 10;
             width: 100%;
-            max-width: 940px;
-            padding: 20px;
+            max-width: 840px;
+            padding: 16px;
         }
 
         .login-card {
             background: #ffffff;
-            border-radius: 28px;
+            border-radius: 24px;
             border: 1px solid rgba(255, 255, 255, 0.35);
-            box-shadow:
-                0 25px 60px rgba(55, 25, 90, 0.25),
-                0 8px 25px rgba(55, 25, 90, 0.15);
+            box-shadow: 0 20px 50px rgba(55, 25, 90, 0.22), 0 8px 20px rgba(55, 25, 90, 0.12);
             overflow: hidden;
             display: flex;
             flex-direction: row;
+            min-height: 440px;
         }
 
         /* Sisi Kiri: Banner Ungu */
         .login-banner {
-    flex: 1.1;
-    background: #8E5EC7;
-    padding: 45px;
-    color: #ffffff;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    position: relative;
-    overflow: hidden;
-}
+            flex: 1;
+            background: #8E5EC7;
+            padding: 36px 32px;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
 
         .login-banner::after {
             content: "";
@@ -105,15 +104,15 @@
 }
 
 .banner-logo {
-    width: 90px;
-    height: 58px;
-    border-radius: 12px;
-    object-fit: cover;
-    background: #ffffff;
-    padding: 0;
-    transform: scale(1.35);
-    flex-shrink: 0;
-}
+            width: 76px;
+            height: 52px;
+            border-radius: 10px;
+            object-fit: cover;
+            background: #ffffff;
+            padding: 0;
+            transform: scale(1.25);
+            flex-shrink: 0;
+        }
         .banner-title-sm {
             font-weight: 700;
             font-size: 1rem;
@@ -128,18 +127,18 @@
         }
 
         .banner-center-content h2 {
-    font-weight: 800;
-    font-size: 1.9rem;
-    line-height: 1.25;
-    margin-bottom: 14px;
-    letter-spacing: -0.5px;
-    margin-top: 8px;
-}
+            font-weight: 800;
+            font-size: 1.85rem; /* Approx 30px */
+            line-height: 1.25;
+            margin-bottom: 10px;
+            letter-spacing: -0.4px;
+            margin-top: 6px;
+        }
 
         .banner-center-content p {
-            font-size: 0.88rem;
+            font-size: 14px;
             opacity: 0.9;
-            line-height: 1.6;
+            line-height: 1.5;
             margin-bottom: 0;
         }
 
@@ -151,7 +150,7 @@
         /* Sisi Kanan: Form Login */
         .login-form-side {
             flex: 1;
-            padding: 45px;
+            padding: 36px 40px;
             background: #ffffff;
             display: flex;
             flex-direction: column;
@@ -160,16 +159,16 @@
 
         .form-heading {
             font-weight: 800;
-            font-size: 1.65rem;
+            font-size: 28px;
             color: var(--text-dark);
             letter-spacing: -0.3px;
             margin-bottom: 4px;
         }
 
         .form-subheading {
-            font-size: 0.82rem;
+            font-size: 13.5px;
             color: var(--text-muted);
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .form-label {
@@ -188,9 +187,10 @@
             background: #F4F1FB;
             border: 1px solid #E4DCF5;
             color: var(--text-dark);
-            padding: 11px 16px 11px 42px;
-            border-radius: 12px;
-            font-size: 0.88rem;
+            padding: 10px 16px 10px 38px;
+            min-height: 46px;
+            border-radius: 10px;
+            font-size: 14px;
             transition: all 0.2s ease;
         }
 
@@ -225,9 +225,10 @@
             border: none;
             color: #ffffff;
             font-weight: 700;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 0.9rem;
+            padding: 10px 16px;
+            min-height: 46px;
+            border-radius: 10px;
+            font-size: 15px;
             box-shadow: 0 6px 16px rgba(142, 94, 199, 0.3);
             transition: all 0.2s ease;
             margin-top: 8px;
@@ -258,12 +259,84 @@
         }
 
         /* Responsif Mobile */
-        @media (max-width: 768px) {
+        @media (max-width: 767.98px) {
+            .login-wrapper {
+                padding: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
             .login-card {
                 flex-direction: column;
+                width: 96%;
+                max-width: 420px;
+                border-radius: 18px;
+                min-height: auto;
             }
-            .login-banner, .login-form-side {
-                padding: 30px;
+            .login-banner {
+                padding: 20px 20px 16px 20px;
+                flex: none;
+                align-items: center;
+                text-align: center;
+            }
+            .banner-logo-box {
+                justify-content: center;
+            }
+            .banner-center-content {
+                display: block;
+                margin-top: 10px;
+            }
+            .banner-center-content h2 {
+                font-size: 19px;
+                line-height: 1.22;
+                margin-bottom: 6px;
+            }
+            .banner-center-content p {
+                font-size: 12px;
+                line-height: 1.38;
+                margin-bottom: 8px;
+            }
+            .banner-footer {
+                display: block;
+                text-align: center;
+                font-size: 10px;
+                margin-top: 6px;
+            }
+            .login-form-side {
+                padding: 20px 20px 24px 20px;
+            }
+            .form-heading {
+                font-size: 22px;
+                text-align: center;
+                margin-bottom: 4px;
+            }
+            .form-subheading {
+                font-size: 12.5px;
+                text-align: center;
+                margin-bottom: 16px;
+            }
+            .form-label {
+                font-size: 12.5px;
+                margin-bottom: 4px;
+            }
+            .input-group-custom {
+                margin-bottom: 10px;
+            }
+            .mb-4 {
+                margin-bottom: 0.8rem !important;
+            }
+            .input-group-custom .form-control {
+                min-height: 42px;
+                font-size: 13.5px;
+                padding-left: 36px;
+            }
+            .btn-custom-login {
+                min-height: 44px;
+                font-size: 14px;
+                margin-top: 2px;
+            }
+            .card-footer-text {
+                margin-top: 10px;
             }
             .bg-circle, .bg-capsule {
                 display: none;

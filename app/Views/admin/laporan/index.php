@@ -284,7 +284,7 @@
                     </div>
                 </div>
 
-                <!-- 2. SECTION LAPORAN MENTOR -->
+                <!-- 2. SECTION LAPORAN INSTRUKTUR -->
                 <div id="section-mentor" class="laporan-section">
                     <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
                         <div>

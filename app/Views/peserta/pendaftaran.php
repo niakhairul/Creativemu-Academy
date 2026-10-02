@@ -70,12 +70,12 @@
         .hero-banner {
             background: linear-gradient(135deg, #7a3ff2 0%, #6324d4 50%, #4a13a8 100%);
             color: #ffffff;
-            border-radius: var(--radius-xl);
+            border-radius: var(--radius-lg);
             position: relative;
             overflow: hidden;
             box-shadow: 0 16px 36px -8px rgba(109, 40, 217, 0.26);
-            padding: 38px 32px;
-            margin-bottom: 24px;
+            padding: 16px 20px;
+            margin-bottom: 14px;
         }
 
         .hero-banner::before {
@@ -105,11 +105,11 @@
         }
 
         .logo-wrap {
-            width: 74px;
-            height: 74px;
+            width: 60px;
+            height: 60px;
             padding: 4px;
             background: rgba(255, 255, 255, 0.96);
-            border-radius: 20px;
+            border-radius: 16px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
             display: inline-flex;
             align-items: center;
@@ -120,18 +120,18 @@
         .class-summary-card {
             background: var(--white);
             border: 1.5px solid var(--purple-border);
-            border-radius: var(--radius-lg);
-            padding: 22px 28px;
-            margin-bottom: 24px;
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            margin-bottom: 14px;
             box-shadow: 0 10px 28px rgba(109, 40, 217, 0.05);
             width: 100%;
             box-sizing: border-box;
         }
 
         .class-thumb-sm {
-            width: 110px;
-            height: 80px;
-            border-radius: 12px;
+            width: 90px;
+            height: 65px;
+            border-radius: 10px;
             object-fit: cover;
             flex-shrink: 0;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -142,8 +142,8 @@
             background: var(--white);
             border: 1.5px solid var(--purple-border);
             border-radius: var(--radius-lg);
-            padding: 32px 34px;
-            margin-bottom: 24px;
+            padding: 16px 18px;
+            margin-bottom: 14px;
             box-shadow: 0 8px 25px rgba(99, 42, 196, 0.04);
             transition: box-shadow 0.25s ease, border-color 0.25s ease;
             width: 100%;
@@ -187,40 +187,51 @@
         }
 
         .section-icon-badge {
-            width: 48px;
-            height: 48px;
-            border-radius: 14px;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
             background: linear-gradient(135deg, var(--purple-subtle) 0%, #e8dbff 100%);
             color: var(--purple-primary);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.28rem;
-            margin-right: 16px;
+            font-size: 1.1rem;
+            margin-right: 12px;
             flex-shrink: 0;
             box-shadow: 0 4px 12px rgba(122, 63, 242, 0.08);
         }
 
+        .hero-title {
+            font-size: clamp(1.5rem, 2.8vw, 1.95rem);
+            line-height: 1.25;
+        }
+        
+        .hero-desc {
+            max-width: 680px;
+            font-size: clamp(0.8rem, 1vw, 0.88rem);
+            line-height: 1.4;
+        }
+
         .section-title {
-            font-size: 1.25rem;
+            font-size: clamp(1.1rem, 1.5vw, 1.25rem);
             font-weight: 700;
             color: var(--purple-title);
             margin: 0;
-            line-height: 1.28;
+            line-height: 1.25;
         }
 
         .section-subtitle {
-            font-size: 0.86rem;
+            font-size: 0.8rem;
             color: var(--text-muted);
             margin: 3px 0 0 0;
         }
 
         /* Controls & Labels */
         .form-label-custom {
-            font-size: 0.94rem;
+            font-size: clamp(0.8rem, 1vw, 0.88rem);
             font-weight: 600;
             color: var(--purple-label);
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -233,13 +244,13 @@
         }
 
         .form-control, .form-select {
-            min-height: 50px;
+            min-height: 44px;
             border: 1.5px solid var(--purple-border);
             background-color: var(--purple-card-bg);
             color: var(--text-main);
-            border-radius: var(--radius-md);
-            padding: 0.72rem 1.1rem;
-            font-size: 0.98rem;
+            border-radius: var(--radius-sm);
+            padding: 8px 14px;
+            font-size: 14px;
             font-weight: 500;
             transition: all 0.2s ease-in-out;
             width: 100%;
@@ -248,7 +259,7 @@
 
         .form-control::placeholder {
             color: #9f94b8;
-            font-size: 0.92rem;
+            font-size: 0.82rem;
             font-weight: 400;
         }
 
@@ -262,7 +273,7 @@
 
         textarea.form-control {
             resize: vertical;
-            min-height: 105px;
+            min-height: 65px;
         }
 
         /* Radio Selection Cards (Jenis Kelas & Metode Pembayaran) */
@@ -270,7 +281,7 @@
             border: 2px solid var(--purple-border);
             background-color: var(--purple-card-bg);
             border-radius: var(--radius-md);
-            padding: 18px 20px;
+            padding: 12px 16px;
             cursor: pointer;
             transition: all 0.22s ease-in-out;
             display: flex;
@@ -296,13 +307,13 @@
         }
 
         .selection-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
+            font-size: 1rem;
             flex-shrink: 0;
             transition: transform 0.2s ease;
         }
@@ -316,7 +327,7 @@
             border: 2px dashed var(--purple-border);
             background-color: var(--purple-card-bg);
             border-radius: var(--radius-md);
-            padding: 24px 20px;
+            padding: 12px 14px;
             text-align: center;
             transition: all 0.22s ease-in-out;
             cursor: pointer;
@@ -339,21 +350,31 @@
         }
 
         .upload-icon-circle {
-            width: 52px;
-            height: 52px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
-            background: var(--purple-subtle);
+            background-color: #f0e6ff;
             color: var(--purple-primary);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.4rem;
-            margin-bottom: 12px;
-            transition: transform 0.2s ease;
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            transition: transform 0.25s var(--ease);
         }
 
         .upload-dropzone:hover .upload-icon-circle {
-            transform: translateY(-2px);
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: #f0e6ff;
+            color: var(--purple-primary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            transition: transform 0.25s var(--ease);
         }
 
         /* Info Boxes */
@@ -396,11 +417,11 @@
             background: linear-gradient(135deg, #7a3ff2 0%, #682bd8 100%);
             color: #ffffff;
             border: none;
-            padding: 1.15rem 2rem;
-            font-size: 1.12rem;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.95rem;
             font-weight: 700;
             border-radius: var(--radius-md);
-            box-shadow: 0 12px 28px -4px rgba(122, 63, 242, 0.4);
+            box-shadow: 0 8px 20px -4px rgba(122, 63, 242, 0.4);
             transition: all 0.22s ease-in-out;
             letter-spacing: 0.3px;
         }
@@ -448,10 +469,22 @@
         @media (max-width: 991.98px) {
             .page-wrapper {
                 width: 96%;
-                padding: 16px 0 40px 0;
+                padding: 16px 0 24px 0;
             }
             .form-section-card {
-                padding: 24px 20px;
+                padding: 16px 14px;
+                border-radius: 14px;
+            }
+            .hero-banner {
+                padding: 16px 14px;
+                border-radius: 14px;
+            }
+            .class-summary-card {
+                padding: 12px 14px;
+            }
+        }
+            .form-section-card {
+                padding: 18px 16px;
                 border-radius: 16px;
             }
             .hero-banner {
@@ -459,77 +492,211 @@
                 border-radius: 18px;
             }
             .class-summary-card {
-                padding: 18px 20px;
-            }
+            background: var(--white);
+            border: 1.5px solid var(--purple-border);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 10px 28px rgba(109, 40, 217, 0.05);
+            width: 100%;
+            box-sizing: border-box;
+        }
         }
 
-        @media (max-width: 767.98px) {
+                @media (max-width: 767.98px) {
             .page-wrapper {
                 width: 100%;
-                padding: 10px 12px 36px 12px;
-            }
-            .form-section-card {
-                padding: 20px 16px;
-                border-radius: 14px;
-                margin-bottom: 18px;
+                padding: 16px 12px;
             }
             .hero-banner {
-                padding: 24px 16px;
-                border-radius: 16px;
-                margin-bottom: 18px;
+                padding: 14px 12px;
+                border-radius: 12px;
+                margin-bottom: 10px;
+            }
+            .hero-title {
+                font-size: 24px !important;
+            }
+            .hero-desc {
+                font-size: 13px !important;
+                line-height: 1.4 !important;
+            }
+            .logo-wrap {
+                width: 46px;
+                height: 46px;
+                padding: 3px;
+                border-radius: 10px;
+            }
+            .logo-wrap img {
+                transform: scale(1.05) !important;
             }
             .class-summary-card {
-                padding: 16px 14px;
-                border-radius: 14px;
-                margin-bottom: 18px;
+                padding: 10px 12px;
+                border-radius: 12px;
+                margin-bottom: 12px;
             }
             .class-thumb-sm {
-                width: 100%;
-                height: 140px;
+                width: 70px;
+                height: 50px;
+                border-radius: 6px;
             }
-            .section-header {
-                margin-bottom: 18px;
-                padding-bottom: 12px;
+            #titleSummaryNamaKelas {
+                font-size: 16px !important;
+                margin-bottom: 2px !important;
             }
-            .section-icon-badge {
-                width: 40px;
-                height: 40px;
-                font-size: 1.15rem;
-                margin-right: 12px;
+            .class-summary-card .gap-3 {
+                gap: 6px !important;
+            }
+            .class-summary-card .small {
+                font-size: 12px !important;
+            }
+            #textSummaryHargaReguler, #textSummaryHargaPrivat {
+                padding: 3px 6px !important;
+                font-size: 11px !important;
+            }
+            .form-section-card {
+                padding: 14px 14px;
+                border-radius: 12px;
+                margin-bottom: 12px;
             }
             .section-title {
-                font-size: 1.12rem;
-            }
-            .section-subtitle {
-                font-size: 0.8rem;
-            }
-            .form-control, .form-select {
-                font-size: 16px; /* Cegah auto-zoom iOS Safari */
-                padding: 0.68rem 0.95rem;
-                min-height: 48px;
+                font-size: 18px !important;
             }
             .form-label-custom {
-                font-size: 0.9rem;
+                font-size: 13px !important;
             }
+            .form-control, .form-select {
+                min-height: 42px;
+                padding: 6px 10px;
+                font-size: 13.5px;
+            }
+            .row.g-4 {
+                --bs-gutter-y: 0.8rem;
+            }
+            .row.g-3 {
+                --bs-gutter-y: 0.7rem;
+            }
+            .mb-4 {
+                margin-bottom: 0.8rem !important;
+            }
+            .mb-3 {
+                margin-bottom: 0.6rem !important;
+            }
+            
             .btn-submit-main {
-                padding: 1rem 1.2rem;
-                font-size: 1.02rem;
+                padding: 12px;
+                font-size: 14.5px;
+                min-height: 44px;
             }
-            .persetujuan-badge-flag {
-                left: 16px;
-                font-size: 0.68rem;
-                padding: 3px 10px;
+            .upload-dropzone {
+                padding: 10px 8px;
+            }
+            .upload-icon-circle {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+                margin-bottom: 3px;
             }
         }
 
-        @media (max-width: 480px) {
+@media (max-width: 480px) {
             .page-wrapper {
-                padding: 8px 8px 30px 8px;
+                padding: 12px 10px 24px 10px;
             }
             .form-section-card {
-                padding: 18px 12px;
+                padding: 12px 10px;
             }
         }
+            .form-section-card { padding: 14px 12px; }
+        
+            /* Spesifik perbaikan Lokasi Offline Mobile */
+            #lokasiPelatihanContainer .p-3 {
+                padding: 10px 12px !important;
+                border-width: 1px !important;
+            }
+            #lokasiPelatihanContainer .form-label-custom {
+                flex-wrap: wrap !important;
+                gap: 6px !important;
+                margin-bottom: 6px !important;
+                font-size: 13.5px !important;
+            }
+            #lokasiPelatihanContainer .badge {
+                font-size: 11px !important;
+                white-space: nowrap !important;
+                padding: 3px 6px !important;
+            }
+            #pilihan_lokasi {
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+                height: 42px !important;
+                min-height: 42px !important;
+                font-size: 13.5px !important;
+                padding: 4px 32px 4px 10px !important; 
+                text-overflow: ellipsis !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+            }
+}
+    
+        @media (min-width: 992px) {
+            .hero-title {
+                font-size: 32px !important;
+            }
+            .hero-desc {
+                font-size: 14px !important;
+            }
+            .logo-wrap {
+                width: 60px !important;
+                height: 60px !important;
+                border-radius: 14px !important;
+            }
+            .section-title {
+                font-size: 20px !important;
+            }
+            .section-subtitle {
+                font-size: 14px !important;
+            }
+            .form-label-custom {
+                font-size: 14px !important;
+            }
+            .hero-banner {
+                padding: 16px 24px;
+                margin-bottom: 14px;
+            }
+            .form-section-card {
+                padding: 16px 24px;
+                margin-bottom: 16px;
+            }
+            .class-summary-card {
+                padding: 12px 20px;
+                margin-bottom: 16px;
+            }
+            .class-thumb-sm {
+                width: 82px !important;
+                height: 62px !important;
+            }
+            #titleSummaryNamaKelas {
+                font-size: 20px !important;
+            }
+            .class-summary-card .small {
+                font-size: 13.5px !important;
+            }
+            #textSummaryHargaReguler, #textSummaryHargaPrivat {
+                font-size: 12px !important;
+                padding: 5px 10px !important;
+            }
+            .btn-submit-main {
+                padding: 12px 20px;
+                font-size: 15px;
+            }
+            .ketentuan-card img {
+                max-height: 200px;
+                width: 100%;
+                object-fit: cover;
+                object-position: top;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -567,8 +734,8 @@
          alt="Creativemu Academy Logo"
          style="width: 100%; height: 100%; object-fit: contain; border-radius: 14px; padding: 0; transform: scale(1.35);">
 </div>
-            <h1 class="fw-bold mb-2 fs-2">Formulir Pendaftaran Pelatihan</h1>
-            <p class="text-white-50 mb-0 mx-auto" style="max-width: 680px; font-size: 0.95rem; line-height: 1.6;">
+            <h1 class="fw-bold mb-2 hero-title">Formulir Pendaftaran Pelatihan</h1>
+            <p class="text-white-50 mb-0 mx-auto hero-desc">
                 Tingkatkan kompetensi profesional Anda bersama instruktur ahli Creativemu Academy. Lengkapi data di bawah ini untuk mengamankan slot pelatihan eksklusif Anda.
             </p>
         </div>
@@ -599,12 +766,12 @@
                 </div>
             </div>
             <div class="col-md-auto border-start-md ps-md-4 text-center text-md-end">
-                <div class="small text-muted mb-1" style="font-size: 0.76rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Biaya Investasi</div>
+                <div class="small text-muted mb-1" style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Biaya Investasi</div>
                 <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-md-end">
-                    <span class="badge px-3 py-2 bg-success bg-opacity-10 text-success fw-bold" id="textSummaryHargaReguler" style="font-size: 0.85rem;">
+                    <span class="badge px-3 py-2 bg-success bg-opacity-10 text-success fw-bold" id="textSummaryHargaReguler" style="font-size: 0.8rem;">
                         Reguler: Rp <?= number_format($kelas['harga_reguler'] ?? 0, 0, ',', '.') ?>
                     </span>
-                    <span class="badge px-3 py-2" id="textSummaryHargaPrivat" style="background: var(--purple-subtle); color: var(--purple-primary); font-weight: 700; font-size: 0.85rem;">
+                    <span class="badge px-3 py-2" id="textSummaryHargaPrivat" style="background: var(--purple-subtle); color: var(--purple-primary); font-weight: 700; font-size: 0.8rem;">
                         Privat: Rp <?= number_format($kelas['harga_privat'] ?? 0, 0, ',', '.') ?>
                     </span>
                 </div>
@@ -924,27 +1091,27 @@
                                 <span>Pilih Kategori Kelas (Paket) <span class="required-star">*</span></span>
                             </label>
                             <div class="row g-3">
-                                <div class="col-sm-6">
+                                <div class="col-6 col-sm-6">
                                     <input type="radio" class="btn-check" name="jenis_kelas" id="kelas_reguler" value="Reguler" checked required onchange="updateBiayaTampil()">
                                     <label class="selection-card" for="kelas_reguler">
                                         <div class="selection-icon bg-success bg-opacity-10 text-success">
                                             <i class="bi bi-people-fill"></i>
                                         </div>
                                         <div>
-                                            <span class="d-block fw-bold" style="color: var(--text-main); font-size: 0.95rem;">Kelas Reguler</span>
+                                            <span class="d-block fw-bold" style="color: var(--text-main); font-size: 0.85rem;">Kelas Reguler</span>
                                             <small class="text-success fw-bold" id="labelHargaReguler">Rp <?= number_format($kelas['harga_reguler'] ?? 0, 0, ',', '.') ?></small>
                                             <span class="d-block text-muted" style="font-size: 0.72rem;">Belajar kelompok interaktif</span>
                                         </div>
                                     </label>
                                 </div>
-                                <div class="col-sm-6">
+                                <div class="col-6 col-sm-6">
                                     <input type="radio" class="btn-check" name="jenis_kelas" id="kelas_privat" value="Privat" onchange="updateBiayaTampil()">
                                     <label class="selection-card" for="kelas_privat">
                                         <div class="selection-icon" style="background: var(--purple-subtle); color: var(--purple-primary);">
                                             <i class="bi bi-person-fill-lock"></i>
                                         </div>
                                         <div>
-                                            <span class="d-block fw-bold" style="color: var(--text-main); font-size: 0.95rem;">Kelas Privat</span>
+                                            <span class="d-block fw-bold" style="color: var(--text-main); font-size: 0.85rem;">Kelas Privat</span>
                                             <small class="fw-bold" style="color: var(--purple-primary);" id="labelHargaPrivat">Rp <?= number_format($kelas['harga_privat'] ?? 0, 0, ',', '.') ?></small>
                                             <span class="d-block text-muted" style="font-size: 0.72rem;">1-on-1 Intensif</span>
                                         </div>
@@ -1052,7 +1219,7 @@
                                 <div class="upload-icon-circle">
                                     <i class="bi bi-camera-fill"></i>
                                 </div>
-                                <h6 class="fw-bold mb-1" style="color: var(--purple-title); font-size: 0.96rem;">
+                                <h6 class="fw-bold mb-1" style="color: var(--purple-title); font-size: 0.85rem;">
                                     Pilih Berkas Pas Foto
                                 </h6>
                                 <p class="text-muted small mb-2" style="font-size: 0.8rem;">
@@ -1170,7 +1337,7 @@
                     <div class="upload-icon-circle" id="iconWrapBukti">
                         <i class="bi bi-cloud-arrow-up-fill" id="iconFileBukti"></i>
                     </div>
-                    <h6 class="fw-bold mb-1" id="textTitleBukti" style="color: var(--purple-title); font-size: 1rem;">
+                    <h6 class="fw-bold mb-1" id="textTitleBukti" style="color: var(--purple-title); font-size: 0.85rem;">
                         Pilih Berkas Bukti Pembayaran
                     </h6>
                     <p class="text-muted small mb-2" id="textDescBukti" style="font-size: 0.82rem;">

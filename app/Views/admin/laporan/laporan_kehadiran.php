@@ -239,11 +239,11 @@
         }
 
         /* RESPONSIVE */
+        /* MATIKAN MEDIA QUERY MOBILE AGAR TAMPILAN DESKTOP KONSISTEN SAAT ZOOM */
         @media (max-width: 991px) {
             
             
-            
-            .mobile-toggle-btn { display: inline-block !important; }
+            .mobile-toggle-btn { display: none !important; }
         }
         .mobile-toggle-btn {
             display: none;
@@ -286,6 +286,8 @@
         .table tbody td { font-size: 0.8rem !important; padding: 10px 12px !important; }
         .badge { font-size: 0.75rem !important; font-weight: 600 !important; }
     </style>
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
+    <script defer src="<?= base_url('assets/js/admin-responsive.js'); ?>"></script>
 </head>
 <body>
 

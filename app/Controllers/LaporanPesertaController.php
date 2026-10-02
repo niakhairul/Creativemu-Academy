@@ -61,8 +61,18 @@ class LaporanPesertaController extends BaseController
      */
     private function parseFilters(): array
     {
-        $bulan = $this->request->getGet('bulan');
-        $bulan = (!empty($bulan) && is_numeric($bulan)) ? (int) $bulan : (int) date('n');
+        $reqBulan = $this->request->getGet('bulan');
+        $bulan = ($reqBulan === 'all' || empty($reqBulan)) ? 'all' : (int) $reqBulan;
+        
+        $reqTahun = $this->request->getGet('tahun');
+        $tahun = ($reqTahun === 'all' || empty($reqTahun)) ? 'all' : (int) $reqTahun;
+
+        $periode = 'bulanan';
+        if ($bulan === 'all' && $tahun !== 'all') {
+            $periode = 'tahunan';
+        } elseif ($bulan === 'all' && $tahun === 'all') {
+            $periode = 'semua';
+        }
 
         $idKelas = $this->request->getGet('id_kelas') ?: 'all';
         $kategori = $this->request->getGet('kategori') ?: 'all';
@@ -74,8 +84,8 @@ class LaporanPesertaController extends BaseController
         $idMentor = $mentor ? (int) $mentor['id_mentor'] : null;
 
         return [
-            'periode'          => 'bulanan',
-            'tahun'            => (int) date('Y'),
+            'periode'          => $periode,
+            'tahun'            => $tahun,
             'bulan'            => $bulan,
             'id_kelas'         => $idKelas,
             'kategori'         => $kategori,
@@ -155,7 +165,9 @@ class LaporanPesertaController extends BaseController
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
 
-        $periodeText = ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun'];
+        $teksBulan = ($filters['bulan'] === 'all') ? 'Semua Bulan' : ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']);
+        $teksTahun = ($filters['tahun'] === 'all') ? 'Semua Tahun' : $filters['tahun'];
+        $periodeText = $teksBulan . ' ' . $teksTahun;
 
         $filename = 'Laporan_Peserta_CreativeMU_' . str_replace(' ', '_', $periodeText) . '_' . date('Ymd_His') . '.csv';
 
@@ -249,7 +261,9 @@ class LaporanPesertaController extends BaseController
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
 
-        $periodeText = ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']) . ' ' . $filters['tahun'];
+        $teksBulan = ($filters['bulan'] === 'all') ? 'Semua Bulan' : ($bulanNames[$filters['bulan']] ?? 'Bulan ' . $filters['bulan']);
+        $teksTahun = ($filters['tahun'] === 'all') ? 'Semua Tahun' : $filters['tahun'];
+        $periodeText = $teksBulan . ' ' . $teksTahun;
 
         $data = [
             'title'        => 'Cetak Laporan Peserta - CreativeMU Academy',

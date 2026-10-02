@@ -372,7 +372,7 @@
 <!-- BACKDROP UNTUK MENUTUP SIDEBAR DI MOBILE -->
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-<nav class="sidebar">
+<nav class="sidebar" id="sidebarMenu">
         <a href="#" class="sidebar-brand d-flex align-items-center">
             <!-- Menggunakan file gambar logo dari folder assets -->
             <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Logo Creativemu" class="rounded-3 me-2 shadow-sm object-fit-cover" style="width: 38px; height: 38px;">

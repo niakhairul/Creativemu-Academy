@@ -112,6 +112,67 @@
 
         .card-footer-text { text-align: center; margin-top: 20px; font-size: 0.85rem; color: var(--text-muted); }
         .card-footer-text a { color: var(--accent-purple); font-weight: 700; text-decoration: none; }
+
+        @media (max-width: 767.98px) {
+            .container {
+                padding: 16px !important;
+            }
+            .register-card {
+                padding: 28px 20px !important;
+                border-radius: 20px;
+                width: 100%;
+                max-width: 440px;
+                margin: 0 auto;
+            }
+            .brand-logo-container {
+                width: 100px;
+                height: 60px;
+                margin-bottom: 12px;
+                border-radius: 12px;
+            }
+            .brand-logo {
+                width: 82px;
+            }
+            .main-heading {
+                font-size: 24px;
+                margin-bottom: 4px;
+            }
+            .sub-heading {
+                font-size: 13px;
+                margin-bottom: 24px;
+            }
+            .form-label {
+                font-size: 13px;
+                margin-bottom: 4px;
+            }
+            .form-control, .form-select {
+                padding: 10px 14px;
+                font-size: 14px;
+                min-height: 44px;
+            }
+            .btn-custom-register {
+                padding: 10px;
+                min-height: 46px;
+                font-size: 14.5px;
+                margin-top: 4px;
+            }
+            .card-footer-text {
+                margin-top: 20px;
+                font-size: 13px;
+            }
+            .mb-3 {
+                margin-bottom: 12px !important;
+            }
+            .mb-4 {
+                margin-bottom: 16px !important;
+            }
+            .row {
+                --bs-gutter-x: 12px;
+            }
+            .bg-circle {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
