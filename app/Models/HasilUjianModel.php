@@ -21,6 +21,7 @@ class HasilUjianModel extends Model
         'status_kelulusan',
         'status_remidi',
         'is_remidi',
+        'status_angket',
         'catatan',
         'created_at',
         'updated_at',

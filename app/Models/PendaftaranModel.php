@@ -39,7 +39,7 @@ class PendaftaranModel extends Model
         'bukti_pembayaran',
         'status_pembayaran',
         'alasan_penolakan',
-        'persetujuan_syarat'
+        'persetujuan_syarat',
     ];
 
     // Dates

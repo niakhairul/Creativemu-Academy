@@ -116,7 +116,8 @@
     }
     #sidebar .nav-link i {
         margin-right: 0;
-    }}
+    }
+}
 </style>
 
 <nav id="sidebar">
@@ -124,7 +125,7 @@
         <div class="logo-card">
             <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy">
         </div>
-        <div class="panel-title"><?= $isMentor ? 'PANEL MENTOR' : 'PANEL ADMIN' ?></div>
+        <div class="panel-title"><?= $isMentor ? 'PANEL MENTOR' : 'PANEL ADMIN' ?></div>[cite: 7]
     </div>
     
     <ul class="nav flex-column">
@@ -198,6 +199,12 @@
                     <i class="fas fa-clipboard-check"></i> <span>Validasi Pendaftaran</span>
                 </a>
             </li>
+            <!-- Menu Baru: Manajemen KBM -->
+            <li class="nav-item">
+                <a href="<?= base_url('admin/manajemen-kbm'); ?>" class="nav-link <?= url_is('admin/manajemen-kbm*') ? 'active' : '' ?>">
+                    <i class="fas fa-graduation-cap"></i> <span>Manajemen KBM</span>
+                </a>
+            </li>
             <li class="nav-item">
                 <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link <?= url_is('admin/buku-induk*') ? 'active' : '' ?>">
                     <i class="fas fa-book-open"></i> <span>Buku Induk</span>
@@ -268,6 +275,3 @@
         </li>
     </ul>
 </nav>
-
-
-

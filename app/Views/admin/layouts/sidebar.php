@@ -222,6 +222,12 @@
                 <a href="<?= base_url('admin/buku-induk'); ?>" class="nav-link-custom <?= (url_is('admin/buku-induk*')) ? 'active' : ''; ?>">
                     <i class="fa-solid fa-book-open"></i> Buku Induk
                 </a>
+                <li class="nav-item">
+                <a href="<?= base_url('admin/kbm') ?>" class="nav-link <?= service('uri')->getSegment(2) == 'kbm' ? 'active' : '' ?>">
+        <i class="nav-icon fas fa-chalkboard-teacher"></i>
+        <p>KBM</p>
+    </a>
+</li>
                 <a href="<?= base_url('admin/angket'); ?>" class="nav-link-custom <?= (url_is('admin/angket*')) ? 'active' : ''; ?>">
                     <i class="fa-solid fa-poll"></i> Angket
                 </a>

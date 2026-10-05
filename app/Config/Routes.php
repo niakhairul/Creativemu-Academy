@@ -82,6 +82,7 @@ $routes->post('pelatihan/ujian/simpan-jawaban', 'Pelatihan::simpanJawabanUjian')
 $routes->get('pelatihan/ujian/mulai', 'Pelatihan::kerjakanUjian');
 $routes->post('pelatihan/ujian/kumpulkan', 'Pelatihan::submitUjian');
 $routes->get('pelatihan/ujian/hasil', 'Pelatihan::hasilUjian');
+$routes->get('pelatihan/ikut-remidi', 'Pelatihan::ikutRemidi');
 
 // ===== MENU ANGKET & SERTIFIKAT PESERTA =====
 $routes->get('pelatihan/angket', 'Pelatihan::angket');
@@ -96,12 +97,6 @@ $routes->get(
 
 $routes->get('admin/sertifikat/download-file/(:num)', 'Admin::downloadFileSertifikat/$1');
 
-// ===== MENU ANGKET & SERTIFIKAT PESERTA =====
-$routes->get('pelatihan/angket', 'Pelatihan::angket');
-$routes->post('pelatihan/angket/simpan', 'Pelatihan::simpanAngket');
-$routes->get('pelatihan/sertifikat', 'Pelatihan::sertifikat');
-$routes->get('admin/sertifikat/download-file/(:num)', 'Admin::downloadFileSertifikat/$1');
-
 // ===== SERTIFIKAT ADMIN =====
 $routes->get('admin/sertifikat', 'Admin::sertifikat');
 $routes->get('admin/sertifikat/upload', 'Admin::uploadSertifikat');
@@ -112,6 +107,7 @@ $routes->post('admin/sertifikat/update/(:num)', 'Admin::updateSertifikat/$1');
 
 $routes->get('admin/sertifikat/download/(:num)', 'Admin::downloadSertifikat/$1');
 $routes->get('admin/sertifikat/download-file/(:num)', 'Admin::downloadFileSertifikat/$1');
+
 // ===== MENU PENGATURAN AKUN PESERTA =====
 $routes->get('pelatihan/pengaturan', 'Pelatihan::pengaturan');
 $routes->get('pelatihan/ubah-password', 'Pelatihan::ubahPassword');
@@ -126,12 +122,17 @@ $routes->get('mentor/kelas/(:num)/buka-absen/(:num)', 'Mentor::bukaAbsen/$1/$2')
 $routes->get('mentor/kelas/(:num)/tutup-absen/(:num)', 'Mentor::tutupAbsen/$1/$2');
 
 // ===== MENU ADMIN =====
-$routes->group('admin', function($routes) {
+$routes->group('admin', ['filter' => 'auth'], function($routes) {
     $routes->get('dashboard', 'Admin::dashboard');
     $routes->get('pendaftaran', 'Admin::pendaftaran');
     $routes->match(['get', 'post'], 'pendaftaran/proses_validasi/(:num)', 'Admin::proses_validasi/$1');
     
-   // Master Kelas
+    // Perbaikan Rute Manajemen KBM
+    $routes->get('manajemen-kbm', 'Admin::manajemenKbm');
+    $routes->match(['get', 'post'], 'manajemen-kbm/update-status/(:num)', 'Admin::updateStatusKelulusanPeserta/$1');
+    $routes->post('manajemen-kbm/update-status/(:num)', 'Admin::updateStatusKelulusanPeserta/$1');
+    
+    // Master Kelas
     $routes->get('master-kelas', 'Admin::masterKelas');
     $routes->get('master-kelas/edit/(:num)', 'Admin::editKelas/$1');
     $routes->get('master-kelas/jadwal/(:num)', 'Admin::jadwalKelas/$1');
@@ -283,4 +284,3 @@ $routes->cli('dump', function() {
     file_put_contents('scratch/dump.json', json_encode($m->getChartData([]), JSON_PRETTY_PRINT));
     echo "Dumped\n";
 });
-

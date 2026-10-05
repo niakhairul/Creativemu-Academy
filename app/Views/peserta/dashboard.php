@@ -15,29 +15,35 @@
     
     <style>
         :root {
+            /* 4 Warna Sesuai Pilihan Anda */
+            --color-purple: #7b5af6;
+            --color-pink: #df6be0;
+            --color-orange: #e2a048;
+            --color-cyan: #5ac5e8;
+            
             --purple-deep: #5b3fd6;
-            --purple-mid: #7c5cfa;
-            --purple-light: #8b6cf0;
-            --purple-soft: #efeaff;
-            --purple-soft2: #dcd0ff;
-            --purple-glow: rgba(124, 92, 250, 0.35);
+            --purple-mid: #7b5af6;
+            --purple-light: #9a7fff;
+            --purple-soft: #f3f0ff;
+            --purple-soft2: #e4deff;
         }
 
         * {
             scrollbar-width: thin;
-            scrollbar-color: rgba(124, 92, 250, 0.4) transparent;
+            scrollbar-color: rgba(123, 90, 246, 0.4) transparent;
         }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: linear-gradient(120deg, #f8f6ff, #f1ecff, #faf5ff, #eee8ff);
+            background: linear-gradient(120deg, #f7f5ff, #f2efff, #faf8ff, #f0ebff);
             background-size: 300% 300%;
             animation: bgFlow 22s ease infinite;
             background-attachment: fixed;
             margin: 0;
             padding: 0;
             color: #1e293b;
-            font-size: 0.9rem;
+            font-size: 14px;
+            zoom: 1;
         }
 
         @keyframes bgFlow {
@@ -52,11 +58,12 @@
             position: relative;
         }
 
+        /* Sidebar diperkecil ukurannya menjadi 220px */
         .sidebar {
-            width: 260px;
+            width: 220px;
             background:
-                radial-gradient(circle at 15% 12%, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 45%),
-                linear-gradient(165deg, #4a2fc9 0%, #7440e6 32%, #9257f2 60%, #b678f5 100%);
+                radial-gradient(circle at 15% 12%, rgba(90, 197, 232, 0.2) 0%, rgba(255, 255, 255, 0) 45%),
+                linear-gradient(165deg, #5b3fd6 0%, #7b5af6 35%, #df6be0 75%, #5ac5e8 100%);
             background-size: 200% 200%, 220% 220%;
             animation: sidebarGlow 14s ease infinite;
             color: white;
@@ -65,8 +72,8 @@
             bottom: 0;
             left: 0;
             z-index: 100;
-            padding: 24px 20px;
-            box-shadow: 6px 0 34px rgba(116, 64, 230, 0.35);
+            padding: 20px 14px;
+            box-shadow: 6px 0 34px rgba(123, 90, 246, 0.25);
             overflow-y: auto;
             overflow-x: hidden;
         }
@@ -92,15 +99,15 @@
         }
 
         .sidebar-brand {
-            font-size: 1.2rem;
+            font-size: 16px;
             font-weight: 700;
             color: white;
             text-decoration: none;
             display: flex;
             align-items: center;
-            padding-bottom: 20px;
+            padding-bottom: 16px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             position: relative;
             z-index: 1;
         }
@@ -120,51 +127,52 @@
         .sidebar-menu a {
             display: flex;
             align-items: center;
-            color: rgba(255, 255, 255, 0.75);
+            color: rgba(255, 255, 255, 0.85);
             text-decoration: none;
-            padding: 10px 14px;
-            border-radius: 10px;
+            padding: 9px 12px;
+            border-radius: 9px;
             font-weight: 500;
-            font-size: 0.88rem;
+            font-size: 13.5px;
             transition: all 0.3s ease;
         }
 
         .sidebar-menu a:hover, .sidebar-menu a.active {
-            background: rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.2);
             color: white;
             transform: translateX(4px);
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
         }
 
         .sidebar-menu a.active {
-            background: linear-gradient(90deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.12));
-            box-shadow: 0 6px 18px rgba(20, 5, 60, 0.28), inset 3px 0 0 #ffd166;
+            background: linear-gradient(90deg, rgba(226, 160, 72, 0.4), rgba(90, 197, 232, 0.3));
+            box-shadow: 0 6px 18px rgba(20, 5, 60, 0.2), inset 3px 0 0 var(--color-orange);
         }
 
         .sidebar-menu a i {
-            font-size: 1.1rem;
-            margin-right: 10px;
+            font-size: 15px;
+            margin-right: 9px;
         }
 
+        /* Menyesuaikan margin konten utama dengan lebar sidebar baru (220px) */
         .main-content {
             flex: 1;
-            margin-left: 260px;
+            margin-left: 220px;
             padding: 24px 28px;
-            width: calc(100% - 260px);
+            width: calc(100% - 220px);
         }
 
         .card {
             border: none;
             border-radius: 16px;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(10px);
-            box-shadow: 0 8px 24px rgba(124, 92, 250, 0.06);
+            box-shadow: 0 8px 24px rgba(123, 90, 246, 0.05);
             transition: all 0.3s ease;
         }
 
         .hover-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 12px 28px rgba(124, 92, 250, 0.12) !important;
+            box-shadow: 0 12px 28px rgba(123, 90, 246, 0.12) !important;
         }
 
         .stat-icon {
@@ -174,7 +182,7 @@
             align-items: center;
             justify-content: center;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(124, 92, 250, 0.12);
+            box-shadow: 0 4px 12px rgba(123, 90, 246, 0.1);
         }
 
         .bg-purple-soft {
@@ -182,7 +190,7 @@
         }
         
         .text-purple-custom {
-            color: var(--purple-mid);
+            color: var(--color-purple);
         }
 
         .mobile-topbar {
@@ -208,13 +216,13 @@
             background: rgba(255, 255, 255, 0.15);
             border: none;
             color: white;
-            width: 32px;
-            height: 32px;
+            width: 30px;
+            height: 30px;
             border-radius: 8px;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 15px;
         }
 
         .status-registration-list {
@@ -224,7 +232,7 @@
         }
 
         .registration-item {
-            border: 1px solid rgba(124, 92, 250, 0.15);
+            border: 1px solid rgba(123, 90, 246, 0.15);
             border-radius: 12px;
             background: #fff;
             padding: 12px 14px;
@@ -233,8 +241,8 @@
 
         .registration-item:hover {
             transform: translateY(-2px);
-            border-color: rgba(124, 92, 250, 0.35);
-            box-shadow: 0 6px 16px rgba(124, 92, 250, 0.08);
+            border-color: rgba(123, 90, 246, 0.35);
+            box-shadow: 0 6px 16px rgba(123, 90, 246, 0.08);
         }
 
         .registration-icon {
@@ -242,16 +250,16 @@
             height: 40px;
             min-width: 40px;
             border-radius: 10px;
-            background: linear-gradient(135deg, #efeaff, #ddd2ff);
-            color: #6847df;
+            background: linear-gradient(135deg, #f3f0ff, #e4deff);
+            color: var(--color-purple);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
+            font-size: 16px;
         }
 
         .registration-status {
-            font-size: 0.7rem;
+            font-size: 11px;
             font-weight: 700;
             padding: 4px 10px;
             border-radius: 999px;
@@ -259,7 +267,7 @@
         }
 
         .status-approved { color: #138a62; background: #e1f7ed; }
-        .status-pending { color: #d88a00; background: #fff1d5; }
+        .status-pending { color: #b87700; background: #fff8e6; }
         .status-rejected { color: #d94b4b; background: #ffe2e2; }
 
         @media (max-width: 991.98px) {
@@ -267,13 +275,13 @@
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                background: linear-gradient(135deg, #4a2fc9 0%, #7440e6 100%);
+                background: linear-gradient(135deg, #5b3fd6 0%, #7b5af6 100%);
                 color: white;
                 padding: 12px 16px;
                 position: sticky;
                 top: 0;
                 z-index: 990;
-                box-shadow: 0 4px 18px rgba(116, 64, 230, 0.25);
+                box-shadow: 0 4px 18px rgba(123, 90, 246, 0.25);
             }
 
             .app-wrapper {
@@ -281,7 +289,7 @@
             }
 
             .sidebar {
-                width: 280px;
+                width: 260px;
                 max-width: 82vw;
                 transform: translateX(-100%);
                 transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -313,10 +321,10 @@
             <i class="bi bi-list"></i>
         </button>
         <span class="fw-bold fs-6">
-            <i class="bi bi-mortarboard-fill text-warning me-1"></i> Creativemu
+            <i class="bi bi-mortarboard-fill me-1" style="color: var(--color-orange);"></i> Creativemu
         </span>
     </div>
-    <a href="<?= base_url('pelatihan/pengaturan') ?>" class="text-white text-decoration-none small d-flex align-items-center gap-1 bg-white bg-opacity-20 px-2.5 py-1 rounded-pill">
+    <a href="<?= base_url('pelatihan/pengaturan') ?>" class="text-white text-decoration-none small d-flex align-items-center gap-1 bg-white bg-opacity-20 px-2.5 py-1 rounded-pill" style="font-size: 13px;">
         <i class="bi bi-person-circle"></i> <?= esc($user['nama'] ?? 'Peserta') ?>
     </a>
 </div>
@@ -326,12 +334,12 @@
 
 <!-- SIDEBAR -->
 <nav class="sidebar" id="sidebarMenu">
-    <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom border-white border-opacity-10">
+    <div class="d-flex align-items-center justify-content-between pb-2.5 mb-2.5 border-bottom border-white border-opacity-10">
         <a href="#" class="sidebar-brand text-decoration-none d-flex align-items-center mb-0 pb-0 border-0">
-            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Logo" class="rounded-3 me-2 shadow-sm object-fit-cover" style="width: 32px; height: 32px;">
+            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Logo" class="rounded-3 me-2 shadow-sm object-fit-cover" style="width: 28px; height: 28px;">
             <div>
-                <span class="fs-6 fw-bold d-block text-white lh-1">Creativemu</span>
-                <span class="text-white-50" style="font-size: 0.6rem; letter-spacing: 0.5px;">ACADEMY</span>
+                <span class="fs-6 fw-bold d-block text-white lh-1" style="font-size: 14.5px !important;">Creativemu</span>
+                <span style="font-size: 9.5px; letter-spacing: 0.5px; color: var(--color-cyan);">ACADEMY</span>
             </div>
         </a>
         <button type="button" class="sidebar-close-btn" id="sidebarClose" aria-label="Tutup Menu">
@@ -340,16 +348,16 @@
     </div>
     <ul class="sidebar-menu">
         <li>
-            <a href="<?= base_url('peserta/dashboard') ?>" class="active"><i class="bi bi-grid-fill"></i> Dashboard</a>
+            <a href="<?= base_url('peserta/dashboard') ?>" class="active"><i class="bi bi-grid-fill" style="color: var(--color-cyan);"></i> Dashboard</a>
         </li>
         <li>
-            <a href="<?= base_url('pelatihan/daftar-kelas-peserta') ?>"><i class="bi bi-journals"></i> Daftar Kelas Saya</a>
+            <a href="<?= base_url('pelatihan/daftar-kelas-peserta') ?>"><i class="bi bi-journals" style="color: var(--color-pink);"></i> Daftar Kelas Saya</a>
         </li>
         <li>
-            <a href="<?= base_url('pelatihan/kelas') ?>"><i class="bi bi-mortarboard-fill"></i> KBM</a>
+            <a href="<?= base_url('pelatihan/kelas') ?>"><i class="bi bi-mortarboard-fill" style="color: var(--color-orange);"></i> KBM</a>
         </li>
         <li>
-            <a href="<?= base_url('pelatihan/pengaturan') ?>"><i class="bi bi-gear-fill"></i> Pengaturan</a>
+            <a href="<?= base_url('pelatihan/pengaturan') ?>"><i class="bi bi-gear-fill" style="color: var(--color-cyan);"></i> Pengaturan</a>
         </li>
         <li class="mt-3">
             <a href="<?= base_url('auth/logout') ?>" class="text-danger bg-danger bg-opacity-10"><i class="bi bi-box-arrow-left"></i> Keluar</a>
@@ -364,10 +372,10 @@
             <!-- HEADER SAMBUTAN & DROPDOWN PILIHAN KELAS AKTIF -->
             <div class="row mb-3 align-items-center">
                 <div class="col-lg-7 mb-2 mb-lg-0">
-                    <h4 class="fw-bold mb-1" style="color: #5b3fd6; font-size: 1.35rem;">
+                    <h4 class="fw-bold mb-1" style="color: var(--color-purple); font-size: 20px;">
                         Halo, <?= esc($user['nama'] ?? 'Peserta') ?> 👋
                     </h4>
-                    <p class="text-muted mb-0" style="font-size: 0.85rem;">
+                    <p class="text-muted mb-0" style="font-size: 13px;">
                         Selamat datang kembali di dashboard peserta pelatihan.
                     </p>
                 </div>
@@ -377,19 +385,19 @@
                     <?php if (!empty($semua_kelas_peserta) && count($semua_kelas_peserta) > 0): ?>
                         <div class="dropdown d-inline-block w-100" style="max-width: 280px;">
                             <button class="btn bg-white border border-purple border-opacity-25 rounded-pill dropdown-toggle w-100 text-start px-3 py-1.5 shadow-sm d-flex align-items-center justify-content-between" type="button" id="dropdownKelasAktif" data-bs-toggle="dropdown" aria-expanded="false">
-                                <span class="text-truncate d-flex align-items-center" style="font-size: 0.82rem;">
-                                    <i class="bi bi-mortarboard-fill text-purple-custom me-2"></i> 
+                                <span class="text-truncate d-flex align-items-center" style="font-size: 13px;">
+                                    <i class="bi bi-mortarboard-fill text-purple-custom me-2" style="color: var(--color-pink);"></i> 
                                     <span class="text-muted me-1">Kelas:</span>
                                     <strong class="text-dark"><?= esc($pendaftaran['nama_kelas'] ?? 'Pilih Kelas') ?></strong>
                                 </span>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2 w-100 mt-2" aria-labelledby="dropdownKelasAktif">
-                                <li><h6 class="dropdown-header text-uppercase text-muted" style="font-size: 0.65rem;">Ganti Kelas Aktif:</h6></li>
+                                <li><h6 class="dropdown-header text-uppercase text-muted" style="font-size: 10px;">Ganti Kelas Aktif:</h6></li>
                                 <?php foreach ($semua_kelas_peserta as $kp): ?>
                                     <li>
                                         <a class="dropdown-item rounded-2 py-1.5 small <?= (isset($pendaftaran['id_kelas']) && $pendaftaran['id_kelas'] == $kp['id_kelas']) ? 'active bg-purple-soft text-purple-custom fw-bold' : 'text-dark' ?>" 
-                                           href="<?= base_url('peserta/dashboard?id_kelas=' . $kp['id_kelas']) ?>" style="font-size: 0.82rem;">
-                                            <i class="bi bi-check2-circle me-1"></i><?= esc($kp['nama_kelas']) ?>
+                                           href="<?= base_url('peserta/dashboard?id_kelas=' . $kp['id_kelas']) ?>" style="font-size: 13px;">
+                                            <i class="bi bi-check2-circle me-1" style="color: var(--color-cyan);"></i><?= esc($kp['nama_kelas']) ?>
                                         </a>
                                     </li>
                                 <?php endforeach; ?>
@@ -404,13 +412,13 @@
                 <div class="col-xl-3 col-md-6 mb-3 mb-xl-0">
                     <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
                         <div class="card-body p-3.5 d-flex align-items-center">
-                            <div class="stat-icon bg-purple-soft text-purple-custom me-3 flex-shrink-0">
+                            <div class="stat-icon me-3 flex-shrink-0" style="background: rgba(123, 90, 246, 0.12); color: var(--color-purple);">
                                 <i class="bi bi-mortarboard-fill fs-5"></i>
                             </div>
                             <div>
-                                <h4 class="fw-bold mb-0" style="color: #5b3fd6; font-size: 1.2rem;"><?= $pendaftaran ? 1 : 0 ?></h4>
-                                <p class="text-dark mb-0 fw-bold" style="font-size: 0.82rem;">Kelas Aktif</p>
-                                <span class="text-muted" style="font-size: 0.7rem;">Sedang berlangsung</span>
+                                <h4 class="fw-bold mb-0" style="color: var(--color-purple); font-size: 18px;"><?= $pendaftaran ? 1 : 0 ?></h4>
+                                <p class="text-dark mb-0 fw-bold" style="font-size: 13px;">Kelas Aktif</p>
+                                <span class="text-muted" style="font-size: 11px;">Sedang berlangsung</span>
                             </div>
                         </div>
                     </div>
@@ -419,13 +427,13 @@
                 <div class="col-xl-3 col-md-6 mb-3 mb-xl-0">
                     <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
                         <div class="card-body p-3.5 d-flex align-items-center">
-                            <div class="stat-icon bg-purple-soft text-purple-custom me-3 flex-shrink-0">
+                            <div class="stat-icon me-3 flex-shrink-0" style="background: rgba(223, 107, 224, 0.12); color: var(--color-pink);">
                                 <i class="bi bi-calendar-check-fill fs-5"></i>
                             </div>
                             <div>
-                                <h4 class="fw-bold mb-0" style="color: #5b3fd6; font-size: 1.2rem;"><?= esc($total_kehadiran ?? '0') ?>%</h4>
-                                <p class="text-dark mb-0 fw-bold" style="font-size: 0.82rem;">Kehadiran</p>
-                                <span class="text-muted" style="font-size: 0.7rem;">Total Kehadiran</span>
+                                <h4 class="fw-bold mb-0" style="color: var(--color-pink); font-size: 18px;"><?= esc($total_kehadiran ?? '0') ?>%</h4>
+                                <p class="text-dark mb-0 fw-bold" style="font-size: 13px;">Kehadiran</p>
+                                <span class="text-muted" style="font-size: 11px;">Total Kehadiran</span>
                             </div>
                         </div>
                     </div>
@@ -434,13 +442,13 @@
                 <div class="col-xl-3 col-md-6 mb-3 mb-md-0">
                     <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
                         <div class="card-body p-3.5 d-flex align-items-center">
-                            <div class="stat-icon bg-purple-soft text-purple-custom me-3 flex-shrink-0">
+                            <div class="stat-icon me-3 flex-shrink-0" style="background: rgba(226, 160, 72, 0.12); color: var(--color-orange);">
                                 <i class="bi bi-clipboard-check-fill fs-5"></i>
                             </div>
                             <div>
-                                <h4 class="fw-bold mb-0" style="color: #5b3fd6; font-size: 1.2rem;"><?= esc($total_tugas ?? '0') ?></h4>
-                                <p class="text-dark mb-0 fw-bold" style="font-size: 0.82rem;">Tugas</p>
-                                <span class="text-muted" style="font-size: 0.7rem;">Belum Dikumpulkan</span>
+                                <h4 class="fw-bold mb-0" style="color: var(--color-orange); font-size: 18px;"><?= esc($total_tugas ?? '0') ?></h4>
+                                <p class="text-dark mb-0 fw-bold" style="font-size: 13px;">Tugas</p>
+                                <span class="text-muted" style="font-size: 11px;">Belum Dikumpulkan</span>
                             </div>
                         </div>
                     </div>
@@ -449,13 +457,13 @@
                 <div class="col-xl-3 col-md-6">
                     <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
                         <div class="card-body p-3.5 d-flex align-items-center">
-                            <div class="stat-icon bg-purple-soft text-purple-custom me-3 flex-shrink-0">
+                            <div class="stat-icon me-3 flex-shrink-0" style="background: rgba(90, 197, 232, 0.12); color: var(--color-cyan);">
                                 <i class="bi bi-award-fill fs-5"></i>
                             </div>
                             <div>
-                                <h4 class="fw-bold mb-0" style="color: #5b3fd6; font-size: 1.2rem;"><?= esc($total_sertifikat ?? '0') ?></h4>
-                                <p class="text-dark mb-0 fw-bold" style="font-size: 0.82rem;">Sertifikat</p>
-                                <span class="text-muted" style="font-size: 0.7rem;">Telah Diperoleh</span>
+                                <h4 class="fw-bold mb-0" style="color: var(--color-cyan); font-size: 18px;"><?= esc($total_sertifikat ?? '0') ?></h4>
+                                <p class="text-dark mb-0 fw-bold" style="font-size: 13px;">Sertifikat</p>
+                                <span class="text-muted" style="font-size: 11px;">Telah Diperoleh</span>
                             </div>
                         </div>
                     </div>
@@ -469,16 +477,16 @@
                     <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
                         <div class="card-body p-3.5">
                             <div class="d-flex align-items-center mb-3">
-                                <div class="bg-purple-soft text-purple-custom p-2 rounded-3 me-2.5">
+                                <div class="p-2 rounded-3 me-2.5" style="background: rgba(123, 90, 246, 0.12); color: var(--color-purple);">
                                     <i class="bi bi-person-circle fs-5"></i>
                                 </div>
-                                <h5 class="fw-bold mb-0" style="color: #5b3fd6; font-size: 1rem;">Profil Saya</h5>
+                                <h5 class="fw-bold mb-0" style="color: var(--color-purple); font-size: 15px;">Profil Saya</h5>
                             </div>
 
-                            <table class="table table-borderless align-middle mb-0" style="font-size: 0.85rem;">
+                            <table class="table table-borderless align-middle mb-0" style="font-size: 13px;">
                                 <tr>
                                     <td width="110" class="text-muted fw-semibold py-1.5">NIS</td>
-                                    <td class="fw-bold py-1.5">: <span class="badge bg-purple-soft text-purple-custom px-2 py-0.5"><?= esc($user['nis'] ?? $pendaftaran['nis'] ?? '-') ?></span></td>
+                                    <td class="fw-bold py-1.5">: <span class="badge bg-purple-soft text-purple-custom px-2 py-0.5" style="color: var(--color-purple) !important;"><?= esc($user['nis'] ?? $pendaftaran['nis'] ?? '-') ?></span></td>
                                 </tr>
                                 <tr>
                                     <td class="text-muted fw-semibold py-1.5">Nama</td>
@@ -502,10 +510,10 @@
                     <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
                         <div class="card-body p-3.5">
                             <div class="d-flex align-items-center mb-3">
-                                <div class="bg-purple-soft text-purple-custom p-2 rounded-3 me-2.5">
+                                <div class="p-2 rounded-3 me-2.5" style="background: rgba(223, 107, 224, 0.12); color: var(--color-pink);">
                                     <i class="bi bi-clipboard-check fs-5"></i>
                                 </div>
-                                <h5 class="fw-bold mb-0" style="color: #5b3fd6; font-size: 1rem;">Status Pendaftaran</h5>
+                                <h5 class="fw-bold mb-0" style="color: var(--color-purple); font-size: 15px;">Status Pendaftaran</h5>
                             </div>
 
                             <?php
@@ -533,9 +541,9 @@
 
                             <?php if (empty($dataPendaftaran)): ?>
                                 <div class="text-center py-3">
-                                    <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill mb-2" style="font-size: 0.75rem;">Belum Mendaftar</span>
-                                    <p class="text-muted small mb-2">Anda belum terdaftar di kelas pelatihan apapun.</p>
-                                    <a href="<?= base_url('pelatihan/daftar-kelas') ?>" class="btn btn-sm text-white fw-bold px-3 py-1.5 rounded-pill shadow-sm" style="background: linear-gradient(135deg, #7c5cfa, #5b3fd6); font-size: 0.8rem;">
+                                    <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill mb-2" style="font-size: 11px; background-color: var(--color-orange) !important; color: white !important;">Belum Mendaftar</span>
+                                    <p class="text-muted small mb-2" style="font-size: 13px;">Anda belum terdaftar di kelas pelatihan apapun.</p>
+                                    <a href="<?= base_url('pelatihan/daftar-kelas') ?>" class="btn btn-sm text-white fw-bold px-3 py-1.5 rounded-pill shadow-sm" style="background: linear-gradient(135deg, var(--color-purple), var(--color-pink)); font-size: 12px;">
                                         Pilih Kelas Sekarang
                                     </a>
                                 </div>
@@ -559,12 +567,12 @@
                                         <div class="registration-item py-2 px-3">
                                             <div class="d-flex align-items-center justify-content-between gap-2">
                                                 <div class="d-flex align-items-center gap-2.5">
-                                                    <div class="registration-icon" style="width: 34px; height: 34px; min-width: 34px; font-size: 0.9rem;">
+                                                    <div class="registration-icon" style="width: 34px; height: 34px; min-width: 34px; font-size: 14px; background: rgba(90, 197, 232, 0.15); color: var(--color-cyan);">
                                                         <i class="bi bi-laptop-fill"></i>
                                                     </div>
                                                     <div>
-                                                        <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.82rem;"><?= esc($namaKelasItem) ?></h6>
-                                                        <span class="text-muted" style="font-size: 0.7rem;"><i class="bi bi-calendar-event me-1"></i> Mulai: <?= esc($jadwalItem) ?></span>
+                                                        <h6 class="fw-bold mb-0 text-dark" style="font-size: 13px;"><?= esc($namaKelasItem) ?></h6>
+                                                        <span class="text-muted" style="font-size: 11px;"><i class="bi bi-calendar-event me-1"></i> Mulai: <?= esc($jadwalItem) ?></span>
                                                     </div>
                                                 </div>
                                                 <div class="text-end">
@@ -575,7 +583,7 @@
                                                         <?php 
                                                         $idPendaftaranItem = $kelasItem['id_pendaftaran'] ?? ''; 
                                                         ?>
-                                                        <a href="<?= base_url('pelatihan/detailPendaftaran/' . $idPendaftaranItem) ?>" class="text-decoration-none fw-bold text-purple-custom" style="font-size: 0.7rem;">
+                                                        <a href="<?= base_url('pelatihan/detailPendaftaran/' . $idPendaftaranItem) ?>" class="text-decoration-none fw-bold" style="font-size: 11px; color: var(--color-purple);">
                                                             Detail &rarr;
                                                         </a>
                                                     </div>
@@ -598,10 +606,10 @@
                     <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
                         <div class="card-body p-3.5">
                             <div class="d-flex align-items-center mb-3">
-                                <div class="bg-purple-soft text-purple-custom p-2 rounded-3 me-2.5">
+                                <div class="p-2 rounded-3 me-2.5" style="background: rgba(226, 160, 72, 0.12); color: var(--color-orange);">
                                     <i class="bi bi-calendar-range fs-5"></i>
                                 </div>
-                                <h5 class="fw-bold mb-0" style="color: #5b3fd6; font-size: 1rem;">Jadwal Pelatihan & Materi</h5>
+                                <h5 class="fw-bold mb-0" style="color: var(--color-purple); font-size: 15px;">Jadwal Pelatihan & Materi</h5>
                             </div>
 
                             <?php if (!empty($list_jadwal) && is_array($list_jadwal)): ?>
@@ -609,18 +617,18 @@
                                     <?php foreach ($list_jadwal as $jdl): ?>
                                         <div class="p-3 border border-purple border-opacity-25 rounded-3 bg-white shadow-sm">
                                             <div class="d-flex justify-content-between align-items-center mb-1.5">
-                                                <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;"><?= esc($jdl['materi'] ?? 'Materi Pertemuan'); ?></h6>
-                                                <span class="badge bg-purple-soft text-purple-custom px-2 py-0.5" style="font-size: 0.7rem;"><?= esc($jdl['status'] ?? 'Terjadwal'); ?></span>
+                                                <h6 class="fw-bold mb-0 text-dark" style="font-size: 13px;"><?= esc($jdl['materi'] ?? 'Materi Pertemuan'); ?></h6>
+                                                <span class="badge px-2 py-0.5" style="font-size: 11px; background: rgba(223, 107, 224, 0.15); color: var(--color-pink);"><?= esc($jdl['status'] ?? 'Terjadwal'); ?></span>
                                             </div>
-                                            <p class="text-muted mb-0.5" style="font-size: 0.78rem;"><i class="bi bi-calendar-event text-purple-custom me-1.5"></i><strong>Tanggal:</strong> <?= esc($jdl['tanggal_kbm'] ?? '-'); ?></p>
-                                            <p class="text-muted mb-0" style="font-size: 0.78rem;"><i class="bi bi-clock text-purple-custom me-1.5"></i><strong>Waktu:</strong> <?= esc($jdl['waktu_mulai'] ?? '-') ?> - <?= esc($jdl['waktu_selesai'] ?? '-') ?></p>
+                                            <p class="text-muted mb-0.5" style="font-size: 12px;"><i class="bi bi-calendar-event me-1.5" style="color: var(--color-purple);"></i><strong>Tanggal:</strong> <?= esc($jdl['tanggal_kbm'] ?? '-'); ?></p>
+                                            <p class="text-muted mb-0" style="font-size: 12px;"><i class="bi bi-clock me-1.5" style="color: var(--color-purple);"></i><strong>Waktu:</strong> <?= esc($jdl['waktu_mulai'] ?? '-') ?> - <?= esc($jdl['waktu_selesai'] ?? '-') ?></p>
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
                             <?php else: ?>
                                 <div class="text-center py-4">
                                     <div class="text-muted mb-2"><i class="bi bi-calendar-x fs-2 opacity-50"></i></div>
-                                    <p class="text-muted small mb-0">Belum ada jadwal pelatihan atau materi yang dikirimkan.</p>
+                                    <p class="text-muted small mb-0" style="font-size: 13px;">Belum ada jadwal pelatihan atau materi yang dikirimkan.</p>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -631,35 +639,33 @@
                 <div class="col-lg-5 mb-3">
                     <div class="d-flex flex-column gap-3">
                         
-                        <!-- BLOK PENGUMUMAN / NOTIFIKASI KELUARNYA NILAI UJIAN (MUNCUL UNTUK KEDUANYA JIKA NILAI KELUAR) -->
+                        <!-- BLOK PENGUMUMAN / NOTIFIKASI KELUARNYA NILAI UJIAN -->
                         <?php if (!empty($statusUjianKeluar)): ?>
                             <?php if (!empty($is_lulus) && $is_lulus === true): ?>
-                                <!-- Kondisi Lulus: Mengisi Angket Evaluasi -->
-                                <div class="p-3 rounded-3 border-0 position-relative overflow-hidden shadow-sm" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 4px solid #f59e0b !important;">
+                                <div class="p-3 rounded-3 border-0 position-relative overflow-hidden shadow-sm" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 4px solid var(--color-orange) !important;">
                                     <div class="d-flex align-items-start gap-2.5">
-                                        <div class="text-warning fs-5 lh-1 mt-0.5"><i class="fas fa-bullhorn"></i></div>
+                                        <div class="fs-5 lh-1 mt-0.5" style="color: var(--color-orange);"><i class="fas fa-bullhorn"></i></div>
                                         <div class="flex-grow-1">
-                                            <h6 class="fw-bold text-dark mb-1" style="font-size: 0.85rem;">Pengisian Angket Kelulusan!</h6>
-                                            <p class="text-muted mb-2" style="font-size: 0.78rem; line-height: 1.4;">
+                                            <h6 class="fw-bold text-dark mb-1" style="font-size: 13px;">Pengisian Angket Kelulusan!</h6>
+                                            <p class="text-muted mb-2" style="font-size: 12px; line-height: 1.4;">
                                                 Selamat! Nilai ujian Anda telah keluar dan dinyatakan <strong class="text-dark">LULUS</strong>. Segera isi formulir angket evaluasi untuk membuka akses sertifikat.
                                             </p>
-                                            <a href="<?= base_url('pelatihan/kelas?id_kelas=' . ($pendaftaran['id_kelas'] ?? '')) ?>" class="btn btn-warning btn-sm text-dark fw-bold px-3 py-1 rounded-pill shadow-sm" style="font-size: 0.75rem; background-color: #f59e0b; border: none;">
+                                            <a href="<?= base_url('pelatihan/kelas?id_kelas=' . ($pendaftaran['id_kelas'] ?? '')) ?>" class="btn btn-sm text-dark fw-bold px-3 py-1 rounded-pill shadow-sm" style="font-size: 11px; background-color: var(--color-orange); border: none; color: white !important;">
                                                 <i class="fas fa-clipboard-list me-1"></i> Isi Angket Sekarang
                                             </a>
                                         </div>
                                     </div>
                                 </div>
                             <?php else: ?>
-                                <!-- Kondisi Belum Lulus: Nilai Sudah Keluar Tanpa Angket -->
-                                <div class="p-3 rounded-3 border-0 position-relative overflow-hidden shadow-sm" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 4px solid #3b82f6 !important;">
+                                <div class="p-3 rounded-3 border-0 position-relative overflow-hidden shadow-sm" style="background: linear-gradient(135deg, #f0fbff 0%, #dcf4fb 100%); border-left: 4px solid var(--color-cyan) !important;">
                                     <div class="d-flex align-items-start gap-2.5">
-                                        <div class="text-primary fs-5 lh-1 mt-0.5"><i class="fas fa-info-circle"></i></div>
+                                        <div class="fs-5 lh-1 mt-0.5" style="color: var(--color-cyan);"><i class="fas fa-info-circle"></i></div>
                                         <div class="flex-grow-1">
-                                            <h6 class="fw-bold text-dark mb-1" style="font-size: 0.85rem;">Informasi Nilai Ujian</h6>
-                                            <p class="text-muted mb-2" style="font-size: 0.78rem; line-height: 1.4;">
+                                            <h6 class="fw-bold text-dark mb-1" style="font-size: 13px;">Informasi Nilai Ujian</h6>
+                                            <p class="text-muted mb-2" style="font-size: 12px; line-height: 1.4;">
                                                 Nilai ujian Anda sudah keluar. Silakan periksa hasil lengkap pada menu kelas untuk melihat detail pencapaian Anda.
                                             </p>
-                                            <a href="<?= base_url('pelatihan/kelas?id_kelas=' . ($pendaftaran['id_kelas'] ?? '')) ?>" class="btn btn-primary btn-sm text-white fw-bold px-3 py-1 rounded-pill shadow-sm" style="font-size: 0.75rem; background-color: #3b82f6; border: none;">
+                                            <a href="<?= base_url('pelatihan/kelas?id_kelas=' . ($pendaftaran['id_kelas'] ?? '')) ?>" class="btn btn-sm text-white fw-bold px-3 py-1 rounded-pill shadow-sm" style="font-size: 11px; background-color: var(--color-cyan); border: none;">
                                                 <i class="fas fa-book-open me-1"></i> Cek Nilai di Kelas
                                             </a>
                                         </div>
@@ -668,15 +674,15 @@
                             <?php endif; ?>
                         <?php endif; ?>
 
-                        <!-- KETENTUAN KEHADIRAN (Card Kecil Profesional) -->
+                        <!-- KETENTUAN KEHADIRAN -->
                         <div class="p-3 border border-light rounded-3 bg-white shadow-sm">
                             <div class="d-flex align-items-start gap-2.5">
-                                <div class="text-primary fs-5 lh-1 mt-0.5">
+                                <div class="fs-5 lh-1 mt-0.5" style="color: var(--color-purple);">
                                     <i class="bi bi-info-circle-fill"></i>
                                 </div>
                                 <div>
-                                    <h6 class="fw-bold mb-1 text-dark" style="font-size: 0.85rem;">Ketentuan Kehadiran</h6>
-                                    <p class="text-muted mb-0" style="font-size: 0.78rem; line-height: 1.4;">
+                                    <h6 class="fw-bold mb-1 text-dark" style="font-size: 13px;">Ketentuan Kehadiran</h6>
+                                    <p class="text-muted mb-0" style="font-size: 12px; line-height: 1.4;">
                                         Pastikan selalu melakukan absensi pada setiap sesi pertemuan agar persentase kehadiran memenuhi syarat minimal 80%.
                                     </p>
                                 </div>

@@ -2299,6 +2299,92 @@ private function generateNisPendaftaran($db, array $pendaftaran): string
 
 }
 
+    public function manajemenKbm()
+{
+    $db = \Config\Database::connect();
+
+    $builder = $db->table('pendaftaran');
+
+    // Tambahkan nilai_ujian.id_nilai_ujian dan nilai_ujian.nilai pada select
+    $builder->select('
+    pendaftaran.*,
+    users.nama AS nama_peserta,
+    users.email AS email_peserta,
+    kelas.nama_kelas AS kelas,
+    nilai_ujian.id_nilai_ujian,
+    nilai_ujian.nilai,
+    nilai_ujian.status_kelulusan
+');
+
+    $builder->join(
+        'users',
+        'users.id_users = pendaftaran.id_users',
+        'left'
+    );
+
+    $builder->join(
+        'kelas',
+        'kelas.id_kelas = pendaftaran.id_kelas',
+        'left'
+    );
+
+    $builder->join(
+        'nilai_ujian',
+        'nilai_ujian.id_user = pendaftaran.id_users AND nilai_ujian.id_kelas = pendaftaran.id_kelas',
+        'inner'
+    );
+
+    $builder->where('nilai_ujian.nilai IS NOT NULL');
+    $builder->where('nilai_ujian.nilai !=', 0);
+
+    $query = $builder->get();
+
+    $data = [
+        'title'    => 'Manajemen KBM',
+        'list_kbm' => $query->getResultArray()
+    ];
+
+    return view('admin/KBM/index', $data);
+}
+
+
+public function updateStatusKelulusanPeserta($id)
+{
+    // 1. Validasi input menggunakan huruf kecil sesuai ENUM database
+    $rules = [
+        'status_kelulusan' => 'required|in_list[lulus,tidak lulus,menunggu,remidi]'
+    ];
+
+    if (!$this->validate($rules)) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Pilihan status kelulusan tidak valid.');
+    }
+
+    $statusKelulusan = $this->request->getPost('status_kelulusan');
+    $model = new \App\Models\HasilUjianModel();
+
+    // 2. Periksa apakah data ada
+    $dataLama = $model->find($id);
+    if (!$dataLama) {
+        return redirect()->back()
+            ->with('error', 'Data nilai ujian tidak ditemukan.');
+    }
+
+    // 3. Lakukan proses update
+    $update = $model->update($id, [
+        'status_kelulusan' => $statusKelulusan
+    ]);
+
+    if (!$update) {
+        return redirect()->back()
+            ->with('error', 'Gagal menyimpan perubahan ke database.');
+    }
+
+    return redirect()->back()
+        ->with('success', 'Status kelulusan peserta berhasil diperbarui.');
+}
+
    public function angket()
 
 {

@@ -3,41 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Peserta - Creativemu Academy</title>
-
+    <title>KBM Kelas - Creativemu Academy</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-
-    <!-- FontAwesome untuk ikon pelengkap -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+    
     <style>
+        :root {
+            /* 4 Warna Sesuai Dashboard */
+            --color-purple: #7b5af6;
+            --color-pink: #df6be0;
+            --color-orange: #e2a048;
+            --color-cyan: #5ac5e8;
+            
+            --purple-deep: #5b3fd6;
+            --purple-mid: #7b5af6;
+            --purple-light: #9a7fff;
+            --purple-soft: #f3f0ff;
+            --purple-soft2: #e4deff;
+        }
+
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(123, 90, 246, 0.4) transparent;
+        }
+
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #fdf4ff 100%);
+            background: linear-gradient(120deg, #f7f5ff, #f2efff, #faf8ff, #f0ebff);
+            background-size: 300% 300%;
+            animation: bgFlow 22s ease infinite;
             background-attachment: fixed;
             margin: 0;
             padding: 0;
             color: #1e293b;
+            font-size: 14px;
+            zoom: 1;
+        }
+
+        @keyframes bgFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         .app-wrapper {
             display: flex;
             min-height: 100vh;
+            position: relative;
         }
 
-        /* Sidebar dengan Gradasi Ungu Modern */
+        /* Sidebar disamakan persis dengan Dashboard (lebar 220px) */
         .sidebar {
-            width: 260px;
+            width: 220px;
             background:
-                radial-gradient(circle at 15% 12%, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 45%),
-                linear-gradient(165deg, #4a2fc9 0%, #7440e6 32%, #9257f2 60%, #b678f5 100%);
+                radial-gradient(circle at 15% 12%, rgba(90, 197, 232, 0.2) 0%, rgba(255, 255, 255, 0) 45%),
+                linear-gradient(165deg, #5b3fd6 0%, #7b5af6 35%, #df6be0 75%, #5ac5e8 100%);
             background-size: 200% 200%, 220% 220%;
             animation: sidebarGlow 14s ease infinite;
             color: white;
@@ -46,8 +72,8 @@
             bottom: 0;
             left: 0;
             z-index: 100;
-            padding: 24px 20px;
-            box-shadow: 6px 0 34px rgba(116, 64, 230, 0.35);
+            padding: 20px 14px;
+            box-shadow: 6px 0 34px rgba(123, 90, 246, 0.25);
             overflow-y: auto;
             overflow-x: hidden;
         }
@@ -72,45 +98,18 @@
             100% { background-position: 0% 0%, 0% 0%; }
         }
 
-        .sidebar::before {
-            content: "";
-            position: absolute;
-            top: -60px;
-            right: -60px;
-            width: 180px;
-            height: 180px;
-            background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 70%);
-            border-radius: 50%;
-            pointer-events: none;
-            animation: floatBlob 8s ease-in-out infinite;
-        }
-
-        @keyframes floatBlob {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(20px) scale(1.08); }
-        }
-
         .sidebar-brand {
-            font-size: 1.3rem;
+            font-size: 16px;
             font-weight: 700;
             color: white;
             text-decoration: none;
             display: flex;
             align-items: center;
-            padding-bottom: 20px;
+            padding-bottom: 16px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             position: relative;
             z-index: 1;
-        }
-
-        .sidebar-brand i {
-            animation: brandPulse 3s ease-in-out infinite;
-        }
-
-        @keyframes brandPulse {
-            0%, 100% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.12) rotate(-4deg); }
         }
 
         .sidebar-menu {
@@ -122,261 +121,159 @@
         }
 
         .sidebar-menu li {
-            margin-bottom: 8px;
-            opacity: 0;
-            transform: translateX(-12px);
-            animation: menuSlideIn 0.5s ease forwards;
-        }
-
-        .sidebar-menu li:nth-child(1) { animation-delay: 0.05s; }
-        .sidebar-menu li:nth-child(2) { animation-delay: 0.12s; }
-        .sidebar-menu li:nth-child(3) { animation-delay: 0.19s; }
-        .sidebar-menu li:nth-child(4) { animation-delay: 0.26s; }
-        .sidebar-menu li:nth-child(5) { animation-delay: 0.33s; }
-
-        @keyframes menuSlideIn {
-            to { opacity: 1; transform: translateX(0); }
+            margin-bottom: 6px;
         }
 
         .sidebar-menu a {
             display: flex;
             align-items: center;
-            color: rgba(255, 255, 255, 0.75);
+            color: rgba(255, 255, 255, 0.85);
             text-decoration: none;
-            padding: 12px 16px;
-            border-radius: 12px;
+            padding: 9px 12px;
+            border-radius: 9px;
             font-weight: 500;
-            position: relative;
-            overflow: hidden;
+            font-size: 13.5px;
             transition: all 0.3s ease;
         }
 
-        .sidebar-menu a:hover,
-        .sidebar-menu a.active {
-            background: rgba(255, 255, 255, 0.18);
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background: rgba(255, 255, 255, 0.2);
             color: white;
-            transform: translateX(6px);
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+            transform: translateX(4px);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
         }
 
         .sidebar-menu a.active {
-            background: linear-gradient(90deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.12));
-            box-shadow: 0 6px 18px rgba(20, 5, 60, 0.28), inset 3px 0 0 #ffd166;
+            background: linear-gradient(90deg, rgba(226, 160, 72, 0.4), rgba(90, 197, 232, 0.3));
+            box-shadow: 0 6px 18px rgba(20, 5, 60, 0.2), inset 3px 0 0 var(--color-orange);
         }
 
         .sidebar-menu a i {
-            font-size: 1.2rem;
-            margin-right: 12px;
-            transition: transform 0.3s ease;
+            font-size: 15px;
+            margin-right: 9px;
         }
 
-        .sidebar-menu a:hover i {
-            transform: scale(1.15) rotate(-6deg);
-        }
-
+        /* Menyesuaikan margin konten utama dengan lebar sidebar (220px) */
         .main-content {
-            flex: 0 0 calc(100% - 260px);
-            margin-left: 260px;
-            padding: 30px;
-            width: calc(100% - 260px);
-            max-width: calc(100% - 260px);
-            min-width: 0;
-            box-sizing: border-box;
-        }
-
-        .top-navbar {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(109, 40, 217, 0.04);
+            flex: 1;
+            margin-left: 220px;
+            padding: 24px 28px;
+            width: calc(100% - 220px);
         }
 
         .card {
             border: none;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(109, 40, 217, 0.05);
+            box-shadow: 0 8px 24px rgba(123, 90, 246, 0.05);
             transition: all 0.3s ease;
         }
 
+        .hover-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(123, 90, 246, 0.12) !important;
+        }
+
         .materi-card {
-            background: linear-gradient(145deg, #ffffff 0%, #faf8ff 100%);
-            border: 1px solid #ede9fe;
-            border-radius: 18px;
-            padding: 24px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(123, 90, 246, 0.15);
+            border-radius: 16px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             height: 100%;
-            transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(123, 90, 246, 0.04);
         }
 
         .materi-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(109, 40, 217, 0.12);
-            border-color: #c4b5fd;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(123, 90, 246, 0.1);
+            border-color: rgba(123, 90, 246, 0.35);
         }
 
         .materi-icon {
-            width: 52px;
-            height: 52px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
-            color: #7c3aed;
-            font-size: 24px;
-            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
+            border-radius: 10px;
+            background: rgba(90, 197, 232, 0.15);
+            color: var(--color-cyan);
+            font-size: 16px;
         }
 
         .materi-badge {
             display: inline-block;
-            margin-top: 14px;
             width: fit-content;
-            padding: 6px 14px;
-            border-radius: 20px;
-            background: #f3e8ff;
-            color: #7c3aed;
-            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(223, 107, 224, 0.15);
+            color: var(--color-pink);
+            font-size: 11px;
             font-weight: 700;
-            letter-spacing: 0.3px;
         }
 
-        .materi-card p {
-            font-size: 14px;
-            line-height: 1.6;
-            color: #64748b;
-        }
-
-        .materi-footer {
-            margin-top: auto;
-            padding-top: 18px;
-            border-top: 1px dashed #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
+        /* Nav Tabs disamakan nuansanya dengan Dashboard */
         .nav-tabs {
             border-bottom: none;
-            gap: 10px;
+            gap: 6px;
         }
 
         .nav-tabs .nav-link {
-            border: none;
+            border: 1px solid rgba(123, 90, 246, 0.2);
             color: #64748b;
             font-weight: 600;
-            padding: 12px 22px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(5px);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
-            transition: all 0.25s ease;
+            padding: 8px 16px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            font-size: 13px;
+            transition: all 0.3s ease;
         }
 
         .nav-tabs .nav-link:hover {
-            color: #7c3aed;
-            background: rgba(255, 255, 255, 0.9);
-            transform: translateY(-2px);
+            color: var(--color-purple);
+            background: var(--purple-soft);
+            border-color: rgba(123, 90, 246, 0.4);
         }
 
         .nav-tabs .nav-link.active {
-            color: white;
-            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.25);
-            border: none;
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--color-purple) 0%, var(--color-pink) 100%);
+            border-color: transparent;
+            box-shadow: 0 4px 16px rgba(123, 90, 246, 0.25);
         }
 
-        /* Desain Khusus Nilai Ujian */
-        .score-card-wrapper {
-            background: linear-gradient(135deg, #f8f7ff 0%, #ede9fe 100%);
-            border: 2px dashed #d8b4fe;
-            border-radius: 24px;
-            padding: 40px 20px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.08);
+        .exam-status-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(243,240,255,0.6) 100%);
+            border: 1px solid rgba(123, 90, 246, 0.15);
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.3s ease;
         }
 
-        .score-circle {
-            width: 140px;
-            height: 140px;
-            margin: 0 auto 20px auto;
-            background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
-            border-radius: 50%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            box-shadow: 0 12px 30px rgba(124, 58, 237, 0.3);
-            border: 4px solid #ffffff;
-            animation: pulseScore 3s infinite ease-in-out;
+        .exam-status-card:hover {
+            box-shadow: 0 8px 24px rgba(123, 90, 246, 0.1);
+            border-color: rgba(123, 90, 246, 0.35);
         }
 
-        @keyframes pulseScore {
-            0%, 100% { transform: scale(1); box-shadow: 0 12px 30px rgba(124, 58, 237, 0.3); }
-            50% { transform: scale(1.04); box-shadow: 0 18px 40px rgba(124, 58, 237, 0.45); }
-        }
-
-        .score-number {
-            font-size: 2.8rem;
-            font-weight: 800;
-            line-height: 1;
-        }
-
-        .score-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.85;
-            margin-top: 4px;
-            font-weight: 600;
-        }
-        /* =========================
-           RESPONSIVE & MOBILE DRAWER
-        ========================= */
-        .mobile-topbar {
-            display: none;
-            width: 100%;
-        }
-
-        .sidebar-backdrop {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 7, 35, 0.55);
-            backdrop-filter: blur(4px);
-            z-index: 1040;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .sidebar-backdrop.show {
-            display: block;
-            opacity: 1;
-        }
-
-        .sidebar-close-btn {
-            display: none;
+        .mobile-topbar { display: none; width: 100%; }
+        .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(15, 7, 35, 0.55); backdrop-filter: blur(4px); z-index: 1040; }
+        .sidebar-backdrop.show { display: block; }
+        .sidebar-close-btn { 
+            display: none; 
             background: rgba(255, 255, 255, 0.15);
             border: none;
             color: white;
-            width: 34px;
-            height: 34px;
+            width: 30px;
+            height: 30px;
             border-radius: 8px;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 1.1rem;
-            transition: background 0.2s ease;
-        }
-        .sidebar-close-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
+            font-size: 15px;
         }
 
         @media (max-width: 991.98px) {
@@ -384,78 +281,35 @@
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                background: linear-gradient(135deg, #4a2fc9 0%, #7440e6 100%);
+                background: linear-gradient(135deg, #5b3fd6 0%, #7b5af6 100%);
                 color: white;
-                padding: 14px 18px;
+                padding: 12px 16px;
                 position: sticky;
                 top: 0;
                 z-index: 990;
-                box-shadow: 0 4px 18px rgba(116, 64, 230, 0.25);
+                box-shadow: 0 4px 18px rgba(123, 90, 246, 0.25);
             }
-
-            .app-wrapper {
-                flex-direction: column;
-            }
-
+            .app-wrapper { flex-direction: column; }
             .sidebar {
-                width: 280px;
+                width: 260px;
                 max-width: 82vw;
                 transform: translateX(-100%);
                 transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 z-index: 1050;
-                box-shadow: 10px 0 40px rgba(0, 0, 0, 0.35);
             }
-
-            .sidebar.show {
-                transform: translateX(0);
-            }
-
-            .sidebar-close-btn {
-                display: flex;
-            }
-
+            .sidebar.show { transform: translateX(0); }
+            .sidebar-close-btn { display: flex; }
             .main-content {
                 margin-left: 0 !important;
                 width: 100% !important;
-                max-width: 100% !important;
-                flex: 1 1 100% !important;
-                padding: 20px 14px !important;
+                padding: 16px 12px !important;
             }
-
-            .top-navbar {
-                display: none;
-            }
-
             .nav-tabs {
                 flex-wrap: nowrap;
                 overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
                 padding-bottom: 6px;
-                gap: 8px;
             }
-
-            .nav-tabs .nav-item {
-                flex-shrink: 0;
-            }
-
-            .nav-tabs .nav-link {
-                white-space: nowrap;
-                padding: 10px 16px;
-                font-size: 0.9rem;
-            }
-        }
-
-        @media (max-width: 575.98px) {
-            .main-content {
-                padding: 14px 10px !important;
-            }
-            .score-circle {
-                width: 115px;
-                height: 115px;
-            }
-            .score-number {
-                font-size: 2.2rem;
-            }
+            .nav-tabs .nav-link { white-space: nowrap; }
         }
     </style>
 </head>
@@ -468,178 +322,164 @@
         <button type="button" class="btn btn-sm btn-link text-white p-0 fs-3 text-decoration-none lh-1 shadow-none" id="sidebarToggle" aria-label="Buka Menu">
             <i class="bi bi-list"></i>
         </button>
-        <span class="fw-bold fs-6 tracking-wide">
-            <i class="bi bi-mortarboard-fill text-warning me-1"></i> Creativemu
+        <span class="fw-bold fs-6">
+            <i class="bi bi-mortarboard-fill me-1" style="color: var(--color-orange);"></i> Creativemu
         </span>
     </div>
-    <a href="<?= base_url('pelatihan/pengaturan') ?>" class="text-white text-decoration-none small d-flex align-items-center gap-1 bg-white bg-opacity-20 px-2 py-1 rounded-pill">
+    <a href="<?= base_url('pelatihan/pengaturan') ?>" class="text-white text-decoration-none small d-flex align-items-center gap-1 bg-white bg-opacity-20 px-2.5 py-1 rounded-pill" style="font-size: 13px;">
         <i class="bi bi-person-circle"></i> Peserta
     </a>
 </div>
 
-
-<!-- BACKDROP UNTUK MENUTUP SIDEBAR DI MOBILE -->
+<!-- BACKDROP SIDEBAR MOBILE -->
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-<!-- Sidebar -->
+<!-- SIDEBAR (DISAMAKAN PERSIS DENGAN DASHBOARD) -->
 <nav class="sidebar" id="sidebarMenu">
-        <a href="#" class="sidebar-brand d-flex align-items-center">
-            <!-- Menggunakan file gambar logo dari folder assets -->
-            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Logo Creativemu" class="rounded-3 me-2 shadow-sm object-fit-cover" style="width: 38px; height: 38px;">
-            
+    <div class="d-flex align-items-center justify-content-between pb-2.5 mb-2.5 border-bottom border-white border-opacity-10">
+        <a href="#" class="sidebar-brand text-decoration-none d-flex align-items-center mb-0 pb-0 border-0">
+            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Logo" class="rounded-3 me-2 shadow-sm object-fit-cover" style="width: 28px; height: 28px;">
             <div>
-                <span class="fs-6 fw-bold d-block text-white lh-1">Creativemu</span>
-                <span class="text-white-50" style="font-size: 0.65rem; letter-spacing: 0.5px;">ACADEMY</span>
+                <span class="fs-6 fw-bold d-block text-white lh-1" style="font-size: 14.5px !important;">Creativemu</span>
+                <span style="font-size: 9.5px; letter-spacing: 0.5px; color: var(--color-cyan);">ACADEMY</span>
             </div>
         </a>
         <button type="button" class="sidebar-close-btn" id="sidebarClose" aria-label="Tutup Menu">
             <i class="bi bi-x-lg"></i>
         </button>
-
-    <ul class="sidebar-menu mt-3">
+    </div>
+    <ul class="sidebar-menu">
         <li>
-            <a href="<?= base_url('peserta/dashboard') ?>">
-                <i class="bi bi-grid-fill"></i> Dashboard
-            </a>
+            <a href="<?= base_url('peserta/dashboard') ?>"><i class="bi bi-grid-fill" style="color: var(--color-cyan);"></i> Dashboard</a>
         </li>
         <li>
-            <a href="<?= base_url('pelatihan/daftar-kelas-peserta') ?>">
-                <i class="bi bi-journals"></i> Daftar Kelas Saya
-            </a>
+            <a href="<?= base_url('pelatihan/daftar-kelas-peserta') ?>"><i class="bi bi-journals" style="color: var(--color-pink);"></i> Daftar Kelas Saya</a>
         </li>
         <li>
-            <a href="<?= base_url('pelatihan/kbm') ?>" class="active">
-                <i class="bi bi-mortarboard-fill"></i> KBM
-            </a>
+            <a href="<?= base_url('pelatihan/kelas') ?>" class="active"><i class="bi bi-mortarboard-fill" style="color: var(--color-orange);"></i> KBM</a>
         </li>
         <li>
-            <a href="<?= base_url('pelatihan/pengaturan') ?>">
-                <i class="bi bi-gear-fill"></i> Pengaturan
-            </a>
+            <a href="<?= base_url('pelatihan/pengaturan') ?>"><i class="bi bi-gear-fill" style="color: var(--color-cyan);"></i> Pengaturan</a>
         </li>
-        <li class="mt-5">
-            <a href="<?= base_url('auth/logout') ?>" class="text-danger bg-danger bg-opacity-10">
-                <i class="bi bi-box-arrow-left"></i> Keluar
-            </a>
+        <li class="mt-3">
+            <a href="<?= base_url('auth/logout') ?>" class="text-danger bg-danger bg-opacity-10"><i class="bi bi-box-arrow-left"></i> Keluar</a>
         </li>
     </ul>
 </nav>
 
 <div class="app-wrapper">
-
-
-    <!-- PAGE CONTENT -->
     <div class="main-content">
+        <div class="container-fluid py-1">
 
-        <!-- Navbar Atas -->
-        <nav class="navbar navbar-expand-lg top-navbar mb-4 px-4 py-3">
-            <div class="container-fluid px-0">
-                <span class="navbar-brand mb-0 h5 fw-bold text-dark">
-                    Detail Kelas Peserta
-                </span>
-                <span class="text-muted fw-semibold small px-3 py-1 bg-white rounded-pill shadow-sm">
-                    <i class="fa-solid fa-user-circle me-1 text-primary"></i> Peserta
-                </span>
-            </div>
-        </nav>
-
-
-        <!-- Konten Utama Kelas -->
-        <div class="container-fluid px-0">
-
-            <!-- Flashdata Alert -->
+            <!-- NOTIFIKASI FLASH -->
             <?php if (session()->getFlashdata('success')): ?>
-                <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-4 mb-4" role="alert">
+                <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-3 small" role="alert">
                     <i class="bi bi-check-circle-fill me-2"></i> <?= session()->getFlashdata('success') ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             <?php endif; ?>
             <?php if (session()->getFlashdata('error')): ?>
-                <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-4 mb-4" role="alert">
+                <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 mb-3 small" role="alert">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i> <?= session()->getFlashdata('error') ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             <?php endif; ?>
 
-            <!-- Card Informasi Kelas -->
-            <div class="card mb-4 border-start border-4 border-primary">
-                <div class="card-body p-4">
-                    <?php if ($kelas): ?>
-                        <h3 class="fw-bold mb-2" style="color: #4c1d95;">
-                            <?= esc($kelas['nama_kelas'] ?? 'Kelas Pelatihan') ?>
-                        </h3>
-                        <p class="text-muted mb-3">
-                            <?= esc($kelas['deskripsi'] ?? 'Pelatihan dirancang untuk membekali peserta dengan pemahaman komprehensif.') ?>
-                        </p>
-                        <div class="d-flex gap-2 align-items-center">
-                            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-semibold">
-                                <i class="bi bi-person-badge me-1"></i> Mentor: <?= esc($kelas['nama_mentor'] ?? '-') ?>
-                            </span>
+            <!-- KARTU INFORMASI KELAS -->
+            <div class="card mb-3 shadow-sm hover-card" style="border-left: 4px solid var(--color-orange) !important;">
+                <div class="card-body p-3.5">
+                    <?php if (isset($kelas) && $kelas): ?>
+                        <div class="row align-items-center">
+                            <div class="col-lg-9">
+                                <span class="badge px-2.5 py-1 rounded-pill mb-1 fw-bold" style="background: rgba(223, 107, 224, 0.15); color: var(--color-pink); font-size: 11px;">
+                                    Kelas Aktif
+                                </span>
+                                <h3 class="fw-bold mb-1 text-dark" style="font-size: 18px;">
+                                    <?= esc($kelas['nama_kelas'] ?? 'Kelas Pelatihan') ?>
+                                </h3>
+                                <p class="text-muted mb-0" style="font-size: 13px; line-height: 1.5;">
+                                    <?= esc($kelas['deskripsi'] ?? 'Ikuti seluruh rangkaian materi, absensi GPS, dan ujian untuk mendapatkan sertifikat kompetensi.') ?>
+                                </p>
+                            </div>
+                            <div class="col-lg-3 text-lg-end mt-2 mt-lg-0">
+                                <div class="d-inline-flex align-items-center gap-2 bg-white px-3 py-1.5 rounded-pill border border-purple border-opacity-25 shadow-sm">
+                                    <div class="text-white rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; background: var(--color-purple);">
+                                        <i class="bi bi-person-fill" style="font-size: 11px;"></i>
+                                    </div>
+                                    <div class="text-start">
+                                        <span class="d-block text-muted" style="font-size: 9.5px; text-transform: uppercase; font-weight: 700;">Mentor</span>
+                                        <span class="fw-bold text-dark" style="font-size: 13px;"><?= esc($kelas['nama_mentor'] ?? '-') ?></span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     <?php else: ?>
-                        <div class="alert alert-warning mb-0 rounded-3">
-                            Anda belum terdaftar di kelas manapun.
+                        <div class="alert alert-warning mb-0 rounded-3 border-0 small">
+                            <i class="bi bi-exclamation-circle me-2"></i> Anda belum terdaftar di kelas manapun.
                         </div>
                     <?php endif; ?>
                 </div>
             </div>
 
-
-            <!-- Nav Tabs -->
-            <ul class="nav nav-tabs mb-4" id="kelasTab" role="tablist">
+            <!-- NAV TABS -->
+            <ul class="nav nav-tabs mb-3" id="kelasTab" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="materi-tab" data-bs-toggle="tab" data-bs-target="#materi" type="button" role="tab">
-                        <i class="fa-solid fa-book me-1"></i> Materi Pembelajaran
+                        <i class="fa-solid fa-book-open me-1.5" style="color: var(--color-cyan);"></i> Materi
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="absensi-tab" data-bs-toggle="tab" data-bs-target="#absensi" type="button" role="tab">
-                        <i class="fa-solid fa-calendar-check me-1"></i> Absensi & Riwayat
+                        <i class="fa-solid fa-map-location-dot me-1.5" style="color: var(--color-pink);"></i> Absensi & GPS
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="ujian-tab" data-bs-toggle="tab" data-bs-target="#ujian" type="button" role="tab">
-                        <i class="fa-solid fa-pen-to-square me-1"></i> Ujian
+                        <i class="fa-solid fa-award me-1.5" style="color: var(--color-orange);"></i> Ujian & Nilai
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="angket-tab" data-bs-toggle="tab" data-bs-target="#angket" type="button" role="tab">
-                        <i class="fa-solid fa-clipboard-list me-1"></i> Angket Evaluasi
+                        <i class="fa-solid fa-clipboard-check me-1.5" style="color: var(--color-purple);"></i> Angket Evaluasi
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="sertifikat-tab" data-bs-toggle="tab" data-bs-target="#sertifikat" type="button" role="tab">
-                        <i class="fa-solid fa-award me-1"></i> Sertifikat
+                        <i class="fa-solid fa-certificate me-1.5" style="color: var(--color-cyan);"></i> Sertifikat
                     </button>
                 </li>
             </ul>
 
-
-            <!-- Tab Content -->
+            <!-- TAB CONTENT -->
             <div class="tab-content" id="kelasTabContent">
 
                 <!-- ================= TAB 1 : MATERI ================= -->
                 <div class="tab-pane fade show active" id="materi" role="tabpanel">
-                    <div class="card">
-                        <div class="card-body p-4">
-                            <h5 class="fw-bold mb-2 text-dark">Daftar Modul & Materi Sesi</h5>
-                            <p class="text-muted mb-4">Unduh atau pelajari modul materi yang telah diunggah oleh mentor.</p>
+                    <div class="card shadow-sm hover-card">
+                        <div class="card-body p-3.5">
+                            <h5 class="fw-bold text-dark mb-1" style="color: var(--color-purple); font-size: 15px;">Modul & Dokumen Pembelajaran</h5>
+                            <p class="text-muted small mb-3" style="font-size: 13px;">Unduh bahan bacaan materi yang telah disediakan oleh mentor pengampu.</p>
 
                             <?php if (!empty($materi)): ?>
-                                <div class="row g-4">
+                                <div class="row g-3">
                                     <?php foreach ($materi as $item): ?>
                                         <div class="col-lg-4 col-md-6">
                                             <div class="materi-card">
-                                                <div class="materi-icon"><i class="bi bi-journal-richtext"></i></div>
-                                                <h5 class="fw-bold mt-3 text-dark"><?= esc($item['judul_materi'] ?? '-') ?></h5>
-                                                <p class="text-muted mb-3"><?= esc($item['deskripsi'] ?? 'Tidak ada deskripsi materi.') ?></p>
-                                                <div class="materi-footer">
+                                                <div class="d-flex align-items-center gap-2 mb-2">
+                                                    <div class="materi-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
+                                                    <div>
+                                                        <span class="materi-badge">Modul</span>
+                                                    </div>
+                                                </div>
+                                                <h5 class="fw-bold mt-2 text-dark" style="font-size: 13.5px;"><?= esc($item['judul_materi'] ?? '-') ?></h5>
+                                                <p class="text-muted mb-3" style="font-size: 12px;"><?= esc($item['deskripsi'] ?? 'Tidak ada deskripsi materi.') ?></p>
+                                                <div class="materi-footer mt-auto pt-2 border-top border-light">
                                                     <?php if (!empty($item['file_materi'])): ?>
-                                                        <a href="<?= base_url('uploads/materi/' . $item['file_materi']) ?>" target="_blank" class="btn btn-sm btn-primary px-3 rounded-pill shadow-sm">
-                                                            Download <i class="bi bi-download ms-1"></i>
+                                                        <a href="<?= base_url('uploads/materi/' . $item['file_materi']) ?>" target="_blank" class="btn btn-sm w-100 rounded-pill fw-semibold text-white shadow-sm" style="background: var(--color-purple); font-size: 12px;">
+                                                            Unduh Modul <i class="bi bi-download ms-1"></i>
                                                         </a>
                                                     <?php else: ?>
-                                                        <span class="text-muted small">File belum ada</span>
+                                                        <span class="text-muted small fst-italic" style="font-size: 12px;">File belum tersedia</span>
                                                     <?php endif; ?>
                                                 </div>
                                             </div>
@@ -647,71 +487,73 @@
                                     <?php endforeach; ?>
                                 </div>
                             <?php else: ?>
-                                <div class="alert alert-info border-0 shadow-sm rounded-4 mb-0">
-                                    <i class="bi bi-info-circle me-2"></i> Belum ada materi yang diunggah oleh mentor.
+                                <div class="text-center py-4">
+                                    <div class="text-muted fs-2 mb-2"><i class="bi bi-folder2-open opacity-50"></i></div>
+                                    <h6 class="fw-bold text-dark" style="font-size: 14px;">Belum Ada Materi</h6>
+                                    <p class="text-muted small" style="font-size: 13px;">Mentor belum mengunggah materi pembelajaran.</p>
                                 </div>
                             <?php endif; ?>
                         </div>
                     </div>
                 </div>
 
-
                 <!-- ================= TAB 2 : ABSENSI ================= -->
                 <div class="tab-pane fade" id="absensi" role="tabpanel">
-                    <div class="card">
-                        <div class="card-body p-4">
-                            <h5 class="fw-bold mb-2 text-dark">Rekap Absensi Kehadiran</h5>
-                            <p class="text-muted mb-4">Silakan lakukan absensi menggunakan lokasi GPS Anda saat sesi kelas berlangsung.</p>
+                    <div class="card shadow-sm hover-card">
+                        <div class="card-body p-3.5">
+                            <h5 class="fw-bold text-dark mb-1" style="color: var(--color-purple); font-size: 15px;">Daftar Kehadiran & Sesi KBM</h5>
+                            <p class="text-muted small mb-3" style="font-size: 13px;">Lakukan absensi menggunakan validasi GPS perangkat saat sesi kelas dibuka.</p>
 
                             <?php if (!empty($jadwal)): ?>
-                                <div class="row g-4">
+                                <div class="row g-3">
                                     <?php foreach ($jadwal as $item): ?>
                                         <?php
                                             $absensi = $item['absensi'] ?? null;
                                             $statusAbsensi = $absensi['status'] ?? null;
                                             $idJadwalItem = $item['id_jadwal_kelas'] ?? '';
-                                            $absensiDibuka = $item['absensi_dibuka'] ?? 1;
-                                        ?>
-                                        <?php 
-                                            // Paksa buka absensi untuk keperluan testing
                                             $absensiDibuka = 1; 
                                         ?>
-
                                         <div class="col-lg-6">
                                             <div class="materi-card">
-                                                <span class="materi-badge">Pertemuan <?= esc($item['pertemuan_ke'] ?? '-') ?></span>
-                                                <h5 class="fw-bold mt-3 mb-2 text-dark">Pertemuan <?= esc($item['pertemuan_ke'] ?? '-') ?></h5>
-                                                <p class="text-muted mb-3">
-                                                    <i class="bi bi-calendar-event me-1 text-primary"></i>
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span class="materi-badge">Pertemuan <?= esc($item['pertemuan_ke'] ?? '-') ?></span>
+                                                    <?php if ($statusAbsensi === 'hadir'): ?>
+                                                        <span class="badge bg-success bg-opacity-15 text-success px-2.5 py-1 rounded-pill fw-bold" style="font-size: 11px;">
+                                                            <i class="bi bi-check-circle-fill me-1"></i> Hadir
+                                                        </span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-light text-muted px-2.5 py-1 rounded-pill fw-semibold border" style="font-size: 11px;">
+                                                            <i class="bi bi-clock me-1"></i> Belum Absen
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <h5 class="fw-bold mt-1 mb-1 text-dark" style="font-size: 13.5px;">Sesi Pertemuan Ke-<?= esc($item['pertemuan_ke'] ?? '-') ?></h5>
+                                                <p class="text-muted mb-2" style="font-size: 12px;">
+                                                    <i class="bi bi-calendar-event me-1" style="color: var(--color-orange);"></i>
                                                     <?= !empty($item['tanggal_kbm'])
                                                         ? date('d F Y', strtotime($item['tanggal_kbm']))
-                                                            . (!empty($item['jam_selesai'])
-                                                                ? ', Sampai Pukul ' . date('H:i', strtotime($item['jam_selesai']))
-                                                                : '')
-                                                        : 'Jadwal belum ditentukan' ?>
+                                                            . (!empty($item['jam_selesai']) ? ' • Pukul ' . date('H:i', strtotime($item['jam_selesai'])) : '')
+                                                        : 'Jadwal fleksibel' ?>
                                                 </p>
 
                                                 <?php if ($statusAbsensi === 'hadir'): ?>
-                                                    <div class="alert alert-success border-0 bg-success bg-opacity-10 text-success mb-0 rounded-3 py-2 small">
-                                                        <i class="bi bi-check-circle-fill me-2"></i> Anda sudah hadir pada pertemuan ini.
+                                                    <div class="alert alert-success border-0 bg-success bg-opacity-10 text-success mb-0 rounded-3 py-1.5 small fw-semibold" style="font-size: 12px;">
+                                                        Kehadiran Anda telah tervalidasi sistem.
                                                     </div>
                                                 <?php else: ?>
-                                                    <!-- Form Absensi Berbasis GPS -->
                                                     <?php if ($absensiDibuka == 1) : ?>
                                                         <form action="<?= base_url('pelatihan/prosesAbsen/' . $idJadwalItem); ?>" method="POST" class="mt-2">
                                                             <?= csrf_field(); ?>
-                                                            
-                                                            <!-- Input tersembunyi untuk koordinat HP peserta -->
                                                             <input type="hidden" name="user_latitude" class="user_latitude">
                                                             <input type="hidden" name="user_longitude" class="user_longitude">
 
-                                                            <!-- Tombol Absen (Disabled sampai GPS terkunci) -->
-                                                            <button type="submit" class="btn btn-primary btn-absen w-100" disabled>
+                                                            <button type="submit" class="btn btn-absen w-100 rounded-pill fw-semibold text-white shadow-sm" style="background: var(--color-purple); font-size: 12px;" disabled>
+                                                                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
                                                                 Mendeteksi Lokasi GPS...
                                                             </button>
                                                         </form>
                                                     <?php else : ?>
-                                                        <span class="badge bg-secondary">Absensi Belum Dibuka</span>
+                                                        <span class="badge bg-secondary py-1.5 rounded-pill" style="font-size: 11px;">Absensi Belum Dibuka</span>
                                                     <?php endif; ?>
                                                 <?php endif; ?>
                                             </div>
@@ -719,218 +561,237 @@
                                     <?php endforeach; ?>
                                 </div>
                             <?php else: ?>
-                                <div class="alert alert-info border-0 shadow-sm rounded-4 mb-0">
-                                    <i class="bi bi-info-circle me-2"></i> Belum ada jadwal pertemuan.
+                                <div class="text-center py-4">
+                                    <div class="text-muted fs-2 mb-2"><i class="bi bi-calendar-x opacity-50"></i></div>
+                                    <h6 class="fw-bold text-dark" style="font-size: 14px;">Belum Ada Jadwal</h6>
+                                    <p class="text-muted small" style="font-size: 13px;">Jadwal kelas belum diatur oleh mentor.</p>
                                 </div>
                             <?php endif; ?>
                         </div>
                     </div>
                 </div>
 
-
-                <!-- ================= TAB 3 : UJIAN (Desain Elegan & Modern) ================= -->
+                <!-- ================= TAB 3 : UJIAN ================= -->
 <div class="tab-pane fade" id="ujian" role="tabpanel">
-    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,245,255,0.95) 100%); border-radius: 24px;">
-        <div class="card-body p-4 p-lg-5">
-            
-            <!-- Header Section -->
-            <div class="row align-items-center mb-5">
-                <div class="col-lg-8">
-                    <span class="badge px-3 py-2 rounded-pill fw-bold mb-3 shadow-sm" style="background: #ede9fe; color: #7c3aed; font-size: 0.8rem; letter-spacing: 0.5px;">
-                        <i class="fas fa-award me-1"></i> EVALUASI AKHIR PELATIHAN
+    <div class="card shadow-sm hover-card">
+        <div class="card-body p-3.5 p-lg-4">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+                <div>
+                    <span class="badge text-white px-2.5 py-1 rounded-pill fw-bold mb-1 shadow-sm" style="background: var(--color-purple); font-size: 11px;">
+                        <i class="fas fa-award me-1" style="color: var(--color-orange);"></i> EVALUASI AKHIR KOMPETENSI
                     </span>
-                    <h3 class="fw-bold text-dark mb-1">Hasil Ujian & Kompetensi</h3>
-                    <p class="text-muted mb-0">Transparansi pencapaian akademik dan status kelulusan Anda pada program pelatihan ini.</p>
+                    <h4 class="fw-bold text-dark mb-1" style="color: var(--color-purple); font-size: 18px;">Status Ujian & Hasil Kelulusan</h4>
+                    <p class="text-muted small mb-0" style="font-size: 13px;">Standar minimum nilai kelulusan pelatihan adalah <strong>70</strong>. Nilai dan keterangan akan tampil setelah diunggah/divalidasi oleh admin.</p>
                 </div>
             </div>
 
-            <?php 
-                $skorNilai = $nilai_ujian ?? $nilai ?? '-';
-                $isLulus = false;
-                if (is_numeric($skorNilai)) {
-                    $isLulus = ((float)$skorNilai >= 70);
-                }
-            ?>
-
-            <!-- Main Content Grid -->
-            <div class="row g-4 align-items-center">
-                
-                <!-- Kotak Skor Utama (Clean & Minimalist) -->
-                <div class="col-lg-5">
-                    <div class="p-4 p-xl-5 rounded-4 text-center position-relative overflow-hidden" style="background: white; border: 1px solid #e9d5ff; box-shadow: 0 10px 30px rgba(124, 58, 237, 0.06);">
-                        <div class="position-absolute top-0 start-0 w-100 h-1" style="background: linear-gradient(90deg, #7c3aed, #c084fc);"></div>
-                        
-                        <span class="text-uppercase text-muted fw-bold d-block mb-3" style="font-size: 0.75rem; letter-spacing: 1.5px;">Skor Akhir Anda</span>
-                        
-                        <div class="display-3 fw-extrabold mb-2" style="color: #4c1d95; font-weight: 800; letter-spacing: -2px;">
-                            <?= esc($skorNilai); ?>
+            <?php if (!empty($ujian) && is_array($ujian)): ?>
+                <div class="row g-3">
+                    <?php foreach ($ujian as $u): ?>
+                        <div class="col-12">
+                            <div class="exam-status-card">
+                                <div class="row align-items-center">
+                                    <div class="col-lg-5 mb-3 mb-lg-0">
+                                        <div class="d-flex align-items-start gap-2.5">
+                                            <div class="rounded-3 p-2 text-white shadow-sm" style="background: var(--color-purple);">
+                                                <i class="bi bi-file-earmark-check-fill fs-5"></i>
+                                            </div>
+                                            <div>
+                                                <h5 class="fw-bold text-dark mb-1" style="font-size: 14px;"><?= esc($u['judul_ujian'] ?? 'Ujian Pelatihan'); ?></h5>
+                                                <p class="text-muted mb-0" style="font-size: 12px;"><?= esc($u['keterangan'] ?? 'Ujian kompetensi materi pelatihan.'); ?></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2 text-center mb-3 mb-lg-0 border-start border-end">
+                                        <span class="text-uppercase text-muted fw-bold d-block mb-1" style="font-size: 10px; letter-spacing: 0.5px;">Skor Anda</span>
+                                        <span class="fs-4 fw-bold" style="color: var(--color-purple);">
+                                            <?= (isset($u['nilai_terbaru']) && $u['nilai_terbaru'] !== null) ? esc($u['nilai_terbaru']) : '-' ?>
+                                        </span>
+                                    </div>
+                                    <div class="col-lg-3 text-center mb-3 mb-lg-0">
+                                        <span class="text-uppercase text-muted fw-bold d-block mb-1" style="font-size: 10px; letter-spacing: 0.5px;">Status Kelulusan</span>
+                                        
+                                        <?php if (!isset($u['nilai_terbaru']) || $u['nilai_terbaru'] === null): ?>
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-1.5 rounded-pill fw-bold" style="font-size: 11px;">
+                                                <i class="fas fa-clock me-1"></i> MENUNGGU PENILAIAN ADMIN
+                                            </span>
+                                        <?php elseif (!empty($u['is_lulus']) || (float)$u['nilai_terbaru'] >= 70): ?>
+                                            <span class="badge bg-success bg-opacity-10 text-success px-3 py-1.5 rounded-pill fw-bold" style="font-size: 11px;">
+                                                <i class="fas fa-check-circle me-1"></i> LULUS / KOMPETEN
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-1.5 rounded-pill fw-bold" style="font-size: 11px;">
+                                                <i class="fas fa-times-circle me-1"></i> REMIDI / BELUM LULUS
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="col-lg-2 text-end">
+                                        <?php if (!isset($u['nilai_terbaru']) || $u['nilai_terbaru'] === null): ?>
+                                            <button class="btn btn-sm w-100 rounded-pill fw-semibold text-muted bg-light border shadow-sm py-1.5" style="font-size: 12px;" disabled>
+                                                <i class="bi bi-hourglass-split me-1"></i> Belum Dinilai
+                                            </button>
+                                        <?php elseif (!empty($u['is_lulus']) || (float)$u['nilai_terbaru'] >= 70): ?>
+                                            <span class="text-success small fw-bold d-inline-flex align-items-center gap-1" style="font-size: 12px;">
+                                                <i class="fas fa-check-circle"></i> Selesai
+                                            </span>
+                                        <?php else: ?>
+                                            <a href="<?= base_url('pelatihan/ikut-remidi?id_ujian=' . $u['id_ujian']); ?>"
+                                               class="btn btn-sm w-100 rounded-pill fw-bold text-white shadow-sm py-1.5" style="font-size: 12px; background: var(--color-orange); border: none;"
+                                               onclick="return confirm('Apakah Anda yakin ingin mengambil ujian remidi?');">
+                                                <i class="fas fa-redo me-1"></i> Ikut Remidi
+                                            </a>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        
-                        <div class="d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill bg-light text-muted small mt-2">
-                            <i class="bi bi-shield-check text-primary"></i> Standar Kelulusan: <strong class="text-dark">70</strong>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <!-- Fallback jika struktur tabel ujian tunggal -->
+                <?php 
+                    $skorNilai = (isset($nilai_ujian) && $nilai_ujian !== '-') ? $nilai_ujian : '-';
+                    $isLulus = is_numeric($skorNilai) && ((float)$skorNilai >= 70);
+                ?>
+                <div class="row g-3 align-items-center">
+                    <div class="col-lg-5">
+                        <div class="p-4 rounded-4 text-center position-relative overflow-hidden shadow-sm border border-purple border-opacity-25 bg-white">
+                            <span class="text-uppercase text-muted fw-bold d-block mb-1" style="font-size: 11px; letter-spacing: 1px;">Skor Akhir Ujian</span>
+                            <div class="display-4 fw-bold mb-2" style="color: var(--color-purple); font-weight: 800;">
+                                <?= esc($skorNilai); ?>
+                            </div>
+                            <div class="d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill bg-light text-muted small border shadow-sm" style="font-size: 12px;">
+                                <i class="bi bi-shield-check" style="color: var(--color-orange);"></i> Standar Minimum: <strong class="text-dark">70</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="p-4 rounded-4 h-100 d-flex flex-column justify-content-center bg-white border border-purple border-opacity-25 shadow-sm">
+                            <?php if ($skorNilai === '-'): ?>
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="rounded-3 p-3 bg-secondary bg-opacity-10 text-secondary fs-4"><i class="bi bi-clock-history"></i></div>
+                                    <div>
+                                        <span class="badge bg-secondary bg-opacity-15 text-secondary mb-1 px-2.5 py-1 rounded-pill fw-semibold" style="font-size: 10px;">MENUNGGU PENILAIAN</span>
+                                        <h5 class="fw-bold text-dark mb-1" style="font-size: 14px;">Menunggu Konfirmasi Admin</h5>
+                                        <p class="text-muted mb-0" style="font-size: 12px;">Nilai dan status keterangan ujian Anda akan muncul di sini setelah diperiksa dan diinput oleh administrator/mentor.</p>
+                                    </div>
+                                </div>
+                            <?php elseif ($isLulus): ?>
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="rounded-3 p-3 bg-success bg-opacity-10 text-success fs-4"><i class="bi bi-patch-check-fill"></i></div>
+                                    <div>
+                                        <span class="badge bg-success bg-opacity-15 text-success mb-1 px-2.5 py-1 rounded-pill fw-bold" style="font-size: 10px;"><i class="fas fa-check-circle me-1"></i> STATUS: KOMPETEN / LULUS</span>
+                                        <h5 class="fw-bold text-dark mb-1" style="font-size: 14px;">Selamat, Anda Dinyatakan Lulus!</h5>
+                                        <p class="text-muted mb-0" style="font-size: 12px;">Nilai Anda telah divalidasi admin. Silakan lanjutkan ke menu <strong>Angket Evaluasi</strong>.</p>
+                                    </div>
+                                </div>
+                            <?php else: ?>
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="rounded-3 p-3 bg-danger bg-opacity-10 text-danger fs-4"><i class="bi bi-exclamation-octagon-fill"></i></div>
+                                    <div>
+                                        <span class="badge bg-danger bg-opacity-15 text-danger mb-1 px-2.5 py-1 rounded-pill fw-bold" style="font-size: 10px;"><i class="fas fa-times-circle me-1"></i> STATUS: REMIDI / BELUM LULUS</span>
+                                        <h5 class="fw-bold text-dark mb-1" style="font-size: 14px;">Belum Memenuhi Batas Kelulusan</h5>
+                                        <p class="text-muted mb-0" style="font-size: 12px;">Nilai Anda di bawah 70 berdasarkan rekapitulasi admin. Silakan ikuti remidi.</p>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
-
-                <!-- Kotak Keterangan Status (Modern Alert Card) -->
-                <div class="col-lg-7">
-                    <div class="p-4 p-xl-4 rounded-4 h-100 d-flex flex-column justify-content-center" style="background: #ffffff; border: 1px solid #f3e8ff; box-shadow: 0 8px 25px rgba(0,0,0,0.02);">
-                        
-                        <?php if ($skorNilai === '-'): ?>
-                            <div class="d-flex align-items-start gap-3">
-                                <div class="rounded-3 p-3 bg-secondary bg-opacity-10 text-secondary fs-4 lh-1">
-                                    <i class="bi bi-clock-history"></i>
-                                </div>
-                                <div>
-                                    <span class="badge bg-secondary bg-opacity-10 text-secondary mb-1 px-2 py-1 rounded-pill fw-semibold" style="font-size: 0.7rem;">MENUNGGU PENILAIAN</span>
-                                    <h5 class="fw-bold text-dark mb-1">Nilai Belum Direkap</h5>
-                                    <p class="text-muted small mb-0">Anda belum mengikuti ujian atau hasil evaluasi Anda sedang dalam proses rekapitulasi oleh mentor pengampu.</p>
-                                </div>
-                            </div>
-                        <?php elseif ($isLulus): ?>
-                            <div class="d-flex align-items-start gap-3">
-                                <div class="rounded-3 p-3 bg-success bg-opacity-10 text-success fs-4 lh-1">
-                                    <i class="bi bi-patch-check-fill"></i>
-                                </div>
-                                <div>
-                                    <span class="badge bg-success bg-opacity-10 text-success mb-1 px-2 py-1 rounded-pill fw-semibold" style="font-size: 0.7rem;">STATUS: KOMPETEN / LULUS</span>
-                                    <h5 class="fw-bold text-dark mb-1">Selamat, Anda Dinyatakan Lulus!</h5>
-                                    <p class="text-muted small mb-0">Pencapaian nilai Anda telah memenuhi ambang batas minimal kelulusan. Silakan lanjutkan ke menu <strong>Angket Evaluasi</strong> untuk merampungkan tahapan pelatihan.</p>
-                                </div>
-                            </div>
-                        <?php else: ?>
-                            <div class="d-flex align-items-start gap-3">
-                                <div class="rounded-3 p-3 bg-danger bg-opacity-10 text-danger fs-4 lh-1">
-                                    <i class="bi bi-exclamation-octagon-fill"></i>
-                                </div>
-                                <div>
-                                    <span class="badge bg-danger bg-opacity-10 text-danger mb-1 px-2 py-1 rounded-pill fw-semibold" style="font-size: 0.7rem;">STATUS: BELUM LULUS</span>
-                                    <h5 class="fw-bold text-dark mb-1">Belum Memenuhi Batas Kelulusan</h5>
-                                    <p class="text-muted small mb-0">Nilai Anda masih berada di bawah angka 70. Jangan patah semangat, silakan koordinasikan dengan mentor terkait jadwal ujian perbaikan atau remidi.</p>
-                                </div>
-                            </div>
-                        <?php endif; ?>
-
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Footer Motivasi -->
-            <div class="mt-4 pt-4 border-top d-flex align-items-center justify-content-between flex-wrap gap-2 text-muted small">
-                <span><i class="bi bi-mortarboard text-purple me-1"></i> Creativemu Academy Learning System</span>
-                <span>Tetap semangat tingkatkan portofolio keahlian Anda!</span>
-            </div>
-
+            <?php endif; ?>
         </div>
     </div>
 </div>
-
 
                 <!-- ================= TAB 4 : ANGKET EVALUASI ================= -->
                 <div class="tab-pane fade" id="angket" role="tabpanel">
-                    <div class="card">
-                        <div class="card-body p-4">
+                    <div class="card shadow-sm hover-card">
+                        <div class="card-body p-3.5">
                             <?php if (!empty($bisa_isi_angket) && $bisa_isi_angket): ?>
                                 <?php if (!$sudah_isi_angket): ?>
-                                    <div class="card border-left-success shadow mb-4">
-                                        <div class="card-body">
-                                            <h5 class="font-weight-bold text-success">Formulir Angket Evaluasi Pelatihan Tersedia</h5>
-                                            <p>Nilai ujian Anda telah diverifikasi dan dinyatakan LULUS. Silakan isi angket di bawah ini untuk merampungkan rangkaian pelatihan.</p>
-                                            <a href="<?= base_url('pelatihan/angket?id_kelas=' . $kelas['id_kelas']) ?>" class="btn btn-success">
-                                                <i class="fas fa-file-alt mr-1"></i> Isi Angket Penilaian
-                                            </a>
+                                    <div class="p-3.5 rounded-4 bg-white border border-purple border-opacity-25 shadow-sm">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="text-white rounded-3 p-2.5 fs-4 shadow-sm" style="background: var(--color-orange);"><i class="bi bi-clipboard2-check"></i></div>
+                                            <div>
+                                                <h5 class="fw-bold mb-1" style="color: var(--color-purple); font-size: 15px;">Formulir Angket Evaluasi Tersedia</h5>
+                                                <p class="text-muted mb-2.5" style="font-size: 13px;">Nilai ujian Anda sudah lulus. Silakan isi kuesioner evaluasi pelatihan.</p>
+                                                <a href="<?= base_url('pelatihan/angket?id_kelas=' . $kelas['id_kelas']) ?>" class="btn px-3.5 py-1.5 rounded-pill fw-semibold text-white shadow-sm" style="background: var(--color-purple); font-size: 12px;">
+                                                    <i class="fas fa-file-alt me-1"></i> Isi Angket Penilaian
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 <?php else: ?>
-                                    <div class="alert alert-success">
-                                        <i class="fas fa-check-circle mr-1"></i> Anda telah mengisi angket evaluasi pelatihan ini. Terima kasih!
+                                    <div class="alert alert-success border-0 shadow-sm rounded-3 mb-0 py-2.5 small" style="font-size: 13px;">
+                                        <i class="fas fa-check-circle me-2"></i> Terima kasih! Anda telah mengisi angket evaluasi pelatihan ini.
                                     </div>
                                 <?php endif; ?>
                             <?php else: ?>
-                                <div class="alert alert-secondary">
-                                    <i class="fas fa-info-circle mr-1"></i> Menu angket akan terbuka otomatis di sini jika nilai ujian Anda sudah keluar dan dinyatakan <strong>Lulus</strong>.
+                                <div class="alert alert-light border border-purple border-opacity-15 shadow-sm rounded-4 mb-0 py-4 text-center">
+                                    <i class="fas fa-info-circle fs-3 mb-2 d-block" style="color: var(--color-orange);"></i>
+                                    <h6 class="fw-bold text-dark" style="font-size: 14px;">Angket Belum Dapat Diakses</h6>
+                                    <p class="text-muted small mb-0" style="font-size: 13px;">Menu angket akan terbuka otomatis apabila nilai ujian Anda telah keluar dan dinyatakan <strong>Lulus</strong>.</p>
                                 </div>
                             <?php endif; ?>
                         </div>
                     </div>
                 </div>
 
+                <!-- ================= TAB 5 : SERTIFIKAT ================= -->
+                <div class="tab-pane fade" id="sertifikat" role="tabpanel">
+                    <div class="card shadow-sm hover-card">
+                        <div class="card-body p-3.5">
+                            <h5 class="fw-bold mb-2 text-dark" style="color: var(--color-purple); font-size: 15px;">Sertifikat Kelulusan Pelatihan</h5>
 
-               <!-- ================= TAB 5 : SERTIFIKAT ================= -->
-<div class="tab-pane fade" id="sertifikat" role="tabpanel">
-    <div class="card">
-        <div class="card-body p-4">
+                            <?php if (!empty($sertifikatTerbit)): ?>
+                                <div class="p-3.5 rounded-4 border mb-3 shadow-sm" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-color: rgba(226, 160, 72, 0.3) !important;">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="text-white rounded-3 p-2.5 fs-4 shadow-sm" style="background: var(--color-orange);"><i class="bi bi-award-fill"></i></div>
+                                        <div>
+                                            <h6 class="fw-bold mb-1" style="color: #92400e; font-size: 14px;">Sertifikat Resmi Telah Diterbitkan!</h6>
+                                            <p class="text-muted mb-0" style="font-size: 12px;">Anda berhak mengunduh sertifikat digital kelulusan program ini.</p>
+                                        </div>
+                                    </div>
+                                </div>
 
-            <h5 class="fw-bold mb-3 text-dark">
-                Sertifikat Pelatihan
-            </h5>
+                                <div class="row mb-3" style="font-size: 13px;">
+                                    <div class="col-md-6 mb-1.5">
+                                        <span class="text-muted d-block" style="font-size: 11px;">Nomor Sertifikat</span>
+                                        <strong class="text-dark"><?= esc($sertifikatTerbit['nomor_sertifikat'] ?? '-') ?></strong>
+                                    </div>
+                                    <div class="col-md-6 mb-1.5">
+                                        <span class="text-muted d-block" style="font-size: 11px;">Tanggal Terbit</span>
+                                        <strong class="text-dark"><?= !empty($sertifikatTerbit['tanggal_terbit']) ? date('d-m-Y', strtotime($sertifikatTerbit['tanggal_terbit'])) : '-' ?></strong>
+                                    </div>
+                                </div>
 
-            <?php if (!empty($sertifikatTerbit)): ?>
-
-                <div class="alert alert-success">
-                    <i class="fas fa-check-circle mr-1"></i>
-                    Selamat! Sertifikat pelatihan Anda sudah diterbitkan.
-                </div>
-
-                <div class="mb-3">
-                    <strong>Nomor Sertifikat:</strong>
-                    <?= esc($sertifikatTerbit['nomor_sertifikat'] ?? '-') ?>
-                </div>
-
-                <div class="mb-3">
-                    <strong>Tanggal Terbit:</strong>
-                    <?= !empty($sertifikatTerbit['tanggal_terbit'])
-                        ? date('d-m-Y', strtotime($sertifikatTerbit['tanggal_terbit']))
-                        : '-' ?>
-                </div>
-
-                <?php if (!empty($sertifikatTerbit['file_sertifikat'])): ?>
-
-                    <a href="<?= base_url('pelatihan/download-sertifikat/' . $sertifikatTerbit['id_sertifikat']) ?>"
-                       class="btn btn-success">
-                        <i class="fas fa-download mr-1"></i>
-                        Unduh Sertifikat
-                    </a>
-
-                <?php else: ?>
-
-                    <div class="alert alert-warning">
-                        File sertifikat belum tersedia.
+                                <?php if (!empty($sertifikatTerbit['file_sertifikat'])): ?>
+                                    <a href="<?= base_url('pelatihan/download-sertifikat/' . $sertifikatTerbit['id_sertifikat']) ?>" class="btn px-3.5 py-1.5 rounded-pill fw-semibold text-white shadow-sm" style="background: var(--color-purple); font-size: 12px;">
+                                        <i class="fas fa-download me-1"></i> Unduh File Sertifikat
+                                    </a>
+                                <?php else: ?>
+                                    <div class="alert alert-warning border-0 small py-2">File sertifikat belum diunggah oleh administrator.</div>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <div class="text-center py-4">
+                                    <div class="text-muted fs-2 mb-2"><i class="bi bi-shield-lock opacity-50"></i></div>
+                                    <h6 class="fw-bold text-dark" style="font-size: 14px;">Sertifikat Belum Tersedia</h6>
+                                    <p class="text-muted small mb-0" style="font-size: 13px;">Sertifikat akan otomatis muncul setelah Anda menyelesaikan seluruh tahapan pelatihan dan diterbitkan admin.</p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
                     </div>
-
-                <?php endif; ?>
-
-            <?php else: ?>
-
-                <div class="alert alert-warning">
-                    <i class="fas fa-info-circle mr-1"></i>
-                    Sertifikat belum tersedia.
                 </div>
-
-                <p class="text-muted mb-0">
-                    Sertifikat akan muncul setelah admin menerbitkan
-                    sertifikat untuk Anda.
-                </p>
-
-            <?php endif; ?>
-
-        </div>
-    </div>
-</div>
 
             </div>
-
         </div>
-
     </div>
-
 </div>
 
-<!-- Bootstrap JS Bundle -->
+<!-- Bootstrap 5 JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- JavaScript untuk Mendeteksi GPS Peserta Otomatis -->
+<!-- Script GPS & Sidebar Mobile -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const tombolAbsenList = document.querySelectorAll('.btn-absen');
@@ -942,23 +803,26 @@ document.addEventListener("DOMContentLoaded", function() {
             const userLat = position.coords.latitude;
             const userLon = position.coords.longitude;
             
-            // Masukkan koordinat ke semua input hidden yang ada di halaman
             inputLatList.forEach(input => input.value = userLat);
             inputLonList.forEach(input => input.value = userLon);
             
-            // Ubah tombol absen menjadi aktif dan siap diklik
             tombolAbsenList.forEach(btn => {
                 btn.removeAttribute('disabled');
-                btn.className = "btn btn-success btn-absen w-100";
-                btn.innerText = "Kirim Absen Sekarang";
+                btn.className = "btn btn-absen w-100 rounded-pill fw-semibold text-white shadow-sm";
+                btn.style.background = "var(--color-purple)";
+                btn.style.fontSize = "12px";
+                btn.innerHTML = "<i class='bi bi-geo-alt-fill me-1'></i> Kirim Absen Sekarang";
             });
             
         }, function(error) {
-            tombolAbsenList.forEach(btn => {
-                btn.className = "btn btn-danger btn-absen w-100";
-                btn.innerText = "Gagal Mendeteksi GPS";
+            tombolAbsenList.forEach(v => {
+                tombolAbsenList.forEach(btn => {
+                    btn.className = "btn btn-danger btn-absen w-100 rounded-pill fw-semibold";
+                    btn.style.fontSize = "12px";
+                    btn.innerText = "Gagal Mendeteksi GPS";
+                });
             });
-            alert('Gagal mendeteksi lokasi. Pastikan izin GPS/Location di browser/perangkat Anda sudah aktif!');
+            alert('Gagal mendeteksi lokasi. Pastikan izin GPS perangkat Anda aktif!');
         }, {
             enableHighAccuracy: true,
             timeout: 10000,
@@ -966,13 +830,13 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     } else {
         tombolAbsenList.forEach(btn => {
-            btn.className = "btn btn-secondary btn-absen w-100";
+            btn.className = "btn btn-secondary btn-absen w-100 rounded-pill fw-semibold";
+            btn.style.fontSize = "12px";
             btn.innerText = "GPS Tidak Didukung";
         });
-        alert('Browser Anda tidak mendukung fitur Geolocation.');
     }
 
-    // Mobile Sidebar Drawer Toggle
+    // Toggle Sidebar Mobile
     const toggleBtn = document.getElementById('sidebarToggle');
     const closeBtn = document.getElementById('sidebarClose');
     const sidebar = document.getElementById('sidebarMenu');
@@ -986,6 +850,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function closeSidebar() {
         if (sidebar) sidebar.classList.remove('show');
+        if (backdrop) backdrop.classList.1 = backdrop.classList.remove('show'); // safety
         if (backdrop) backdrop.classList.remove('show');
         document.body.style.overflow = '';
     }
@@ -993,15 +858,6 @@ document.addEventListener("DOMContentLoaded", function() {
     if (toggleBtn) toggleBtn.addEventListener('click', openSidebar);
     if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
     if (backdrop) backdrop.addEventListener('click', closeSidebar);
-
-    const navLinks = sidebar ? sidebar.querySelectorAll('li a') : [];
-    navLinks.forEach(function(link) {
-        link.addEventListener('click', function() {
-            if (window.innerWidth < 992) {
-                closeSidebar();
-            }
-        });
-    });
 });
 </script>
 

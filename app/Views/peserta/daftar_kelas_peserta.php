@@ -6,47 +6,77 @@
     <title>Daftar Kelas Saya - Creativemu Academy</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --primary-purple: #7c5cfa;
-            --dark-purple: #5b3fd6;
-            --deep-purple: #4a2fc9;
-            --light-purple: #efeaff;
-            --bg-body: #f8f6ff;
+            /* 4 Warna Sesuai Dashboard */
+            --color-purple: #7b5af6;
+            --color-pink: #df6be0;
+            --color-orange: #e2a048;
+            --color-cyan: #5ac5e8;
+            
+            --purple-deep: #5b3fd6;
+            --purple-mid: #7b5af6;
+            --purple-light: #9a7fff;
+            --purple-soft: #f3f0ff;
+            --purple-soft2: #e4deff;
         }
 
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: var(--bg-body); 
-            color: #334155;
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(123, 90, 246, 0.4) transparent;
         }
 
-        .app-wrapper { 
-            display: flex; 
-            min-height: 100vh; 
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(120deg, #f7f5ff, #f2efff, #faf8ff, #f0ebff);
+            background-size: 300% 300%;
+            animation: bgFlow 22s ease infinite;
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
+            color: #1e293b;
+            font-size: 14px;
         }
 
-        /* Sidebar Styling - identik dengan warna sidebar Dashboard */
-        .sidebar { 
-            width: 270px; 
+        @keyframes bgFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .app-wrapper {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Sidebar Sesuai Dashboard (220px dengan efek glow) */
+        .sidebar {
+            width: 220px;
             background:
-                radial-gradient(circle at 15% 12%, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 45%),
-                linear-gradient(165deg, #4a2fc9 0%, #7440e6 32%, #9257f2 60%, #b678f5 100%);
-            color: white; 
-            position: fixed; 
-            top: 0; 
-            bottom: 0; 
-            left: 0; 
-            padding: 24px; 
-            z-index: 100; 
-            box-shadow: 4px 0 25px rgba(116, 64, 230, 0.25);
+                radial-gradient(circle at 15% 12%, rgba(90, 197, 232, 0.2) 0%, rgba(255, 255, 255, 0) 45%),
+                linear-gradient(165deg, #5b3fd6 0%, #7b5af6 35%, #df6be0 75%, #5ac5e8 100%);
+            background-size: 200% 200%, 220% 220%;
+            animation: sidebarGlow 14s ease infinite;
+            color: white;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 20px 14px;
+            box-shadow: 6px 0 34px rgba(123, 90, 246, 0.25);
             overflow-y: auto;
             overflow-x: hidden;
         }
 
-        /* Tekstur garis tipis diagonal agar sidebar tidak terlihat polos, sama seperti Dashboard */
         .sidebar::after {
             content: "";
             position: absolute;
@@ -61,141 +91,118 @@
             pointer-events: none;
         }
 
-        /* Lingkaran cahaya lembut di sidebar, tidak terlalu mencolok, sama seperti Dashboard */
-        .sidebar::before {
-            content: "";
-            position: absolute;
-            top: -60px;
-            right: -60px;
-            width: 180px;
-            height: 180px;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 70%);
-            border-radius: 50%;
-            pointer-events: none;
+        @keyframes sidebarGlow {
+            0% { background-position: 0% 0%, 0% 0%; }
+            50% { background-position: 100% 100%, 100% 100%; }
+            100% { background-position: 0% 0%, 0% 0%; }
         }
 
-        .sidebar-brand { 
-            font-size: 1.35rem; 
-            font-weight: 800; 
-            color: white; 
-            text-decoration: none; 
-            display: flex; 
-            align-items: center; 
-            padding-bottom: 20px; 
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15); 
-            margin-bottom: 24px; 
-            letter-spacing: -0.5px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .sidebar-menu { 
-            list-style: none; 
-            padding: 0; 
-            margin: 0; 
-            position: relative;
-            z-index: 1;
-        }
-
-        .sidebar-menu li { 
-            margin-bottom: 10px; 
-        }
-
-        .sidebar-menu a { 
-            display: flex; 
-            align-items: center; 
-            color: rgba(255, 255, 255, 0.8); 
-            text-decoration: none; 
-            padding: 12px 16px; 
-            border-radius: 14px; 
-            font-weight: 600; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-        }
-
-        .sidebar-menu a:hover, .sidebar-menu a.active { 
-            background: rgba(255, 255, 255, 0.15); 
-            color: white; 
-            transform: translateX(6px); 
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .sidebar-menu a.active {
-            background: linear-gradient(90deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.12));
-            box-shadow: 0 6px 18px rgba(20, 5, 60, 0.28), inset 3px 0 0 #ffd166;
-        }
-
-        .sidebar-menu a i { 
-            font-size: 1.25rem; 
-            margin-right: 14px; 
-        }
-
-        /* Main Content Styling */
-        .main-content { 
-            flex: 1; 
-            margin-left: 270px; 
-            padding: 40px; 
-        }
-
-        /* Hero Header Card */
-        .header-banner {
-            background: linear-gradient(135deg, var(--dark-purple) 0%, var(--primary-purple) 100%);
-            border-radius: 24px;
+        .sidebar-brand {
+            font-size: 16px;
+            font-weight: 700;
             color: white;
-            padding: 35px 40px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 6px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            padding: 9px 12px;
+            border-radius: 9px;
+            font-weight: 500;
+            font-size: 13.5px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-menu a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transform: translateX(4px);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Menu Aktif dipindah ke Daftar Kelas Saya */
+        .sidebar-menu a.active {
+            background: linear-gradient(90deg, rgba(226, 160, 72, 0.4), rgba(90, 197, 232, 0.3));
+            color: white;
+            transform: translateX(4px);
+            box-shadow: 0 6px 18px rgba(20, 5, 60, 0.2), inset 3px 0 0 var(--color-orange);
+        }
+
+        .sidebar-menu a i {
+            font-size: 15px;
+            margin-right: 9px;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 220px;
+            padding: 24px 28px;
+            width: calc(100% - 220px);
+        }
+
+        /* Hero Header Banner ala Dashboard */
+        .header-banner {
+            background: linear-gradient(135deg, var(--purple-deep) 0%, var(--color-purple) 100%);
+            border-radius: 16px;
+            color: white;
+            padding: 24px 28px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(124, 92, 250, 0.2);
+            box-shadow: 0 8px 24px rgba(123, 90, 246, 0.15);
         }
 
-        .header-banner::after {
-            content: '';
-            position: absolute;
-            right: -30px;
-            bottom: -50px;
-            width: 250px;
-            height: 250px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .header-banner .row {
-            position: relative;
-            z-index: 2;
-        }
-
-        /* Course Card Modern Styling */
+        /* Course Card Style Sesuai Tema Dashboard */
         .course-card {
             border: none;
-            border-radius: 20px;
-            background: #ffffff;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(123, 90, 246, 0.05);
             transition: all 0.3s ease;
-            box-shadow: 0 4px 20px rgba(124, 92, 250, 0.05);
-            overflow: hidden;
             display: flex;
             flex-direction: column;
             height: 100%;
-            border: 1px solid rgba(124, 92, 250, 0.08);
+            overflow: hidden;
         }
 
         .course-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 30px rgba(124, 92, 250, 0.15);
-            border-color: rgba(124, 92, 250, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(123, 90, 246, 0.12) !important;
         }
 
         .card-img-wrapper {
             position: relative;
+            height: 160px;
             overflow: hidden;
-            height: 200px;
         }
 
         .card-img-top {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.5s ease;
+            transition: transform 0.4s ease;
         }
 
         .course-card:hover .card-img-top {
@@ -204,131 +211,88 @@
 
         .card-img-overlay-badge {
             position: absolute;
-            top: 15px;
-            left: 15px;
+            top: 10px;
+            left: 10px;
             display: flex;
             gap: 6px;
-            flex-wrap: wrap;
         }
 
         .custom-badge {
-            background: rgba(74, 47, 201, 0.85);
+            background: rgba(91, 63, 214, 0.85);
             backdrop-filter: blur(4px);
             color: white;
             font-weight: 600;
-            font-size: 0.75rem;
-            padding: 6px 12px;
-            border-radius: 30px;
-            letter-spacing: 0.3px;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 20px;
         }
 
         .badge-category {
-            background: var(--light-purple);
-            color: var(--primary-purple);
+            background: var(--purple-soft);
+            color: var(--color-purple);
             font-weight: 700;
         }
 
         .info-item {
             display: flex;
             align-items: flex-start;
-            margin-bottom: 12px;
-            font-size: 0.875rem;
+            margin-bottom: 8px;
+            font-size: 13px;
         }
 
         .info-item i {
-            font-size: 1rem;
-            margin-right: 10px;
-            margin-top: 1px;
-            flex-shrink: 0;
-            color: var(--primary-purple);
+            font-size: 14px;
+            margin-right: 8px;
+            color: var(--color-purple);
+            margin-top: 2px;
         }
 
-        /* Button Styling */
         .btn-kbm {
-            background: linear-gradient(135deg, var(--primary-purple) 0%, var(--dark-purple) 100%);
+            background: linear-gradient(135deg, var(--color-purple), var(--color-pink));
             color: white;
             border: none;
-            border-radius: 14px;
-            padding: 12px;
+            border-radius: 10px;
+            padding: 9px;
             font-weight: 700;
-            letter-spacing: 0.3px;
+            font-size: 13px;
+            box-shadow: 0 4px 12px rgba(123, 90, 246, 0.2);
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(124, 92, 250, 0.25);
         }
 
         .btn-kbm:hover {
-            background: linear-gradient(135deg, var(--dark-purple) 0%, var(--deep-purple) 100%);
             color: white;
+            opacity: 0.95;
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(124, 92, 250, 0.35);
+            box-shadow: 0 6px 16px rgba(123, 90, 246, 0.3);
         }
 
         .btn-tambah-kelas {
             background: #ffffff;
-            color: var(--primary-purple);
+            color: var(--color-purple);
             font-weight: 700;
-            font-size: 0.98rem;
-            padding: 13px 26px;
+            font-size: 13px;
+            padding: 8px 18px;
             border-radius: 50rem;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-            border: 1.5px solid rgba(255, 255, 255, 0.8);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+            text-decoration: none;
             display: inline-flex;
             align-items: center;
-            text-decoration: none;
-            letter-spacing: 0.2px;
-            position: relative;
-            z-index: 10;
-            cursor: pointer;
         }
 
         .btn-tambah-kelas:hover {
-            background: #f4eeff;
-            color: var(--dark-purple);
-            transform: translateY(-3px);
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+            background: var(--purple-soft);
+            color: var(--purple-deep);
         }
 
-        /* Empty State */
         .empty-state-card {
-            background: white;
-            border-radius: 24px;
-            border: 2px dashed rgba(124, 92, 250, 0.2);
-            padding: 60px 20px;
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 16px;
+            border: 2px dashed rgba(123, 90, 246, 0.2);
+            padding: 40px 20px;
         }
 
-        /* Animasi masuk yang halus, secukupnya saja */
-        .header-banner {
-            animation: fadeInDown 0.5s ease;
-        }
-        .course-card {
-            opacity: 0;
-            animation: fadeInUp 0.5s ease forwards;
-        }
-        .row.g-4 > div:nth-child(1) .course-card { animation-delay: 0.05s; }
-        .row.g-4 > div:nth-child(2) .course-card { animation-delay: 0.1s; }
-        .row.g-4 > div:nth-child(3) .course-card { animation-delay: 0.15s; }
-        .row.g-4 > div:nth-child(4) .course-card { animation-delay: 0.2s; }
-        .row.g-4 > div:nth-child(5) .course-card { animation-delay: 0.25s; }
-        .row.g-4 > div:nth-child(6) .course-card { animation-delay: 0.3s; }
-
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-14px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* =========================
-           RESPONSIVE & MOBILE DRAWER
-        ========================= */
-        .mobile-topbar {
-            display: none;
-            width: 100%;
-        }
-
+        /* Mobile Topbar & Responsive */
+        .mobile-topbar { display: none; width: 100%; }
         .sidebar-backdrop {
             display: none;
             position: fixed;
@@ -336,31 +300,20 @@
             background: rgba(15, 7, 35, 0.55);
             backdrop-filter: blur(4px);
             z-index: 1040;
-            opacity: 0;
-            transition: opacity 0.3s ease;
         }
-
-        .sidebar-backdrop.show {
-            display: block;
-            opacity: 1;
-        }
-
+        .sidebar-backdrop.show { display: block; }
         .sidebar-close-btn {
             display: none;
             background: rgba(255, 255, 255, 0.15);
             border: none;
             color: white;
-            width: 34px;
-            height: 34px;
+            width: 30px;
+            height: 30px;
             border-radius: 8px;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 1.1rem;
-            transition: background 0.2s ease;
-        }
-        .sidebar-close-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
+            font-size: 15px;
         }
 
         @media (max-width: 991.98px) {
@@ -368,159 +321,112 @@
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                background: linear-gradient(135deg, #4a2fc9 0%, #7440e6 100%);
+                background: linear-gradient(135deg, #5b3fd6 0%, #7b5af6 100%);
                 color: white;
-                padding: 14px 18px;
+                padding: 12px 16px;
                 position: sticky;
                 top: 0;
                 z-index: 990;
-                box-shadow: 0 4px 18px rgba(116, 64, 230, 0.25);
+                box-shadow: 0 4px 18px rgba(123, 90, 246, 0.25);
             }
-
-            .app-wrapper {
-                flex-direction: column;
-            }
-
+            .app-wrapper { flex-direction: column; }
             .sidebar {
-                width: 280px;
+                width: 260px;
                 max-width: 82vw;
                 transform: translateX(-100%);
                 transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 z-index: 1050;
-                box-shadow: 10px 0 40px rgba(0, 0, 0, 0.35);
             }
-
-            .sidebar.show {
-                transform: translateX(0);
-            }
-
-            .sidebar-close-btn {
-                display: flex;
-            }
-
+            .sidebar.show { transform: translateX(0); }
+            .sidebar-close-btn { display: flex; }
             .main-content {
                 margin-left: 0 !important;
                 width: 100% !important;
-                max-width: 100% !important;
-                padding: 24px 16px !important;
-            }
-
-            .header-banner {
-                padding: 24px 20px;
-            }
-        }
-
-        @media (max-width: 575.98px) {
-            .main-content {
                 padding: 16px 12px !important;
-            }
-            .header-banner {
-                padding: 20px 16px;
-                border-radius: 18px;
             }
         }
     </style>
 </head>
 <body>
 
-
-<!-- TOPBAR KHUSUS MOBILE -->
+<!-- TOPBAR MOBILE -->
 <div class="mobile-topbar">
     <div class="d-flex align-items-center gap-2">
         <button type="button" class="btn btn-sm btn-link text-white p-0 fs-3 text-decoration-none lh-1 shadow-none" id="sidebarToggle" aria-label="Buka Menu">
             <i class="bi bi-list"></i>
         </button>
-        <span class="fw-bold fs-6 tracking-wide">
-            <i class="bi bi-mortarboard-fill text-warning me-1"></i> Creativemu
+        <span class="fw-bold fs-6">
+            <i class="bi bi-mortarboard-fill me-1" style="color: var(--color-orange);"></i> Creativemu
         </span>
     </div>
-    <a href="<?= base_url('pelatihan/pengaturan') ?>" class="text-white text-decoration-none small d-flex align-items-center gap-1 bg-white bg-opacity-20 px-2 py-1 rounded-pill">
+    <a href="<?= base_url('pelatihan/pengaturan') ?>" class="text-white text-decoration-none small d-flex align-items-center gap-1 bg-white bg-opacity-20 px-2.5 py-1 rounded-pill" style="font-size: 13px;">
         <i class="bi bi-person-circle"></i> Peserta
     </a>
 </div>
 
-
-<!-- BACKDROP UNTUK MENUTUP SIDEBAR DI MOBILE -->
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-<!-- Sidebar -->
+<!-- SIDEBAR -->
 <nav class="sidebar" id="sidebarMenu">
-        <a href="#" class="sidebar-brand d-flex align-items-center">
-            <!-- Menggunakan file gambar logo dari folder assets -->
-            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Logo Creativemu" class="rounded-3 me-2 shadow-sm object-fit-cover" style="width: 38px; height: 38px;">
-            
+    <div class="d-flex align-items-center justify-content-between pb-2.5 mb-2.5 border-bottom border-white border-opacity-10">
+        <a href="#" class="sidebar-brand text-decoration-none d-flex align-items-center mb-0 pb-0 border-0">
+            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Logo" class="rounded-3 me-2 shadow-sm object-fit-cover" style="width: 28px; height: 28px;">
             <div>
-                <span class="fs-6 fw-bold d-block text-white lh-1">Creativemu</span>
-                <span class="text-white-50" style="font-size: 0.65rem; letter-spacing: 0.5px;">ACADEMY</span>
+                <span class="fs-6 fw-bold d-block text-white lh-1" style="font-size: 14.5px !important;">Creativemu</span>
+                <span style="font-size: 9.5px; letter-spacing: 0.5px; color: var(--color-cyan);">ACADEMY</span>
             </div>
         </a>
-        <ul class="sidebar-menu">
-            <li>
-                <a href="<?= base_url('peserta/dashboard') ?>" class="active"><i class="bi bi-grid-fill"></i> Dashboard</a>
-            </li>
-            <li>
-                <a href="<?= base_url('pelatihan/daftar-kelas-peserta') ?>"><i class="bi bi-journals"></i> Daftar Kelas Saya</a>
-            </li>
-            <li>
-                <a href="<?= base_url('pelatihan/kelas') ?>"><i class="bi bi-mortarboard-fill"></i> KBM</a>
-            </li>
-            <li>
-                <a href="<?= base_url('pelatihan/pengaturan') ?>"><i class="bi bi-gear-fill"></i> Pengaturan</a>
-            </li>
-            <li class="mt-5">
-                <a href="<?= base_url('auth/logout') ?>" class="text-danger bg-danger bg-opacity-10"><i class="bi bi-box-arrow-left"></i> Keluar</a>
-            </li>
-        </ul>
-    </nav>
+        <button type="button" class="sidebar-close-btn" id="sidebarClose" aria-label="Tutup Menu">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    <ul class="sidebar-menu">
+        <li>
+            <a href="<?= base_url('peserta/dashboard') ?>"><i class="bi bi-grid-fill" style="color: var(--color-cyan);"></i> Dashboard</a>
+        </li>
+        <li>
+            <a href="<?= base_url('pelatihan/daftar-kelas-peserta') ?>" class="active"><i class="bi bi-journals" style="color: var(--color-pink);"></i> Daftar Kelas Saya</a>
+        </li>
+        <li>
+            <a href="<?= base_url('pelatihan/kelas') ?>"><i class="bi bi-mortarboard-fill" style="color: var(--color-orange);"></i> KBM</a>
+        </li>
+        <li>
+            <a href="<?= base_url('pelatihan/pengaturan') ?>"><i class="bi bi-gear-fill" style="color: var(--color-cyan);"></i> Pengaturan</a>
+        </li>
+        <li class="mt-3">
+            <a href="<?= base_url('auth/logout') ?>" class="text-danger bg-danger bg-opacity-10"><i class="bi bi-box-arrow-left"></i> Keluar</a>
+        </li>
+    </ul>
+</nav>
 
 <div class="app-wrapper">
-    <!-- Main Content -->
     <div class="main-content">
-        <div class="container-fluid px-0">
+        <div class="container-fluid py-1">
             
-            <!-- Hero Header Banner -->
+            <!-- Hero Header Banner Sesuai Tema Dashboard -->
             <div class="header-banner mb-4">
                 <div class="row align-items-center">
                     <div class="col-lg-8">
-                        <span class="badge bg-white bg-opacity-25 text-white px-3 py-1 rounded-pill mb-2 fw-semibold" style="font-size: 0.8rem;">
+                        <span class="badge bg-white bg-opacity-25 text-white px-3 py-1 rounded-pill mb-2 fw-semibold" style="font-size: 11px;">
                             <i class="bi bi-journal-check me-1"></i> Area Pembelajaran Aktif
                         </span>
-                        <h1 class="fw-extrabold mb-2" style="font-size: 2.2rem; font-weight: 800; color: #ffffff;">Daftar Kelas Saya</h1>
-                        <p class="mb-0 text-white-50" style="font-size: 1.05rem;">Kelola, pantau, dan akses kelas pelatihan interaktif yang sedang Anda ikuti di Creativemu Academy.</p>
+                        <h4 class="fw-bold mb-1" style="font-size: 20px;">Daftar Kelas Saya</h4>
+                        <p class="mb-0 text-white-50" style="font-size: 13px;">Kelola, pantau, dan akses kelas pelatihan interaktif yang sedang Anda ikuti di Creativemu Academy.</p>
                     </div>
-                    <div class="col-lg-4 text-lg-end mt-3 mt-lg-0" style="position: relative; z-index: 10;">
-                        <a href="<?= base_url('pelatihan/pendaftaran') ?>" class="btn btn-tambah-kelas" id="btnTambahKelas">
-                            <i class="bi bi-plus-circle-fill me-2 fs-5"></i> Tambah Kelas
+                    <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                        <a href="<?= base_url('pelatihan/pendaftaran') ?>" class="btn btn-tambah-kelas shadow-sm">
+                            <i class="bi bi-plus-circle-fill me-1.5" style="color: var(--color-purple);"></i> Tambah Kelas
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Flash Messages -->
-            <?php if (session()->getFlashdata('success')): ?>
-                <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm border-0 mb-4 d-flex align-items-center" role="alert">
-                    <i class="bi bi-check-circle-fill fs-4 me-3 text-success"></i>
-                    <div><?= session()->getFlashdata('success') ?></div>
-                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
-                </div>
-            <?php endif; ?>
-
-            <?php if (session()->getFlashdata('error')): ?>
-                <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm border-0 mb-4 d-flex align-items-center" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-danger"></i>
-                    <div><?= session()->getFlashdata('error') ?></div>
-                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
-                </div>
-            <?php endif; ?>
-
             <!-- List Card Kelas -->
-            <div class="row g-4">
+            <div class="row g-3">
                 <?php if (!empty($kelas) && is_array($kelas)): ?>
                     <?php foreach ($kelas as $k): ?>
                         <div class="col-xl-4 col-md-6">
                             <div class="course-card">
-                                
-                                <!-- Foto / Thumbnail Kelas dengan Efek & Badge Overlay -->
                                 <div class="card-img-wrapper">
                                     <?php 
                                         $fotoPelatihan = !empty($k['thumbnail']) && file_exists(FCPATH . 'uploads/kelas/' . $k['thumbnail']) 
@@ -528,65 +434,53 @@
                                             : (!empty($k['pas_foto']) ? base_url('uploads/foto/' . $k['pas_foto']) : 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop'); 
                                     ?>
                                     <img src="<?= $fotoPelatihan ?>" class="card-img-top" alt="Thumbnail Kelas">
-                                    
                                     <div class="card-img-overlay-badge">
                                         <span class="custom-badge badge-category">
                                             <i class="bi bi-tag-fill me-1"></i> <?= esc($k['kategori_kelas'] ?? 'Umum') ?>
                                         </span>
-                                        <span class="custom-badge">
-                                            <?= esc($k['jenis_kelas'] ?? 'Reguler') ?>
-                                        </span>
+                                        <span class="custom-badge"><?= esc($k['jenis_kelas'] ?? 'Reguler') ?></span>
                                     </div>
                                 </div>
 
-                                <!-- Card Body Content -->
-                                <div class="card-body p-4 d-flex flex-column">
-                                    <h4 class="fw-bold mb-3" style="color: var(--dark-purple); font-size: 1.25rem; line-height: 1.4;">
+                                <div class="card-body p-3.5 d-flex flex-column">
+                                    <h5 class="fw-bold mb-3" style="color: var(--color-purple); font-size: 15px; line-height: 1.4;">
                                         <?= esc($k['nama_kelas'] ?? $k['pilihan_pelatihan']) ?>
-                                    </h4>
+                                    </h5>
 
-                                    <div class="mb-4 flex-grow-1">
-                                        <!-- Mentor -->
+                                    <div class="mb-3 flex-grow-1">
                                         <div class="info-item">
                                             <i class="bi bi-person-badge-fill"></i>
                                             <div>
-                                                <span class="text-muted d-block" style="font-size: 0.75rem;">Mentor Pengampu</span>
-                                                <strong class="text-dark"><?= esc($k['nama_mentor'] ?? 'Belum Ditentukan') ?></strong>
+                                                <span class="text-muted d-block" style="font-size: 11px;">Mentor Pengampu</span>
+                                                <strong class="text-dark" style="font-size: 12.5px;"><?= esc($k['nama_mentor'] ?? 'Belum Ditentukan') ?></strong>
                                             </div>
                                         </div>
-
-                                        <!-- Lokasi -->
                                         <div class="info-item">
                                             <i class="bi bi-geo-alt-fill"></i>
                                             <div>
-                                                <span class="text-muted d-block" style="font-size: 0.75rem;">Tempat / Lokasi Pelatihan</span>
-                                                <strong class="text-dark"><?= esc($k['lokasi_pelatihan'] ?? '-') ?></strong>
+                                                <span class="text-muted d-block" style="font-size: 11px;">Tempat / Lokasi Pelatihan</span>
+                                                <strong class="text-dark" style="font-size: 12.5px;"><?= esc($k['lokasi_pelatihan'] ?? '-') ?></strong>
                                             </div>
                                         </div>
-
-                                        <!-- Metode -->
                                         <div class="info-item">
                                             <i class="bi bi-laptop-fill"></i>
                                             <div>
-                                                <span class="text-muted d-block" style="font-size: 0.75rem;">Metode Pembelajaran</span>
-                                                <strong class="text-dark text-capitalize"><?= esc($k['metode_pembelajaran'] ?? '-') ?></strong>
+                                                <span class="text-muted d-block" style="font-size: 11px;">Metode Pembelajaran</span>
+                                                <strong class="text-dark text-capitalize" style="font-size: 12.5px;"><?= esc($k['metode_pembelajaran'] ?? '-') ?></strong>
                                             </div>
                                         </div>
-
-                                        <!-- Tanggal Mulai -->
                                         <div class="info-item mb-0">
                                             <i class="bi bi-calendar-check-fill"></i>
                                             <div>
-                                                <span class="text-muted d-block" style="font-size: 0.75rem;">Mulai Pelatihan</span>
-                                                <strong class="text-dark"><?= esc($k['tanggal_mulai_kelas'] ?? '-') ?></strong>
+                                                <span class="text-muted d-block" style="font-size: 11px;">Mulai Pelatihan</span>
+                                                <strong class="text-dark" style="font-size: 12.5px;"><?= esc($k['tanggal_mulai_kelas'] ?? '-') ?></strong>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- Action Button -->
-                                    <div class="mt-auto pt-2">
+                                    <div class="mt-auto pt-1">
                                         <a href="<?= base_url('pelatihan/kbm?id_kelas=' . $k['id_kelas']) ?>" class="btn btn-kbm w-100 d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-mortarboard-fill me-2 fs-5"></i> Masuk Ruang KBM
+                                            <i class="bi bi-mortarboard-fill me-2 fs-6"></i> Masuk Ruang KBM
                                         </a>
                                     </div>
                                 </div>
@@ -594,17 +488,16 @@
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <!-- Empty State Modern -->
                     <div class="col-12">
                         <div class="empty-state-card text-center">
                             <div class="mb-3">
-                                <span class="p-4 rounded-circle bg-light d-inline-block text-purple" style="color: var(--primary-purple);">
-                                    <i class="bi bi-journal-x fs-1"></i>
+                                <span class="p-3 rounded-circle bg-white d-inline-block shadow-sm" style="color: var(--color-purple);">
+                                    <i class="bi bi-journal-x fs-2"></i>
                                 </span>
                             </div>
-                            <h4 class="fw-bold" style="color: var(--dark-purple);">Belum Ada Kelas yang Diambil</h4>
-                            <p class="text-muted mb-4 mx-auto" style="max-width: 400px;">Anda belum terdaftar di kelas pelatihan apapun. Silakan pilih kelas terlebih dahulu untuk mulai belajar.</p>
-                            <a href="<?= base_url('pelatihan/pendaftaran') ?>" class="btn btn-kbm px-5 py-3 rounded-pill d-inline-flex align-items-center" id="btnPilihKelasEmpty">
+                            <h5 class="fw-bold mb-1" style="color: var(--color-purple); font-size: 16px;">Belum Ada Kelas yang Diambil</h5>
+                            <p class="text-muted mb-3 mx-auto" style="max-width: 380px; font-size: 13px;">Anda belum terdaftar di kelas pelatihan apapun. Silakan pilih kelas terlebih dahulu untuk mulai belajar.</p>
+                            <a href="<?= base_url('pelatihan/pendaftaran') ?>" class="btn btn-kbm px-4 py-2 rounded-pill d-inline-flex align-items-center shadow-sm" style="font-size: 13px;">
                                 <i class="bi bi-plus-circle-fill me-2"></i> Tambah Kelas Sekarang
                             </a>
                         </div>
@@ -641,15 +534,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (toggleBtn) toggleBtn.addEventListener('click', openSidebar);
     if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
     if (backdrop) backdrop.addEventListener('click', closeSidebar);
-
-    const navLinks = sidebar ? sidebar.querySelectorAll('li a') : [];
-    navLinks.forEach(function(link) {
-        link.addEventListener('click', function() {
-            if (window.innerWidth < 992) {
-                closeSidebar();
-            }
-        });
-    });
 });
 </script>
 </body>
