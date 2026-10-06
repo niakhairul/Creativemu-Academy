@@ -223,7 +223,7 @@ class Pelatihan extends BaseController
             foreach ($semuaUjian as $u) {
                 // Sesuaikan 'id_user' atau 'id_peserta' dengan kolom database Anda
                 $cekNilai = $db->table('nilai_ujian')
-                    ->where('id_user', $userId)
+                    ->where('id_users', $userId)
                     ->where('id_ujian', $u['id_ujian'])
                     ->get()
                     ->getRowArray();
@@ -1098,7 +1098,7 @@ public function setujuiPendaftaran($id_pendaftaran)
 
             foreach ($ujian as &$itemUjian) {
                 $hasilUjian = $db->table('nilai_ujian')
-                    ->where('id_user', $this->userId())
+                    ->where('id_users', $this->userId())
                     ->where('id_ujian', $itemUjian['id_ujian'])
                     ->orderBy('id_nilai_ujian', 'DESC')
                     ->get()
@@ -1332,7 +1332,7 @@ if ($kelas) {
     // 5. Ambil Nilai Ujian Peserta
     $nilaiUjianRow = null;
     if ($userId && $id_kelas) {
-        $builderNilai = $db->table('nilai_ujian')->where('id_user', $userId);
+        $builderNilai = $db->table('nilai_ujian')->where('id_users', $userId);
         if ($db->fieldExists('id_kelas', 'nilai_ujian')) {
             $builderNilai->where('id_kelas', $id_kelas);
         }
@@ -1342,7 +1342,7 @@ if ($kelas) {
             $nilaiUjianRow = $db->table('nilai_ujian')
                 ->select('nilai_ujian.*')
                 ->join('ujian', 'ujian.id_ujian = nilai_ujian.id_ujian', 'inner')
-                ->where('nilai_ujian.id_user', $userId)
+                ->where('nilai_ujian.id_users', $userId)
                 ->where('ujian.id_kelas', $id_kelas)
                 ->orderBy('nilai_ujian.id_nilai_ujian', 'DESC')
                 ->get()
@@ -2158,7 +2158,7 @@ if ($kelas) {
         // Ambil riwayat nilai peserta untuk setiap ujian
         foreach ($ujian as &$item) {
             $nilaiRow = $db->table('nilai_ujian')
-                ->where('id_user', $this->userId())
+                ->where('id_users', $this->userId())
                 ->groupStart()
                     ->where('id_ujian', $item['id_ujian'])
                     ->orWhere('id_kelas', $kelas['id_kelas'])
@@ -2490,7 +2490,7 @@ public function simpanJawabanUjian()
 
         // Cari riwayat nilai sebelumnya
         $existing = $db->table('nilai_ujian')
-            ->where('id_user', $userId)
+            ->where('id_users', $userId)
             ->groupStart()
                 ->where('id_ujian', $idUjian)
                 ->orWhere('id_kelas', $kelas['id_kelas'])
@@ -2528,7 +2528,7 @@ public function simpanJawabanUjian()
             $statusRemidi = ($nilaiPersen >= 70) ? 'tidak_perlu' : 'wajib';
 
             $data = [
-                'id_user'          => $userId,
+                'id_users'         => $userId,
                 'id_kelas'         => $kelas['id_kelas'],
                 'id_ujian'         => $idUjian,
                 'benar'            => $benar,
@@ -2573,7 +2573,7 @@ public function simpanJawabanUjian()
 
         $db = \Config\Database::connect();
         $nilaiRow = $db->table('nilai_ujian')
-            ->where('id_user', $this->userId())
+            ->where('id_users', $this->userId())
             ->where('id_kelas', $kelas['id_kelas'])
             ->orderBy('id_nilai_ujian', 'DESC')
             ->get()
@@ -2731,7 +2731,7 @@ public function simpanJawabanUjian()
         if ($pendaftaran) {
             $hasilUjian = (new HasilUjianModel())
                 ->where('id_kelas', $pendaftaran['id_kelas'])
-                ->where('id_user', $this->userId())
+                ->where('id_users', $this->userId())
                 ->orderBy('id_nilai_ujian', 'DESC')
                 ->first();
         }
@@ -2834,7 +2834,7 @@ public function simpanJawabanUjian()
 
         foreach ($semuaUjian as $u) {
             $hasilUjian = $db->table('nilai_ujian')
-                ->where('id_user', $this->userId())
+                ->where('id_users', $this->userId())
                 ->where('id_ujian', $u['id_ujian'])
                 ->orderBy('id_nilai_ujian', 'DESC')
                 ->get()

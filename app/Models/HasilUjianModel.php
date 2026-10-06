@@ -10,7 +10,7 @@ class HasilUjianModel extends Model
     protected $primaryKey = 'id_nilai_ujian';
     protected $returnType = 'array';
     protected $allowedFields = [
-        'id_user',
+        'id_users',
         'id_kelas',
         'id_ujian',
         'benar',

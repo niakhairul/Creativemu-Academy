@@ -2335,7 +2335,7 @@ private function generateNisPendaftaran($db, array $pendaftaran): string
 
     $builder->join(
         'nilai_ujian',
-        'nilai_ujian.id_user = pendaftaran.id_users AND nilai_ujian.id_kelas = pendaftaran.id_kelas',
+        'nilai_ujian.id_users = pendaftaran.id_users AND nilai_ujian.id_kelas = pendaftaran.id_kelas',
         'inner'
     );
 
@@ -3460,7 +3460,7 @@ public function hasilAngket()
 
             'nilai_ujian',
 
-            'nilai_ujian.id_user = sertifikat.id_user
+            'nilai_ujian.id_users = sertifikat.id_user
 
              AND nilai_ujian.id_kelas = sertifikat.id_kelas',
 
@@ -3482,7 +3482,7 @@ public function hasilAngket()
 
         ->select('
 
-            nilai_ujian.id_user,
+            nilai_ujian.id_users,
 
             nilai_ujian.id_kelas,
 
@@ -3502,7 +3502,7 @@ public function hasilAngket()
 
             'users',
 
-            'users.id_users = nilai_ujian.id_user',
+            'users.id_users = nilai_ujian.id_users',
 
             'inner'
 
@@ -3556,7 +3556,7 @@ public function hasilAngket()
 
         ->select('
 
-            nilai_ujian.id_user,
+            nilai_ujian.id_users,
 
             nilai_ujian.id_kelas,
 
@@ -3576,7 +3576,7 @@ public function hasilAngket()
 
             'users',
 
-            'users.id_users = nilai_ujian.id_user',
+            'users.id_users = nilai_ujian.id_users',
 
             'inner'
 
@@ -3651,9 +3651,7 @@ public function hasilAngket()
     // Pastikan peserta memang LULUS pada kelas tersebut
 
     $hasilUjian = $db->table('nilai_ujian')
-
-        ->where('id_user', $idUser)
-
+        ->where('id_users', $idUser)
         ->where('id_kelas', $idKelas)
 
         ->where("LOWER(status_kelulusan) = 'lulus'", null, false)
@@ -4016,7 +4014,7 @@ public function editSertifikat($id)
 
             'nilai_ujian',
 
-            'nilai_ujian.id_user = sertifikat.id_user
+            'nilai_ujian.id_users = sertifikat.id_user
 
              AND nilai_ujian.id_kelas = sertifikat.id_kelas',
 
