@@ -158,43 +158,54 @@
         .main-content {
             flex: 1;
             margin-left: 220px;
-            padding: 24px 28px;
+            padding: 20px 24px;
             width: calc(100% - 220px);
         }
 
         /* Hero Header Banner ala Dashboard */
         .header-banner {
-            background: linear-gradient(135deg, var(--purple-deep) 0%, var(--color-purple) 100%);
-            border-radius: 16px;
+            background: linear-gradient(165deg, #7b5af6 0%, #df6be0 50%, #5ac5e8 100%);
+            background-size: 220% 220%;
+            animation: headerGlow 10s ease infinite;
+            border-radius: 14px;
             color: white;
-            padding: 24px 28px;
+            padding: 18px 24px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 8px 24px rgba(123, 90, 246, 0.15);
+            box-shadow: 0 6px 20px rgba(123, 90, 246, 0.25);
+            border-left: 4px solid #df6be0;
+        }
+
+        @keyframes headerGlow {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
         }
 
         /* Course Card Style Sesuai Tema Dashboard */
         .course-card {
-            border: none;
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 24px rgba(123, 90, 246, 0.05);
-            transition: all 0.3s ease;
+            border: 1px solid rgba(123, 90, 246, 0.1);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 4px 12px rgba(123, 90, 246, 0.04);
+            transition: all 0.25s ease;
             display: flex;
             flex-direction: column;
             height: 100%;
             overflow: hidden;
+            max-width: 280px;
+            width: 100%;
         }
 
         .course-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 28px rgba(123, 90, 246, 0.12) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(123, 90, 246, 0.1) !important;
+            border-color: rgba(123, 90, 246, 0.2);
         }
 
         .card-img-wrapper {
             position: relative;
-            height: 160px;
+            height: 110px;
             overflow: hidden;
         }
 
@@ -211,10 +222,10 @@
 
         .card-img-overlay-badge {
             position: absolute;
-            top: 10px;
-            left: 10px;
+            top: 6px;
+            left: 6px;
             display: flex;
-            gap: 6px;
+            gap: 4px;
         }
 
         .custom-badge {
@@ -222,9 +233,9 @@
             backdrop-filter: blur(4px);
             color: white;
             font-weight: 600;
-            font-size: 11px;
-            padding: 4px 10px;
-            border-radius: 20px;
+            font-size: 9.5px;
+            padding: 2px 7px;
+            border-radius: 8px;
         }
 
         .badge-category {
@@ -236,13 +247,13 @@
         .info-item {
             display: flex;
             align-items: flex-start;
-            margin-bottom: 8px;
-            font-size: 13px;
+            margin-bottom: 4px;
+            font-size: 11.5px;
         }
 
         .info-item i {
-            font-size: 14px;
-            margin-right: 8px;
+            font-size: 12px;
+            margin-right: 6px;
             color: var(--color-purple);
             margin-top: 2px;
         }
@@ -251,44 +262,46 @@
             background: linear-gradient(135deg, var(--color-purple), var(--color-pink));
             color: white;
             border: none;
-            border-radius: 10px;
-            padding: 9px;
+            border-radius: 6px;
+            padding: 6px;
             font-weight: 700;
-            font-size: 13px;
-            box-shadow: 0 4px 12px rgba(123, 90, 246, 0.2);
-            transition: all 0.3s ease;
+            font-size: 12px;
+            box-shadow: 0 4px 10px rgba(123, 90, 246, 0.15);
+            transition: all 0.25s ease;
         }
 
         .btn-kbm:hover {
             color: white;
             opacity: 0.95;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(123, 90, 246, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(123, 90, 246, 0.25);
         }
 
         .btn-tambah-kelas {
             background: #ffffff;
-            color: var(--color-purple);
+            color: var(--color-orange);
             font-weight: 700;
-            font-size: 13px;
-            padding: 8px 18px;
+            font-size: 12.5px;
+            padding: 7px 16px;
             border-radius: 50rem;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             text-decoration: none;
             display: inline-flex;
             align-items: center;
+            transition: all 0.25s ease;
         }
 
         .btn-tambah-kelas:hover {
             background: var(--purple-soft);
-            color: var(--purple-deep);
+            color: var(--color-orange);
+            transform: translateY(-1px);
         }
 
         .empty-state-card {
             background: rgba(255, 255, 255, 0.92);
-            border-radius: 16px;
-            border: 2px dashed rgba(123, 90, 246, 0.2);
-            padding: 40px 20px;
+            border-radius: 14px;
+            border: 1.5px dashed rgba(123, 90, 246, 0.2);
+            padding: 30px 20px;
         }
 
         /* Mobile Topbar & Responsive */
@@ -442,43 +455,43 @@
                                     </div>
                                 </div>
 
-                                <div class="card-body p-3.5 d-flex flex-column">
-                                    <h5 class="fw-bold mb-3" style="color: var(--color-purple); font-size: 15px; line-height: 1.4;">
+                                <div class="card-body d-flex flex-column" style="padding: 12px;">
+                                    <h5 class="fw-bold" style="color: var(--color-purple); font-size: 13.5px; line-height: 1.3; margin-bottom: 8px;">
                                         <?= esc($k['nama_kelas'] ?? $k['pilihan_pelatihan']) ?>
                                     </h5>
 
-                                    <div class="mb-3 flex-grow-1">
+                                    <div class="flex-grow-1" style="margin-bottom: 8px;">
                                         <div class="info-item">
                                             <i class="bi bi-person-badge-fill"></i>
                                             <div>
-                                                <span class="text-muted d-block" style="font-size: 11px;">Mentor Pengampu</span>
-                                                <strong class="text-dark" style="font-size: 12.5px;"><?= esc($k['nama_mentor'] ?? 'Belum Ditentukan') ?></strong>
+                                                <span class="text-muted d-block" style="font-size: 10px;">Mentor Pengampu</span>
+                                                <strong class="text-dark" style="font-size: 11.5px;"><?= esc($k['nama_mentor'] ?? 'Belum Ditentukan') ?></strong>
                                             </div>
                                         </div>
                                         <div class="info-item">
                                             <i class="bi bi-geo-alt-fill"></i>
                                             <div>
-                                                <span class="text-muted d-block" style="font-size: 11px;">Tempat / Lokasi Pelatihan</span>
-                                                <strong class="text-dark" style="font-size: 12.5px;"><?= esc($k['lokasi_pelatihan'] ?? '-') ?></strong>
+                                                <span class="text-muted d-block" style="font-size: 10px;">Tempat / Lokasi Pelatihan</span>
+                                                <strong class="text-dark" style="font-size: 11.5px;"><?= esc($k['lokasi_pelatihan'] ?? '-') ?></strong>
                                             </div>
                                         </div>
                                         <div class="info-item">
                                             <i class="bi bi-laptop-fill"></i>
                                             <div>
-                                                <span class="text-muted d-block" style="font-size: 11px;">Metode Pembelajaran</span>
-                                                <strong class="text-dark text-capitalize" style="font-size: 12.5px;"><?= esc($k['metode_pembelajaran'] ?? '-') ?></strong>
+                                                <span class="text-muted d-block" style="font-size: 10px;">Metode Pembelajaran</span>
+                                                <strong class="text-dark text-capitalize" style="font-size: 11.5px;"><?= esc($k['metode_pembelajaran'] ?? '-') ?></strong>
                                             </div>
                                         </div>
                                         <div class="info-item mb-0">
                                             <i class="bi bi-calendar-check-fill"></i>
                                             <div>
-                                                <span class="text-muted d-block" style="font-size: 11px;">Mulai Pelatihan</span>
-                                                <strong class="text-dark" style="font-size: 12.5px;"><?= esc($k['tanggal_mulai_kelas'] ?? '-') ?></strong>
+                                                <span class="text-muted d-block" style="font-size: 10px;">Mulai Pelatihan</span>
+                                                <strong class="text-dark" style="font-size: 11.5px;"><?= esc($k['tanggal_mulai_kelas'] ?? '-') ?></strong>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="mt-auto pt-1">
+                                    <div class="mt-auto">
                                         <a href="<?= base_url('pelatihan/kbm?id_kelas=' . $k['id_kelas']) ?>" class="btn btn-kbm w-100 d-flex align-items-center justify-content-center">
                                             <i class="bi bi-mortarboard-fill me-2 fs-6"></i> Masuk Ruang KBM
                                         </a>
@@ -536,5 +549,46 @@ document.addEventListener('DOMContentLoaded', function () {
     if (backdrop) backdrop.addEventListener('click', closeSidebar);
 });
 </script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<?php if (session()->getFlashdata('success')): ?>
+<script>
+    Swal.fire({
+        toast: true,
+        position: 'top',
+        icon: 'success',
+        title: 'Berhasil!',
+        text: '<?= addslashes(session()->getFlashdata('success')) ?>',
+        showConfirmButton: false,
+        timer: 3500,
+        timerProgressBar: true,
+        background: '#fff',
+        color: '#1e293b',
+        customClass: {
+            popup: 'rounded-4 shadow-sm border'
+        }
+    });
+</script>
+<?php endif; ?>
+
+<?php if (session()->getFlashdata('error')): ?>
+<script>
+    Swal.fire({
+        toast: true,
+        position: 'top',
+        icon: 'error',
+        title: 'Oops...',
+        text: '<?= addslashes(session()->getFlashdata('error')) ?>',
+        showConfirmButton: false,
+        timer: 3500,
+        timerProgressBar: true,
+        background: '#fff',
+        color: '#1e293b',
+        customClass: {
+            popup: 'rounded-4 shadow-sm border'
+        }
+    });
+</script>
+<?php endif; ?>
 </body>
 </html>

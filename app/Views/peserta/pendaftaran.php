@@ -142,8 +142,8 @@
             background: var(--white);
             border: 1.5px solid var(--purple-border);
             border-radius: var(--radius-lg);
-            padding: 16px 18px;
-            margin-bottom: 14px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
             box-shadow: 0 8px 25px rgba(99, 42, 196, 0.04);
             transition: box-shadow 0.25s ease, border-color 0.25s ease;
             width: 100%;
@@ -181,39 +181,39 @@
         .section-header {
             display: flex;
             align-items: center;
-            margin-bottom: 22px;
-            padding-bottom: 15px;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
             border-bottom: 1.5px solid rgba(122, 63, 242, 0.1);
         }
 
         .section-icon-badge {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
             background: linear-gradient(135deg, var(--purple-subtle) 0%, #e8dbff 100%);
             color: var(--purple-primary);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
+            font-size: 1rem;
             margin-right: 12px;
             flex-shrink: 0;
             box-shadow: 0 4px 12px rgba(122, 63, 242, 0.08);
         }
 
         .hero-title {
-            font-size: clamp(1.5rem, 2.8vw, 1.95rem);
+            font-size: clamp(1.2rem, 2vw, 1.6rem);
             line-height: 1.25;
         }
         
         .hero-desc {
             max-width: 680px;
-            font-size: clamp(0.8rem, 1vw, 0.88rem);
+            font-size: clamp(0.75rem, 0.9vw, 0.85rem);
             line-height: 1.4;
         }
 
         .section-title {
-            font-size: clamp(1.1rem, 1.5vw, 1.25rem);
+            font-size: clamp(0.95rem, 1.1vw, 1.1rem);
             font-weight: 700;
             color: var(--purple-title);
             margin: 0;
@@ -221,17 +221,17 @@
         }
 
         .section-subtitle {
-            font-size: 0.8rem;
+            font-size: 0.72rem;
             color: var(--text-muted);
-            margin: 3px 0 0 0;
+            margin: 2px 0 0 0;
         }
 
         /* Controls & Labels */
         .form-label-custom {
-            font-size: clamp(0.8rem, 1vw, 0.88rem);
+            font-size: clamp(0.7rem, 0.8vw, 0.8rem);
             font-weight: 600;
             color: var(--purple-label);
-            margin-bottom: 4px;
+            margin-bottom: 3px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -244,13 +244,13 @@
         }
 
         .form-control, .form-select {
-            min-height: 44px;
+            min-height: 34px;
             border: 1.5px solid var(--purple-border);
             background-color: var(--purple-card-bg);
             color: var(--text-main);
             border-radius: var(--radius-sm);
-            padding: 8px 14px;
-            font-size: 14px;
+            padding: 5px 10px;
+            font-size: 12.5px;
             font-weight: 500;
             transition: all 0.2s ease-in-out;
             width: 100%;
@@ -259,7 +259,7 @@
 
         .form-control::placeholder {
             color: #9f94b8;
-            font-size: 0.82rem;
+            font-size: 0.75rem;
             font-weight: 400;
         }
 
@@ -273,7 +273,7 @@
 
         textarea.form-control {
             resize: vertical;
-            min-height: 65px;
+            min-height: 48px;
         }
 
         /* Radio Selection Cards (Jenis Kelas & Metode Pembayaran) */
@@ -281,12 +281,12 @@
             border: 2px solid var(--purple-border);
             background-color: var(--purple-card-bg);
             border-radius: var(--radius-md);
-            padding: 12px 16px;
+            padding: 10px 14px;
             cursor: pointer;
             transition: all 0.22s ease-in-out;
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
             height: 100%;
             user-select: none;
             width: 100%;
@@ -307,13 +307,13 @@
         }
 
         .selection-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1rem;
+            font-size: 0.95rem;
             flex-shrink: 0;
             transition: transform 0.2s ease;
         }
@@ -327,7 +327,7 @@
             border: 2px dashed var(--purple-border);
             background-color: var(--purple-card-bg);
             border-radius: var(--radius-md);
-            padding: 12px 14px;
+            padding: 10px 12px;
             text-align: center;
             transition: all 0.22s ease-in-out;
             cursor: pointer;
@@ -350,30 +350,30 @@
         }
 
         .upload-icon-circle {
-            width: 42px;
-            height: 42px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background-color: #f0e6ff;
             color: var(--purple-primary);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
-            margin-bottom: 8px;
+            font-size: 1.1rem;
+            margin-bottom: 6px;
             transition: transform 0.25s var(--ease);
         }
 
         .upload-dropzone:hover .upload-icon-circle {
-            width: 42px;
-            height: 42px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background-color: #f0e6ff;
             color: var(--purple-primary);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
-            margin-bottom: 8px;
+            font-size: 1.1rem;
+            margin-bottom: 6px;
             transition: transform 0.25s var(--ease);
         }
 
@@ -383,7 +383,8 @@
             border: 1.5px solid #dccefa;
             color: #381577;
             border-radius: var(--radius-md);
-            padding: 20px 24px;
+            padding: 16px 20px;
+            font-size: 0.85rem;
         }
 
         .alert-info-cod {
@@ -391,7 +392,8 @@
             border: 1.5px solid #fde68a;
             color: #78350f;
             border-radius: var(--radius-md);
-            padding: 20px 24px;
+            padding: 16px 20px;
+            font-size: 0.85rem;
         }
 
         /* Ketentuan Box */
@@ -417,8 +419,8 @@
             background: linear-gradient(135deg, #7a3ff2 0%, #682bd8 100%);
             color: #ffffff;
             border: none;
-            padding: 0.6rem 1.2rem;
-            font-size: 0.95rem;
+            padding: 0.45rem 0.9rem;
+            font-size: 0.85rem;
             font-weight: 700;
             border-radius: var(--radius-md);
             box-shadow: 0 8px 20px -4px rgba(122, 63, 242, 0.4);
@@ -442,8 +444,8 @@
             color: var(--purple-primary);
             border: 1.5px solid var(--purple-border);
             border-radius: 8px;
-            padding: 6px 14px;
-            font-size: 0.82rem;
+            padding: 5px 12px;
+            font-size: 0.8rem;
             font-weight: 600;
             transition: all 0.2s;
         }
@@ -457,9 +459,9 @@
         .badge-optional {
             background: #f1ecfa;
             color: #694b9e;
-            font-size: 0.74rem;
+            font-size: 0.72rem;
             font-weight: 600;
-            padding: 3px 10px;
+            padding: 3px 8px;
             border-radius: 6px;
         }
 
@@ -472,8 +474,8 @@
                 padding: 16px 0 24px 0;
             }
             .form-section-card {
-                padding: 16px 14px;
-                border-radius: 14px;
+                padding: 14px 12px;
+                border-radius: 12px;
             }
             .hero-banner {
                 padding: 16px 14px;
@@ -483,27 +485,8 @@
                 padding: 12px 14px;
             }
         }
-            .form-section-card {
-                padding: 18px 16px;
-                border-radius: 16px;
-            }
-            .hero-banner {
-                padding: 28px 20px;
-                border-radius: 18px;
-            }
-            .class-summary-card {
-            background: var(--white);
-            border: 1.5px solid var(--purple-border);
-            border-radius: var(--radius-md);
-            padding: 12px 16px;
-            margin-bottom: 14px;
-            box-shadow: 0 10px 28px rgba(109, 40, 217, 0.05);
-            width: 100%;
-            box-sizing: border-box;
-        }
-        }
 
-                @media (max-width: 767.98px) {
+        @media (max-width: 767.98px) {
             .page-wrapper {
                 width: 100%;
                 padding: 16px 12px;
@@ -514,10 +497,10 @@
                 margin-bottom: 10px;
             }
             .hero-title {
-                font-size: 24px !important;
+                font-size: 20px !important;
             }
             .hero-desc {
-                font-size: 13px !important;
+                font-size: 12.5px !important;
                 line-height: 1.4 !important;
             }
             .logo-wrap {
@@ -540,34 +523,34 @@
                 border-radius: 6px;
             }
             #titleSummaryNamaKelas {
-                font-size: 16px !important;
+                font-size: 14px !important;
                 margin-bottom: 2px !important;
             }
             .class-summary-card .gap-3 {
                 gap: 6px !important;
             }
             .class-summary-card .small {
-                font-size: 12px !important;
+                font-size: 11px !important;
             }
             #textSummaryHargaReguler, #textSummaryHargaPrivat {
                 padding: 3px 6px !important;
-                font-size: 11px !important;
+                font-size: 10px !important;
             }
             .form-section-card {
-                padding: 14px 14px;
+                padding: 12px 12px;
                 border-radius: 12px;
-                margin-bottom: 12px;
+                margin-bottom: 10px;
             }
             .section-title {
-                font-size: 18px !important;
+                font-size: 15px !important;
             }
             .form-label-custom {
-                font-size: 13px !important;
+                font-size: 12px !important;
             }
             .form-control, .form-select {
-                min-height: 42px;
-                padding: 6px 10px;
-                font-size: 13.5px;
+                min-height: 34px;
+                padding: 5px 10px;
+                font-size: 12px;
             }
             .row.g-4 {
                 --bs-gutter-y: 0.8rem;
@@ -583,16 +566,16 @@
             }
             
             .btn-submit-main {
-                padding: 12px;
-                font-size: 14.5px;
-                min-height: 44px;
+                padding: 8px;
+                font-size: 13px;
+                min-height: 38px;
             }
             .upload-dropzone {
-                padding: 10px 8px;
+                padding: 8px 8px;
             }
             .upload-icon-circle {
-                width: 32px;
-                height: 32px;
+                width: 30px;
+                height: 30px;
                 font-size: 1rem;
                 margin-bottom: 3px;
             }
@@ -1000,14 +983,15 @@
             name="asal_instansi"
             value="<?= esc($asalInstansiAktif) ?>"
             required
-            placeholder="Contoh: Universitas Duta Bangsa">
+            placeholder="Contoh: Universitas Duta Bangsa"
+            <?= $isLoggedIn ? 'readonly style="background-color: #f8f6fc; cursor: not-allowed; font-weight: 700; color: #4d1d95;"' : '' ?>>
     </div>
 
     <div class="col-sm-6">
         <label for="semester" class="form-label-custom">
             <span>Semester</span>
         </label>
-        <select class="form-select" id="semester" name="semester">
+        <select class="form-select" id="semester" name="semester" <?= $isLoggedIn ? 'disabled style="background-color: #f8f6fc; cursor: not-allowed; font-weight: 700; color: #4d1d95;"' : '' ?>>
             <option value="" <?= empty($semesterAktif) ? 'selected' : '' ?>>
                 Pilih Semester
             </option>
@@ -1020,6 +1004,9 @@
                 Tidak Berlaku
             </option>
         </select>
+        <?php if ($isLoggedIn): ?>
+            <input type="hidden" name="semester" value="<?= esc($semesterAktif ?? '') ?>">
+        <?php endif; ?>
     </div>
 </div>
                     <!-- Alamat Lengkap -->
