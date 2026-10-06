@@ -417,17 +417,18 @@
 
                         <div class="col-md-6">
                             <div class="p-2.5 bg-white rounded-3 border border-light shadow-sm">
-                                <small class="text-muted d-block" style="font-size: 11px;">Asal Sekolah / Kampus</small>
-                                <span class="fw-semibold text-dark" style="font-size: 13px;"><?= esc($user['asal_sekolah'] ?? '-') ?></span>
+                                <small class="text-muted d-block" style="font-size: 11px;">Asal Sekolah/Kampus/Instansi</small>
+                                <span class="fw-semibold text-dark" style="font-size: 13px;"><?= esc(!empty($pendaftaran['asal_instansi']) ? $pendaftaran['asal_instansi'] : ($user['asal_instansi'] ?? $user['asal_sekolah'] ?? '-')) ?></span>
                             </div>
                         </div>
-
+                        <?php if (!empty($pendaftaran['semester'])): ?>
                         <div class="col-md-6">
                             <div class="p-2.5 bg-white rounded-3 border border-light shadow-sm">
-                                <small class="text-muted d-block" style="font-size: 11px;">Lokasi Pelatihan</small>
-                                <span class="fw-semibold text-dark" style="font-size: 13px;"><?= esc($pendaftaran['lokasi_pelatihan'] ?? '-') ?></span>
+                                <small class="text-muted d-block" style="font-size: 11px;">Semester</small>
+                                <span class="fw-semibold text-dark" style="font-size: 13px;"><?= esc($pendaftaran['semester']) ?></span>
                             </div>
                         </div>
+                        <?php endif; ?>
 
                         <div class="col-12">
                             <div class="p-2.5 bg-white rounded-3 border border-light shadow-sm">

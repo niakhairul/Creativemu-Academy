@@ -125,7 +125,7 @@
                     </div>
                 </div>
 
-                <!-- PENDIDIKAN & LOKASI -->
+                <!-- PENDIDIKAN & ASAL SEKOLAH/INSTANSI -->
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-semibold small">Pendidikan Terakhir</label>
@@ -139,9 +139,8 @@
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold small">Lokasi Pelatihan</label>
-                        <input type="text" class="form-control bg-light" value="<?= esc($pendaftaran['lokasi_pelatihan'] ?? '') ?>" readonly>
-                        <small class="text-muted" style="font-size: 0.7rem;">Lokasi pelatihan ditentukan oleh penyelenggara.</small>
+                        <label class="form-label fw-semibold small">Asal Sekolah/Kampus/Instansi</label>
+                        <input type="text" name="asal_instansi" class="form-control" value="<?= esc($pendaftaran['asal_instansi'] ?? $user['asal_instansi'] ?? '') ?>" placeholder="Contoh: Universitas Duta Bangsa">
                     </div>
                 </div>
 

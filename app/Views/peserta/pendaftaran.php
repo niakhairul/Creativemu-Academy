@@ -202,13 +202,22 @@
         }
 
         .hero-title {
+<<<<<<< Updated upstream
             font-size: clamp(1.2rem, 2vw, 1.6rem);
+=======
+            font-size: clamp(1.15rem, 1.6vw, 1.45rem);
+>>>>>>> Stashed changes
             line-height: 1.25;
         }
         
         .hero-desc {
+<<<<<<< Updated upstream
             max-width: 680px;
             font-size: clamp(0.75rem, 0.9vw, 0.85rem);
+=======
+            max-width: 650px;
+            font-size: clamp(0.75rem, 0.9vw, 0.82rem);
+>>>>>>> Stashed changes
             line-height: 1.4;
         }
 
@@ -497,10 +506,17 @@
                 margin-bottom: 10px;
             }
             .hero-title {
+<<<<<<< Updated upstream
                 font-size: 20px !important;
             }
             .hero-desc {
                 font-size: 12.5px !important;
+=======
+                font-size: 18px !important;
+            }
+            .hero-desc {
+                font-size: 12px !important;
+>>>>>>> Stashed changes
                 line-height: 1.4 !important;
             }
             .logo-wrap {
@@ -623,10 +639,10 @@
     
         @media (min-width: 992px) {
             .hero-title {
-                font-size: 32px !important;
+                font-size: 22px !important;
             }
             .hero-desc {
-                font-size: 14px !important;
+                font-size: 13px !important;
             }
             .logo-wrap {
                 width: 60px !important;
