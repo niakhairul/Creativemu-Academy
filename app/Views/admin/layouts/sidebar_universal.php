@@ -125,7 +125,7 @@
         <div class="logo-card">
             <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy">
         </div>
-        <div class="panel-title"><?= $isMentor ? 'PANEL MENTOR' : 'PANEL ADMIN' ?></div>[cite: 7]
+        <div class="panel-title"><?= $isMentor ? 'PANEL MENTOR' : 'PANEL ADMIN' ?></div>
     </div>
     
     <ul class="nav flex-column">

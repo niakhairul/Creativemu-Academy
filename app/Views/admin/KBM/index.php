@@ -475,19 +475,14 @@
         ========================= */
 
         @media (max-width: 1200px) {
-            #main-content {
-                margin-left: 70px;
-            }
+            /* Let admin-responsive.css handle main-content margins */
             .table-custom {
                 min-width: 1050px;
             }
         }
 
         @media (max-width: 768px) {
-            #main-content {
-                margin-left: 0;
-                padding: 12px;
-            }
+            /* Let admin-responsive.css handle main-content margins & padding */
             .top-navbar {
                 padding: 15px;
                 flex-direction: column;
@@ -506,6 +501,9 @@
             }
         }
     </style>
+    <!-- Admin Responsive Styles & Scripts -->
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin-responsive.css'); ?>">
+    <script defer src="<?= base_url('assets/js/admin-responsive.js'); ?>"></script>
 </head>
 
 <body>
@@ -639,15 +637,14 @@
                                                 max="100">
                                         </td>
 
-                                        <!-- ANGKET -->
                                         <td class="text-center">
-                                            <?php if (isset($row['status_angket']) && $row['status_angket'] == 'Sudah'): ?>
+                                            <?php if (isset($row['jumlah_angket']) && $row['jumlah_angket'] > 0): ?>
                                                 <span class="status-angket sudah">
-                                                    <i class="fas fa-check"></i> Sudah
+                                                    <i class="fas fa-check"></i> Sudah Mengisi
                                                 </span>
                                             <?php else: ?>
                                                 <span class="status-angket belum">
-                                                    <i class="fas fa-xmark"></i> Belum
+                                                    <i class="fas fa-xmark"></i> Belum Mengisi
                                                 </span>
                                             <?php endif; ?>
                                         </td>

@@ -2305,7 +2305,6 @@ private function generateNisPendaftaran($db, array $pendaftaran): string
 
     $builder = $db->table('pendaftaran');
 
-    // Tambahkan nilai_ujian.id_nilai_ujian dan nilai_ujian.nilai pada select
     $builder->select('
     pendaftaran.*,
     users.nama AS nama_peserta,
@@ -2313,7 +2312,13 @@ private function generateNisPendaftaran($db, array $pendaftaran): string
     kelas.nama_kelas AS kelas,
     nilai_ujian.id_nilai_ujian,
     nilai_ujian.nilai,
-    nilai_ujian.status_kelulusan
+    nilai_ujian.status_kelulusan,
+    (SELECT COUNT(ja.id_jawaban) 
+     FROM jawaban_angket ja 
+     JOIN angket_pertanyaan ap ON ap.id_angket_pertanyaan = ja.id_pertanyaan 
+     WHERE ja.id_siswa = pendaftaran.id_users 
+       AND (ap.id_kelas IS NULL OR ap.id_kelas = pendaftaran.id_kelas)
+    ) as jumlah_angket
 ');
 
     $builder->join(

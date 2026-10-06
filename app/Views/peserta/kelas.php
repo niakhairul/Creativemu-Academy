@@ -397,9 +397,6 @@
                                 <h3 class="fw-bold mb-1 text-dark" style="font-size: 18px;">
                                     <?= esc($kelas['nama_kelas'] ?? 'Kelas Pelatihan') ?>
                                 </h3>
-                                <p class="text-muted mb-0" style="font-size: 13px; line-height: 1.5;">
-                                    <?= esc($kelas['deskripsi'] ?? 'Ikuti seluruh rangkaian materi, absensi GPS, dan ujian untuk mendapatkan sertifikat kompetensi.') ?>
-                                </p>
                             </div>
                             <div class="col-lg-3 text-lg-end mt-2 mt-lg-0">
                                 <div class="d-inline-flex align-items-center gap-2 bg-white px-3 py-1.5 rounded-pill border border-purple border-opacity-25 shadow-sm">
@@ -667,7 +664,12 @@
                     </div>
                     <div class="col-lg-7">
                         <div class="p-4 rounded-4 h-100 d-flex flex-column justify-content-center bg-white border border-purple border-opacity-25 shadow-sm">
-                            <?php if ($skorNilai === '-'): ?>
+                            <?php 
+                                $isLulus = (isset($status_kelulusan) && $status_kelulusan === 'lulus') || (empty($status_kelulusan) && is_numeric($skorNilai) && ((float)$skorNilai >= 70));
+                                $isRemidi = (isset($status_kelulusan) && $status_kelulusan === 'remidi');
+                                $isMenunggu = (isset($status_kelulusan) && $status_kelulusan === 'menunggu') || ($skorNilai === '-' && empty($status_kelulusan));
+                            ?>
+                            <?php if ($isMenunggu): ?>
                                 <div class="d-flex align-items-start gap-3">
                                     <div class="rounded-3 p-3 bg-secondary bg-opacity-10 text-secondary fs-4"><i class="bi bi-clock-history"></i></div>
                                     <div>
@@ -685,13 +687,27 @@
                                         <p class="text-muted mb-0" style="font-size: 12px;">Nilai Anda telah divalidasi admin. Silakan lanjutkan ke menu <strong>Angket Evaluasi</strong>.</p>
                                     </div>
                                 </div>
+                            <?php elseif ($isRemidi): ?>
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="rounded-3 p-3 bg-warning bg-opacity-10 text-warning fs-4"><i class="bi bi-arrow-repeat"></i></div>
+                                    <div>
+                                        <span class="badge bg-warning bg-opacity-15 text-warning mb-1 px-2.5 py-1 rounded-pill fw-bold" style="font-size: 10px;"><i class="fas fa-exclamation-triangle me-1"></i> STATUS: REMIDI</span>
+                                        <h5 class="fw-bold text-dark mb-1" style="font-size: 14px;">Ujian Perlu Diremidi</h5>
+                                        <p class="text-muted mb-2" style="font-size: 12px;">Admin telah memutuskan Anda perlu mengikuti remidi. Silakan konfirmasi kesediaan Anda.</p>
+                                        <?php if(isset($status_remidi) && $status_remidi === 'bersedia'): ?>
+                                            <div class="alert alert-success py-1 px-2 mb-0" style="font-size: 11px;"><i class="fas fa-check-circle me-1"></i> Anda telah mengkonfirmasi kesediaan mengikuti remidi.</div>
+                                        <?php else: ?>
+                                            <a href="<?= base_url('pelatihan/ikut-remidi?id=' . ($id_nilai_ujian ?? '')) ?>" class="btn btn-warning btn-sm text-dark fw-bold rounded-pill" style="font-size: 11px;">Bersedia Remidi</a>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
                             <?php else: ?>
                                 <div class="d-flex align-items-start gap-3">
                                     <div class="rounded-3 p-3 bg-danger bg-opacity-10 text-danger fs-4"><i class="bi bi-exclamation-octagon-fill"></i></div>
                                     <div>
-                                        <span class="badge bg-danger bg-opacity-15 text-danger mb-1 px-2.5 py-1 rounded-pill fw-bold" style="font-size: 10px;"><i class="fas fa-times-circle me-1"></i> STATUS: REMIDI / BELUM LULUS</span>
+                                        <span class="badge bg-danger bg-opacity-15 text-danger mb-1 px-2.5 py-1 rounded-pill fw-bold" style="font-size: 10px;"><i class="fas fa-times-circle me-1"></i> STATUS: TIDAK LULUS</span>
                                         <h5 class="fw-bold text-dark mb-1" style="font-size: 14px;">Belum Memenuhi Batas Kelulusan</h5>
-                                        <p class="text-muted mb-0" style="font-size: 12px;">Nilai Anda di bawah 70 berdasarkan rekapitulasi admin. Silakan ikuti remidi.</p>
+                                        <p class="text-muted mb-0" style="font-size: 12px;">Nilai Anda belum memenuhi standar kelulusan.</p>
                                     </div>
                                 </div>
                             <?php endif; ?>

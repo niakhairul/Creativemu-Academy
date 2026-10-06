@@ -1180,15 +1180,40 @@ if ($kelas) {
 }
 
 // Letakkan kode ini di dalam method kelas() untuk mengecek data
-$id_user = session()->get('id_user') ?? session()->get('id');
-$cek_data = $db->table('nilai_ujian')->where('id_user', $id_user)->get()->getResultArray();
-dd($cek_data);
+//$id_user = session()->get('id_user') ?? session()->get('id');
+//$cek_data = $db->table('nilai_ujian')->where('id_user', $id_user)->get()->getResultArray();
+//dd($cek_data);
+
+    $status_kelulusan = '';
+    $status_remidi = '';
+    $id_nilai_ujian = null;
+    
+    if (!empty($ujian)) {
+        foreach ($ujian as $itemUjian) {
+            if (!empty($itemUjian['nilai_record'])) {
+                $status_kelulusan = strtolower($itemUjian['nilai_record']['status_kelulusan'] ?? '');
+                $status_remidi = strtolower($itemUjian['nilai_record']['status_remidi'] ?? '');
+                $id_nilai_ujian = $itemUjian['nilai_record']['id_nilai_ujian'] ?? null;
+                break;
+            }
+        }
+    }
+    
+    // Override syarat angket based on status_kelulusan if admin explicitly set it to lulus
+    if ($status_kelulusan === 'lulus') {
+        $bisa_isi_angket = true;
+    } elseif ($status_kelulusan === 'remidi' || $status_kelulusan === 'tidak lulus') {
+        $bisa_isi_angket = false;
+    }
 
     return view('peserta/kelas', [
     'kelas'               => $kelas,
     'jadwal'              => $jadwal,
     'ujian'               => $ujian,
     'nilai_ujian'         => $nilai_ujian,
+    'status_kelulusan'    => $status_kelulusan,
+    'status_remidi'       => $status_remidi,
+    'id_nilai_ujian'      => $id_nilai_ujian,
     'bisa_isi_angket'     => $bisa_isi_angket,
     'sudah_isi_angket'    => $sudah_isi_angket,
     'sertifikatTerbit'    => $sertifikatTerbit,
@@ -1327,12 +1352,17 @@ dd($cek_data);
 
     $nilaiUjian = '-';
     $statusKelulusan = '';
+    $statusRemidi = '';
+    $idNilaiUjian = null;
+
     if ($nilaiUjianRow) {
         $nilaiUjian = $nilaiUjianRow['nilai_remidi'] ?? $nilaiUjianRow['nilai_awal'] ?? $nilaiUjianRow['nilai'] ?? '-';
         $statusKelulusan = strtolower($nilaiUjianRow['status_kelulusan'] ?? '');
+        $statusRemidi = strtolower($nilaiUjianRow['status_remidi'] ?? '');
+        $idNilaiUjian = $nilaiUjianRow['id_nilai_ujian'] ?? null;
     }
 
-    $bisaIsiAngket = ($nilaiUjian !== '-' && ((is_numeric($nilaiUjian) && (float)$nilaiUjian >= 70) || $statusKelulusan === 'lulus'));
+    $bisaIsiAngket = ($statusKelulusan === 'lulus' || ($nilaiUjian !== '-' && is_numeric($nilaiUjian) && (float)$nilaiUjian >= 70 && $statusKelulusan !== 'remidi' && $statusKelulusan !== 'tidak lulus'));
 
     // Cek status pengisian angket
     $sudahIsiAngket = false;
@@ -1356,6 +1386,9 @@ dd($cek_data);
         'materi'          => $materi,
         'jadwal'          => $jadwal,
         'nilai_ujian'     => $nilaiUjian,
+        'status_kelulusan'=> $statusKelulusan,
+        'status_remidi'   => $statusRemidi,
+        'id_nilai_ujian'  => $idNilaiUjian,
         'bisa_isi_angket' => $bisaIsiAngket,
         'sudah_isi_angket'=> $sudahIsiAngket,
         'pendaftaran'     => $db->table('pendaftaran')->where('id_users', $userId)->where('id_kelas', $id_kelas)->get()->getRowArray()
@@ -1366,12 +1399,18 @@ dd($cek_data);
 
     public function ikutRemidi()
 {
-    // Lakukan proses logika Anda di sini (misalnya simpan data ke database)
+    $id_nilai_ujian = $this->request->getGet('id');
     
-    // Set pesan notifikasi menggunakan flashdata
-    session()->setFlashdata('success', 'Berhasil mengikuti remidi!');
+    if ($id_nilai_ujian) {
+        $db = \Config\Database::connect();
+        $db->table('nilai_ujian')->where('id_nilai_ujian', $id_nilai_ujian)->update([
+            'status_remidi' => 'bersedia'
+        ]);
+        session()->setFlashdata('success', 'Berhasil mengkonfirmasi bersedia mengikuti remidi!');
+    } else {
+        session()->setFlashdata('error', 'Data ujian tidak valid.');
+    }
     
-    // Kembalikan pengguna ke halaman sebelumnya
     return redirect()->back();
 }
 
@@ -2548,9 +2587,11 @@ public function simpanJawabanUjian()
         $nilaiRemidi  = isset($nilaiRow['nilai_remidi']) && $nilaiRow['nilai_remidi'] !== null ? (float) $nilaiRow['nilai_remidi'] : null;
         $nilaiTerbaru = ($nilaiRemidi !== null) ? $nilaiRemidi : $nilaiAwal;
 
-        $isLulus    = ($nilaiTerbaru >= 70);
-        $statusTeks = $isLulus ? 'LULUS' : 'BELUM LULUS';
-        $bisaRemidi = !$isLulus; // HANYA jika nilai < 70%
+        $statusKelulusan = strtolower($nilaiRow['status_kelulusan'] ?? 'menunggu');
+
+        $isLulus = ($statusKelulusan === 'lulus');
+        $statusTeks = strtoupper($statusKelulusan);
+        $bisaRemidi = ($statusKelulusan === 'remidi');
 
         return view('peserta/hasil_ujian', [
             'kelas'           => $kelas,
@@ -2560,6 +2601,7 @@ public function simpanJawabanUjian()
             'nilaiTerbaru'    => $nilaiTerbaru,
             'isLulus'         => $isLulus,
             'statusTeks'      => $statusTeks,
+            'statusKelulusan' => $statusKelulusan,
             'bisaRemidi'      => $bisaRemidi,
             'isRemidiApplied' => ($nilaiRemidi !== null),
         ]);

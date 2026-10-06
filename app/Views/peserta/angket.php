@@ -38,7 +38,7 @@ if (!empty($pertanyaan)) {
             $back_url = base_url('pelatihan/kelas'); 
         }
         ?>
-        <a href="<?= esc($back_url) ?>" class="btn btn-primary btn-sm mb-3 shadow-sm" style="border-radius: 8px; font-weight: 500; padding: 6px 16px; transition: all 0.2s ease;">
+        <a href="<?= esc($back_url) ?>" class="btn btn-sm mb-3 shadow-sm text-white" style="background: var(--purple-mid, #7c5cfa); border: none; border-radius: 8px; font-weight: 500; padding: 6px 16px; transition: all 0.2s ease;">
             <i class="bi bi-arrow-left me-1"></i> Kembali
         </a>
         <h2 class="fw-bold">Angket Evaluasi Pelatihan</h2>
@@ -70,8 +70,8 @@ if (!empty($pertanyaan)) {
 
             <?php $no = 1; ?>
             <?php foreach ($groupedPertanyaan as $kategori => $items): ?>
-                <div class="card border-0 shadow-sm rounded-4 mb-4">
-                    <div class="card-header bg-primary text-white rounded-top-4">
+                <div class="card border-0 shadow-sm rounded-4 mb-4" style="border-left: 4px solid var(--purple-mid, #7c5cfa) !important;">
+                    <div class="card-header text-white rounded-top-4" style="background: var(--purple-mid, #7c5cfa); border-bottom: none;">
                         <h5 class="mb-0 fw-bold"><?= esc($kategori) ?></h5>
                     </div>
                     <div class="card-body p-4">
@@ -104,13 +104,14 @@ if (!empty($pertanyaan)) {
                                         foreach ($opsi as $op):
                                             $isStatusInput = (strpos(strtolower($q['pertanyaan']), 'status') !== false || strpos(strtolower($q['pertanyaan']), 'kesibukan') !== false);
                                     ?>
-                                        <div class="form-check">
+                                        <div class="form-check mb-2">
                                             <input class="form-check-input <?= $isStatusInput ? 'status-kesibukan' : '' ?>"
                                                    type="radio"
                                                    name="jawaban[<?= $idPertanyaan ?>]"
                                                    value="<?= esc($op) ?>"
-                                                   <?= $isMahasiswaCheck ? '' : 'required' ?>>
-                                            <label class="form-check-label"><?= esc($op) ?></label>
+                                                   <?= $isMahasiswaCheck ? '' : 'required' ?>
+                                                   style="cursor: pointer;">
+                                            <label class="form-check-label" style="cursor: pointer;"><?= esc($op) ?></label>
                                         </div>
                                     <?php
                                         endforeach;
@@ -118,7 +119,7 @@ if (!empty($pertanyaan)) {
                                     ?>
 
                                 <?php elseif ($tipe === 'rating'): ?>
-                                    <div class="d-flex gap-3">
+                                    <div class="d-flex flex-wrap gap-3">
                                         <?php
                                         $skalaLabel = [
                                             1 => 'Kurang Puas',
@@ -129,14 +130,14 @@ if (!empty($pertanyaan)) {
                                         for ($i = 1; $i <= 4; $i++):
                                         ?>
                                             <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="jawaban[<?= $idPertanyaan ?>]" value="<?= $i ?>" required>
-                                                <label class="form-check-label"><?= $i ?> - <?= $skalaLabel[$i] ?></label>
+                                                <input class="form-check-input" type="radio" name="jawaban[<?= $idPertanyaan ?>]" value="<?= $i ?>" required style="cursor: pointer;">
+                                                <label class="form-check-label" style="cursor: pointer;"><?= $i ?> - <?= $skalaLabel[$i] ?></label>
                                             </div>
                                         <?php endfor; ?>
                                     </div>
 
                                 <?php elseif ($tipe === 'essay'): ?>
-                                    <textarea name="jawaban[<?= $idPertanyaan ?>]" class="form-control" rows="3" placeholder="Jawaban Anda..." required></textarea>
+                                    <textarea name="jawaban[<?= $idPertanyaan ?>]" class="form-control" rows="3" placeholder="Tuliskan jawaban Anda di sini..." required style="border-radius: 8px;"></textarea>
                                 <?php endif; ?>
                             </div>
                         <?php endforeach; ?>
@@ -145,8 +146,8 @@ if (!empty($pertanyaan)) {
             <?php endforeach; ?>
 
             <div class="text-end mb-5">
-                <button type="submit" class="btn btn-primary px-4 btn-lg rounded-pill shadow-sm">
-                    <i class="bi bi-send"></i> Kirim Angket
+                <button type="submit" class="btn px-4 btn-lg rounded-pill shadow-sm text-white" style="background: var(--purple-mid, #7c5cfa); border: none; font-weight: 600; transition: all 0.3s ease;">
+                    <i class="bi bi-send me-2"></i> Kirim Angket Evaluasi
                 </button>
             </div>
         </form>
