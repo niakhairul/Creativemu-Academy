@@ -1380,6 +1380,11 @@ if ($kelas) {
         }
     }
 
+    $sertifikatTerbit = (new \App\Models\SertifikatModel())
+        ->where('id_kelas', $id_kelas)
+        ->where('id_user', $userId)
+        ->first();
+
     // 6. Kirim data ke view
     $data = [
         'kelas'           => $kelas,
@@ -1391,7 +1396,8 @@ if ($kelas) {
         'id_nilai_ujian'  => $idNilaiUjian,
         'bisa_isi_angket' => $bisaIsiAngket,
         'sudah_isi_angket'=> $sudahIsiAngket,
-        'pendaftaran'     => $db->table('pendaftaran')->where('id_users', $userId)->where('id_kelas', $id_kelas)->get()->getRowArray()
+        'pendaftaran'     => $db->table('pendaftaran')->where('id_users', $userId)->where('id_kelas', $id_kelas)->get()->getRowArray(),
+        'sertifikatTerbit'=> $sertifikatTerbit,
     ];
 
     return view('peserta/kelas', $data); 
@@ -2613,7 +2619,23 @@ public function simpanJawabanUjian()
         return $redirect;
     }
 
-    $pendaftaran = $this->approvedEnrollment();
+    $id_kelas = $this->request->getGet('id_kelas');
+    $userId = $this->userId();
+
+    if ($id_kelas) {
+        $pendaftaran = (new \App\Models\PendaftaranModel())
+            ->select('pendaftaran.*, kelas.nama_kelas')
+            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+            ->where('pendaftaran.id_users', $userId)
+            ->where('pendaftaran.id_kelas', $id_kelas)
+            ->groupStart()
+                ->where('pendaftaran.status', 'Disetujui')
+                ->orWhere('pendaftaran.status_pembayaran', 'valid')
+            ->groupEnd()
+            ->first();
+    } else {
+        $pendaftaran = $this->approvedEnrollment();
+    }
 
     if (! $pendaftaran) {
         return redirect()->to(base_url('pelatihan/kelas'))->with('error', 'Kelas tidak ditemukan.');
@@ -2726,23 +2748,48 @@ public function simpanJawabanUjian()
             return $redirect;
         }
 
-        $pendaftaran = $this->approvedEnrollment();
+        $id_kelas = $this->request->getGet('id_kelas');
+        $userId = $this->userId();
+
+        if ($id_kelas) {
+            $pendaftaran = (new \App\Models\PendaftaranModel())
+                ->select('pendaftaran.*, kelas.nama_kelas')
+                ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+                ->where('pendaftaran.id_users', $userId)
+                ->where('pendaftaran.id_kelas', $id_kelas)
+                ->groupStart()
+                    ->where('pendaftaran.status', 'Disetujui')
+                    ->orWhere('pendaftaran.status_pembayaran', 'valid')
+                ->groupEnd()
+                ->first();
+        } else {
+            $pendaftaran = $this->approvedEnrollment();
+        }
         $hasilUjian = null;
+        $sertifikat = null;
+        
         if ($pendaftaran) {
             $hasilUjian = (new HasilUjianModel())
                 ->where('id_kelas', $pendaftaran['id_kelas'])
                 ->where('id_users', $this->userId())
                 ->orderBy('id_nilai_ujian', 'DESC')
                 ->first();
+                
+            $sertifikat = (new \App\Models\SertifikatModel())
+                ->where('id_kelas', $pendaftaran['id_kelas'])
+                ->where('id_user', $this->userId())
+                ->first();
         }
 
         $statusLulus = (bool) ($hasilUjian && $hasilUjian['status_kelulusan'] === 'lulus');
-        $statusAngket = (bool) ($pendaftaran && (new AngketModel())->where('id_users', $this->userId())->where('id_kelas', $pendaftaran['id_kelas'])->first());
+        $db = \Config\Database::connect();
+        $statusAngket = (bool) ($pendaftaran && $db->table('angket_penilaian')->where('id_peserta', $this->userId())->where('id_kelas', $pendaftaran['id_kelas'])->get()->getRow());
 
         return view('peserta/sertifikat', [
             'statusLulus' => $statusLulus,
             'statusAngket' => $statusAngket,
             'sertifikatTarget' => $statusLulus && $statusAngket,
+            'sertifikat' => $sertifikat,
         ]);
     }
 

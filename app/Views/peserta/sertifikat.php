@@ -66,22 +66,37 @@
                                     oleh Admin CreativeMU Academy.
                                 </p>
 
-                                <button type="button"
-                                        class="btn btn-secondary"
-                                        disabled>
+                                <?php if (!empty($sertifikat) && !empty($sertifikat['file_sertifikat'])): ?>
+                                    <p class="mb-2 text-dark mt-2">
+                                        <strong>No:</strong> <?= esc($sertifikat['nomor_sertifikat']) ?><br>
+                                        <strong>Terbit:</strong> <?= date('d M Y', strtotime($sertifikat['tanggal_terbit'])) ?>
+                                    </p>
+                                    <a href="<?= base_url('pelatihan/download-sertifikat/' . $sertifikat['id_sertifikat']) ?>" class="btn btn-primary mt-2">
+                                        <i class="bi bi-download"></i> Download Sertifikat
+                                    </a>
+                                    <div class="mt-3">
+                                        <span class="badge bg-success">
+                                            Sudah Terbit
+                                        </span>
+                                    </div>
+                                <?php else: ?>
+                                    <button type="button"
+                                            class="btn btn-secondary"
+                                            disabled>
 
-                                    <i class="bi bi-download"></i>
-                                    Download Sertifikat
+                                        <i class="bi bi-download"></i>
+                                        Download Sertifikat
 
-                                </button>
+                                    </button>
 
-                                <div class="mt-3">
+                                    <div class="mt-3">
 
-                                    <span class="badge bg-warning text-dark">
-                                        Belum tersedia
-                                    </span>
+                                        <span class="badge bg-warning text-dark">
+                                            Belum tersedia
+                                        </span>
 
-                                </div>
+                                    </div>
+                                <?php endif; ?>
 
                             </div>
 

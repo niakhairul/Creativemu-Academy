@@ -1141,7 +1141,7 @@
                             </p>
 
                             <a
-                                href="<?= base_url('pelatihan/angket') ?>"
+                                href="<?= base_url('pelatihan/angket?id_kelas=' . $kelas['id_kelas']) ?>"
                                 class="btn btn-warning">
 
                                 Isi Angket Evaluasi
@@ -1174,7 +1174,7 @@
                             </div>
 
                             <a
-                                href="<?= base_url('pelatihan/sertifikat') ?>"
+                                href="<?= base_url('pelatihan/sertifikat?id_kelas=' . $kelas['id_kelas']) ?>"
                                 class="btn btn-success">
 
                                 Unduh Sertifikat

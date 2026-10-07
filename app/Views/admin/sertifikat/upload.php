@@ -330,10 +330,10 @@
                                 -- Pilih Peserta --
                             </option>
                             <?php foreach ($pesertaLulus as $p) : ?>
-                                <option value="<?= esc($p['id_user']); ?>"
+                                <option value="<?= esc($p['id_users']); ?>"
                                         data-id-kelas="<?= esc($p['id_kelas']); ?>"
                                         data-nama-kelas="<?= esc($p['nama_kelas'] ?? ''); ?>"
-                                        <?= (isset($selectedUser) && $selectedUser == $p['id_user']
+                                        <?= (isset($selectedUser) && $selectedUser == $p['id_users']
                                             && isset($selectedKelas) && $selectedKelas == $p['id_kelas'])
                                             ? 'selected'
                                             : ''; ?>>
