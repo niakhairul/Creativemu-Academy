@@ -336,15 +336,17 @@
 
 <!-- SIDEBAR (DISAMAKAN PERSIS DENGAN DASHBOARD) -->
 <nav class="sidebar" id="sidebarMenu">
-    <div class="d-flex align-items-center justify-content-between pb-2.5 mb-2.5 border-bottom border-white border-opacity-10">
-        <a href="#" class="sidebar-brand text-decoration-none d-flex align-items-center mb-0 pb-0 border-0">
-            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Logo" class="rounded-3 me-2 shadow-sm object-fit-cover" style="width: 28px; height: 28px;">
+    <div class="d-flex align-items-start justify-content-between pb-3 mb-3 border-bottom border-white border-opacity-10 position-relative">
+        <a href="#" class="sidebar-brand text-decoration-none d-flex flex-column align-items-center w-100 mb-0 pb-0 border-0 text-center">
+            <div style="background-color: #ffffff; border-radius: 14px; padding: 10px 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.22); width: 90%; margin: 0 auto 12px auto;">
+                <img src="<?= base_url('assets/img/logo_creativemu_admin.png'); ?>" alt="Logo" style="width: 100%; max-width: 180px; height: auto; max-height: 55px; object-fit: contain; display: block;">
+            </div>
             <div>
-                <span class="fs-6 fw-bold d-block text-white lh-1" style="font-size: 14.5px !important;">Creativemu</span>
-                <span style="font-size: 9.5px; letter-spacing: 0.5px; color: var(--color-cyan);">ACADEMY</span>
+                <span class="fs-6 fw-bold d-block text-white lh-1 mb-1">Creativemu</span>
+                <span style="font-size: 9.5px; letter-spacing: 1px; color: var(--color-cyan); font-weight: 600;">ACADEMY</span>
             </div>
         </a>
-        <button type="button" class="sidebar-close-btn" id="sidebarClose" aria-label="Tutup Menu">
+        <button type="button" class="sidebar-close-btn mt-1 position-absolute end-0" style="top: 0;" id="sidebarClose" aria-label="Tutup Menu">
             <i class="bi bi-x-lg"></i>
         </button>
     </div>
@@ -418,15 +420,16 @@
                 </div>
             </div>
 
+            <?php $activeTab = session()->getFlashdata('active_tab') ?? 'materi'; ?>
             <!-- NAV TABS -->
             <ul class="nav nav-tabs mb-3" id="kelasTab" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="materi-tab" data-bs-toggle="tab" data-bs-target="#materi" type="button" role="tab">
+                    <button class="nav-link <?= $activeTab === 'materi' ? 'active' : '' ?>" id="materi-tab" data-bs-toggle="tab" data-bs-target="#materi" type="button" role="tab">
                         <i class="fa-solid fa-book-open me-1.5" style="color: var(--color-cyan);"></i> Materi
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="absensi-tab" data-bs-toggle="tab" data-bs-target="#absensi" type="button" role="tab">
+                    <button class="nav-link <?= $activeTab === 'absensi' ? 'active' : '' ?>" id="absensi-tab" data-bs-toggle="tab" data-bs-target="#absensi" type="button" role="tab">
                         <i class="fa-solid fa-map-location-dot me-1.5" style="color: var(--color-pink);"></i> Absensi & GPS
                     </button>
                 </li>
@@ -451,7 +454,7 @@
             <div class="tab-content" id="kelasTabContent">
 
                 <!-- ================= TAB 1 : MATERI ================= -->
-                <div class="tab-pane fade show active" id="materi" role="tabpanel">
+                <div class="tab-pane fade <?= $activeTab === 'materi' ? 'show active' : '' ?>" id="materi" role="tabpanel">
                     <div class="card shadow-sm hover-card">
                         <div class="card-body p-3.5">
                             <h5 class="fw-bold text-dark mb-1" style="color: var(--color-purple); font-size: 15px;">Modul & Dokumen Pembelajaran</h5>
@@ -495,7 +498,7 @@
                 </div>
 
                 <!-- ================= TAB 2 : ABSENSI ================= -->
-                <div class="tab-pane fade" id="absensi" role="tabpanel">
+                <div class="tab-pane fade <?= $activeTab === 'absensi' ? 'show active' : '' ?>" id="absensi" role="tabpanel">
                     <div class="card shadow-sm hover-card">
                         <div class="card-body p-3.5">
                             <h5 class="fw-bold text-dark mb-1" style="color: var(--color-purple); font-size: 15px;">Daftar Kehadiran & Sesi KBM</h5>
@@ -507,7 +510,7 @@
                                         <?php
                                             $absensi = $item['absensi'] ?? null;
                                             $statusAbsensi = $absensi['status'] ?? null;
-                                            $idJadwalItem = $item['id_jadwal_kelas'] ?? '';
+                                            $idJadwalItem = $item['id_jadwal'] ?? $item['id_jadwal_kelas'] ?? '';
                                             $absensiDibuka = 1; 
                                         ?>
                                         <div class="col-lg-6">
@@ -525,13 +528,16 @@
                                                     <?php endif; ?>
                                                 </div>
                                                 <h5 class="fw-bold mt-1 mb-1 text-dark" style="font-size: 13.5px;">Sesi Pertemuan Ke-<?= esc($item['pertemuan_ke'] ?? '-') ?></h5>
-                                                <p class="text-muted mb-2" style="font-size: 12px;">
-                                                    <i class="bi bi-calendar-event me-1" style="color: var(--color-orange);"></i>
-                                                    <?= !empty($item['tanggal_kbm'])
-                                                        ? date('d F Y', strtotime($item['tanggal_kbm']))
-                                                            . (!empty($item['jam_selesai']) ? ' • Pukul ' . date('H:i', strtotime($item['jam_selesai'])) : '')
-                                                        : 'Jadwal fleksibel' ?>
+                                                <p class="text-muted mb-1" style="font-size: 12px;">
+                                                    <i class="bi bi-clock me-1" style="color: var(--color-orange);"></i>
+                                                    Jam Absensi: <?= !empty($item['waktu_mulai']) ? date('H.i', strtotime($item['waktu_mulai'])) : '--.--' ?> - <?= !empty($item['waktu_selesai']) ? date('H.i', strtotime($item['waktu_selesai'])) : '--.--' ?>
                                                 </p>
+                                                  <?php if ($statusAbsensi === 'hadir' && !empty($absensi['waktu_absen'])): ?>
+                                                  <p class="text-success mb-2 fw-semibold" style="font-size: 12px;">
+                                                      <i class="bi bi-check-circle me-1"></i>
+                                                      Jam Presensi: <?= date('H.i', strtotime($absensi['waktu_absen'])) ?> WIB
+                                                  </p>
+                                                  <?php endif; ?>
 
                                                 <?php if ($statusAbsensi === 'hadir'): ?>
                                                     <div class="alert alert-success border-0 bg-success bg-opacity-10 text-success mb-0 rounded-3 py-1.5 small fw-semibold" style="font-size: 12px;">
@@ -810,47 +816,85 @@
 <!-- Script GPS & Sidebar Mobile -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    const tombolAbsenList = document.querySelectorAll('.btn-absen');
-    const inputLatList = document.querySelectorAll('.user_latitude');
-    const inputLonList = document.querySelectorAll('.user_longitude');
+    console.log("[GPS Flow] Halaman dibuka, menyiapkan event listener pada tombol absen...");
+    const forms = document.querySelectorAll('form[action*="prosesAbsen"]');
 
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-            const userLat = position.coords.latitude;
-            const userLon = position.coords.longitude;
-            
-            inputLatList.forEach(input => input.value = userLat);
-            inputLonList.forEach(input => input.value = userLon);
-            
-            tombolAbsenList.forEach(btn => {
-                btn.removeAttribute('disabled');
-                btn.className = "btn btn-absen w-100 rounded-pill fw-semibold text-white shadow-sm";
-                btn.style.background = "var(--color-purple)";
-                btn.style.fontSize = "12px";
-                btn.innerHTML = "<i class='bi bi-geo-alt-fill me-1'></i> Kirim Absen Sekarang";
+    forms.forEach(form => {
+        const btnAbsen = form.querySelector('.btn-absen');
+        const inputLat = form.querySelector('.user_latitude');
+        const inputLon = form.querySelector('.user_longitude');
+
+        if (btnAbsen) {
+            // Aktifkan tombol pada load karena kita akan mendeteksi saat diklik
+            btnAbsen.removeAttribute('disabled');
+            btnAbsen.innerHTML = "<i class='bi bi-geo-alt-fill me-1'></i> Kirim Absen Sekarang";
+
+            btnAbsen.addEventListener('click', function(e) {
+                e.preventDefault(); // Tunda submit form
+                console.log("[GPS Flow] Tombol diklik, memulai deteksi lokasi...");
+                
+                // Ubah status tombol jadi mendeteksi
+                btnAbsen.disabled = true;
+                btnAbsen.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Mendeteksi Lokasi GPS...';
+
+                if (navigator.geolocation) {
+                    console.log("[GPS Flow] Geolocation didukung. Memanggil getCurrentPosition...");
+                    let locationFound = false;
+
+                    const fallbackTimer = setTimeout(function() {
+                        if (!locationFound) {
+                            console.log("[GPS Flow] Error: Timeout 15 detik tercapai, GPS gagal didapat.");
+                            btnAbsen.className = "btn btn-danger btn-absen w-100 rounded-pill fw-semibold";
+                            btnAbsen.style.fontSize = "12px";
+                            btnAbsen.innerText = "Gagal Mendeteksi GPS (Timeout)";
+                            alert('Pencarian lokasi terlalu lama. Pastikan GPS aktif dan izin diberikan.');
+                        }
+                    }, 15000);
+
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        console.log("[GPS Flow] Success callback terpanggil!");
+                        locationFound = true;
+                        clearTimeout(fallbackTimer);
+                        
+                        const userLat = position.coords.latitude;
+                        const userLon = position.coords.longitude;
+                        console.log("[GPS Flow] Latitude/Longitude diterima: " + userLat + ", " + userLon);
+                        
+                        if (inputLat) inputLat.value = userLat;
+                        if (inputLon) inputLon.value = userLon;
+                        
+                        btnAbsen.innerHTML = "<i class='bi bi-check-circle-fill me-1'></i> Lokasi Ditemukan, Menyimpan...";
+                        console.log("[GPS Flow] Mengirim data absensi ke backend...");
+                        form.submit(); // Submit form setelah lokasi didapat
+                        
+                    }, function(error) {
+                        console.log("[GPS Flow] Error callback terpanggil! Kode error: " + error.code);
+                        locationFound = true;
+                        clearTimeout(fallbackTimer);
+                        
+                        btnAbsen.className = "btn btn-danger btn-absen w-100 rounded-pill fw-semibold";
+                        btnAbsen.style.fontSize = "12px";
+                        btnAbsen.innerText = "Gagal Mendeteksi GPS";
+                        
+                        let errorMsg = 'Gagal mendeteksi lokasi. Pastikan izin GPS perangkat Anda aktif!';
+                        if(error.code === 1) errorMsg = 'Izin lokasi ditolak oleh browser/pengguna.';
+                        if(error.code === 2) errorMsg = 'Sinyal lokasi tidak tersedia.';
+                        if(error.code === 3) errorMsg = 'Waktu permintaan lokasi habis (timeout).';
+                        alert(errorMsg);
+                    }, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    });
+                } else {
+                    console.log("[GPS Flow] Error: Browser tidak mendukung Geolocation.");
+                    btnAbsen.className = "btn btn-secondary btn-absen w-100 rounded-pill fw-semibold";
+                    btnAbsen.style.fontSize = "12px";
+                    btnAbsen.innerText = "GPS Tidak Didukung";
+                }
             });
-            
-        }, function(error) {
-            tombolAbsenList.forEach(v => {
-                tombolAbsenList.forEach(btn => {
-                    btn.className = "btn btn-danger btn-absen w-100 rounded-pill fw-semibold";
-                    btn.style.fontSize = "12px";
-                    btn.innerText = "Gagal Mendeteksi GPS";
-                });
-            });
-            alert('Gagal mendeteksi lokasi. Pastikan izin GPS perangkat Anda aktif!');
-        }, {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
-        });
-    } else {
-        tombolAbsenList.forEach(btn => {
-            btn.className = "btn btn-secondary btn-absen w-100 rounded-pill fw-semibold";
-            btn.style.fontSize = "12px";
-            btn.innerText = "GPS Tidak Didukung";
-        });
-    }
+        }
+    });
 
     // Toggle Sidebar Mobile
     const toggleBtn = document.getElementById('sidebarToggle');
@@ -866,7 +910,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function closeSidebar() {
         if (sidebar) sidebar.classList.remove('show');
-        if (backdrop) backdrop.classList.1 = backdrop.classList.remove('show'); // safety
         if (backdrop) backdrop.classList.remove('show');
         document.body.style.overflow = '';
     }

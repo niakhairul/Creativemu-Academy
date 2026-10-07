@@ -334,15 +334,17 @@
 
 <!-- SIDEBAR -->
 <nav class="sidebar" id="sidebarMenu">
-    <div class="d-flex align-items-center justify-content-between pb-2.5 mb-2.5 border-bottom border-white border-opacity-10">
-        <a href="#" class="sidebar-brand text-decoration-none d-flex align-items-center mb-0 pb-0 border-0">
-            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Logo" class="rounded-3 me-2 shadow-sm object-fit-cover" style="width: 28px; height: 28px;">
+    <div class="d-flex align-items-start justify-content-between pb-3 mb-3 border-bottom border-white border-opacity-10 position-relative">
+        <a href="#" class="sidebar-brand text-decoration-none d-flex flex-column align-items-center w-100 mb-0 pb-0 border-0 text-center">
+            <div style="background-color: #ffffff; border-radius: 14px; padding: 10px 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.22); width: 90%; margin: 0 auto 12px auto;">
+                <img src="<?= base_url('assets/img/logo_creativemu_admin.png'); ?>" alt="Logo" style="width: 100%; max-width: 180px; height: auto; max-height: 55px; object-fit: contain; display: block;">
+            </div>
             <div>
-                <span class="fs-6 fw-bold d-block text-white lh-1" style="font-size: 14.5px !important;">Creativemu</span>
-                <span style="font-size: 9.5px; letter-spacing: 0.5px; color: var(--color-cyan);">ACADEMY</span>
+                <span class="fs-6 fw-bold d-block text-white lh-1 mb-1">Creativemu</span>
+                <span style="font-size: 9.5px; letter-spacing: 1px; color: var(--color-cyan); font-weight: 600;">ACADEMY</span>
             </div>
         </a>
-        <button type="button" class="sidebar-close-btn" id="sidebarClose" aria-label="Tutup Menu">
+        <button type="button" class="sidebar-close-btn mt-1 position-absolute end-0" style="top: 0;" id="sidebarClose" aria-label="Tutup Menu">
             <i class="bi bi-x-lg"></i>
         </button>
     </div>
