@@ -26,15 +26,22 @@
     background-color: #ffffff;
     border-radius: 14px;
     padding: 10px 14px;
-    display: inline-block;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    width: 85%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.22);
+    width: 90%;
+    margin: 0 auto;
+    transition: transform 0.2s ease;
 }
 
 #sidebar .logo-card img {
-    max-width: 100%;
-    height: 45px;
+    width: 100%;
+    max-width: 180px;
+    height: auto;
+    max-height: 55px;
     object-fit: contain;
+    display: block;
 }
 
 #sidebar .panel-title {
@@ -101,11 +108,13 @@
         width: 70px;
     }
     #sidebar .sidebar-header .logo-card {
-        padding: 6px;
+        padding: 6px 4px;
         width: 100%;
     }
     #sidebar .sidebar-header img {
-        height: 30px;
+        height: auto;
+        max-height: 34px;
+        max-width: 100%;
     }
     #sidebar .panel-title, #sidebar span {
         display: none;
@@ -123,7 +132,7 @@
 <nav id="sidebar">
     <div class="sidebar-header">
         <div class="logo-card">
-            <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy">
+            <img src="<?= base_url('assets/img/logo_creativemu_admin.png'); ?>" alt="Creativemu Academy">
         </div>
         <div class="panel-title"><?= $isMentor ? 'PANEL MENTOR' : 'PANEL ADMIN' ?></div>
     </div>

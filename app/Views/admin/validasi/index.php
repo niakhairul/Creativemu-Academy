@@ -465,7 +465,7 @@ if (!function_exists('validasi_status_badge')) {
 </div>
 <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileSidebar">
     <div class="offcanvas-header">
-        <img src="<?= base_url('assets/img/logo_creativemu.jpg'); ?>" alt="Creativemu Academy" style="width:140px;height:55px;object-fit:cover;border-radius:8px">
+        <img src="<?= base_url('assets/img/logo_creativemu_admin.png'); ?>" alt="Creativemu Academy" style="width:auto;max-width:180px;height:auto;max-height:50px;object-fit:contain;background:#fff;padding:6px 12px;border-radius:10px">
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
     </div>
     <div class="offcanvas-body">

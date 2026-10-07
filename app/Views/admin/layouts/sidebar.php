@@ -59,7 +59,7 @@
         }
 
         .brand-logo img {
-            max-height: 42px;
+            max-height: 48px;
             width: auto;
             object-fit: contain;
         }
@@ -199,7 +199,7 @@
     <div class="sidebar">
         <div>
             <div class="brand-logo">
-            <img src="<?= base_url('assets/img/logo_creativemu_academy.jpg'); ?>" alt="Creativemu Logo">
+                <img src="<?= base_url('assets/img/logo_creativemu_admin.png'); ?>" alt="Creativemu Logo">
                 <span>Creativemu</span>
             </div>
             

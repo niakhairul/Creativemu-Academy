@@ -26,14 +26,26 @@
 
     /* Keep the existing full navigation intact on mobile. Some legacy views
        hide the brand and menu labels when their sidebar is narrowed. */
+    #sidebar .sidebar-header .logo-card {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 88% !important;
+        margin: 0 auto !important;
+        padding: 10px 14px !important;
+        background-color: #ffffff !important;
+        border-radius: 14px !important;
+    }
+
     #sidebar .sidebar-header img {
         display: block !important;
         width: 100% !important;
-        max-width: 240px;
-        height: 95px !important;
-        object-fit: cover;
-        border-radius: 10px;
-        margin-inline: auto;
+        max-width: 185px !important;
+        height: auto !important;
+        max-height: 56px !important;
+        object-fit: contain !important;
+        border-radius: 0 !important;
+        margin-inline: auto !important;
     }
 
     #sidebar .nav-link span,
