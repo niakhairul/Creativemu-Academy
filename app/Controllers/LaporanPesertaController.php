@@ -121,7 +121,8 @@ class LaporanPesertaController extends BaseController
         $infoKelas   = $this->laporanModel->getInformasiPelatihan($filters);
         $rekapKelas  = $this->laporanModel->getRekapPerKelas($filters);
         $chartData   = $this->laporanModel->getChartData($filters);
-        $detailList  = $this->laporanModel->getDetailPeserta($filters);
+        $detailList  = $this->laporanModel->getDetailPeserta($filters, true);
+        $pager       = $this->laporanModel->pager;
 
         $role = strtolower((string) session()->get('role'));
 
@@ -139,7 +140,8 @@ class LaporanPesertaController extends BaseController
             'rekapKelas'   => $rekapKelas,
             'chartData'    => $chartData,
             'detailList'   => $detailList,
-            'totalDetail'  => count($detailList),
+            'pager'        => $pager,
+            'totalDetail'  => $pager ? $pager->getTotal('peserta') : count($detailList),
         ];
 
         return view('admin/laporan/laporan_peserta', $data);

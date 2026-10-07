@@ -99,7 +99,7 @@ class LaporanPesertaModel extends Model
                 pendaftaran.created_at AS tanggal_daftar,
                 kelas.nama_kelas,
                 kelas.kategori,
-                kelas.lokasi_pelatihan AS tempat_pelatihan,
+                pendaftaran.lokasi_pelatihan AS tempat_pelatihan,
                 kelas.tanggal_mulai_kelas,
                 kelas.jumlah_pertemuan,
                 kelas.kapasitas,
@@ -150,7 +150,7 @@ class LaporanPesertaModel extends Model
         }
 
         if (!empty($filters['tempat_pelatihan']) && $filters['tempat_pelatihan'] !== 'all') {
-            $builder->where('kelas.lokasi_pelatihan', $filters['tempat_pelatihan']);
+            $builder->like('pendaftaran.lokasi_pelatihan', $filters['tempat_pelatihan'], 'both');
         }
 
         // Filter Mentor jika akses mentor
@@ -333,6 +333,9 @@ class LaporanPesertaModel extends Model
                     'lulus'           => 0,
                     'tidak_lulus'     => 0,
                     'dalam_proses'    => 0,
+                    'jumlah_pusat'    => 0,
+                    'jumlah_cabang'   => 0,
+                    'jumlah_perwakilan'=> 0,
                 ];
             }
 
@@ -352,6 +355,15 @@ class LaporanPesertaModel extends Model
                 $rekap[$idKelas]['tidak_lulus']++;
             } else {
                 $rekap[$idKelas]['dalam_proses']++;
+            }
+            
+            $tp = strtolower(trim($row['tempat_pelatihan'] ?? ''));
+            if (str_contains($tp, 'pusat')) {
+                $rekap[$idKelas]['jumlah_pusat']++;
+            } elseif (str_contains($tp, 'cabang')) {
+                $rekap[$idKelas]['jumlah_cabang']++;
+            } elseif (str_contains($tp, 'perwakilan')) {
+                $rekap[$idKelas]['jumlah_perwakilan']++;
             }
         }
 
@@ -471,12 +483,26 @@ class LaporanPesertaModel extends Model
     /**
      * Ambil data detail peserta lengkap untuk tabel
      */
-    public function getDetailPeserta($filters = [])
+    public function getDetailPeserta($filters = [], $paginate = false)
     {
         // [PERBAIKAN] Langsung gunakan buildFilteredBuilder agar bersih dan terhindar dari duplikasi query
-        return $this->buildFilteredBuilder($filters)
-            ->orderBy('pendaftaran.created_at', 'DESC')
-            ->get()
-            ->getResultArray();
+        $builder = $this->buildFilteredBuilder($filters)
+            ->orderBy('pendaftaran.created_at', 'DESC');
+            
+        if ($paginate) {
+            $page = (int)($_GET['page_peserta'] ?? 1);
+            if ($page < 1) $page = 1;
+            
+            // Hitung total data sebelum limit/offset
+            $total = $builder->countAllResults(false);
+            
+            $pager = \Config\Services::pager();
+            $pager->makeLinks($page, 10, $total, 'default_full', 0, 'peserta');
+            $this->pager = $pager;
+            
+            $builder->limit(10, ($page - 1) * 10);
+        }
+        
+        return $builder->get()->getResultArray();
     }
 }

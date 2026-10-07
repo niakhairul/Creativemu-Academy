@@ -448,11 +448,15 @@
                         <select name="tempat_pelatihan" class="form-select form-select-sm">
                             <?php 
                             $selectedTempat = $filters['tempat_pelatihan'] ?? 'all';
-                            $listTempatOpt = $tempatList ?? ['Kantor Pusat', 'Kantor Cabang', 'Kantor Perwakilan'];
+                            $listTempatOpt = [
+                                'Kantor Pusat' => 'Kantor Pusat - Jl. Gn. Bulu No.89, RT.34, Bandut Lor, Argorejo, Kec. Sedayu, Kabupaten Bantul, Daerah Istimewa Yogyakarta 55752',
+                                'Kantor Cabang' => 'Kantor Cabang - Jl. Glagahsari No.46C, Warungboto, Kec. Umbulharjo, Kota Yogyakarta, Daerah Istimewa Yogyakarta',
+                                'Kantor Perwakilan' => 'Kantor Perwakilan - Jl. Soekarno Hatta, Sawitan, Kabupaten Magelang, Jawa Tengah'
+                            ];
                             ?>
-                            <option value="all" <?= ($selectedTempat === 'all' || $selectedTempat === '') ? 'selected' : ''; ?>>-- Semua Tempat --</option>
-                            <?php foreach ($listTempatOpt as $tempat): ?>
-                                <option value="<?= esc($tempat); ?>" <?= ($selectedTempat === $tempat) ? 'selected' : ''; ?>><?= esc($tempat); ?></option>
+                            <option value="all" <?= ($selectedTempat === 'all' || $selectedTempat === '') ? 'selected' : ''; ?>>-- Semua Tempat Pelatihan --</option>
+                            <?php foreach ($listTempatOpt as $val => $label): ?>
+                                <option value="<?= esc($val); ?>" <?= ($selectedTempat === $val) ? 'selected' : ''; ?>><?= esc($label); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -661,7 +665,7 @@
                     <h6 class="fw-bold m-0" style="color: var(--dark-purple); font-size: 0.85rem;">
                         <i class="fas fa-address-book me-1" style="color: var(--primary-purple);"></i> Detail Data Peserta
                     </h6>
-                    <small class="text-muted" style="font-size: 0.7rem;">Total: <?= count($detailList ?? []); ?> peserta terdaftar</small>
+                    <small class="text-muted" style="font-size: 0.7rem;">Total: <?= esc($totalDetail ?? count($detailList ?? [])); ?> peserta terdaftar</small>
                 </div>
 
                 <div class="d-flex gap-2 flex-wrap">
@@ -695,7 +699,12 @@
                     </thead>
                     <tbody id="detailPesertaTbody">
                         <?php if (!empty($detailList)): ?>
-                            <?php $no = 1; foreach ($detailList as $p): ?>
+                            <?php 
+                            $page = isset($_GET['page_peserta']) ? (int)$_GET['page_peserta'] : 1;
+                            if ($page < 1) $page = 1;
+                            $no = 1 + ($page - 1) * 10;
+                            foreach ($detailList as $p): 
+                            ?>
                             <tr class="detail-row" 
                                 data-status="<?= strtolower($p['status_kelulusan'] ?? 'dalam proses'); ?>"
                                 data-search="<?= strtolower(esc(($p['nama_peserta'] ?? '') . ' ' . ($p['resolved_nis'] ?? '') . ' ' . ($p['nama_kelas'] ?? '') . ' ' . ($p['kategori'] ?? '') . ' ' . ($p['tempat_pelatihan'] ?? ''))); ?>">
@@ -751,6 +760,30 @@
                     </tbody>
                 </table>
             </div>
+
+            <?php if (isset($pager) && $pager): ?>
+            <div class="mt-4 d-flex flex-column flex-md-row justify-content-between align-items-center">
+                <?php 
+                $page = isset($_GET['page_peserta']) ? (int)$_GET['page_peserta'] : 1;
+                if ($page < 1) $page = 1;
+                $perPage = 10;
+                $total = $totalDetail ?? 0;
+                $start = ($page - 1) * $perPage + 1;
+                $end = min($page * $perPage, $total);
+                if ($total > 0):
+                ?>
+                <div class="text-muted small mb-3 mb-md-0 fw-medium">
+                    Menampilkan <span class="fw-bold text-dark"><?= $start ?>–<?= $end ?></span> dari <span class="fw-bold text-dark"><?= $total ?></span> data
+                </div>
+                <?php else: ?>
+                <div class="text-muted small mb-3 mb-md-0 fw-medium">Menampilkan 0 data</div>
+                <?php endif; ?>
+                
+                <nav aria-label="Page navigation">
+                    <?= $pager->links('peserta', 'modern_pager') ?>
+                </nav>
+            </div>
+            <?php endif; ?>
 
             <div id="noMatchMessage" class="text-center py-3 text-muted d-none">
                 <i class="fas fa-filter-circle-xmark fa-2x mb-1 opacity-50"></i>

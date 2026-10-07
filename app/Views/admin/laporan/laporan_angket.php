@@ -462,9 +462,17 @@
                     <div class="col-12 col-md-3">
                         <label class="form-label small fw-semibold text-muted">Tempat Pelatihan</label>
                         <select name="tempat_pelatihan" class="form-select">
-                            <option value="all">-- Semua Tempat --</option>
-                            <?php foreach (($tempatList ?? []) as $idLokasi => $namaLokasi): ?>
-                                <option value="<?= esc($idLokasi); ?>" <?= (($filters['tempat_pelatihan'] ?? 'all') == $idLokasi) ? 'selected' : ''; ?>><?= esc(strlen($namaLokasi) > 50 ? substr($namaLokasi, 0, 50) . '...' : $namaLokasi); ?></option>
+                            <?php 
+                            $selectedTempat = $filters['tempat_pelatihan'] ?? 'all';
+                            $listTempatOpt = [
+                                'Kantor Pusat' => 'Kantor Pusat - Jl. Gn. Bulu No.89, RT.34, Bandut Lor, Argorejo, Kec. Sedayu, Kabupaten Bantul, Daerah Istimewa Yogyakarta 55752',
+                                'Kantor Cabang' => 'Kantor Cabang - Jl. Glagahsari No.46C, Warungboto, Kec. Umbulharjo, Kota Yogyakarta, Daerah Istimewa Yogyakarta',
+                                'Kantor Perwakilan' => 'Kantor Perwakilan - Jl. Soekarno Hatta, Sawitan, Kabupaten Magelang, Jawa Tengah'
+                            ];
+                            ?>
+                            <option value="all" <?= ($selectedTempat === 'all' || $selectedTempat === '') ? 'selected' : ''; ?>>-- Semua Tempat Pelatihan --</option>
+                            <?php foreach ($listTempatOpt as $val => $label): ?>
+                                <option value="<?= esc($val); ?>" <?= ($selectedTempat === $val) ? 'selected' : ''; ?>><?= esc($label); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -858,7 +866,7 @@
                     </thead>
                     <tbody>
                         <?php if (!empty($angketList)): ?>
-                            <?php $no = 1; foreach ($angketList as $m): ?>
+                            <?php $page = isset($page) ? $page : 1; $no = ($page - 1) * 10 + 1; foreach ($angketList as $m): ?>
                             <tr>
                                 <td class="text-center fw-bold text-muted"><?= $no++; ?></td>
                                 <td>
@@ -918,6 +926,28 @@
                     </tbody>
                 </table>
             </div>
+            
+            <?php if (isset($pager) && $pager): ?>
+            <div class="mt-4 d-flex flex-column flex-md-row justify-content-between align-items-center">
+                <?php 
+                $page = isset($page) ? $page : 1;
+                $perPage = 10;
+                $total = $totalDetail ?? 0;
+                $start = ($page - 1) * $perPage + 1;
+                $end = min($page * $perPage, $total);
+                if ($total > 0):
+                ?>
+                <div class="text-muted small mb-3 mb-md-0 fw-medium">
+                    Menampilkan <span class="fw-bold text-dark"><?= $start ?>–<?= $end ?></span> dari <span class="fw-bold text-dark"><?= $total ?></span> data
+                </div>
+                <?php else: ?>
+                <div class="text-muted small mb-3 mb-md-0 fw-medium">Menampilkan 0 data</div>
+                <?php endif; ?>
+                
+                <?= $pager->links('angket', 'modern_pager') ?>
+            </div>
+            <?php endif; ?>
+
         </div>
 
         <!-- 7. SECTION KOMENTAR, KRITIK & SARAN PESERTA PELATIHAN -->

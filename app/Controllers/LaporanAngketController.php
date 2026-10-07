@@ -113,7 +113,19 @@ class LaporanAngketController extends BaseController
         $tempatList = $this->laporanAngketModel->getFilterTempatPelatihan();
 
         $stats         = $this->laporanAngketModel->getRingkasanStats($filters);
-        $angketList    = $this->laporanAngketModel->getLaporanAngketList($filters);
+        
+        $angketListAll = $this->laporanAngketModel->getLaporanAngketList($filters);
+        $totalDetail   = count($angketListAll);
+
+        $page = $this->request->getVar('page_angket') ? (int)$this->request->getVar('page_angket') : 1;
+        $perPage = 10;
+        $offset = ($page - 1) * $perPage;
+
+        $angketList = array_slice($angketListAll, $offset, $perPage);
+
+        $pager = \Config\Services::pager();
+        $pager->makeLinks($page, $perPage, $totalDetail, 'default_full', 0, 'angket');
+
         $indikatorList = $this->laporanAngketModel->getPenilaianPerIndikator($filters);
         $rankingList   = $this->laporanAngketModel->getRankingMentor($filters);
         $chartData     = $this->laporanAngketModel->getChartData($filters);
@@ -145,6 +157,9 @@ class LaporanAngketController extends BaseController
             'tempatList'    => $tempatList,
             'stats'         => $stats,
             'angketList'    => $angketList,
+            'pager'         => $pager,
+            'totalDetail'   => $totalDetail,
+            'page'          => $page,
             'indikatorList' => $indikatorList,
             'rankingList'   => $rankingList,
             'chartData'     => $chartData,

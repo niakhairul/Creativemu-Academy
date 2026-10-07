@@ -476,10 +476,18 @@
                             <i class="fas fa-building text-primary me-1"></i> Tempat Pelatihan
                         </label>
                         <select name="tempat_pelatihan" class="form-select">
-                            <option value="all">-- Semua Tempat Pelatihan --</option>
-                            <option value="Kantor Pusat" <?= (($filters['tempat_pelatihan'] ?? 'all') === 'Kantor Pusat') ? 'selected' : ''; ?>>Kantor Pusat</option>
-                            <option value="Kantor Cabang" <?= (($filters['tempat_pelatihan'] ?? 'all') === 'Kantor Cabang') ? 'selected' : ''; ?>>Kantor Cabang</option>
-                            <option value="Kantor Perwakilan" <?= (($filters['tempat_pelatihan'] ?? 'all') === 'Kantor Perwakilan') ? 'selected' : ''; ?>>Kantor Perwakilan</option>
+                            <?php 
+                            $selectedTempat = $filters['tempat_pelatihan'] ?? 'all';
+                            $listTempatOpt = [
+                                'Kantor Pusat' => 'Kantor Pusat - Jl. Gn. Bulu No.89, RT.34, Bandut Lor, Argorejo, Kec. Sedayu, Kabupaten Bantul, Daerah Istimewa Yogyakarta 55752',
+                                'Kantor Cabang' => 'Kantor Cabang - Jl. Glagahsari No.46C, Warungboto, Kec. Umbulharjo, Kota Yogyakarta, Daerah Istimewa Yogyakarta',
+                                'Kantor Perwakilan' => 'Kantor Perwakilan - Jl. Soekarno Hatta, Sawitan, Kabupaten Magelang, Jawa Tengah'
+                            ];
+                            ?>
+                            <option value="all" <?= ($selectedTempat === 'all' || $selectedTempat === '') ? 'selected' : ''; ?>>-- Semua Tempat Pelatihan --</option>
+                            <?php foreach ($listTempatOpt as $val => $label): ?>
+                                <option value="<?= esc($val); ?>" <?= ($selectedTempat === $val) ? 'selected' : ''; ?>><?= esc($label); ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
 
@@ -751,7 +759,7 @@
                     </thead>
                     <tbody>
                         <?php if (!empty($mentorList)): ?>
-                            <?php $no = 1; foreach ($mentorList as $m): ?>
+                            <?php $page = isset($page) ? $page : 1; $no = ($page - 1) * 10 + 1; foreach ($mentorList as $m): ?>
                             <tr class="mentor-row" data-search="<?= strtolower(esc($m['nama_mentor'] . ' ' . $m['pelatihan'] . ' ' . $m['kelas'] . ' ' . ($m['tempat_pelatihan'] ?? ''))); ?>">
                                 <td class="text-center fw-bold row-no"><?= $no++; ?></td>
                                 <td>
@@ -803,6 +811,27 @@
                     </tbody>
                 </table>
             </div>
+            
+            <?php if (isset($pager) && $pager): ?>
+            <div class="mt-4 d-flex flex-column flex-md-row justify-content-between align-items-center">
+                <?php 
+                $page = isset($page) ? $page : 1;
+                $perPage = 10;
+                $total = $totalDetail ?? 0;
+                $start = ($page - 1) * $perPage + 1;
+                $end = min($page * $perPage, $total);
+                if ($total > 0):
+                ?>
+                <div class="text-muted small mb-3 mb-md-0 fw-medium">
+                    Menampilkan <span class="fw-bold text-dark"><?= $start ?>–<?= $end ?></span> dari <span class="fw-bold text-dark"><?= $total ?></span> data
+                </div>
+                <?php else: ?>
+                <div class="text-muted small mb-3 mb-md-0 fw-medium">Menampilkan 0 data</div>
+                <?php endif; ?>
+                
+                <?= $pager->links('mentor', 'modern_pager') ?>
+            </div>
+            <?php endif; ?>
 
             <div id="noMentorMatch" class="text-center py-3 text-muted d-none" style="font-size: 0.82rem;">
                 <i class="fas fa-filter-circle-xmark fa-2x mb-1 opacity-50"></i>

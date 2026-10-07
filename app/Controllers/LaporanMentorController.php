@@ -160,9 +160,17 @@ class LaporanMentorController extends BaseController
         $tempatList = $this->laporanMentorModel->getFilterTempatPelatihan();
 
         $stats       = $this->laporanMentorModel->getRingkasanStats($filters);
-        $mentorList  = $this->laporanMentorModel->getLaporanMentorList($filters);
+        $mentorListAll  = $this->laporanMentorModel->getLaporanMentorList($filters);
         $rankingList = $this->laporanMentorModel->getRankingMentor($filters);
         $chartData   = $this->laporanMentorModel->getChartData($filters);
+        
+        $page = (int)($this->request->getVar('page_mentor') ?? 1);
+        if ($page < 1) $page = 1;
+        $perPage = 10;
+        $total = count($mentorListAll);
+        $pager = \Config\Services::pager();
+        $pager->makeLinks($page, $perPage, $total, 'default_full', 0, 'mentor');
+        $mentorList = array_slice($mentorListAll, ($page - 1) * $perPage, $perPage);
 
         $bulanNames = [
             1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
@@ -185,6 +193,8 @@ class LaporanMentorController extends BaseController
             'tempatList'   => $tempatList,
             'stats'        => $stats,
             'mentorList'   => $mentorList,
+            'pager'        => $pager,
+            'totalDetail'  => $total,
             'rankingList'  => $rankingList,
             'chartData'    => $chartData,
             'bulanNames'   => $bulanNames,

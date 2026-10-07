@@ -388,9 +388,17 @@
                     <div class="col-6 col-md-2">
                         <label class="form-label small fw-semibold text-muted mb-1" style="font-size: 0.72rem;">Tempat</label>
                         <select name="tempat_pelatihan" class="form-select form-select-sm">
-                            <option value="all">-- Semua Tempat --</option>
-                            <?php foreach (($tempatList ?? []) as $tempat): ?>
-                                <option value="<?= esc($tempat); ?>" <?= (($filters['tempat_pelatihan'] ?? 'all') === $tempat) ? 'selected' : ''; ?>><?= esc($tempat); ?></option>
+                            <?php 
+                            $selectedTempat = $filters['tempat_pelatihan'] ?? 'all';
+                            $listTempatOpt = [
+                                'Kantor Pusat' => 'Kantor Pusat - Jl. Gn. Bulu No.89, RT.34, Bandut Lor, Argorejo, Kec. Sedayu, Kabupaten Bantul, Daerah Istimewa Yogyakarta 55752',
+                                'Kantor Cabang' => 'Kantor Cabang - Jl. Glagahsari No.46C, Warungboto, Kec. Umbulharjo, Kota Yogyakarta, Daerah Istimewa Yogyakarta',
+                                'Kantor Perwakilan' => 'Kantor Perwakilan - Jl. Soekarno Hatta, Sawitan, Kabupaten Magelang, Jawa Tengah'
+                            ];
+                            ?>
+                            <option value="all" <?= ($selectedTempat === 'all' || $selectedTempat === '') ? 'selected' : ''; ?>>-- Semua Tempat --</option>
+                            <?php foreach ($listTempatOpt as $val => $label): ?>
+                                <option value="<?= esc($val); ?>" <?= ($selectedTempat === $val) ? 'selected' : ''; ?>><?= esc($label); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -536,7 +544,11 @@
                     </thead>
                     <tbody id="rekapTableBody">
                         <?php if (!empty($rekapList)): ?>
-                            <?php $no = 1; foreach ($rekapList as $row): ?>
+                            <?php 
+                            $page = isset($page) ? $page : 1;
+                            $no = ($page - 1) * 10 + 1; 
+                            foreach ($rekapList as $row): 
+                            ?>
                             <tr class="table-row-item">
                                 <td class="text-center text-muted fw-bold"><?= $no++; ?></td>
                                 <td class="text-center"><code><?= esc($row['nis']); ?></code></td>
@@ -578,6 +590,28 @@
                     </tbody>
                 </table>
             </div>
+            
+            <?php if (isset($pager) && $pager): ?>
+            <div class="mt-4 d-flex flex-column flex-md-row justify-content-between align-items-center">
+                <?php 
+                $page = isset($page) ? $page : 1;
+                $perPage = 10;
+                $total = $totalDetail ?? 0;
+                $start = ($page - 1) * $perPage + 1;
+                $end = min($page * $perPage, $total);
+                if ($total > 0):
+                ?>
+                <div class="text-muted small mb-3 mb-md-0 fw-medium">
+                    Menampilkan <span class="fw-bold text-dark"><?= $start ?>–<?= $end ?></span> dari <span class="fw-bold text-dark"><?= $total ?></span> data
+                </div>
+                <?php else: ?>
+                <div class="text-muted small mb-3 mb-md-0 fw-medium">Menampilkan 0 data</div>
+                <?php endif; ?>
+                
+                <?= $pager->links('kehadiran', 'modern_pager') ?>
+            </div>
+            <?php endif; ?>
+
         </div>
     </div>
 

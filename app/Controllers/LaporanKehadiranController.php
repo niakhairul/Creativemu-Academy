@@ -109,9 +109,17 @@ class LaporanKehadiranController extends BaseController
         $tempatList = $this->laporanKehadiranModel->getFilterTempatPelatihan();
 
         $stats     = $this->laporanKehadiranModel->getRingkasanStats($filters);
-        $rekapList = $this->laporanKehadiranModel->getLaporanKehadiranList($filters);
+        $rekapListAll = $this->laporanKehadiranModel->getLaporanKehadiranList($filters);
         $chartData = $this->laporanKehadiranModel->getChartData($filters);
         $topLowest = $this->laporanKehadiranModel->getTopLowestParticipants($filters);
+        
+        $page = (int)($this->request->getVar('page_kehadiran') ?? 1);
+        if ($page < 1) $page = 1;
+        $perPage = 10;
+        $total = count($rekapListAll);
+        $pager = \Config\Services::pager();
+        $pager->makeLinks($page, $perPage, $total, 'default_full', 0, 'kehadiran');
+        $rekapList = array_slice($rekapListAll, ($page - 1) * $perPage, $perPage);
 
         $bulanNames = [
             1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
@@ -135,6 +143,8 @@ class LaporanKehadiranController extends BaseController
             'tempatList'   => $tempatList,
             'stats'        => $stats,
             'rekapList'    => $rekapList,
+            'pager'        => $pager,
+            'totalDetail'  => $total,
             'chartData'    => $chartData,
             'topLowest'    => $topLowest,
             'bulanNames'   => $bulanNames,
