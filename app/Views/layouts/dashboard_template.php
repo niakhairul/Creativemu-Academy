@@ -67,18 +67,8 @@
         .sidebar {
             width: 260px;
             background:
-                radial-gradient(
-                    circle at 15% 12%,
-                    rgba(255, 255, 255, 0.14) 0%,
-                    rgba(255, 255, 255, 0) 45%
-                ),
-                linear-gradient(
-                    165deg,
-                    #4a2fc9 0%,
-                    #7440e6 32%,
-                    #9257f2 60%,
-                    #b678f5 100%
-                );
+                radial-gradient(circle at 15% 12%, rgba(90, 197, 232, 0.2) 0%, rgba(255, 255, 255, 0) 45%),
+                linear-gradient(165deg, #5b3fd6 0%, #7b5af6 35%, #df6be0 75%, #5ac5e8 100%);
             background-size: 200% 200%, 220% 220%;
             animation: sidebarGlow 14s ease infinite;
             color: white;
@@ -88,7 +78,7 @@
             left: 0;
             z-index: 100;
             padding: 24px 20px;
-            box-shadow: 6px 0 34px rgba(116, 64, 230, 0.35);
+            box-shadow: 6px 0 34px rgba(123, 90, 246, 0.25);
             overflow-y: auto;
             overflow-x: hidden;
         }
@@ -107,21 +97,17 @@
             }
         }
 
-        /* Garis diagonal seperti tampilan terbaru */
-
-        .sidebar::before {
+        /* Subtle Pattern seperti di KBM */
+        .sidebar::after {
             content: "";
             position: absolute;
-            inset: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M54.627 0l.83.83v58.34h-58.34l-.83-.83V0h58.34zM29.5 25.5c-2.205 0-4 1.795-4 4s1.795 4 4 4 4-1.795 4-4-1.795-4-4-4zm0 6c-1.103 0-2-.897-2-2s.897-2 2-2 2 .897 2 2-.897 2-2 2z' fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
             pointer-events: none;
-            opacity: 0.12;
-            background-image: repeating-linear-gradient(
-                135deg,
-                rgba(255, 255, 255, 0.35) 0,
-                rgba(255, 255, 255, 0.35) 1px,
-                transparent 1px,
-                transparent 12px
-            );
+            z-index: 0;
         }
 
         .sidebar > * {
