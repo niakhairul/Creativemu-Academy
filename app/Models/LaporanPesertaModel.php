@@ -117,14 +117,14 @@ class LaporanPesertaModel extends Model
             ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
             ->join("(
                 SELECT 
-                    id_user, 
+                    id_users, 
                     id_kelas,
                     MAX(CASE WHEN LOWER(status_kelulusan) = 'lulus' OR nilai >= 70 THEN 1 ELSE 0 END) AS is_lulus,
                     MAX(CASE WHEN LOWER(status_kelulusan) = 'belum_lulus' OR (nilai IS NOT NULL AND nilai < 70) THEN 1 ELSE 0 END) AS is_tidak_lulus,
                     MAX(nilai) AS nilai_tertinggi
                 FROM nilai_ujian
-                GROUP BY id_user, id_kelas
-            ) nu", 'nu.id_user = pendaftaran.id_users AND nu.id_kelas = pendaftaran.id_kelas', 'left')
+                GROUP BY id_users, id_kelas
+            ) nu", 'nu.id_users = pendaftaran.id_users AND nu.id_kelas = pendaftaran.id_kelas', 'left')
             ->join('sertifikat s', 's.id_user = pendaftaran.id_users AND s.id_kelas = pendaftaran.id_kelas', 'left');
 
         // Filter Tahun

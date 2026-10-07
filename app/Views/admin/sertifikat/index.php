@@ -482,7 +482,7 @@
                             foreach ($sertifikat as $s) {
                                 if (
                                     isset($s['id_user'], $s['id_kelas']) &&
-                                    $s['id_user'] == $p['id_user'] &&
+                                    $s['id_user'] == $p['id_users'] &&
                                     $s['id_kelas'] == $p['id_kelas']
                                 ) {
                                     $sudahTerbit = true;
@@ -535,7 +535,7 @@
                                         <?php endif; ?>
                                     </div>
                                 <?php else : ?>
-                                    <a href="<?= base_url('admin/sertifikat/upload?id_user=' . $p['id_user'] . '&id_kelas=' . $p['id_kelas']); ?>"
+                                    <a href="<?= base_url('admin/sertifikat/upload?id_user=' . $p['id_users'] . '&id_kelas=' . $p['id_kelas']); ?>"
                                        class="btn btn-primary-custom btn-sm py-1 px-2">
                                         <i class="fas fa-certificate me-1"></i> Terbitkan
                                     </a>
@@ -568,7 +568,7 @@
                         foreach ($sertifikat as $s) {
                             if (
                                 isset($s['id_user'], $s['id_kelas']) &&
-                                $s['id_user'] == $p['id_user'] &&
+                                $s['id_user'] == $p['id_users'] &&
                                 $s['id_kelas'] == $p['id_kelas']
                             ) {
                                 $sudahTerbit = true;
@@ -608,7 +608,7 @@
                                     <i class="fas fa-download"></i> Download
                                 </a>
                             <?php else : ?>
-                                <a href="<?= base_url('admin/sertifikat/upload?id_user=' . $p['id_user'] . '&id_kelas=' . $p['id_kelas']); ?>" class="btn btn-primary-custom btn-sm">
+                                <a href="<?= base_url('admin/sertifikat/upload?id_user=' . $p['id_users'] . '&id_kelas=' . $p['id_kelas']); ?>" class="btn btn-primary-custom btn-sm">
                                     <i class="fas fa-certificate me-1"></i> Terbitkan
                                 </a>
                             <?php endif; ?>
