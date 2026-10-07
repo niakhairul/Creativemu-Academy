@@ -113,6 +113,24 @@
         .card-footer-text { text-align: center; margin-top: 20px; font-size: 0.85rem; color: var(--text-muted); }
         .card-footer-text a { color: var(--accent-purple); font-weight: 700; text-decoration: none; }
 
+        .password-wrapper {
+            position: relative;
+        }
+        .password-wrapper .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #A696CC;
+            font-size: 0.9rem;
+            z-index: 5;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .password-wrapper .toggle-password:hover {
+            color: var(--accent-purple);
+        }
+
         @media (max-width: 767.98px) {
             .container {
                 padding: 16px !important;
@@ -231,11 +249,17 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                            <div class="password-wrapper">
+                                <input type="password" id="password" name="password" class="form-control pe-5" placeholder="••••••••" required>
+                                <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+                            </div>
                         </div>
                         <div class="col-md-6 mb-4">
                             <label class="form-label">Konfirmasi</label>
-                            <input type="password" name="konfirmasi_password" class="form-control" placeholder="••••••••" required>
+                            <div class="password-wrapper">
+                                <input type="password" id="konfirmasi_password" name="konfirmasi_password" class="form-control pe-5" placeholder="••••••••" required>
+                                <i class="fas fa-eye toggle-password" id="toggleConfirmPassword"></i>
+                            </div>
                         </div>
                     </div>
 
@@ -252,5 +276,31 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const togglePassword = document.querySelector('#togglePassword');
+            const password = document.querySelector('#password');
+            const toggleConfirmPassword = document.querySelector('#toggleConfirmPassword');
+            const konfirmasiPassword = document.querySelector('#konfirmasi_password');
+
+            if (togglePassword && password) {
+                togglePassword.addEventListener('click', function () {
+                    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                    password.setAttribute('type', type);
+                    this.classList.toggle('fa-eye');
+                    this.classList.toggle('fa-eye-slash');
+                });
+            }
+
+            if (toggleConfirmPassword && konfirmasiPassword) {
+                toggleConfirmPassword.addEventListener('click', function () {
+                    const type = konfirmasiPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+                    konfirmasiPassword.setAttribute('type', type);
+                    this.classList.toggle('fa-eye');
+                    this.classList.toggle('fa-eye-slash');
+                });
+            }
+        });
+    </script>
 </body>
 </html>

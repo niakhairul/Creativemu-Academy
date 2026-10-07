@@ -161,6 +161,7 @@ class BukuIndukModel extends Model
                 COALESCE(pendaftaran.tanggal_mulai_kelas, DATE(pendaftaran.created_at)) AS tanggal_masuk,
                 kelas.nama_kelas,
                 COALESCE(
+                    s.tanggal_terbit,
                     (SELECT MAX(j.tanggal_kbm) FROM jadwal j WHERE j.id_kelas = pendaftaran.id_kelas),
                     (SELECT MAX(DATE(jk.tanggal_kbm)) FROM jadwal_kelas jk WHERE jk.id_kelas = pendaftaran.id_kelas),
                     "-"

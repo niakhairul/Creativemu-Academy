@@ -182,6 +182,22 @@
             100% { background-position: 0% 0%; }
         }
 
+        /* Override row spacing to group cards closely in center */
+        .header-banner ~ .row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 24px;
+        }
+        
+        /* Remove strict bootstrap col widths to let cards dictate size */
+        .header-banner ~ .row > [class*="col-"] {
+            flex: 0 0 auto !important;
+            width: auto !important;
+            max-width: 100% !important;
+            padding: 0 !important;
+        }
+
         /* Course Card Style Sesuai Tema Dashboard */
         .course-card {
             border: 1px solid rgba(123, 90, 246, 0.1);
@@ -193,8 +209,8 @@
             flex-direction: column;
             height: 100%;
             overflow: hidden;
-            max-width: 280px;
-            width: 100%;
+            width: 380px;
+            max-width: 100%;
         }
 
         .course-card:hover {
