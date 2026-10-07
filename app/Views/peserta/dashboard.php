@@ -407,9 +407,9 @@
                 </div>
             </div>
 
-            <!-- KOTAK STATISTIK 4 KOLOM -->
+            <!-- KOTAK STATISTIK 3 KOLOM -->
             <div class="row mb-3">
-                <div class="col-xl-3 col-md-6 mb-3 mb-xl-0">
+                <div class="col-md-4 mb-3 mb-md-0">
                     <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
                         <div class="card-body p-3.5 d-flex align-items-center">
                             <div class="stat-icon me-3 flex-shrink-0" style="background: rgba(123, 90, 246, 0.12); color: var(--color-purple);">
@@ -424,7 +424,7 @@
                     </div>
                 </div>
                 
-                <div class="col-xl-3 col-md-6 mb-3 mb-xl-0">
+                <div class="col-md-4 mb-3 mb-md-0">
                     <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
                         <div class="card-body p-3.5 d-flex align-items-center">
                             <div class="stat-icon me-3 flex-shrink-0" style="background: rgba(223, 107, 224, 0.12); color: var(--color-pink);">
@@ -439,22 +439,7 @@
                     </div>
                 </div>
 
-                <div class="col-xl-3 col-md-6 mb-3 mb-md-0">
-                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
-                        <div class="card-body p-3.5 d-flex align-items-center">
-                            <div class="stat-icon me-3 flex-shrink-0" style="background: rgba(226, 160, 72, 0.12); color: var(--color-orange);">
-                                <i class="bi bi-clipboard-check-fill fs-5"></i>
-                            </div>
-                            <div>
-                                <h4 class="fw-bold mb-0" style="color: var(--color-orange); font-size: 18px;"><?= esc($total_tugas ?? '0') ?></h4>
-                                <p class="text-dark mb-0 fw-bold" style="font-size: 13px;">Tugas</p>
-                                <span class="text-muted" style="font-size: 11px;">Belum Dikumpulkan</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6">
+                <div class="col-md-4">
                     <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
                         <div class="card-body p-3.5 d-flex align-items-center">
                             <div class="stat-icon me-3 flex-shrink-0" style="background: rgba(90, 197, 232, 0.12); color: var(--color-cyan);">
