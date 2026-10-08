@@ -195,23 +195,42 @@
     <!-- KONTEN UTAMA -->
     <div id="main-content">
         
-        <div class="top-navbar">
-            <div class="d-flex align-items-center">
-                <button class="mobile-toggle-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        <div class="top-navbar d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <button class="mobile-toggle-btn d-lg-none" onclick="toggleSidebar()" style="background: none; border: none; font-size: 1.3rem; color: var(--dark-purple);"><i class="fas fa-bars"></i></button>
                 <div>
-                    <h4 class="mb-0 fw-bold" style="color: var(--dark-purple);">Buku Induk Peserta</h4>
+                    <h4 class="mb-0 fw-bold" style="color: var(--dark-purple); font-size: 1.25rem;">Buku Induk Peserta</h4>
                     <p class="text-muted small mb-0" style="font-size: 0.75rem;">Dokumentasi data induk, status sertifikasi, dan riwayat pendaftaran peserta</p>
                 </div>
             </div>
 
-            <div class="d-flex align-items-center gap-2 flex-wrap">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
                 <?php $exportQuery = http_build_query($filters); ?>
-                <a href="<?= base_url('admin/buku-induk/export-excel?' . $exportQuery); ?>" class="btn btn-excel" target="_blank">
-                    <i class="fas fa-file-excel"></i> Excel
-                </a>
-                <a href="<?= base_url('admin/buku-induk/cetak?' . $exportQuery); ?>" class="btn btn-print" target="_blank">
-                    <i class="fas fa-print"></i> Cetak
-                </a>
+                <div class="d-flex gap-2">
+                    <a href="<?= base_url('admin/buku-induk/export-excel?' . $exportQuery); ?>" class="btn btn-excel btn-sm" target="_blank" style="background: #107c41; color: #fff; padding: 7px 14px; border-radius: 8px; font-weight: 600; font-size: 0.82rem; text-decoration: none;">
+                        <i class="fas fa-file-excel"></i> Excel
+                    </a>
+                    <a href="<?= base_url('admin/buku-induk/cetak?' . $exportQuery); ?>" class="btn btn-print btn-sm" target="_blank" style="background: #475569; color: #fff; padding: 7px 14px; border-radius: 8px; font-weight: 600; font-size: 0.82rem; text-decoration: none;">
+                        <i class="fas fa-print"></i> Cetak
+                    </a>
+                </div>
+                
+                <?php
+                $hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                $bulan = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . ' ' . date('Y');
+                ?>
+                <div class="text-muted d-none d-md-block px-3 py-2 rounded-pill bg-light border" style="font-size: 0.85rem; font-weight: 600; color: #794bc4 !important; white-space: nowrap; min-width: max-content;">
+                    <i class="far fa-calendar-alt me-2"></i><?= $tanggal_indo ?>
+                </div>
+
+                <div class="admin-profile d-flex align-items-center gap-2">
+                    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-purple);">
+                    <div class="admin-info d-none d-sm-block">
+                        <h6 class="mb-0 fw-bold" style="font-size: 0.85rem; color: var(--dark-purple);"><?= esc(session()->get('nama')); ?></h6>
+                        <small class="text-muted" style="font-size: 0.7rem;">Administrator</small>
+                    </div>
+                </div>
             </div>
         </div>
 

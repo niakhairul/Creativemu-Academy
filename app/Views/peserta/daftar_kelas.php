@@ -70,12 +70,23 @@
             box-shadow: 0 12px 34px rgba(54, 24, 108, 0.08);
         }
 
-        .navbar-logo {
-            width: 46px;
-            height: 46px;
-            object-fit: contain;
+        .navbar-logo-wrapper {
+            background-color: #ffffff;
             border-radius: 14px;
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             box-shadow: 0 10px 24px rgba(122, 63, 242, 0.18);
+        }
+
+        .navbar-logo {
+            width: auto;
+            max-width: 140px;
+            height: auto;
+            max-height: 40px;
+            object-fit: contain;
+            display: block;
         }
 
         .brand-text {
@@ -604,7 +615,8 @@
 
         @media (max-width: 575.98px) {
             .container { padding-left: 10px; padding-right: 10px; }
-            .navbar-logo { width: 28px; height: 28px; border-radius: 8px; }
+            .navbar-logo-wrapper { padding: 4px 8px; border-radius: 8px; }
+            .navbar-logo { max-width: 90px; max-height: 28px; }
             .brand-text { max-width: 80px; font-size: 0.75rem !important; line-height: 1.1; white-space: normal; }
             .btn-auth-mobile { padding: 4px 8px !important; font-size: 0.72rem !important; border-radius: 6px !important; min-height: 30px !important; display: inline-flex; align-items: center; }
             .hero-section { padding: 34px 0 68px; }
@@ -730,7 +742,9 @@
 <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
     <div class="container px-2 px-lg-4 flex-wrap flex-lg-nowrap">
         <a class="navbar-brand d-flex align-items-center gap-1 gap-lg-2 text-decoration-none me-0 me-lg-3" href="<?= base_url('/') ?>">
-            <img src="<?= base_url('assets/img/logo_creativemu.jpg') ?>" alt="Logo Creativemu" class="navbar-logo shadow-sm" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/3413/3413535.png';">
+            <div class="navbar-logo-wrapper">
+                <img src="<?= base_url('assets/img/logo_creativemu_admin.png') ?>" alt="Logo Creativemu" class="navbar-logo" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/3413/3413535.png';">
+            </div>
             <span class="brand-text">Creativemu Academy</span>
         </a>
 

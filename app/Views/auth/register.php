@@ -55,26 +55,26 @@
             padding: 40px;
         }
 
-       .brand-logo-container {
-    width: 120px;
-    height: 70px;
-    margin: 0 auto 15px auto;
-    border-radius: 14px;
-    overflow: hidden;
-    background: #ffffff;
-    border: 1px solid #E8DDF5;
-    box-shadow: 0 8px 18px rgba(91, 63, 130, 0.12);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+        .brand-logo-container {
+            margin: 0 auto 15px auto;
+            border-radius: 10px;
+            background: #ffffff;
+            border: 1px solid #E8DDF5;
+            box-shadow: 0 8px 18px rgba(91, 63, 130, 0.12);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+        }
 
-       .brand-logo {
-    width: 100px;
-    height: auto;
-    object-fit: contain;
-    display: block;
-}
+        .brand-logo {
+            width: auto;
+            max-width: 110px;
+            height: auto;
+            max-height: 36px;
+            object-fit: contain;
+            display: block;
+        }
 
         .main-heading { font-weight: 800; font-size: 1.6rem; color: var(--text-dark); margin-bottom: 5px; }
         .sub-heading { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 25px; }
@@ -143,13 +143,13 @@
                 margin: 0 auto;
             }
             .brand-logo-container {
-                width: 100px;
-                height: 60px;
                 margin-bottom: 12px;
-                border-radius: 12px;
+                border-radius: 8px;
+                padding: 6px 10px;
             }
             .brand-logo {
-                width: 82px;
+                max-width: 90px;
+                max-height: 28px;
             }
             .main-heading {
                 font-size: 24px;
@@ -207,7 +207,7 @@
                 <div class="text-center">
                     <div class="brand-logo-container">
                         <!-- Pastikan path gambar ini benar -->
-                        <img src="<?= base_url('assets/img/logo_creativemu.jpg') ?>" class="brand-logo" alt="Logo">
+                        <img src="<?= base_url('assets/img/logo_creativemu_admin.png') ?>" class="brand-logo" alt="Logo">
                     </div>
                     <h3 class="main-heading">Registrasi Peserta</h3>
                     <p class="sub-heading">Bergabunglah dengan Creativemu Academy</p>

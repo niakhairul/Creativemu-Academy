@@ -24,9 +24,10 @@
         .nav-link:hover, .nav-link.active { background: var(--sidebar-active-gradient); color: #ffffff; }
 
         
-        .content-card { background: #ffffff; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .content-card { background: #ffffff; border-radius: 14px; padding: 20px; box-shadow: 0 5px 20px rgba(121, 75, 196, 0.04); border: 1px solid rgba(121, 75, 196, 0.05); margin-bottom: 20px; }
         .text-purple { color: var(--primary-purple); }
 
+        .top-navbar { background: #ffffff; padding: 16px 24px; border-radius: 14px; box-shadow: 0 5px 20px rgba(121, 75, 196, 0.04); margin-bottom: 20px; border: 1px solid rgba(121, 75, 196, 0.05); }
         .page-title, .top-navbar h3, .top-navbar h4, h3.fw-bold { font-size: 1.25rem; font-weight: 700; }
         .page-subtitle, .top-navbar p, p.text-muted { font-size: 0.8rem; }
         .admin-info h6 { font-size: 0.88rem; font-weight: 600; }
@@ -68,14 +69,43 @@
 
     <!-- Main Content -->
     <div id="main-content">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h3 class="fw-bold text-dark mb-1">Hasil Angket Siswa</h3>
-                <p class="text-muted mb-0">Daftar rekapitulasi penilaian peserta.</p>
+                <div class="top-navbar d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <button class="mobile-toggle-btn d-lg-none" onclick="toggleSidebar()" style="background: none; border: none; font-size: 1.3rem; color: var(--dark-purple); margin-right: 12px;"><i class="fas fa-bars"></i></button>
+                <div class="dash-header m-0 p-0">
+                    <h3 class="mb-1 fw-bold" style="font-size: 1.25rem; color: var(--dark-purple);">Hasil Angket Siswa</h3>
+                    <p class="text-muted small mb-0" style="font-size: 0.75rem;">Daftar rekapitulasi penilaian peserta.</p>
+                </div>
             </div>
-            <a href="<?= base_url('admin/angket'); ?>" class="btn btn-outline-secondary rounded-pill px-4">
-                <i class="fas fa-arrow-left me-2"></i> Kembali
-            </a>
+            
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <div class="d-flex gap-2">
+                    <?php 
+                        $filterQuery = http_build_query($filters); 
+                        $exportUrl = base_url('admin/angket/export_excel_hasil?' . $filterQuery); 
+                    ?>
+                    <a href="<?= $exportUrl; ?>" class="btn btn-sm text-white px-3" style="background-color: #107c41; border-radius: 8px; font-weight: 600; font-size: 0.82rem; text-decoration: none;">
+                        <i class="fas fa-file-excel me-1"></i> Excel
+                    </a>
+                </div>
+
+                <?php
+                $hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                $bulan = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . ' ' . date('Y');
+                ?>
+                <div class="text-muted d-none d-md-block px-3 py-2 rounded-pill bg-light border" style="font-size: 0.85rem; font-weight: 600; color: #794bc4 !important; white-space: nowrap; min-width: max-content;">
+                    <i class="far fa-calendar-alt me-2"></i><?= $tanggal_indo ?>
+                </div>
+
+                <div class="admin-profile d-flex align-items-center gap-2">
+                    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-purple);">
+                    <div class="admin-info d-none d-sm-block">
+                        <h6 class="mb-0 fw-bold" style="font-size: 0.85rem; color: var(--dark-purple);"><?= esc(session()->get('nama') ?: 'Administrator'); ?></h6>
+                        <small class="text-muted" style="font-size: 0.7rem;">Administrator</small>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="content-card">
@@ -215,6 +245,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
 
 
 

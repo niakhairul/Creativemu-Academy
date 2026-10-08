@@ -97,21 +97,24 @@
             border-radius: 50%;
         }
 
-       .banner-logo-box {
-    display: flex;
-    align-items: center;
-    gap: 22px;
-}
+        .banner-logo-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
 
-.banner-logo {
-            width: 76px;
-            height: 52px;
+        .banner-logo {
+            width: auto;
+            max-width: 110px;
+            height: auto;
+            max-height: 44px;
             border-radius: 10px;
-            object-fit: cover;
+            object-fit: contain;
             background: #ffffff;
-            padding: 0;
-            transform: scale(1.25);
+            padding: 8px 12px;
+            transform: none;
             flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
         }
         .banner-title-sm {
             font-weight: 700;
@@ -374,7 +377,7 @@
             <!-- Sisi Kiri: Banner -->
             <div class="login-banner">
                 <div class="banner-logo-box">
-                    <img src="<?= base_url('assets/img/logo_creativemu.jpg') ?>" class="banner-logo" alt="Logo">
+                    <img src="<?= base_url('assets/img/logo_creativemu_admin.png') ?>" class="banner-logo" alt="Logo">
                     <div>
                         <h6 class="banner-title-sm">Creativemu</h6>
                         <p class="banner-subtitle-sm">Academy Platform</p>

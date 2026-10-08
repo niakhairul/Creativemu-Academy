@@ -505,48 +505,36 @@ if (!function_exists('rating_stars_admin_angket')) {
         ====================================== -->
 
         <section class="top-navbar">
-
-            <div>
-                <h1 class="page-title">
-                    Monitoring Angket
-                </h1>
-
-                <p class="page-subtitle">
-                    Ringkasan evaluasi instruktur, tempat pelatihan, dan saran peserta.
-                </p>
+            <div class="d-flex align-items-center gap-3">
+                <button class="mobile-toggle-btn d-lg-none" onclick="toggleSidebar()" style="background: none; border: none; font-size: 1.3rem; color: var(--dark-purple); margin-right: 12px;"><i class="fas fa-bars"></i></button>
+                <div>
+                    <h1 class="page-title mb-1" style="font-size: 1.25rem; font-weight: 700; color: var(--dark-purple);">
+                        Monitoring Angket
+                    </h1>
+                    <p class="page-subtitle mb-0" style="color: var(--muted-text); font-size: 0.75rem;">
+                        Ringkasan evaluasi instruktur, tempat pelatihan, dan saran peserta.
+                    </p>
+                </div>
             </div>
 
-            <div class="admin-profile">
-
-                <img
-                    src="<?= base_url(
-                        'assets/img/' .
-                        (
-                            session()->get('foto_profil')
-                                ? session()->get('foto_profil')
-                                : 'admin-profile.jpg'
-                        )
-                    ); ?>"
-                    alt="Foto Profil"
-                >
-
-                <div class="admin-info">
-
-                    <h6>
-                        <?= esc(
-                            session()->get('nama')
-                                ?: 'Administrator'
-                        ); ?>
-                    </h6>
-
-                    <small>
-                        Administrator
-                    </small>
-
+            <div class="d-flex align-items-center gap-3">
+                <?php
+                $hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                $bulan = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . ' ' . date('Y');
+                ?>
+                <div class="text-muted d-none d-md-block px-3 py-2 rounded-pill bg-light border" style="font-size: 0.85rem; font-weight: 600; color: #794bc4 !important; white-space: nowrap; min-width: max-content;">
+                    <i class="far fa-calendar-alt me-2"></i><?= $tanggal_indo ?>
                 </div>
 
+                <div class="admin-profile d-flex align-items-center gap-2">
+                    <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-purple);">
+                    <div class="admin-info d-none d-sm-block">
+                        <h6 class="mb-0 fw-bold" style="font-size: 0.85rem; color: var(--dark-purple);"><?= esc(session()->get('nama') ?: 'Administrator'); ?></h6>
+                        <small class="text-muted" style="font-size: 0.7rem;">Administrator</small>
+                    </div>
+                </div>
             </div>
-
         </section>
 
 

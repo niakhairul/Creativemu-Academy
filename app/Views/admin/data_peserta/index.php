@@ -387,7 +387,15 @@ if (!function_exists('admin_status_badge')) {
                 <p>Data peserta pelatihan terintegrasi langsung dengan pendaftaran kelas Creativemu Academy.</p>
             </div>
             <div class="d-flex align-items-center gap-3">
-                <div class="admin-profile">
+                <?php
+$hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+$bulan = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+$tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . ' ' . date('Y');
+?>
+<div class="text-muted d-none d-md-block px-3 py-2 rounded-pill bg-light" style="font-size: 0.85rem; font-weight: 600; color: #794bc4 !important; white-space: nowrap; min-width: max-content;">
+    <i class="far fa-calendar-alt me-2"></i><?= $tanggal_indo ?>
+</div>
+<div class="admin-profile">
                     <img src="<?= base_url('assets/img/' . (session()->get('foto_profil') ? session()->get('foto_profil') : 'admin-profile.jpg')); ?>" alt="Foto Profil">
                     <div class="admin-info">
                         <h6><?= esc(session()->get('nama') ?: 'Administrator'); ?></h6>
