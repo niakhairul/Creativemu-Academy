@@ -387,18 +387,33 @@ class Pelatihan extends BaseController
             $takenClassIds = array_filter(array_column($takenRows, 'id_kelas'));
         }
 
-        // 2. Ambil seluruh kelas yang berstatus aktif dari database
-        $kelasBuilder = $db->table('kelas')
-            ->select('kelas.*, mentor.nama_mentor')
-            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-            ->where('LOWER(kelas.status)', 'aktif');
-
-        // Jika user login, kecualikan kelas yang sudah pernah didaftarkan
-        if (!empty($takenClassIds)) {
-            $kelasBuilder->whereNotIn('kelas.id_kelas', $takenClassIds);
+        // 2. Ambil seluruh kelas yang berstatus aktif dari API Laravel
+        $apiService = new \App\Services\LaravelApiService();
+        $availableClasses = [];
+        try {
+            $response = $apiService->request('GET', 'classes');
+            $kelasApi = $response['data'] ?? $response ?? [];
+            if (!empty($kelasApi) && is_array($kelasApi)) {
+                foreach ($kelasApi as $k) {
+                    if (empty($takenClassIds) || !in_array($k['id'], $takenClassIds)) {
+                        $availableClasses[] = [
+                            'id_kelas' => $k['id'],
+                            'nama_kelas' => $k['name'] ?? 'Kelas',
+                            'kategori' => $k['training']['name'] ?? $k['category'] ?? 'Umum',
+                            'kapasitas' => $k['capacity']['target_students'] ?? $k['capacity'] ?? 0,
+                            'harga_reguler' => $k['pricing']['price'] ?? $k['regular_price'] ?? $k['price'] ?? 0,
+                            'harga_privat' => $k['pricing']['price'] ?? $k['private_price'] ?? 0,
+                            'nama_mentor' => (!empty($k['trainers']) && isset($k['trainers'][0]['name'])) 
+                                              ? $k['trainers'][0]['name'] 
+                                              : 'Mentor Belum Ditentukan',
+                            'tanggal_mulai_kelas' => $k['schedule']['start_date'] ?? $k['start_date'] ?? '-',
+                        ];
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Gagal memuat kelas dari API: ' . $e->getMessage());
         }
-
-        $availableClasses = $kelasBuilder->orderBy('kelas.id_kelas', 'DESC')->get()->getResultArray();
 
         // Hitung kapasitas tersedia & fallback nama mentor
         foreach ($availableClasses as &$item) {
@@ -966,14 +981,44 @@ public function setujuiPendaftaran($id_pendaftaran)
     }
 
     public function daftarKelas()
-{
-    $kelasModel = new \App\Models\KelasModel();
+    {
+        $apiService = new \App\Services\LaravelApiService();
+        try {
+            $response = $apiService->request('GET', 'classes');
+            $data['kelas'] = [];
+            
+            $kelasApi = $response['data'] ?? $response ?? [];
+            if (!empty($kelasApi) && is_array($kelasApi)) {
+                foreach ($kelasApi as $k) {
+                    $data['kelas'][] = [
+                        'id_kelas' => $k['id'],
+                        'nama_kelas' => $k['name'] ?? 'Kelas',
+                        'thumbnail' => $k['thumbnail'] ?? $k['image'] ?? '',
+                        'kategori' => $k['training']['name'] ?? $k['category'] ?? 'Umum',
+                        'status' => $k['status'] ?? 'aktif',
+                        'deskripsi' => $k['description'] ?? $k['summary'] ?? '-',
+                        'nama_mentor' => (!empty($k['trainers']) && isset($k['trainers'][0]['name'])) 
+                                          ? $k['trainers'][0]['name'] 
+                                          : 'Mentor Belum Ditentukan',
+                        'jumlah_pertemuan' => $k['schedule']['meetings'] ?? $k['sessions_count'] ?? $k['meetings'] ?? 0,
+                        'kapasitas' => $k['capacity']['target_students'] ?? $k['capacity'] ?? 0,
+                        'kapasitas_tersedia' => $k['capacity']['remaining_students'] ?? $k['available_capacity'] ?? $k['capacity'] ?? 0,
+                        'harga_reguler' => $k['pricing']['price'] ?? $k['regular_price'] ?? $k['price'] ?? 0,
+                        'harga_privat' => $k['pricing']['price'] ?? $k['private_price'] ?? 0,
+                        'tanggal_mulai_kelas' => $k['schedule']['start_date'] ?? $k['start_date'] ?? '-',
+                        'jenis_kelas' => $k['type'] ?? 'Reguler',
+                        'metode_pembelajaran' => $k['schedule']['method'] ?? $k['method'] ?? 'offline'
+                    ];
+                }
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Gagal mengambil data kelas dari API Laravel: ' . $e->getMessage());
+            $data['kelas'] = [];
+            $data['api_error'] = true;
+        }
 
-    // Harus mengambil banyak data (array multidimensi)
-    $data['kelas'] = $kelasModel->getKelasWithMentor();
-
-    return view('peserta/daftar_kelas', $data);
-}
+        return view('peserta/daftar_kelas', $data);
+    }
 
     /**
      * Halaman Utama Manajemen KBM & Kelulusan Peserta
@@ -1234,36 +1279,48 @@ if ($kelas) {
 }
 
     public function detailKelas($id = null)
-{
-    if ($id === null) {
-        return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('error', 'ID Kelas tidak valid.');
+    {
+        if ($id === null) {
+            return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('error', 'ID Kelas tidak valid.');
+        }
+
+        $apiService = new \App\Services\LaravelApiService();
+        try {
+            $response = $apiService->request('GET', 'classes/' . $id);
+            $k = $response['data'] ?? $response ?? null;
+
+            if (!$k || !isset($k['id'])) {
+                return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('error', 'Data kelas tidak ditemukan di server utama.');
+            }
+
+            $data['kelas'] = [
+                'id_kelas' => $k['id'],
+                'nama_kelas' => $k['name'] ?? 'Kelas',
+                'thumbnail' => $k['thumbnail'] ?? $k['image'] ?? '',
+                'kategori' => $k['training']['name'] ?? $k['category'] ?? 'Umum',
+                'status' => $k['status'] ?? 'aktif',
+                'deskripsi' => $k['description'] ?? $k['summary'] ?? '-',
+                'nama_mentor' => (!empty($k['trainers']) && isset($k['trainers'][0]['name'])) 
+                                  ? $k['trainers'][0]['name'] 
+                                  : 'Mentor Belum Ditentukan',
+                'jumlah_pertemuan' => $k['schedule']['meetings'] ?? $k['sessions_count'] ?? $k['meetings'] ?? 0,
+                'kapasitas' => $k['capacity']['target_students'] ?? $k['capacity'] ?? 0,
+                'kapasitas_tersedia' => $k['capacity']['remaining_students'] ?? $k['available_capacity'] ?? $k['capacity'] ?? 0,
+                'harga_reguler' => $k['pricing']['price'] ?? $k['regular_price'] ?? $k['price'] ?? 0,
+                'harga_privat' => $k['pricing']['price'] ?? $k['private_price'] ?? 0,
+                'tanggal_mulai_kelas' => $k['schedule']['start_date'] ?? $k['start_date'] ?? '-',
+                'jenis_kelas' => $k['type'] ?? 'Reguler',
+                'metode_pembelajaran' => $k['schedule']['method'] ?? $k['method'] ?? 'offline'
+            ];
+
+            $data['title'] = 'Detail Kelas: ' . $data['kelas']['nama_kelas'];
+        } catch (\Exception $e) {
+            log_message('error', 'Gagal memuat detail kelas dari API: ' . $e->getMessage());
+            return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('error', 'Sistem gagal menghubungi server utama.');
+        }
+
+        return view('peserta/detail_kelas', $data);
     }
-
-    $kelasModel = new \App\Models\KelasModel();
-    
-    // Ambil data kelas beserta mentor
-    $data['kelas'] = $kelasModel->getKelasByIdWithMentor($id);
-
-    if (empty($data['kelas'])) {
-        return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('error', 'Data kelas tidak ditemukan.');
-    }
-
-    $data['title'] = 'Detail Kelas: ' . $data['kelas']['nama_kelas'];
-
-
-    // 1. Ambil nilai ujian peserta pada kelas ini
-
-    // 2. Cek apakah peserta sudah mengisi angket
-
-    // 3. Tentukan apakah peserta bisa mengisi angket (Syarat: Lulus atau nilai >= 70)
-    // UNTUK KEPERLUAN UJI COBA, Anda bisa ubah nilainya langsung ke true/false di bawah ini:
-    
-    // Atau menggunakan logika database dinamis:
-     // Ubah sementara jadi true untuk uji coba tampilan
-    // ==========================================
-
-    return view('peserta/detail_kelas', $data);
-}
 
     public function detailJadwal($idJadwal)
 {

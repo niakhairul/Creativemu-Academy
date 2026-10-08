@@ -871,11 +871,7 @@
                                 </div>
                             </div>
                             
-                            <p class="deskripsi-kelas">
-                                <?= esc($k['deskripsi']) ?>
-                            </p>
-
-                            <div class="info-list">
+                            <div class="info-list mt-3">
                                 <div class="info-row">
                                     <span class="info-icon"><i class="bi bi-person-workspace"></i></span>
                                     <span>Mentor: <strong><?= esc($k['nama_mentor'] ?? '-') ?></strong></span>
