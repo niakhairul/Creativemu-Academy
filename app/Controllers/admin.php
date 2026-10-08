@@ -211,36 +211,53 @@ class Admin extends BaseController
     // --- MASTER KELAS ---
 
 public function masterKelas()
+    {
+        $apiService = new \App\Services\LaravelApiService();
+        $kelasData = [];
+        try {
+            $response = $apiService->request('GET', 'classes');
+            $kelasApi = $response['data'] ?? $response ?? [];
+            if (!empty($kelasApi) && is_array($kelasApi)) {
+                foreach ($kelasApi as $k) {
+                    $kelasData[] = [
+                        'id_kelas' => $k['id'],
+                        'nama_kelas' => $k['name'] ?? 'Kelas',
+                        'thumbnail' => $k['thumbnail'] ?? $k['image'] ?? '',
+                        'foto' => $k['thumbnail'] ?? $k['image'] ?? '',
+                        'kategori' => $k['training']['name'] ?? $k['category'] ?? 'Umum',
+                        'status' => $k['status'] ?? 'draft',
+                        'deskripsi' => $k['description'] ?? $k['summary'] ?? '-',
+                        'ringkasan' => $k['summary'] ?? '-',
+                        'nama_mentor' => (!empty($k['trainers']) && isset($k['trainers'][0]['name'])) 
+                                          ? $k['trainers'][0]['name'] 
+                                          : 'Belum ditentukan',
+                        'keahlian' => (!empty($k['trainers']) && isset($k['trainers'][0]['expertise'])) 
+                                          ? $k['trainers'][0]['expertise'] 
+                                          : '',
+                        'jumlah_pertemuan' => $k['schedule']['meetings'] ?? $k['sessions_count'] ?? $k['meetings'] ?? 0,
+                        'kapasitas' => $k['capacity']['target_students'] ?? $k['capacity'] ?? 0,
+                        'harga_reguler' => $k['pricing']['price'] ?? $k['regular_price'] ?? $k['price'] ?? 0,
+                        'harga_privat' => $k['pricing']['price'] ?? $k['private_price'] ?? 0,
+                        'tanggal_mulai_kelas' => $k['schedule']['start_date'] ?? $k['start_date'] ?? '-',
+                        'jenis_kelas' => $k['type'] ?? 'Reguler',
+                        'tipe_kelas' => $k['type'] ?? 'Reguler',
+                    ];
+                }
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Gagal memuat master kelas dari API Laravel: ' . $e->getMessage());
+        }
 
-{
+        $mentorModel = new \App\Models\MentorModel();
 
-    $kelasModel  = new \App\Models\KelasModel();
+        $data = [
+            'title'  => 'Master Kelas',
+            'kelas'  => $kelasData,
+            'mentor' => $mentorModel->findAll()
+        ];
 
-    $mentorModel = new \App\Models\MentorModel();
-
-
-
-    $data = [
-
-        'title'  => 'Master Kelas',
-
-        'kelas'  => $kelasModel->select('kelas.*, mentor.nama_mentor, mentor.keahlian')
-
-                                ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-
-                                ->findAll(),
-
-        // Ubah kembali menjadi 'mentor' agar cocok dengan view
-
-        'mentor' => $mentorModel->findAll()
-
-    ];
-
-
-
-    return view('admin/master_kelas/index', $data);
-
-}
+        return view('admin/master_kelas/index', $data);
+    }
 
 
 
@@ -901,27 +918,42 @@ public function hapusJadwal($id_jadwal)
 
 
     public function mentor()
-
     {
-
-        $mentorModel = new MentorModel();
-
-
+        $apiService = new \App\Services\LaravelApiService();
+        $mentorData = [];
+        $totalAktif = 0;
+        try {
+            $response = $apiService->request('GET', 'trainers');
+            $trainersApi = $response['data'] ?? $response ?? [];
+            if (!empty($trainersApi) && is_array($trainersApi)) {
+                foreach ($trainersApi as $t) {
+                    $status = strtolower($t['status'] ?? 'active') === 'active' ? 'Aktif' : 'Nonaktif';
+                    if ($status === 'Aktif') $totalAktif++;
+                    
+                    $mentorData[] = [
+                        'id_mentor' => $t['id'] ?? 0,
+                        'nip' => $t['nip'] ?? $t['employee_id'] ?? '-',
+                        'nama_mentor' => $t['name'] ?? 'Instruktur',
+                        'email' => $t['email'] ?? '-',
+                        'telepon' => $t['phone'] ?? '-',
+                        'keahlian' => $t['expertise'] ?? '-',
+                        'pengalaman' => $t['experience_years'] ?? $t['experience'] ?? 0,
+                        'status' => $status,
+                        'cv' => $t['cv'] ?? '',
+                    ];
+                }
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Gagal memuat mentor dari API Laravel: ' . $e->getMessage());
+        }
 
         $data = [
-
             'title'       => 'Manajemen Mentor - Panel Admin',
-
-            'mentor'      => $mentorModel->findAll(),
-
-            'total_aktif' => $mentorModel->where('status', 'Aktif')->countAllResults(false)
-
+            'mentor'      => $mentorData,
+            'total_aktif' => $totalAktif
         ];
 
-
-
         return view('admin/mentor/index', $data);
-
     }
 
 
