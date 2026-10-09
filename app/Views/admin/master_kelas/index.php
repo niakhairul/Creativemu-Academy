@@ -333,117 +333,10 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                     <span class="badge px-2 py-1 rounded-pill fw-semibold" style="background-color: var(--light-purple); color: var(--primary-purple) !important; font-size: 0.75rem;">
                         Total: <?= isset($kelas) ? count($kelas) : 0; ?> Kelas
                     </span>
-                    <!-- Tombol Trigger Modal Tambah Kelas -->
-                    <button type="button" class="btn btn-purple rounded-pill px-3 py-1" data-bs-toggle="modal" data-bs-target="#modalTambahKelas">
-                        <i class="fas fa-plus me-1"></i> Tambah Kelas
-                    </button>
+
                 </div>
             </div>
 
-            <!-- === MODAL TAMBAH KELAS === -->
-            <div class="modal fade" id="modalTambahKelas" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-lg">
-                    <div class="modal-content border-0 shadow">
-                        <div class="modal-header bg-light">
-                            <h6 class="fw-bold text-dark mb-0"><i class="fas fa-plus-circle me-1 text-purple"></i> Tambah Kelas Baru</h6>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        
-                        <form action="<?= base_url('admin/master-kelas/tambah'); ?>" method="post" enctype="multipart/form-data">
-                            <?= csrf_field(); ?>
-                            <div class="modal-body p-3">
-                                <div class="row g-2">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Nama Kelas</label>
-                                        <input type="text" name="nama_kelas" class="form-control" required>
-                                    </div>
-                                    
-                                    <!-- Pilih Instruktur -->
-                                    <div class="col-md-6">
-                                        <label for="id_mentor" class="form-label">Pilih Instruktur</label>
-                                        <select name="id_mentor" id="id_mentor" class="form-select" required>
-                                            <option value="">-- Pilih Instruktur --</option>
-                                            <?php if (!empty($mentor)) : ?>
-                                                <?php foreach ($mentor as $m) : ?>
-                                                    <option value="<?= $m['id_mentor']; ?>"><?= $m['nama_mentor']; ?></option>
-                                                <?php endforeach; ?>
-                                            <?php endif; ?>
-                                        </select>
-                                    </div>
-
-                                    <!-- Kategori & Jumlah Pertemuan -->
-                                    <div class="col-md-6">
-                                        <label class="form-label">Kategori</label>
-                                        <input type="text" name="kategori" class="form-control" required>
-                                    </div>
-                                    
-                                    <div class="col-md-6">
-                                        <label class="form-label">Jml Pertemuan</label>
-                                        <input type="number" name="jumlah_pertemuan" class="form-control" min="1" required>
-                                    </div>
-
-                                    <!-- Harga Reguler & Privat -->
-                                    <div class="col-md-6">
-                                        <label class="form-label">Harga Reguler (Rp)</label>
-                                        <input type="number" name="harga_reguler" class="form-control" min="0" placeholder="Contoh: 150000" required>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label class="form-label">Harga Privat (Rp)</label>
-                                        <input type="number" name="harga_privat" class="form-control" min="0" placeholder="Contoh: 500000" required>
-                                    </div>
-                                    
-                                    <div class="col-md-6">
-                                        <label class="form-label">Kapasitas Peserta</label>
-                                        <input type="number" name="kapasitas" class="form-control" required>
-                                    </div>
-                                    
-                                    <div class="col-md-6">
-                                        <label class="form-label">Tanggal Mulai</label>
-                                        <input type="date" name="tanggal_mulai_kelas" class="form-control" required>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label class="form-label">Status Kelas</label>
-                                        <select name="status" class="form-select" required>
-                                            <option value="aktif">Aktif</option>
-                                            <option value="nonaktif">Nonaktif</option>
-                                            <option value="draft">Draft</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label class="form-label">Tipe Kelas</label>
-                                        <select name="tipe_kelas" class="form-select" required>
-                                            <option value="Online">Online</option>
-                                            <option value="Offline">Offline</option>
-                                            <option value="Hybrid">Hybrid</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="col-12">
-                                        <label class="form-label">Ringkasan</label>
-                                        <textarea name="ringkasan" class="form-control" rows="2" required></textarea>
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label">Deskripsi Lengkap</label>
-                                        <textarea name="deskripsi" class="form-control" rows="3" required></textarea>
-                                    </div>
-                                    
-                                    <div class="col-12">
-                                        <label class="form-label">Thumbnail / Foto</label>
-                                        <input type="file" name="foto" class="form-control" accept="image/*">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer bg-light">
-                                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
-                                <button type="submit" class="btn btn-sm btn-purple rounded-pill px-3">Simpan Kelas</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
 
             <!-- Grid Container -->
             <div class="row g-3">
@@ -499,8 +392,7 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                             
                                             <!-- Harga Format Rupiah -->
                                             <div class="pricing-info text-end">
-                                                <small class="d-block text-muted" style="font-size: 0.7rem;">Reg: <strong>Rp <?= number_format($row['harga_reguler'] ?? 0, 0, ',', '.'); ?></strong></small>
-                                                <small class="d-block text-success fw-bold" style="font-size: 0.72rem;">Priv: Rp <?= number_format($row['harga_privat'] ?? 0, 0, ',', '.'); ?></small>
+                                                <small class="d-block text-success fw-bold" style="font-size: 0.72rem;">Rp <?= number_format($row['harga_reguler'] ?? 0, 0, ',', '.'); ?></small>
                                             </div>
                                         </div>
 
@@ -514,14 +406,7 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                             <a href="<?= base_url('admin/master-kelas/jadwal/' . $row['id_kelas']); ?>" class="btn btn-sm btn-warning text-dark rounded-pill py-1 w-100" style="font-size: 0.78rem;">
                                                 <i class="fas fa-calendar-alt me-1"></i> Jadwal Kelas
                                             </a>
-                                            <div class="d-flex gap-1 mt-1">
-                                                <a href="<?= base_url('admin/master-kelas/edit/' . $row['id_kelas']); ?>" class="btn btn-sm btn-outline-primary rounded-pill w-50 py-1" style="font-size: 0.75rem;">
-                                                    <i class="fas fa-pen-to-square me-1"></i> Edit
-                                                </a>
-                                                <a href="<?= base_url('admin/master-kelas/delete/' . $row['id_kelas']); ?>" class="btn btn-sm btn-outline-danger rounded-pill w-50 py-1" style="font-size: 0.75rem;" onclick="return confirm('Yakin ingin menghapus kelas ini?')">
-                                                    <i class="fas fa-trash-can me-1"></i> Hapus
-                                                </a>
-                                            </div>
+                                            
                                         </div>
                                     </div>
                                 </div>
@@ -560,19 +445,15 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                                     </tr>
                                                     <tr>
                                                         <td class="fw-semibold text-muted">Instruktur Pengampu</td>
-                                                        <td>: <?= esc($row['nama_mentor'] ?? '-'); ?> <?= !empty($row['keahlian']) ? '(' . esc($row['keahlian']) . ')' : ''; ?></td>
+                                                        <td>: <?= esc($row['nama_mentor'] ?? '-'); ?></td>
                                                     </tr>
                                                     <tr>
                                                         <td class="fw-semibold text-muted">Kategori</td>
                                                         <td>: <?= esc($row['kategori']); ?></td>
                                                     </tr>
                                                     <tr>
-                                                        <td class="fw-semibold text-muted">Harga Reguler</td>
+                                                        <td class="fw-semibold text-muted">Harga</td>
                                                         <td>: Rp <?= number_format($row['harga_reguler'] ?? 0, 0, ',', '.'); ?></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="fw-semibold text-muted">Harga Privat</td>
-                                                        <td>: Rp <?= number_format($row['harga_privat'] ?? 0, 0, ',', '.'); ?></td>
                                                     </tr>
                                                     <tr>
                                                         <td class="fw-semibold text-muted">Jumlah Pertemuan</td>

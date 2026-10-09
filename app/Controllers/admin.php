@@ -231,16 +231,13 @@ public function masterKelas()
                         'nama_mentor' => (!empty($k['trainers']) && isset($k['trainers'][0]['name'])) 
                                           ? $k['trainers'][0]['name'] 
                                           : 'Belum ditentukan',
-                        'keahlian' => (!empty($k['trainers']) && isset($k['trainers'][0]['expertise'])) 
-                                          ? $k['trainers'][0]['expertise'] 
-                                          : '',
                         'jumlah_pertemuan' => $k['schedule']['meetings'] ?? $k['sessions_count'] ?? $k['meetings'] ?? 0,
                         'kapasitas' => $k['capacity']['target_students'] ?? $k['capacity'] ?? 0,
+                        'kapasitas_tersedia' => $k['capacity']['remaining_students'] ?? $k['capacity']['target_students'] ?? 0,
                         'harga_reguler' => $k['pricing']['price'] ?? $k['regular_price'] ?? $k['price'] ?? 0,
-                        'harga_privat' => $k['pricing']['price'] ?? $k['private_price'] ?? 0,
                         'tanggal_mulai_kelas' => $k['schedule']['start_date'] ?? $k['start_date'] ?? '-',
-                        'jenis_kelas' => $k['type'] ?? 'Reguler',
-                        'tipe_kelas' => $k['type'] ?? 'Reguler',
+                        'jenis_kelas' => $k['jenis_kelas'] ?? 'Reguler',
+                        'tipe_kelas' => $k['jenis_kelas'] ?? 'Reguler',
                     ];
                 }
             }
@@ -474,24 +471,34 @@ public function masterKelas()
 
 
     public function jadwalKelas($id_kelas)
+    {
+        $db = \Config\Database::connect();
 
-{
+        // Ambil data kelas dari API Laravel
+        $apiService = new \App\Services\LaravelApiService();
+        $kelas = [];
+        try {
+            $response = $apiService->request('GET', 'classes/' . $id_kelas);
+            $kelasApi = $response['data'] ?? $response ?? [];
+            if (!empty($kelasApi) && isset($kelasApi['id'])) {
+                $kelas = [
+                    'id_kelas' => $kelasApi['id'],
+                    'nama_kelas' => $kelasApi['name'] ?? 'Kelas',
+                    'id_mentor' => (!empty($kelasApi['trainers']) && isset($kelasApi['trainers'][0]['id'])) ? $kelasApi['trainers'][0]['id'] : null,
+                    'nama_mentor' => (!empty($kelasApi['trainers']) && isset($kelasApi['trainers'][0]['name'])) ? $kelasApi['trainers'][0]['name'] : 'Mentor Belum Ditentukan',
+                ];
+            }
+        } catch (\Exception $e) {
+            // Abaikan agar ditangkap empty() di bawah
+        }
 
-    $db = \Config\Database::connect();
-
-
-
-    // Ambil data kelas berdasarkan ID
-
-    $kelas = $db->table('kelas')->where('id_kelas', $id_kelas)->get()->getRowArray();
-
-
-
-    if (empty($kelas)) {
-
-        return redirect()->to(base_url('admin/master-kelas'))->with('error', 'Data kelas tidak ditemukan.');
-
-    }
+        if (empty($kelas)) {
+            // Fallback ke tabel kelas lokal jika data tidak ada di API
+            $kelas = $db->table('kelas')->where('id_kelas', $id_kelas)->get()->getRowArray();
+            if (empty($kelas)) {
+                return redirect()->to(base_url('admin/master-kelas'))->with('error', 'Data kelas tidak ditemukan di sistem.');
+            }
+        }
 
 
 
@@ -936,8 +943,6 @@ public function hapusJadwal($id_jadwal)
                         'nama_mentor' => $t['name'] ?? 'Instruktur',
                         'email' => $t['email'] ?? '-',
                         'telepon' => $t['phone'] ?? '-',
-                        'keahlian' => $t['expertise'] ?? '-',
-                        'pengalaman' => $t['experience_years'] ?? $t['experience'] ?? 0,
                         'status' => $status,
                         'cv' => $t['cv'] ?? '',
                     ];

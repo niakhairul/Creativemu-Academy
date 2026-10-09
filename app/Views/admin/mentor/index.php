@@ -350,9 +350,6 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                     <span class="badge px-2 py-1 rounded-pill fw-semibold" style="background-color: var(--light-purple); color: var(--primary-purple) !important; font-size: 0.75rem;">
                         Total: <?= isset($total_aktif) ? $total_aktif : 0; ?> Instruktur Aktif
                     </span>
-                    <button type="button" class="btn btn-purple rounded-pill px-3 py-1" data-bs-toggle="modal" data-bs-target="#modalTambahMentor">
-                        <i class="fas fa-plus me-1"></i> Tambah Instruktur
-                    </button>
                 </div>
             </div>
 
@@ -363,11 +360,8 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                             <th style="width: 50px;">No</th>
                             <th>NIP & Nama</th>
                             <th>Kontak</th>
-                            <th>Keahlian</th>
-                            <th>Pengalaman</th>
                             <th>Status</th>
                             <th>CV</th>
-                            <th class="text-center" style="width: 100px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -384,12 +378,6 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                         <small class="text-muted d-block"><i class="fas fa-phone me-1"></i> <?= esc($m['telepon']); ?></small>
                                     </td>
                                     <td>
-                                        <span class="badge px-2 py-1" style="background: var(--light-purple); color: var(--primary-purple); font-size: 0.72rem;">
-                                            <?= esc($m['keahlian']); ?>
-                                        </span>
-                                    </td>
-                                    <td><?= esc($m['pengalaman']); ?> Tahun</td>
-                                    <td>
                                         <?php if($m['status'] == 'Aktif'): ?>
                                             <span class="badge bg-success" style="font-size: 0.72rem;">Aktif</span>
                                         <?php else: ?>
@@ -404,20 +392,11 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                         <?php else: ?>
                                             <span class="text-muted small">Tidak ada</span>
                                         <?php endif; ?>
-                                    </td>
-                                    <td class="text-center">
-                                        <a href="<?= base_url('admin/mentor/edit/' . ($m['id_mentor'] ?? $m['id'])); ?>" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1 me-1" title="Edit" style="font-size: 0.75rem;">
-                                            <i class="fas fa-pen-to-square"></i>
-                                        </a>
-                                        <a href="<?= base_url('admin/mentor/delete/' . ($m['id_mentor'] ?? $m['id'])); ?>" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" title="Hapus" style="font-size: 0.75rem;" onclick="return confirm('Yakin ingin menghapus instruktur ini?')">
-                                            <i class="fas fa-trash-can"></i>
-                                        </a>
-                                    </td>
-                                </tr>
+                                    </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="8" class="text-center py-4 text-muted small">Belum ada data instruktur yang tersedia.</td>
+                                <td colspan="5" class="text-center py-4 text-muted small">Belum ada data instruktur yang tersedia.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -427,74 +406,6 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
 
     </div>
 
-    <!-- === MODAL TAMBAH INSTRUKTUR === -->
-    <div class="modal fade" id="modalTambahMentor" tabindex="-1" aria-labelledby="modalTambahMentorLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-light">
-                    <h6 class="modal-title fw-bold text-dark mb-0" id="modalTambahMentorLabel">
-                        <i class="fas fa-plus-circle me-1 text-purple"></i> Form Tambah Instruktur Baru
-                    </h6>
-                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                <form action="<?= base_url('admin/mentor/simpan'); ?>" method="POST" enctype="multipart/form-data">
-                    <?= csrf_field(); ?>
-                    <div class="modal-body p-3">
-                        <div class="row g-2">
-                            <div class="col-12">
-                                <label class="form-label">NIP (Nomor Induk Pegawai)</label>
-                                <input type="text" name="nip" class="form-control" placeholder="Contoh: 198501012010121001" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Nama Lengkap & Gelar</label>
-                                <input type="text" name="nama_mentor" class="form-control" placeholder="Contoh: Dr. Budi Santoso, M.Kom" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Email Aktif</label>
-                                <input type="email" name="email" class="form-control" placeholder="budi@example.com" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">No. Telepon / WhatsApp</label>
-                                <input type="text" name="telepon" class="form-control" placeholder="081234567890" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Keahlian Utama</label>
-                                <input type="text" name="keahlian" class="form-control" placeholder="Contoh: Fullstack / Cyber Security" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Pengalaman Kerja (Tahun)</label>
-                                <input type="number" name="pengalaman" class="form-control" placeholder="Contoh: 5" min="0" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Status Keaktifan</label>
-                                <select name="status" class="form-select" required>
-                                    <option value="Aktif">Aktif Mengajar</option>
-                                    <option value="Non-Aktif">Cuti / Non-Aktif</option>
-                                </select>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label">Bio / Biografi Singkat</label>
-                                <textarea name="bio" class="form-control" rows="2" placeholder="Masukkan bio singkat instruktur..."><?= isset($mentor['bio']) ? esc($mentor['bio']) : ''; ?></textarea>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label">Unggah Dokumen CV (Format PDF / DOCX)</label>
-                                <input type="file" name="cv" class="form-control" accept=".pdf,.doc,.docx">
-                                <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">Maksimal ukuran file menyesuaikan konfigurasi server.</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer bg-light">
-                        <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-sm btn-purple rounded-pill px-3">
-                            <i class="fas fa-save me-1"></i> Simpan Instruktur
-                        </button>
-                    </div>
-                </form>
-
-            </div>
-        </div>
-    </div>
 
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
