@@ -33,12 +33,44 @@ class LaporanPesertaModel extends Model
     }
 
     /**
-     * Ambil daftar kelas untuk dropdown filter
+     * Ambil daftar kelas untuk dropdown filter (Utamakan Laravel API)
      */
     public function getFilterClasses(?int $idMentor = null): array
     {
+        try {
+            $apiService = new \App\Services\LaravelApiService();
+            $response = $apiService->request('GET', 'classes');
+            $classesApi = $response['data'] ?? $response ?? [];
+            if (!empty($classesApi) && is_array($classesApi)) {
+                $result = [];
+                foreach ($classesApi as $item) {
+                    $namaMentor = null;
+                    $idMentorApi = null;
+                    if (!empty($item['trainers']) && is_array($item['trainers'])) {
+                        $namaMentor = $item['trainers'][0]['name'] ?? null;
+                        $idMentorApi = $item['trainers'][0]['id'] ?? null;
+                    }
+                    if ($idMentor !== null && $idMentorApi !== null && (int)$idMentorApi !== (int)$idMentor) {
+                        continue;
+                    }
+                    $kategori = $item['training']['name'] ?? $item['jenis_kelas'] ?? 'Umum';
+                    $result[] = [
+                        'id_kelas'    => $item['id'],
+                        'nama_kelas'  => $item['name'],
+                        'kategori'    => $kategori,
+                        'nama_mentor' => $namaMentor
+                    ];
+                }
+                if (!empty($result)) {
+                    return $result;
+                }
+            }
+        } catch (\Exception $e) {
+            log_message('notice', 'LaporanPesertaModel: Gagal mengambil classes dari API: ' . $e->getMessage());
+        }
+
         $builder = $this->db->table('kelas')
-            ->select('kelas.id_kelas, kelas.nama_kelas, kelas.kategori, mentor.nama_mentor') // [PERBAIKAN] Menghapus 'kelas.,' yang bikin syntax error #1064
+            ->select('kelas.id_kelas, kelas.nama_kelas, kelas.kategori, mentor.nama_mentor')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left');
 
         if ($idMentor !== null) {
@@ -49,10 +81,30 @@ class LaporanPesertaModel extends Model
     }
 
     /**
-     * Ambil daftar kategori / pelatihan untuk filter
+     * Ambil daftar kategori / pelatihan untuk filter (Utamakan Laravel API)
      */
     public function getFilterCategories(): array
     {
+        try {
+            $apiService = new \App\Services\LaravelApiService();
+            $response = $apiService->request('GET', 'classes');
+            $classesApi = $response['data'] ?? $response ?? [];
+            if (!empty($classesApi) && is_array($classesApi)) {
+                $cats = [];
+                foreach ($classesApi as $item) {
+                    $cat = $item['training']['name'] ?? $item['jenis_kelas'] ?? null;
+                    if (!empty($cat)) {
+                        $cats[] = trim((string)$cat);
+                    }
+                }
+                if (!empty($cats)) {
+                    return array_values(array_unique(array_filter($cats)));
+                }
+            }
+        } catch (\Exception $e) {
+            log_message('notice', 'LaporanPesertaModel: Gagal mengambil categories dari API: ' . $e->getMessage());
+        }
+
         $rows = $this->db->table('kelas')
             ->select('kategori')
             ->distinct()
@@ -97,14 +149,14 @@ class LaporanPesertaModel extends Model
                 COALESCE(NULLIF(users.email, ''), pendaftaran.email) AS resolved_email,
                 COALESCE(NULLIF(users.no_hp, ''), pendaftaran.no_hp) AS resolved_no_hp,
                 pendaftaran.created_at AS tanggal_daftar,
-                kelas.nama_kelas,
-                kelas.kategori,
-                pendaftaran.lokasi_pelatihan AS tempat_pelatihan,
+                COALESCE(NULLIF(kelas.nama_kelas, ''), NULLIF(pendaftaran.pilihan_kelas, ''), NULLIF(pendaftaran.pilihan_pelatihan, ''), 'Kelas Pelatihan') AS nama_kelas,
+                COALESCE(NULLIF(kelas.kategori, ''), NULLIF(pendaftaran.kategori_kelas, ''), NULLIF(pendaftaran.pilihan_pelatihan, ''), 'Umum') AS kategori,
+                COALESCE(NULLIF(pendaftaran.lokasi_pelatihan, ''), NULLIF(kelas.lokasi_pelatihan, ''), '-') AS tempat_pelatihan,
                 kelas.tanggal_mulai_kelas,
                 kelas.jumlah_pertemuan,
                 kelas.kapasitas,
                 kelas.status AS status_kelas,
-                mentor.nama_mentor,
+                COALESCE(NULLIF(mentor.nama_mentor, ''), 'Instruktur') AS nama_mentor,
                 CASE 
                     WHEN (s.id_sertifikat IS NOT NULL OR nu.is_lulus = 1) THEN 'Lulus'
                     WHEN nu.is_tidak_lulus = 1 THEN 'Tidak Lulus'
@@ -317,12 +369,18 @@ class LaporanPesertaModel extends Model
 
         foreach ($allFilteredRows as $row) {
             $idKelas = (int) ($row['id_kelas'] ?? 0);
-            $namaKelas = $row['nama_kelas'] ?? 'Tanpa Kelas';
-            $kategori  = $row['kategori'] ?? '-';
-            $tempatPelatihan = $row['tempat_pelatihan'] ?? '-';
+            $namaKelas = trim((string)($row['nama_kelas'] ?? ''));
+            if (empty($namaKelas) || $namaKelas === '-' || strtolower($namaKelas) === 'tanpa kelas' || strtolower($namaKelas) === 'kelas tanpa nama') {
+                $namaKelas = !empty($row['kategori']) && $row['kategori'] !== '-' ? 'Kelas ' . $row['kategori'] : 'Kelas Pelatihan';
+            }
+            $kategori  = !empty($row['kategori']) && $row['kategori'] !== '-' ? $row['kategori'] : 'Umum';
+            $tempatPelatihan = !empty($row['tempat_pelatihan']) ? $row['tempat_pelatihan'] : '-';
 
-            if (!isset($rekap[$idKelas])) {
-                $rekap[$idKelas] = [
+            // Gunakan key kombinasi idKelas + namaKelas agar bersih dan unik
+            $groupKey = $idKelas > 0 ? "id_{$idKelas}" : "name_" . md5($namaKelas);
+
+            if (!isset($rekap[$groupKey])) {
+                $rekap[$groupKey] = [
                     'id_kelas'        => $idKelas,
                     'nama_kelas'      => $namaKelas,
                     'kategori'        => $kategori,
@@ -339,31 +397,31 @@ class LaporanPesertaModel extends Model
                 ];
             }
 
-            $rekap[$idKelas]['jumlah_peserta']++;
+            $rekap[$groupKey]['jumlah_peserta']++;
 
             $gender = strtolower(trim($row['resolved_gender'] ?? ''));
             if (str_contains($gender, 'perempuan') || str_contains($gender, 'wanita')) {
-                $rekap[$idKelas]['perempuan']++;
+                $rekap[$groupKey]['perempuan']++;
             } else {
-                $rekap[$idKelas]['laki_laki']++;
+                $rekap[$groupKey]['laki_laki']++;
             }
 
             $statusK = $row['status_kelulusan'] ?? 'Dalam Proses';
             if ($statusK === 'Lulus') {
-                $rekap[$idKelas]['lulus']++;
+                $rekap[$groupKey]['lulus']++;
             } elseif ($statusK === 'Tidak Lulus') {
-                $rekap[$idKelas]['tidak_lulus']++;
+                $rekap[$groupKey]['tidak_lulus']++;
             } else {
-                $rekap[$idKelas]['dalam_proses']++;
+                $rekap[$groupKey]['dalam_proses']++;
             }
             
             $tp = strtolower(trim($row['tempat_pelatihan'] ?? ''));
             if (str_contains($tp, 'pusat')) {
-                $rekap[$idKelas]['jumlah_pusat']++;
+                $rekap[$groupKey]['jumlah_pusat']++;
             } elseif (str_contains($tp, 'cabang')) {
-                $rekap[$idKelas]['jumlah_cabang']++;
+                $rekap[$groupKey]['jumlah_cabang']++;
             } elseif (str_contains($tp, 'perwakilan')) {
-                $rekap[$idKelas]['jumlah_perwakilan']++;
+                $rekap[$groupKey]['jumlah_perwakilan']++;
             }
         }
 

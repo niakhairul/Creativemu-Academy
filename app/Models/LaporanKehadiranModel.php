@@ -64,10 +64,30 @@ class LaporanKehadiranModel extends Model
     }
 
     /**
-     * Ambil daftar kategori pelatihan unik
+     * Ambil daftar kategori pelatihan unik (Utamakan Laravel API)
      */
     public function getFilterCategories(): array
     {
+        try {
+            $apiService = new \App\Services\LaravelApiService();
+            $response = $apiService->request('GET', 'classes');
+            $classesApi = $response['data'] ?? $response ?? [];
+            if (!empty($classesApi) && is_array($classesApi)) {
+                $cats = [];
+                foreach ($classesApi as $item) {
+                    $cat = $item['training']['name'] ?? $item['jenis_kelas'] ?? null;
+                    if (!empty($cat)) {
+                        $cats[] = trim((string)$cat);
+                    }
+                }
+                if (!empty($cats)) {
+                    return array_values(array_unique(array_filter($cats)));
+                }
+            }
+        } catch (\Exception $e) {
+            log_message('notice', 'LaporanKehadiranModel: Gagal mengambil categories dari API: ' . $e->getMessage());
+        }
+
         if (!$this->db->tableExists('kelas')) {
             return [];
         }
@@ -84,10 +104,37 @@ class LaporanKehadiranModel extends Model
     }
 
     /**
-     * Ambil daftar master kelas untuk dropdown filter
+     * Ambil daftar master kelas untuk dropdown filter (Utamakan Laravel API)
      */
     public function getFilterClasses(): array
     {
+        try {
+            $apiService = new \App\Services\LaravelApiService();
+            $response = $apiService->request('GET', 'classes');
+            $classesApi = $response['data'] ?? $response ?? [];
+            if (!empty($classesApi) && is_array($classesApi)) {
+                $result = [];
+                foreach ($classesApi as $item) {
+                    $namaMentor = null;
+                    if (!empty($item['trainers']) && is_array($item['trainers'])) {
+                        $namaMentor = $item['trainers'][0]['name'] ?? null;
+                    }
+                    $kategori = $item['training']['name'] ?? $item['jenis_kelas'] ?? 'Umum';
+                    $result[] = [
+                        'id_kelas'    => $item['id'],
+                        'nama_kelas'  => $item['name'],
+                        'kategori'    => $kategori,
+                        'nama_mentor' => $namaMentor
+                    ];
+                }
+                if (!empty($result)) {
+                    return $result;
+                }
+            }
+        } catch (\Exception $e) {
+            log_message('notice', 'LaporanKehadiranModel: Gagal mengambil classes dari API: ' . $e->getMessage());
+        }
+
         return $this->db->table('kelas')
             ->select('kelas.id_kelas, kelas.nama_kelas, kelas.kategori, mentor.nama_mentor')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
@@ -163,11 +210,11 @@ class LaporanKehadiranModel extends Model
                 COALESCE(NULLIF(pendaftaran.email, ""), users.email) AS email,
                 COALESCE(NULLIF(pendaftaran.no_hp, ""), users.no_hp) AS no_hp,
                 pendaftaran.created_at,
-                kelas.nama_kelas,
-                kelas.kategori,
+                COALESCE(NULLIF(kelas.nama_kelas, ""), NULLIF(pendaftaran.pilihan_kelas, ""), NULLIF(pendaftaran.pilihan_pelatihan, ""), "Kelas Pelatihan") AS nama_kelas,
+                COALESCE(NULLIF(kelas.kategori, ""), NULLIF(pendaftaran.kategori_kelas, ""), NULLIF(pendaftaran.pilihan_pelatihan, ""), "Umum") AS kategori,
                 ' . $lokasiSelect . ',
                 kelas.id_mentor,
-                mentor.nama_mentor
+                COALESCE(NULLIF(mentor.nama_mentor, ""), "Instruktur") AS nama_mentor
             ')
             ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
             ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')

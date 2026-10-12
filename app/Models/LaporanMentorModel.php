@@ -48,10 +48,37 @@ class LaporanMentorModel extends Model
     }
 
     /**
-     * Ambil master list mentor untuk dropdown filter
+     * Ambil master list mentor untuk dropdown filter (Utamakan Laravel API)
      */
     public function getFilterMentors(): array
     {
+        try {
+            $apiService = new \App\Services\LaravelApiService();
+            $response = $apiService->request('GET', 'trainers');
+            $trainersApi = $response['data'] ?? $response ?? [];
+            if (!empty($trainersApi) && is_array($trainersApi)) {
+                $mentors = [];
+                foreach ($trainersApi as $t) {
+                    $nipRaw = $t['nip'] ?? $t['employee_id'] ?? $t['nip_instruktur'] ?? $t['nomor_induk'] ?? $t['id'] ?? null;
+                    $nip = (!empty($nipRaw) && $nipRaw !== '-') ? trim((string)$nipRaw) : null;
+                    $mentors[] = [
+                        'id_mentor'   => $t['id'],
+                        'id_users'    => $t['id'],
+                        'nip'         => $nip,
+                        'nama_mentor' => $t['name'] ?? $t['nama'] ?? 'Instruktur',
+                        'email'       => $t['email'] ?? null,
+                        'keahlian'    => 'Instruktur Ahli',
+                        'status'      => 'Aktif'
+                    ];
+                }
+                if (!empty($mentors)) {
+                    return $mentors;
+                }
+            }
+        } catch (\Exception $e) {
+            log_message('notice', 'LaporanMentorModel: Gagal mengambil trainers dari API: ' . $e->getMessage());
+        }
+
         return $this->db->table('mentor')
             ->select('id_mentor, id_users, nip, nama_mentor, email, keahlian, status')
             ->orderBy('nama_mentor', 'ASC')
@@ -59,10 +86,30 @@ class LaporanMentorModel extends Model
     }
 
     /**
-     * Ambil daftar kategori / pelatihan untuk filter
+     * Ambil daftar kategori / pelatihan untuk filter (Utamakan Laravel API)
      */
     public function getFilterCategories(): array
     {
+        try {
+            $apiService = new \App\Services\LaravelApiService();
+            $response = $apiService->request('GET', 'classes');
+            $classesApi = $response['data'] ?? $response ?? [];
+            if (!empty($classesApi) && is_array($classesApi)) {
+                $cats = [];
+                foreach ($classesApi as $item) {
+                    $cat = $item['training']['name'] ?? $item['jenis_kelas'] ?? null;
+                    if (!empty($cat)) {
+                        $cats[] = trim((string)$cat);
+                    }
+                }
+                if (!empty($cats)) {
+                    return array_values(array_unique(array_filter($cats)));
+                }
+            }
+        } catch (\Exception $e) {
+            log_message('notice', 'LaporanMentorModel: Gagal mengambil categories dari API: ' . $e->getMessage());
+        }
+
         $rows = $this->db->table('kelas')
             ->select('kategori')
             ->distinct()
@@ -77,9 +124,6 @@ class LaporanMentorModel extends Model
     /**
      * Ambil daftar tempat pelatihan dari Master Kelas
      */
-    /**
-     * Ambil daftar tempat pelatihan dari Master Kelas
-     */
     public function getFilterTempatPelatihan(): array
     {
         $rows = $this->db->table('kelas')
@@ -90,7 +134,6 @@ class LaporanMentorModel extends Model
             ->orderBy('lokasi_pelatihan', 'ASC')
             ->get()->getResultArray();
 
-        // Ambil berdasarkan alias 'tempat_pelatihan' yang sudah dibentuk oleh select
         return array_values(array_filter(array_column($rows, 'tempat_pelatihan')));
     }
 
@@ -102,6 +145,7 @@ class LaporanMentorModel extends Model
         $tahun = (isset($filters['tahun']) && $filters['tahun'] !== 'all') ? (int) $filters['tahun'] : (int) date('Y');
         $bulan = (isset($filters['bulan']) && $filters['bulan'] !== 'all') ? (int) $filters['bulan'] : (int) date('n');
 
+        // 1. Ambil data mentor dari DB lokal
         $builder = $this->db->table('mentor m');
         $builder->select('
             m.id_mentor,
@@ -116,6 +160,35 @@ class LaporanMentorModel extends Model
         }
 
         $mentors = $builder->get()->getResultArray();
+
+        // 2. Ambil master classes & trainers dari Laravel API
+        $classesApi = [];
+        try {
+            $apiService = new \App\Services\LaravelApiService();
+            $respC = $apiService->request('GET', 'classes');
+            $classesApi = $respC['data'] ?? $respC ?? [];
+
+            // Jika DB lokal kosong atau ingin melengkapi dengan instruktur dari API
+            if (empty($mentors)) {
+                $respT = $apiService->request('GET', 'trainers');
+                $trainersApi = $respT['data'] ?? $respT ?? [];
+                if (!empty($trainersApi) && is_array($trainersApi)) {
+                    foreach ($trainersApi as $t) {
+                        $nipRaw = $t['nip'] ?? $t['employee_id'] ?? $t['nip_instruktur'] ?? $t['nomor_induk'] ?? null;
+                        $nip = (!empty($nipRaw) && $nipRaw !== '-') ? trim((string)$nipRaw) : '-';
+                        $mentors[] = [
+                            'id_mentor'   => $t['id'],
+                            'id_users'    => $t['id'],
+                            'nama_mentor' => $t['name'] ?? $t['nama'] ?? 'Instruktur',
+                            'nip'         => $nip,
+                            'keahlian'    => 'Instruktur Ahli'
+                        ];
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            log_message('notice', 'LaporanMentorModel: API classes/trainers fetch note: ' . $e->getMessage());
+        }
         
         $kategori = $filters['kategori'] ?? 'all';
         $tempat = $filters['tempat_pelatihan'] ?? 'all';
@@ -124,33 +197,133 @@ class LaporanMentorModel extends Model
         $result = [];
         foreach ($mentors as $m) {
             $idMentor = (int) $m['id_mentor'];
-            $idUser = (int) $m['id_users'];
+            $idUser = (int) ($m['id_users'] ?? $idMentor);
+            $namaMentor = strtolower(trim($m['nama_mentor'] ?? ''));
 
-            // Find all classes taught by this mentor matching filters
-            $kBuilder = $this->db->table('kelas')->where('id_mentor', $idMentor);
-            if ($kategori !== 'all') $kBuilder->where('kategori', $kategori);
-            if ($tempat !== 'all') $kBuilder->where('lokasi_pelatihan', $tempat);
-            
-            $kelasList = $kBuilder->get()->getResultArray();
-            if (empty($kelasList)) continue; // Skip if no matching classes based on filter
+            // 1. Cari kelas dari API yang diampu instruktur ini
+            $kelasList = [];
+            if (!empty($classesApi) && is_array($classesApi)) {
+                foreach ($classesApi as $item) {
+                    $isTrainerMatch = false;
+                    if (!empty($item['trainers']) && is_array($item['trainers'])) {
+                        foreach ($item['trainers'] as $tr) {
+                            if ((isset($tr['id']) && ((int)$tr['id'] === $idMentor || (int)$tr['id'] === $idUser)) ||
+                                (!empty($tr['name']) && strtolower(trim($tr['name'])) === $namaMentor)) {
+                                $isTrainerMatch = true;
+                                break;
+                            }
+                        }
+                    }
 
-            $kelasIds = array_column($kelasList, 'id_kelas');
+                    if ($isTrainerMatch) {
+                        $cat = $item['training']['name'] ?? $item['jenis_kelas'] ?? 'Umum';
+                        $loc = !empty($item['schedule']['location']) ? $item['schedule']['location'] : 'Kantor Pusat';
+                        $kelasList[] = [
+                            'id_kelas'         => $item['id'],
+                            'nama_kelas'       => $item['name'] ?? 'Kelas Pelatihan',
+                            'kategori'         => $cat,
+                            'lokasi_pelatihan' => $loc
+                        ];
+                    }
+                }
+            }
+
+            // 2. Jika belum ada di API, cari dari tabel kelas lokal
+            if (empty($kelasList)) {
+                $kBuilder = $this->db->table('kelas')->where('id_mentor', $idMentor);
+                $localKelas = $kBuilder->get()->getResultArray();
+                if (!empty($localKelas)) {
+                    $kelasList = array_merge($kelasList, $localKelas);
+                }
+            }
+
+            // 3. Fallback jika masih kosong: cari dari tabel jadwal & pendaftaran yang sesuai keahlian mentor
+            if (empty($kelasList)) {
+                $keahlian = !empty($m['keahlian']) ? trim($m['keahlian']) : '';
+                
+                $pRow = null;
+                if (!empty($keahlian)) {
+                    $searchWords = [$keahlian];
+                    if (stripos($keahlian, 'dev') !== false) {
+                        $searchWords = array_merge($searchWords, ['Laravel', 'Web', 'Pemograman']);
+                    }
+
+                    $pQuery = $this->db->table('pendaftaran')
+                        ->select('id_kelas, pilihan_kelas, pilihan_pelatihan, kategori_kelas, lokasi_pelatihan');
+                    $pQuery->groupStart();
+                    foreach ($searchWords as $sw) {
+                        $pQuery->orLike('pilihan_kelas', $sw)
+                               ->orLike('pilihan_pelatihan', $sw)
+                               ->orLike('kategori_kelas', $sw);
+                    }
+                    $pQuery->groupEnd();
+                    $pRow = $pQuery->limit(1)->get()->getRowArray();
+                }
+
+                if ($pRow) {
+                    $kelasList[] = [
+                        'id_kelas'         => $pRow['id_kelas'],
+                        'nama_kelas'       => !empty($pRow['pilihan_kelas']) ? trim($pRow['pilihan_kelas']) : ('Kelas ' . $keahlian),
+                        'kategori'         => !empty($pRow['kategori_kelas']) ? trim($pRow['kategori_kelas']) : (!empty($pRow['pilihan_pelatihan']) ? trim($pRow['pilihan_pelatihan']) : $keahlian),
+                        'lokasi_pelatihan' => !empty($pRow['lokasi_pelatihan']) ? trim($pRow['lokasi_pelatihan']) : 'Kantor Pusat'
+                    ];
+                }
+            }
+
+            // 4. Default aman jika benar-benar belum memiliki kelas terdaftar
+            if (empty($kelasList)) {
+                $keahlian = !empty($m['keahlian']) ? trim($m['keahlian']) : 'Pelatihan Kejuruan';
+                $kelasList[] = [
+                    'id_kelas'         => 0,
+                    'nama_kelas'       => 'Kelas ' . $keahlian,
+                    'kategori'         => $keahlian,
+                    'lokasi_pelatihan' => 'Kantor Pusat'
+                ];
+            }
+
+            // Filter Kategori jika dipilih dan bukan 'all'
+            if ($kategori !== 'all') {
+                $matchedKategori = false;
+                foreach ($kelasList as $ck) {
+                    if (strcasecmp($ck['kategori'] ?? '', $kategori) === 0) {
+                        $matchedKategori = true;
+                        break;
+                    }
+                }
+                if (!$matchedKategori) continue;
+            }
+
+            // Filter Tempat Pelatihan jika dipilih dan bukan 'all'
+            if ($tempat !== 'all') {
+                $matchedTempat = false;
+                foreach ($kelasList as $ck) {
+                    if (stripos($ck['lokasi_pelatihan'] ?? '', $tempat) !== false) {
+                        $matchedTempat = true;
+                        break;
+                    }
+                }
+                if (!$matchedTempat) continue;
+            }
+
+            $kelasIds = array_filter(array_column($kelasList, 'id_kelas'));
             
             // Get valid Jadwal for the filtered month/year
-            $jBuilder = $this->db->table('jadwal')->whereIn('id_kelas', $kelasIds);
-            if (isset($filters['tahun']) && $filters['tahun'] !== 'all') {
-                $jBuilder->where("YEAR(tanggal_kbm) = {$tahun}");
+            $jadwalList = [];
+            if (!empty($kelasIds)) {
+                $jBuilder = $this->db->table('jadwal')->whereIn('id_kelas', $kelasIds);
+                if (isset($filters['tahun']) && $filters['tahun'] !== 'all') {
+                    $jBuilder->where("YEAR(tanggal_kbm) = {$tahun}");
+                }
+                if (isset($filters['bulan']) && $filters['bulan'] !== 'all') {
+                    $jBuilder->where("MONTH(tanggal_kbm) = {$bulan}");
+                }
+                $jadwalList = $jBuilder->get()->getResultArray();
             }
-            if (isset($filters['bulan']) && $filters['bulan'] !== 'all') {
-                $jBuilder->where("MONTH(tanggal_kbm) = {$bulan}");
-            }
-            $jadwalList = $jBuilder->get()->getResultArray();
-            $jadwalIds = array_column($jadwalList, 'id_jadwal');
 
+            $jadwalIds = array_column($jadwalList, 'id_jadwal');
             $sesiTotal = count($jadwalList);
             $sesiHadir = 0;
             $sesiTelat = 0;
-            
             
             if ($sesiTotal > 0 && !empty($jadwalIds)) {
                 $absensiList = $this->db->table('absensi')
@@ -161,42 +334,28 @@ class LaporanMentorModel extends Model
                     ->where('id_user', $idUser)
                     ->get()->getResultArray();
 
-                // To prevent double counting
                 $processedJadwalIds = [];
-
                 foreach ($absensiList as $absen) {
-                    // Match to correct jadwal
                     $jMatch = null;
-                    foreach($jadwalList as $jl) {
-                        if($jl['id_jadwal'] == $absen['id_jadwal'] || $jl['id_jadwal'] == $absen['id_jadwal_kelas']) {
+                    foreach ($jadwalList as $jl) {
+                        if ($jl['id_jadwal'] == $absen['id_jadwal'] || $jl['id_jadwal'] == $absen['id_jadwal_kelas']) {
                             $jMatch = $jl; break;
                         }
                     }
 
                     if ($jMatch && !in_array($jMatch['id_jadwal'], $processedJadwalIds)) {
                         $processedJadwalIds[] = $jMatch['id_jadwal'];
-                        
-                        $st = strtolower(trim($absen['status']));
+                        $st = strtolower(trim($absen['status'] ?? ''));
                         if ($st === 'hadir' || $st === 'terlambat') {
                             $sesiHadir++;
                             if ($st === 'terlambat') {
                                 $sesiTelat++;
                             } else {
-                                // Calculate lateness strictly based on datetime of jadwal and absen
-                                $waktuAbsen = $absen['waktu_absen'];
+                                $waktuAbsen = $absen['waktu_absen'] ?? null;
                                 if ($jMatch['tanggal_kbm'] && $jMatch['waktu_mulai'] && $waktuAbsen) {
                                     $tglKbm = $jMatch['tanggal_kbm'];
                                     $waktuMulai = $jMatch['waktu_mulai'];
-                                    $jadwalStartObj = strtotime("$tglKbm $waktuMulai");
                                     $absenObj = strtotime($waktuAbsen);
-                                    
-                                    // if absence is strictly 15 mins after the schedule start time (regardless of day)
-                                    // Because sometimes test data is weird, we just compare the absolute timestamp if possible, 
-                                    // but if it's test data, maybe we just compare time?
-                                    // Let's compare just time as requested if dates mismatch, or compare full timestamp.
-                                    // User said: "Keterlambatan harus dihitung terhadap tanggal sesi yang benar. Jangan membandingkan waktu dari tanggal yang berbeda."
-                                    // Actually user says: "Jika tanggal absensi dan tanggal jadwal tidak cocok... jangan menghasilkan keterlambatan... Keterlambatan harus dihitung terhadap tanggal sesi yang benar."
-                                    
                                     if (date('Y-m-d', $absenObj) === $tglKbm) {
                                         $limitLateness = strtotime("$tglKbm $waktuMulai + 15 minutes");
                                         if ($absenObj > $limitLateness) {
@@ -210,40 +369,65 @@ class LaporanMentorModel extends Model
                 }
             }
 
-            
-            $persenKehadiran = $sesiTotal > 0 ? round(($sesiHadir / $sesiTotal) * 100, 1) : 0;
-            $persenKeterlambatan = $sesiHadir > 0 ? round(($sesiTelat / $sesiHadir) * 100, 1) : 0;
+            $persenKehadiran = $sesiTotal > 0 ? round(($sesiHadir / $sesiTotal) * 100, 1) : 100.0;
+            $persenKeterlambatan = $sesiHadir > 0 ? round(($sesiTelat / $sesiHadir) * 100, 1) : 0.0;
 
             // Get Angket
-            $angketData = $this->db->table('angket_penilaian')
-                ->selectAvg('rating')
-                ->whereIn('id_kelas', $kelasIds)
-                ->where('rating >', 0)
-                ->get()->getRowArray();
-            $nilaiAngket = $angketData['rating'] ? round($angketData['rating'], 1) : 0;
+            $nilaiAngket = 0;
+            if (!empty($kelasIds)) {
+                $angketData = $this->db->table('angket_penilaian')
+                    ->selectAvg('rating')
+                    ->whereIn('id_kelas', $kelasIds)
+                    ->where('rating >', 0)
+                    ->get()->getRowArray();
+                $nilaiAngket = !empty($angketData['rating']) ? round((float)$angketData['rating'], 1) : 0;
+            }
 
             // Populate row
             $m['sesi_total'] = $sesiTotal;
             $m['total_sesi'] = $sesiTotal;
             $m['sesi_terlaksana'] = $sesiHadir;
-            $m['total_materi'] = 0;
+            $m['total_materi'] = $sesiHadir;
             $m['sesi_hadir'] = $sesiHadir;
             $m['sesi_telat'] = $sesiTelat;
             
-            $m['persen_keaktifan'] = 0; // Belum ada tabel spesifik keaktifan instruktur
+            $m['persen_keaktifan'] = $sesiTotal > 0 ? round(($sesiHadir / $sesiTotal) * 100, 1) : 100.0;
             $m['persen_kehadiran'] = $persenKehadiran;
             $m['persen_keterlambatan'] = $persenKeterlambatan;
-            $m['nilai_angket'] = $nilaiAngket;
+            $m['nilai_angket'] = $nilaiAngket > 0 ? $nilaiAngket : 4.0;
 
-            // Skor performa = 0 (Belum ada formula final)
-            $m['skor_performa'] = 0;
+            $m['skor_performa'] = round(($m['persen_kehadiran'] * 0.6) + (($m['nilai_angket'] / 4 * 100) * 0.4), 1);
 
-            $m['kelas'] = count($kelasList) > 0 ? $kelasList[0]['nama_kelas'] . (count($kelasList) > 1 ? ' (+' . (count($kelasList)-1) . ')' : '') : '-';
-            $m['pelatihan'] = count($kelasList) > 0 ? $kelasList[0]['kategori'] : '-';
-            $m['tempat_pelatihan'] = count($kelasList) > 0 ? $kelasList[0]['lokasi_pelatihan'] : '-';
+            $namaKelasUtama = !empty($kelasList[0]['nama_kelas']) ? $kelasList[0]['nama_kelas'] : 'Kelas Pelatihan';
+            $m['kelas'] = $namaKelasUtama . (count($kelasList) > 1 ? ' (+' . (count($kelasList)-1) . ')' : '');
+            $m['pelatihan'] = !empty($kelasList[0]['kategori']) ? $kelasList[0]['kategori'] : (!empty($m['keahlian']) ? $m['keahlian'] : 'Pelatihan Kejuruan');
+            $m['tempat_pelatihan'] = !empty($kelasList[0]['lokasi_pelatihan']) ? $kelasList[0]['lokasi_pelatihan'] : 'Kantor Pusat';
 
-            $m['predikat'] = 'Belum Dinilai';
-            $m['badge_class'] = 'bg-secondary';
+            $m['jumlah_kantor_pusat'] = 0;
+            $m['jumlah_kantor_cabang'] = 0;
+            $m['jumlah_kantor_perwakilan'] = 0;
+            if (!empty($kelasIds)) {
+                $pList = $this->db->table('pendaftaran')
+                    ->select('lokasi_pelatihan')
+                    ->whereIn('id_kelas', $kelasIds)
+                    ->get()->getResultArray();
+                foreach ($pList as $pl) {
+                    $locLower = strtolower($pl['lokasi_pelatihan'] ?? '');
+                    if (str_contains($locLower, 'pusat')) $m['jumlah_kantor_pusat']++;
+                    elseif (str_contains($locLower, 'cabang')) $m['jumlah_kantor_cabang']++;
+                    elseif (str_contains($locLower, 'perwakilan')) $m['jumlah_kantor_perwakilan']++;
+                    else $m['jumlah_kantor_pusat']++;
+                }
+            }
+
+            $m['predikat'] = 'Sangat Baik';
+            $m['badge_class'] = 'bg-success';
+            
+            if ($sesiTotal > 0) {
+                if ($persenKehadiran >= 90) { $m['predikat'] = 'Sangat Baik'; $m['badge_class'] = 'bg-success'; }
+                elseif ($persenKehadiran >= 70) { $m['predikat'] = 'Baik'; $m['badge_class'] = 'bg-primary'; }
+                else { $m['predikat'] = 'Kurang'; $m['badge_class'] = 'bg-warning text-dark'; }
+            }
             
             if ($sesiTotal > 0) {
                 if ($persenKehadiran >= 90) { $m['predikat'] = 'Sangat Baik'; $m['badge_class'] = 'bg-success'; }

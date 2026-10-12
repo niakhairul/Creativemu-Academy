@@ -151,6 +151,13 @@ class BukuIndukModel extends Model
      */
     private function buildBaseQuery(array $filters = [])
     {
+        $tglMasukExpr = 'DATE(pendaftaran.created_at)';
+        if ($this->db->fieldExists('tanggal_masuk', 'pendaftaran')) {
+            $tglMasukExpr = 'COALESCE(pendaftaran.tanggal_masuk, DATE(pendaftaran.created_at))';
+        } elseif ($this->db->fieldExists('tanggal_daftar', 'pendaftaran')) {
+            $tglMasukExpr = 'COALESCE(pendaftaran.tanggal_daftar, DATE(pendaftaran.created_at))';
+        }
+
         $builder = $this->db->table('pendaftaran')
             ->select('
                 pendaftaran.id_pendaftaran,
@@ -158,7 +165,7 @@ class BukuIndukModel extends Model
                 pendaftaran.id_users,
                 COALESCE(NULLIF(pendaftaran.nis, ""), CONCAT("NIS-", pendaftaran.id_pendaftaran)) AS nis,
                 COALESCE(NULLIF(pendaftaran.nama, ""), users.nama, "-") AS nama_peserta,
-                COALESCE(pendaftaran.tanggal_mulai_kelas, DATE(pendaftaran.created_at)) AS tanggal_masuk,
+                ' . $tglMasukExpr . ' AS tanggal_masuk,
                 kelas.nama_kelas,
                 COALESCE(
                     s.tanggal_terbit,

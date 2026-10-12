@@ -94,123 +94,106 @@ class Admin extends BaseController
 
 
 
-    // --- DASHBOARD ---\
-
+    // --- DASHBOARD ---
     public function dashboard()
+    {
+        $db = \Config\Database::connect();
+        $apiService = new \App\Services\LaravelApiService();
 
-{
+        // 1. Data Kelas dari API Laravel (Single Source of Truth)
+        $totalKelas = 0;
+        try {
+            $responseKelas = $apiService->request('GET', 'classes');
+            $dataKelasApi = $responseKelas['data'] ?? $responseKelas ?? [];
+            if (!empty($dataKelasApi) && is_array($dataKelasApi)) {
+                $totalKelas = count($dataKelasApi);
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Dashboard API classes error: ' . $e->getMessage());
+        }
 
-    $db = \Config\Database::connect();
+        // 2. Data Instruktur/Mentor dari API Laravel
+        $totalMentor = 0;
+        try {
+            $responseTrainers = $apiService->request('GET', 'trainers');
+            $dataTrainersApi = $responseTrainers['data'] ?? $responseTrainers ?? [];
+            if (!empty($dataTrainersApi) && is_array($dataTrainersApi)) {
+                $totalMentor = count($dataTrainersApi);
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Dashboard API trainers error: ' . $e->getMessage());
+        }
 
+        // 3. Data Pendaftaran & Peserta dari Database CI4 yang sudah berjalan
+        $pendaftaranPending = $db->table('pendaftaran')
+            ->select('pendaftaran.*, users.nama, users.email, kelas.nama_kelas')
+            ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
+            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+            ->where('pendaftaran.status', 'pending')
+            ->orderBy('pendaftaran.created_at', 'DESC')
+            ->get()
+            ->getResultArray();
 
-
-    // Ambil data pendaftaran pending beserta relasi ke users dan kelas
-
-    $pendaftaranPending = $db->table('pendaftaran')
-
-        ->select('pendaftaran.*, users.nama, users.email, kelas.nama_kelas')
-
-        ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
-
-        ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-
-        ->where('pendaftaran.status', 'pending')
-
-        ->get()
-
-        ->getResultArray();
-
-
-
-    // Hitung total peserta yang sudah divalidasi/aktif (berdasarkan status pembayaran valid/disetujui)
-
-    $totalPesertaAktif = $db->table('pendaftaran')
-
-        ->groupStart()
-
-            ->where('status_pembayaran', 'valid')
-
-            ->orWhere('status_pembayaran', 'Disetujui')
-
-            ->orWhere('status_pembayaran', 'approved')
-
-        ->groupEnd()
-
-        ->countAllResults();
-
-
-
-    $namaBulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-
-    $bulanMulai = new \DateTimeImmutable('first day of this month 00:00:00');
-
-    $absensiLabels = [];
-
-    $absensiData = [];
-
-    for ($i = 5; $i >= 0; $i--) {
-
-        $mulai = $bulanMulai->modify("-$i months");
-
-        $selesai = $mulai->modify('+1 month');
-
-        $absensiLabels[] = $namaBulan[(int) $mulai->format('n') - 1];
-
-        $absensiData[] = $db->table('absensi')
-
-            ->join('mentor', 'mentor.id_users = absensi.id_user', 'inner')
-
-            ->where('absensi.waktu_absen >=', $mulai->format('Y-m-d H:i:s'))
-
-            ->where('absensi.waktu_absen <', $selesai->format('Y-m-d H:i:s'))
-
+        $totalPesertaAktif = $db->table('pendaftaran')
+            ->groupStart()
+                ->where('status_pembayaran', 'valid')
+                ->orWhere('status_pembayaran', 'Disetujui')
+                ->orWhere('status_pembayaran', 'approved')
+            ->groupEnd()
             ->countAllResults();
 
+        // 4. Data Monitoring Absensi Mentor dari API Laravel (Single Source of Truth)
+        $absensiMentorList = [];
+        $keteranganAbsensi = 'Data absensi belum tersedia dari API Laravel.';
+        $absensiInstrukturTersedia = false;
+        $absensiLabels = [];
+        $absensiData = [];
+
+        try {
+            // Coba ambil data absensi mentor dari endpoint Laravel yang relevan
+            $responseAbsensi = $apiService->request('GET', 'trainer-attendances');
+            if (!empty($responseAbsensi) && is_array($responseAbsensi) && !isset($responseAbsensi['message']) && (isset($responseAbsensi['data']) || isset($responseAbsensi[0]))) {
+                $rawList = $responseAbsensi['data'] ?? $responseAbsensi;
+                if (is_array($rawList) && !empty($rawList)) {
+                    foreach ($rawList as $item) {
+                        $absensiMentorList[] = [
+                            'nama_mentor'      => $item['trainer_name'] ?? $item['trainer']['name'] ?? $item['nama_mentor'] ?? $item['nama'] ?? 'Instruktur',
+                            'tanggal'          => $item['date'] ?? $item['tanggal'] ?? null,
+                            'status_kehadiran' => $item['status'] ?? $item['status_kehadiran'] ?? 'Hadir',
+                            'keterangan'       => $item['notes'] ?? $item['keterangan'] ?? null
+                        ];
+                    }
+                    $absensiInstrukturTersedia = true;
+                    $keteranganAbsensi = null;
+                }
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Dashboard API trainer attendances error: ' . $e->getMessage());
+        }
+
+        $data = [
+            'title'                       => 'Dashboard',
+            'total_kelas'                 => $totalKelas,
+            'total_mentor'                => $totalMentor,
+            'total_peserta'               => $totalPesertaAktif,
+            'pending_validasi'            => $db->table('pendaftaran')->where('status', 'pending')->countAllResults(),
+            'pendaftaran_pending'         => $pendaftaranPending,
+            'angket_data'                 => [0, 0, 0, 0],
+            'absensi_instruktur_tersedia' => $absensiInstrukturTersedia,
+            'absensi_mentor_list'         => $absensiMentorList,
+            'keterangan_absensi'          => $keteranganAbsensi,
+            'absensi_labels'              => $absensiLabels,
+            'absensi_data'                => $absensiData
+        ];
+
+        return view('admin/dashboard', $data);
     }
 
-
-
-    $data = [
-
-        'title'               => 'Dashboard',
-
-        'total_kelas'         => $db->table('kelas')->countAll(),
-
-        'total_mentor'        => $db->table('mentor')->countAll(),
-
-        'total_peserta'       => $totalPesertaAktif, // <-- Menggunakan total peserta aktif
-
-        'pending_validasi'    => $db->table('pendaftaran')->where('status', 'pending')->countAll(),
-
-        'pendaftaran_pending' => $pendaftaranPending,
-
-
-
-        // Data untuk Chart Angket
-
-        'angket_data'         => [0, 0, 0, 0],
-
-
-
-        // Data absensi mentor untuk enam bulan terakhir
-
-        'absensi_labels'      => $absensiLabels,
-
-        'absensi_data'        => $absensiData
-
-    ];
-
-
-
-    return view('admin/dashboard', $data);
-
-}
-
     // --- MASTER KELAS ---
 
     // --- MASTER KELAS ---
 
-public function masterKelas()
+    public function masterKelas()
     {
         $apiService = new \App\Services\LaravelApiService();
         $kelasData = [];
@@ -219,25 +202,69 @@ public function masterKelas()
             $kelasApi = $response['data'] ?? $response ?? [];
             if (!empty($kelasApi) && is_array($kelasApi)) {
                 foreach ($kelasApi as $k) {
+                    // Instruktur asli dari Laravel
+                    $namaMentor = null;
+                    if (!empty($k['trainers']) && is_array($k['trainers']) && isset($k['trainers'][0]['name'])) {
+                        $namaMentor = trim($k['trainers'][0]['name']);
+                    }
+
+                    // Lokasi Media dari respons Laravel API
+                    $lokasiMedia = null;
+                    if (!empty($k['lokasi_media']) && is_string($k['lokasi_media'])) {
+                        $lokasiMedia = trim($k['lokasi_media']);
+                    } elseif (!empty($k['location_media']) && is_string($k['location_media'])) {
+                        $lokasiMedia = trim($k['location_media']);
+                    } elseif (!empty($k['location'])) {
+                        if (is_array($k['location'])) {
+                            $lokasiMedia = trim($k['location']['media'] ?? $k['location']['name'] ?? $k['location']['lokasi'] ?? '');
+                        } elseif (is_string($k['location'])) {
+                            $lokasiMedia = trim($k['location']);
+                        }
+                    } elseif (!empty($k['schedule']['location']) && is_string($k['schedule']['location'])) {
+                        $lokasiMedia = trim($k['schedule']['location']);
+                    }
+                    if ($lokasiMedia === '' || $lokasiMedia === '-') {
+                        $lokasiMedia = null;
+                    }
+
+                    // Deskripsi & Ringkasan asli
+                    $deskripsi = (!empty($k['description']) && trim($k['description']) !== '-') ? trim($k['description']) : null;
+                    $ringkasan = (!empty($k['summary']) && trim($k['summary']) !== '-') ? trim($k['summary']) : null;
+
+                    // Foto / Thumbnail asli
+                    $foto = !empty($k['thumbnail']) ? $k['thumbnail'] : (!empty($k['image']) ? $k['image'] : (!empty($k['foto']) ? $k['foto'] : null));
+
+                    // Kategori asli
+                    $kategori = !empty($k['training']['name']) ? $k['training']['name'] : (!empty($k['category']) ? $k['category'] : null);
+
+                    // Pertemuan, Kapasitas, Harga, Tanggal
+                    $meetings = $k['schedule']['meetings'] ?? $k['sessions_count'] ?? $k['meetings'] ?? null;
+                    $kapasitas = $k['capacity']['target_students'] ?? $k['capacity'] ?? null;
+                    $kapasitasTersedia = $k['capacity']['remaining_students'] ?? $k['available_capacity'] ?? $kapasitas;
+                    $hargaReguler = $k['pricing']['price'] ?? $k['regular_price'] ?? $k['price'] ?? null;
+                    $hargaPrivat = $k['pricing']['price'] ?? $k['private_price'] ?? null;
+                    $startDate = (!empty($k['schedule']['start_date']) && $k['schedule']['start_date'] !== '-') ? $k['schedule']['start_date'] : ($k['start_date'] ?? null);
+
                     $kelasData[] = [
-                        'id_kelas' => $k['id'],
-                        'nama_kelas' => $k['name'] ?? 'Kelas',
-                        'thumbnail' => $k['thumbnail'] ?? $k['image'] ?? '',
-                        'foto' => $k['thumbnail'] ?? $k['image'] ?? '',
-                        'kategori' => $k['training']['name'] ?? $k['category'] ?? 'Umum',
-                        'status' => $k['status'] ?? 'draft',
-                        'deskripsi' => $k['description'] ?? $k['summary'] ?? '-',
-                        'ringkasan' => $k['summary'] ?? '-',
-                        'nama_mentor' => (!empty($k['trainers']) && isset($k['trainers'][0]['name'])) 
-                                          ? $k['trainers'][0]['name'] 
-                                          : 'Belum ditentukan',
-                        'jumlah_pertemuan' => $k['schedule']['meetings'] ?? $k['sessions_count'] ?? $k['meetings'] ?? 0,
-                        'kapasitas' => $k['capacity']['target_students'] ?? $k['capacity'] ?? 0,
-                        'kapasitas_tersedia' => $k['capacity']['remaining_students'] ?? $k['capacity']['target_students'] ?? 0,
-                        'harga_reguler' => $k['pricing']['price'] ?? $k['regular_price'] ?? $k['price'] ?? 0,
-                        'tanggal_mulai_kelas' => $k['schedule']['start_date'] ?? $k['start_date'] ?? '-',
-                        'jenis_kelas' => $k['jenis_kelas'] ?? 'Reguler',
-                        'tipe_kelas' => $k['jenis_kelas'] ?? 'Reguler',
+                        'id_kelas'            => $k['id'],
+                        'nama_kelas'          => $k['name'] ?? null,
+                        'thumbnail'           => $foto,
+                        'foto'                => $foto,
+                        'kategori'            => $kategori,
+                        'status'              => $k['status'] ?? null,
+                        'deskripsi'           => $deskripsi,
+                        'ringkasan'           => $ringkasan,
+                        'nama_mentor'         => $namaMentor,
+                        'jumlah_pertemuan'    => $meetings,
+                        'kapasitas'           => $kapasitas,
+                        'kapasitas_tersedia'  => $kapasitasTersedia,
+                        'harga_reguler'       => $hargaReguler,
+                        'harga_privat'        => $hargaPrivat,
+                        'tanggal_mulai_kelas' => $startDate,
+                        'jenis_kelas'         => $k['jenis_kelas'] ?? $k['type'] ?? null,
+                        'tipe_kelas'          => $k['jenis_kelas'] ?? $k['type'] ?? null,
+                        'lokasi_media'        => $lokasiMedia,
+                        'metode_pembelajaran' => $k['schedule']['method'] ?? $k['method'] ?? null,
                     ];
                 }
             }
@@ -937,14 +964,21 @@ public function hapusJadwal($id_jadwal)
                     $status = strtolower($t['status'] ?? 'active') === 'active' ? 'Aktif' : 'Nonaktif';
                     if ($status === 'Aktif') $totalAktif++;
                     
+                    // Pemetaan NIP resmi dari API Laravel
+                    $nipRaw = $t['nip'] ?? $t['employee_id'] ?? $t['nip_instruktur'] ?? $t['nomor_induk'] ?? $t['id'] ?? null;
+                    $nip = (!empty($nipRaw) && $nipRaw !== '-') ? trim((string)$nipRaw) : null;
+                    
+                    $phoneRaw = $t['phone'] ?? $t['telepon'] ?? $t['no_hp'] ?? null;
+                    $telepon = (!empty($phoneRaw) && $phoneRaw !== '-') ? trim((string)$phoneRaw) : null;
+                    
                     $mentorData[] = [
-                        'id_mentor' => $t['id'] ?? 0,
-                        'nip' => $t['nip'] ?? $t['employee_id'] ?? '-',
-                        'nama_mentor' => $t['name'] ?? 'Instruktur',
-                        'email' => $t['email'] ?? '-',
-                        'telepon' => $t['phone'] ?? '-',
-                        'status' => $status,
-                        'cv' => $t['cv'] ?? '',
+                        'id_mentor'   => $t['id'] ?? 0,
+                        'nip'         => $nip,
+                        'nama_mentor' => $t['name'] ?? $t['nama'] ?? 'Instruktur',
+                        'email'       => (!empty($t['email']) && $t['email'] !== '-') ? trim((string)$t['email']) : null,
+                        'telepon'     => $telepon,
+                        'status'      => $status,
+                        'cv'          => $t['cv'] ?? '',
                     ];
                 }
             }

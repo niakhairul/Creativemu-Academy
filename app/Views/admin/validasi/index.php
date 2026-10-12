@@ -531,6 +531,18 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                 <div class="detail-item"><div class="detail-label">Lokasi</div><div class="detail-value"><?= esc($row['lokasi_pelatihan'] ?? $row['lokasi_media'] ?? '-'); ?></div></div>
                                 <div class="detail-item"><div class="detail-label">Tanggal Mulai</div><div class="detail-value"><?= esc(validasi_tanggal($row['tanggal_mulai_kelas'] ?? $row['tanggal_mulai_master'] ?? null)); ?></div></div>
                                 <div class="detail-item"><div class="detail-label">Tanggal Daftar</div><div class="detail-value"><?= esc(validasi_tanggal($row['created_at'] ?? null)); ?></div></div>
+                                <?php if (!empty($row['materi_privat'])): ?>
+                                    <div class="detail-item" style="grid-column: span 2;">
+                                        <div class="detail-label">Materi Privat Dipilih (Laravel)</div>
+                                        <div class="detail-value fw-semibold" style="color: #682bd8;"><?= esc($row['materi_privat']); ?></div>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (!empty($row['custom_materi'])): ?>
+                                    <div class="detail-item" style="grid-column: span 2;">
+                                        <div class="detail-label">Permintaan Materi Khusus (Custom)</div>
+                                        <div class="detail-value bg-light p-2 rounded border small fst-italic"><?= esc($row['custom_materi']); ?></div>
+                                    </div>
+                                <?php endif; ?>
                                 <div class="detail-item" style="grid-column: span 2;">
                                     <div class="detail-label">Bukti Pembayaran / Metode</div>
                                     <div class="detail-value">

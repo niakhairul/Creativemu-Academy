@@ -1,15 +1,12 @@
 <?php
+// Initialize CodeIgniter
 define('FCPATH', __DIR__ . '/../public' . DIRECTORY_SEPARATOR);
-require realpath(FCPATH . '../app/Config/Paths.php');
+require FCPATH . '../app/Config/Paths.php';
 $paths = new Config\Paths();
-require realpath($paths->systemDirectory . '/bootstrap.php');
+require rtrim($paths->systemDirectory, '\\/ ') . DIRECTORY_SEPARATOR . 'bootstrap.php';
 
 $api = new \App\Services\LaravelApiService();
-$res = $api->request('GET', '/kelas'); // Trying /kelas
-print_r($res);
-$res = $api->request('GET', '/classes'); // Trying /classes 
-print_r($res);
-$res = $api->request('GET', '/peserta/' . session()->get('id_user') . '/kelas'); // Just trying
-print_r($res);
-?>
-
+echo "--- TRAINERS ---\n";
+print_r($api->request('GET', 'trainers'));
+echo "\n--- CLASSES ---\n";
+print_r($api->request('GET', 'classes'));

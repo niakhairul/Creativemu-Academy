@@ -247,10 +247,10 @@
                     <?php $no = 1; foreach ($mentorList as $m): ?>
                     <tr>
                         <td class="text-center"><?= $no++; ?></td>
-                        <td><strong><?= esc($m['nama_mentor']); ?></strong><br><small class="text-muted">NIP: <?= esc($m['nip']); ?></small></td>
-                        <td><?= esc($m['pelatihan']); ?></td>
-                        <td><?= esc($m['kelas']); ?></td>
-                        <td><?= esc($m['tempat_pelatihan'] ?? '-'); ?></td>
+                        <td><strong><?= esc($m['nama_mentor']); ?></strong><br><small class="text-muted">NIP: <?= esc($m['nip'] ?? '-'); ?></small></td>
+                        <td><?= esc(!empty($m['pelatihan']) && $m['pelatihan'] !== '-' ? $m['pelatihan'] : (!empty($m['keahlian']) ? $m['keahlian'] : 'Pelatihan Kejuruan')); ?></td>
+                        <td><?= esc(!empty($m['kelas']) && $m['kelas'] !== '-' ? $m['kelas'] : 'Kelas Pelatihan'); ?></td>
+                        <td><?= esc(!empty($m['tempat_pelatihan']) && $m['tempat_pelatihan'] !== '-' ? $m['tempat_pelatihan'] : 'Kantor Pusat'); ?></td>
                         <td class="text-center"><?= $m['persen_keaktifan']; ?>%</td>
                         <td class="text-center"><strong><?= $m['persen_kehadiran']; ?>%</strong></td>
                         <td class="text-center"><?= $m['persen_keterlambatan']; ?>%</td>

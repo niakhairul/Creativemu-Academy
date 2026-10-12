@@ -475,7 +475,7 @@
 
                                 <div class="card-body d-flex flex-column" style="padding: 12px;">
                                     <h5 class="fw-bold" style="color: var(--color-purple); font-size: 13.5px; line-height: 1.3; margin-bottom: 8px;">
-                                        <?= esc($k['nama_kelas'] ?? $k['pilihan_pelatihan']) ?>
+                                        <?= esc($k['nama_kelas'] ?? $k['pilihan_pelatihan'] ?? $k['pilihan_kelas'] ?? 'Kelas Pelatihan') ?>
                                     </h5>
 
                                     <div class="flex-grow-1" style="margin-bottom: 8px;">

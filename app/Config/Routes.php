@@ -69,6 +69,7 @@ $routes->post('pelatihan/update-profil', 'Pelatihan::updateProfil');
 
 // ===== MENU KELAS & KBM PESERTA =====
 $routes->get('pelatihan/daftar-kelas', 'Pelatihan::daftarKelas'); 
+$routes->get('pelatihan/kelas-privat', 'Pelatihan::kelasPrivat'); 
 $routes->get('pelatihan/detail/(:num)', 'Pelatihan::detail/$1'); 
 $routes->get('pelatihan/kbm', 'Pelatihan::kbm');
 $routes->get('pelatihan/kelas', 'Pelatihan::kelas');
@@ -225,7 +226,7 @@ $routes->group('admin', ['filter' => 'auth'], function($routes) {
 
     // Pengaturan Admin
     $routes->get('pengaturan', 'Admin::pengaturan');
-    $routes->match(['get', 'post'], 'pengaturan/update', 'Admin::updatePengaturan');
+    $routes->match(['GET', 'POST'], 'pengaturan/update', 'Admin::updatePengaturan');
 });
 
 // ===== MENU MENTOR =====
@@ -278,9 +279,4 @@ $routes->group('mentor', function($routes) {
     $routes->get('laporan-kehadiran/detail', 'LaporanKehadiranController::detailAjax');
     $routes->get('profil', 'Mentor::profil');
 });
-
-$routes->cli('dump', function() {
-    $m = new \App\Models\LaporanAngketModel();
-    file_put_contents('scratch/dump.json', json_encode($m->getChartData([]), JSON_PRETTY_PRINT));
-    echo "Dumped\n";
-});
+

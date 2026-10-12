@@ -565,6 +565,12 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                 <div class="col-md-6"><p class="mb-1"><strong>WhatsApp:</strong> <?= esc($item['no_hp_terbaru'] ?? '-'); ?></p></div>
                                 <div class="col-md-6"><p class="mb-1"><strong>Kelas:</strong> <?= esc($item['nama_kelas'] ?? $item['pilihan_kelas'] ?? '-'); ?></p></div>
                                 <div class="col-md-6"><p class="mb-1"><strong>Jenis Kelamin:</strong> <?= esc($item['gender_terbaru'] ?? '-'); ?></p></div>
+                                <?php if (!empty($item['materi_privat'])): ?>
+                                    <div class="col-12"><p class="mb-1"><strong>Materi Privat Dipilih:</strong> <span class="fw-semibold" style="color: #682bd8;"><?= esc($item['materi_privat']); ?></span></p></div>
+                                <?php endif; ?>
+                                <?php if (!empty($item['custom_materi'])): ?>
+                                    <div class="col-12"><p class="mb-1"><strong>Permintaan Materi Khusus:</strong> <span class="fst-italic text-muted"><?= esc($item['custom_materi']); ?></span></p></div>
+                                <?php endif; ?>
                                 <div class="col-12"><p class="mb-0"><strong>Alamat:</strong> <?= esc($item['alamat'] ?? '-'); ?></p></div>
                             </div>
                         </div>

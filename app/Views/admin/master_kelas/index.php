@@ -343,71 +343,89 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                 <?php if (!empty($kelas) && is_array($kelas)): ?>
                     <?php foreach ($kelas as $row): ?>
                         <div class="col-md-6 col-xl-4">
-                            <div class="class-card shadow-sm border rounded-3 overflow-hidden bg-white">
-                                <div class="class-card-img-wrapper position-relative" style="height: 150px; overflow: hidden;">
-                                    <?php 
-                                        $fotoKelas = !empty($row['thumbnail']) ? $row['thumbnail'] : (!empty($row['foto']) ? $row['foto'] : 'default.jpg');
-                                    ?>
-                                    <img src="<?= base_url('uploads/kelas/' . $fotoKelas); ?>" alt="Foto Kelas" class="w-100 h-100 object-fit-cover">
-                                    
-                                    <!-- Badge Kategori & Tipe -->
-                                    <div class="class-badge-overlay position-absolute top-0 start-0 p-2 d-flex gap-1">
-                                        <span class="badge px-2 py-1 shadow-sm" style="background: rgba(121, 75, 196, 0.85); backdrop-filter: blur(4px); font-size: 0.68rem;"><?= esc($row['kategori'] ?? 'Umum'); ?></span>
-                                        <span class="badge bg-dark bg-opacity-75 px-2 py-1 shadow-sm" style="backdrop-filter: blur(4px); font-size: 0.68rem;"><?= esc($row['tipe_kelas'] ?? $row['jenis_kelas'] ?? 'Online'); ?></span>
-                                    </div>
+                            <div class="card h-100 shadow-sm rounded-3 border-0 bg-white" style="border: 1px solid rgba(121, 75, 196, 0.08) !important;">
+                                <div class="card-body p-3 d-flex flex-column">
+                                    <!-- Badges Header -->
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-1 mb-2">
+                                        <div class="d-flex flex-wrap gap-1">
+                                            <?php if (!empty($row['kategori']) && $row['kategori'] !== '-'): ?>
+                                                <span class="badge px-2 py-1 rounded-pill" style="background-color: var(--light-purple); color: var(--primary-purple) !important; font-size: 0.7rem; font-weight: 600;">
+                                                    <?= esc($row['kategori']); ?>
+                                                </span>
+                                            <?php endif; ?>
+                                            <?php if (!empty($row['tipe_kelas']) || !empty($row['jenis_kelas'])): ?>
+                                                <span class="badge bg-light text-secondary border px-2 py-1 rounded-pill" style="font-size: 0.7rem;">
+                                                    <?= esc($row['tipe_kelas'] ?? $row['jenis_kelas']); ?>
+                                                </span>
+                                            <?php endif; ?>
+                                        </div>
 
-                                    <!-- Badge Status -->
-                                    <div class="class-status-overlay position-absolute top-0 end-0 p-2">
-                                        <?php 
-                                            $statusKelas = strtolower($row['status'] ?? 'draft');
-                                            if ($statusKelas == 'aktif'): 
+                                        <?php if (!empty($row['status'])): 
+                                            $statusKelas = strtolower($row['status']);
                                         ?>
-                                            <span class="badge bg-success shadow-sm" style="font-size: 0.68rem;">Aktif</span>
-                                        <?php elseif ($statusKelas == 'nonaktif'): ?>
-                                            <span class="badge bg-secondary shadow-sm" style="font-size: 0.68rem;">Nonaktif</span>
-                                        <?php else: ?>
-                                            <span class="badge bg-warning text-dark shadow-sm" style="font-size: 0.68rem;">Draft</span>
+                                            <span class="badge rounded-pill px-2 py-1 <?php 
+                                                if ($statusKelas === 'aktif') echo 'bg-success';
+                                                elseif ($statusKelas === 'nonaktif') echo 'bg-secondary';
+                                                else echo 'bg-warning text-dark';
+                                            ?>" style="font-size: 0.68rem;">
+                                                <?= ucfirst(esc($row['status'])); ?>
+                                            </span>
                                         <?php endif; ?>
                                     </div>
-                                </div>
 
-                                <div class="class-card-body p-3">
-                                    <div>
-                                        <div class="d-flex justify-content-between align-items-start mb-1">
-                                            <h6 class="fw-bold mb-0 text-truncate" style="color: var(--dark-purple); font-size: 0.95rem;" title="<?= esc($row['nama_kelas']); ?>"><?= esc($row['nama_kelas']); ?></h6>
-                                        </div>
-                                        <p class="text-muted small mb-2 text-truncate" style="font-size: 0.78rem;"><?= esc($row['ringkasan'] ?? 'Tidak ada ringkasan.'); ?></p>
+                                    <!-- Judul & Ringkasan -->
+                                    <div class="mb-2">
+                                        <h6 class="fw-bold mb-1 text-truncate" style="color: var(--dark-purple); font-size: 0.95rem;" title="<?= esc($row['nama_kelas']); ?>">
+                                            <?= esc($row['nama_kelas']); ?>
+                                        </h6>
+                                        <?php if (!empty($row['ringkasan']) && $row['ringkasan'] !== '-'): ?>
+                                            <p class="text-muted small mb-0 text-truncate" style="font-size: 0.78rem;">
+                                                <?= esc($row['ringkasan']); ?>
+                                            </p>
+                                        <?php endif; ?>
                                     </div>
 
-                                    <div class="border-top pt-2 mt-1">
-                                        <div class="d-flex justify-content-between align-items-center mb-1" style="font-size: 0.78rem;">
-                                            <span class="text-muted text-truncate" style="max-width: 55%;" title="<?= esc($row['nama_mentor'] ?? 'Belum ada instruktur'); ?>">
-                                                <i class="fas fa-chalkboard-user me-1 text-primary"></i> <?= esc($row['nama_mentor'] ?? 'Belum ditentukan'); ?>
-                                            </span>
-                                            <span class="fw-bold text-dark"><i class="fas fa-rotate text-purple me-1"></i> <?= esc($row['jumlah_pertemuan']); ?>x Pertemuan</span>
-                                        </div>
-                                        
-                                        <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 0.78rem;">
-                                            <span class="text-muted"><i class="fas fa-calendar-days me-1 text-muted"></i> <?= esc($row['tanggal_mulai_kelas'] ?? '-'); ?></span>
-                                            
-                                            <!-- Harga Format Rupiah -->
-                                            <div class="pricing-info text-end">
-                                                <small class="d-block text-success fw-bold" style="font-size: 0.72rem;">Rp <?= number_format($row['harga_reguler'] ?? 0, 0, ',', '.'); ?></small>
+                                    <!-- Info Detail Kelas -->
+                                    <div class="pt-2 border-top mt-1" style="font-size: 0.78rem;">
+                                        <?php if (!empty($row['nama_mentor']) && $row['nama_mentor'] !== '-'): ?>
+                                            <div class="text-muted text-truncate mb-1" title="<?= esc($row['nama_mentor']); ?>">
+                                                <i class="fas fa-chalkboard-user me-1 text-primary"></i> <?= esc($row['nama_mentor']); ?>
                                             </div>
+                                        <?php endif; ?>
+
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <?php if (!empty($row['jumlah_pertemuan'])): ?>
+                                                <span class="fw-semibold text-dark">
+                                                    <i class="fas fa-rotate text-purple me-1"></i> <?= esc($row['jumlah_pertemuan']); ?>x Pertemuan
+                                                </span>
+                                            <?php else: ?>
+                                                <span></span>
+                                            <?php endif; ?>
+
+                                            <?php if (!empty($row['tanggal_mulai_kelas']) && $row['tanggal_mulai_kelas'] !== '-'): ?>
+                                                <span class="text-muted">
+                                                    <i class="fas fa-calendar-days me-1 text-muted"></i> <?= esc($row['tanggal_mulai_kelas']); ?>
+                                                </span>
+                                            <?php endif; ?>
                                         </div>
 
-                                        <!-- Tombol Aksi -->
-                                        <div class="d-flex flex-column gap-1">
-                                            <button type="button" class="btn btn-sm btn-info text-white rounded-pill py-1 w-100" style="font-size: 0.78rem;" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#modalDetailKelas<?= $row['id_kelas']; ?>">
-                                                <i class="fas fa-eye me-1"></i> Lihat Detail Kelas
-                                            </button>
-                                            <a href="<?= base_url('admin/master-kelas/jadwal/' . $row['id_kelas']); ?>" class="btn btn-sm btn-warning text-dark rounded-pill py-1 w-100" style="font-size: 0.78rem;">
-                                                <i class="fas fa-calendar-alt me-1"></i> Jadwal Kelas
-                                            </a>
-                                            
-                                        </div>
+                                        <?php if (isset($row['harga_reguler']) && $row['harga_reguler'] !== null && $row['harga_reguler'] !== ''): ?>
+                                            <div class="text-success fw-bold mt-1">
+                                                <i class="fas fa-tag me-1 text-success"></i> Rp <?= number_format((float)$row['harga_reguler'], 0, ',', '.'); ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <!-- Tombol Aksi -->
+                                    <div class="mt-auto pt-3 d-flex gap-2">
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill flex-fill py-1 fw-semibold" style="font-size: 0.78rem;" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalDetailKelas<?= $row['id_kelas']; ?>">
+                                            <i class="fas fa-eye me-1"></i> Lihat Detail Kelas
+                                        </button>
+                                        <a href="<?= base_url('admin/master-kelas/jadwal/' . $row['id_kelas']); ?>" class="btn btn-sm btn-warning text-dark rounded-pill flex-fill py-1 fw-semibold text-center" style="font-size: 0.78rem;">
+                                            <i class="fas fa-calendar-alt me-1"></i> Jadwal Kelas
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -423,59 +441,95 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                     </div>
                                     <div class="modal-body p-3">
                                         <div class="row g-3">
-                                            <div class="col-md-5 text-center">
-                                                <img src="<?= base_url('uploads/kelas/' . $fotoKelas); ?>" alt="Banner" class="img-fluid rounded-3 shadow-sm w-100 object-fit-cover" style="max-height: 180px;">
-                                                <div class="mt-2 d-flex justify-content-center gap-1">
-                                                    <span class="badge px-2 py-1 
-                                                        <?php
-                                                            if ($statusKelas == 'aktif') echo 'bg-success';
-                                                            elseif ($statusKelas == 'nonaktif') echo 'bg-secondary';
-                                                            else echo 'bg-warning text-dark';
-                                                        ?>">
-                                                        <?= ucfirst(esc($row['status'] ?? 'Draft')); ?>
-                                                    </span>
-                                                    <span class="badge px-2 py-1" style="background-color: #794bc4; color: #fff;"><?= esc($row['tipe_kelas'] ?? $row['jenis_kelas'] ?? 'Online'); ?></span>
+                                            <?php 
+                                                $fotoKelas = !empty($row['thumbnail']) ? $row['thumbnail'] : (!empty($row['foto']) ? $row['foto'] : '');
+                                            ?>
+                                            <?php if (!empty($fotoKelas)): ?>
+                                                <div class="col-md-5 text-center">
+                                                    <img src="<?= base_url('uploads/kelas/' . $fotoKelas); ?>" alt="Banner" class="img-fluid rounded-3 shadow-sm w-100 object-fit-cover" style="max-height: 180px;">
+                                                    <div class="mt-2 d-flex justify-content-center gap-1">
+                                                        <?php if (!empty($row['status'])): ?>
+                                                            <span class="badge px-2 py-1 
+                                                                <?php
+                                                                    if ($statusKelas == 'aktif') echo 'bg-success';
+                                                                    elseif ($statusKelas == 'nonaktif') echo 'bg-secondary';
+                                                                    else echo 'bg-warning text-dark';
+                                                                ?>">
+                                                                <?= ucfirst(esc($row['status'])); ?>
+                                                            </span>
+                                                        <?php endif; ?>
+                                                        <?php if (!empty($row['tipe_kelas']) || !empty($row['jenis_kelas'])): ?>
+                                                            <span class="badge px-2 py-1" style="background-color: #794bc4; color: #fff;"><?= esc($row['tipe_kelas'] ?? $row['jenis_kelas']); ?></span>
+                                                        <?php endif; ?>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-md-7">
+                                                <div class="col-md-7">
+                                            <?php else: ?>
+                                                <div class="col-12">
+                                            <?php endif; ?>
                                                 <table class="table table-borderless table-sm mb-0 small">
-                                                    <tr>
-                                                        <td class="fw-semibold text-muted" width="38%">Nama Kelas</td>
-                                                        <td>: <?= esc($row['nama_kelas']); ?></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="fw-semibold text-muted">Instruktur Pengampu</td>
-                                                        <td>: <?= esc($row['nama_mentor'] ?? '-'); ?></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="fw-semibold text-muted">Kategori</td>
-                                                        <td>: <?= esc($row['kategori']); ?></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="fw-semibold text-muted">Harga</td>
-                                                        <td>: Rp <?= number_format($row['harga_reguler'] ?? 0, 0, ',', '.'); ?></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="fw-semibold text-muted">Jumlah Pertemuan</td>
-                                                        <td>: <?= esc($row['jumlah_pertemuan']); ?>x Pertemuan</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="fw-semibold text-muted">Kapasitas Peserta</td>
-                                                        <td>: <?= esc($row['kapasitas']); ?> Peserta</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="fw-semibold text-muted">Tanggal Mulai</td>
-                                                        <td>: <?= esc($row['tanggal_mulai_kelas'] ?? '-'); ?></td>
-                                                    </tr>
+                                                    <?php if (!empty($row['nama_kelas'])): ?>
+                                                        <tr>
+                                                            <td class="fw-semibold text-muted" width="38%">Nama Kelas</td>
+                                                            <td>: <?= esc($row['nama_kelas']); ?></td>
+                                                        </tr>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($row['nama_mentor'])): ?>
+                                                        <tr>
+                                                            <td class="fw-semibold text-muted">Instruktur Pengampu</td>
+                                                            <td>: <?= esc($row['nama_mentor']); ?></td>
+                                                        </tr>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($row['kategori'])): ?>
+                                                        <tr>
+                                                            <td class="fw-semibold text-muted">Kategori</td>
+                                                            <td>: <?= esc($row['kategori']); ?></td>
+                                                        </tr>
+                                                    <?php endif; ?>
+                                                    <?php if (isset($row['harga_reguler']) && $row['harga_reguler'] !== null && $row['harga_reguler'] !== ''): ?>
+                                                        <tr>
+                                                            <td class="fw-semibold text-muted">Harga</td>
+                                                            <td>: Rp <?= number_format((float)$row['harga_reguler'], 0, ',', '.'); ?></td>
+                                                        </tr>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($row['jumlah_pertemuan'])): ?>
+                                                        <tr>
+                                                            <td class="fw-semibold text-muted">Jumlah Pertemuan</td>
+                                                            <td>: <?= esc($row['jumlah_pertemuan']); ?>x Pertemuan</td>
+                                                        </tr>
+                                                    <?php endif; ?>
+                                                    <?php if (isset($row['kapasitas']) && $row['kapasitas'] !== null && $row['kapasitas'] !== ''): ?>
+                                                        <tr>
+                                                            <td class="fw-semibold text-muted">Kapasitas Peserta</td>
+                                                            <td>: <?= esc($row['kapasitas']); ?> Peserta</td>
+                                                        </tr>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($row['tanggal_mulai_kelas']) && $row['tanggal_mulai_kelas'] !== '-'): ?>
+                                                        <tr>
+                                                            <td class="fw-semibold text-muted">Tanggal Mulai</td>
+                                                            <td>: <?= esc($row['tanggal_mulai_kelas']); ?></td>
+                                                        </tr>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($row['lokasi_media'])): ?>
+                                                        <tr>
+                                                            <td class="fw-semibold text-muted">Lokasi Media</td>
+                                                            <td>: <?= esc($row['lokasi_media']); ?></td>
+                                                        </tr>
+                                                    <?php endif; ?>
                                                 </table>
                                             </div>
-                                            <div class="col-12 border-top pt-2">
-                                                <h6 class="fw-bold text-dark mb-1 small">Ringkasan:</h6>
-                                                <p class="text-muted small mb-2"><?= esc($row['ringkasan'] ?? '-'); ?></p>
-                                                
-                                                <h6 class="fw-bold text-dark mb-1 small">Deskripsi Lengkap:</h6>
-                                                <p class="text-muted small mb-0" style="white-space: pre-line;"><?= esc($row['deskripsi'] ?? '-'); ?></p>
-                                            </div>
+                                            <?php if (!empty($row['ringkasan']) && $row['ringkasan'] !== '-'): ?>
+                                                <div class="col-12 border-top pt-2">
+                                                    <h6 class="fw-bold text-dark mb-1 small">Ringkasan:</h6>
+                                                    <p class="text-muted small mb-2"><?= esc($row['ringkasan']); ?></p>
+                                                </div>
+                                            <?php endif; ?>
+                                            <?php if (!empty($row['deskripsi']) && $row['deskripsi'] !== '-'): ?>
+                                                <div class="col-12 border-top pt-2">
+                                                    <h6 class="fw-bold text-dark mb-1 small">Deskripsi Lengkap:</h6>
+                                                    <p class="text-muted small mb-0" style="white-space: pre-line;"><?= esc($row['deskripsi']); ?></p>
+                                                </div>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                     <div class="modal-footer bg-light">

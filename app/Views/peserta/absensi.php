@@ -681,82 +681,74 @@
                                     <?php foreach ($jadwal as $item): ?>
                                         <?php
                                         $absensi = $item['absensi'] ?? null;
-                                        $statusAbsensi = $absensi['status'] ?? null;
+                                        $statusAbsensi = strtolower(trim($absensi['status'] ?? ''));
                                         $idJadwalItem = $item['id_jadwal'] ?? ($item['id_jadwal'] ?? '');
-                                        
-                                        // Cek status buka absensi dengan fallback agar aman jika key tidak terbawa
-                                        $absensiDibuka = $item['absensi_dibuka'] ?? 1;
+                                        $absensiDibuka = (int)($item['absensi_dibuka'] ?? 0);
                                         ?>
                                         <div class="col-lg-6">
                                             <div class="materi-card">
-                                                <span class="materi-badge">Pertemuan <?= esc($item['pertemuan_ke'] ?? '-') ?></span>
-                                                <h5 class="fw-bold mt-3 mb-2 text-dark">Pertemuan <?= esc($item['pertemuan_ke'] ?? '-') ?></h5>
-                                                <p class="text-muted mb-3">
-                                                    <i class="bi bi-calendar-event me-1 text-primary"></i>
-                                                    <?= !empty($item['tanggal_kbm'])
-                                                        ? date('d F Y', strtotime($item['tanggal_kbm']))
-                                                            . ', Pukul '
-                                                            . date('H:i', strtotime($item['waktu_mulai']))
-                                                            . ' - '
-                                                            . date('H:i', strtotime($item['waktu_selesai']))
-                                                        : 'Jadwal belum ditentukan' ?>
-                                                </p>
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <?php if (!empty($item['pertemuan_ke'])): ?>
+                                                        <span class="materi-badge">Pertemuan <?= esc($item['pertemuan_ke']) ?></span>
+                                                    <?php endif; ?>
+                                                    <?php if ($statusAbsensi === 'hadir'): ?>
+                                                        <span class="badge bg-success bg-opacity-15 text-success px-2.5 py-1 rounded-pill fw-bold" style="font-size: 11px;">
+                                                            <i class="bi bi-check-circle-fill me-1"></i> Sudah Absen
+                                                        </span>
+                                                    <?php elseif ($absensiDibuka === 1): ?>
+                                                        <span class="badge bg-primary bg-opacity-15 text-primary px-2.5 py-1 rounded-pill fw-bold" style="font-size: 11px;">
+                                                            <i class="bi bi-broadcast me-1"></i> Absensi Dibuka
+                                                        </span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-secondary bg-opacity-15 text-secondary px-2.5 py-1 rounded-pill fw-bold" style="font-size: 11px;">
+                                                            <i class="bi bi-lock-fill me-1"></i> Belum Dibuka
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </div>
+
+                                                <h5 class="fw-bold mt-1 mb-2 text-dark" style="font-size: 14px;">
+                                                    <?= !empty($item['materi']) ? esc($item['materi']) : (!empty($item['pertemuan_ke']) ? 'Pertemuan ' . esc($item['pertemuan_ke']) : 'Sesi Pertemuan') ?>
+                                                </h5>
+
+                                                <?php if (!empty($item['tanggal_kbm'])): ?>
+                                                    <p class="text-muted mb-1" style="font-size: 12px;">
+                                                        <i class="bi bi-calendar-event me-1 text-primary"></i>
+                                                        Tanggal: <?= date('d F Y', strtotime($item['tanggal_kbm'])) ?>
+                                                    </p>
+                                                <?php endif; ?>
+
+                                                <?php if (!empty($item['waktu_mulai'])): ?>
+                                                    <p class="text-muted mb-2" style="font-size: 12px;">
+                                                        <i class="bi bi-clock me-1 text-warning"></i>
+                                                        Jam Absensi: <?= date('H:i', strtotime($item['waktu_mulai'])) ?><?= (!empty($item['waktu_selesai']) ? ' - ' . date('H:i', strtotime($item['waktu_selesai'])) : '') ?> WIB
+                                                    </p>
+                                                <?php endif; ?>
+
+                                                <?php if ($statusAbsensi === 'hadir' && !empty($absensi['waktu_absen'])): ?>
+                                                    <p class="text-success mb-2 fw-semibold" style="font-size: 12px;">
+                                                        <i class="bi bi-check-circle me-1"></i>
+                                                        Waktu Presensi: <?= date('d F Y, H:i', strtotime($absensi['waktu_absen'])) ?> WIB
+                                                    </p>
+                                                <?php endif; ?>
 
                                                 <?php if ($statusAbsensi === 'hadir'): ?>
-                                                    <div class="alert alert-success border-0 bg-success bg-opacity-10 text-success mb-0 rounded-3 py-2 small">
-                                                        <i class="bi bi-check-circle-fill me-2"></i> Anda sudah hadir pada pertemuan ini.
+                                                    <div class="alert alert-success border-0 bg-success bg-opacity-10 text-success mb-0 rounded-3 py-2 small fw-semibold" style="font-size: 12px;">
+                                                        <i class="bi bi-check-circle-fill me-2"></i> Kehadiran Anda telah tervalidasi sistem.
                                                     </div>
+                                                <?php elseif ($absensiDibuka === 1): ?>
+                                                    <form action="<?= base_url('pelatihan/prosesAbsen/' . esc($idJadwalItem)); ?>" method="POST" class="mt-2 form-absen">
+                                                        <?= csrf_field(); ?>
+                                                        <input type="hidden" name="user_latitude" class="user_latitude">
+                                                        <input type="hidden" name="user_longitude" class="user_longitude">
+
+                                                        <button type="submit" class="btn btn-primary btn-absen w-100 rounded-pill fw-semibold shadow-sm" style="font-size: 12px;">
+                                                            <i class="bi bi-geo-alt-fill me-1"></i> Kirim Absen Sekarang
+                                                        </button>
+                                                    </form>
                                                 <?php else: ?>
-                                                    <!-- Form Input Token Absensi & GPS -->
-                                                    <!-- Form Input Token Absensi & GPS -->
-<?php if ($absensiDibuka == 1) : ?>
-    <form action="<?= base_url('peserta/proses-absen/' . esc($idJadwalItem)); ?>" method="POST" class="mt-2 form-absen">
-        <?= csrf_field(); ?>
-        
-        <!-- Input Hidden untuk menampung koordinat GPS -->
-        <input type="hidden" name="user_latitude" id="user_latitude_<?= esc($idJadwalItem); ?>">
-        <input type="hidden" name="user_longitude" id="user_longitude_<?= esc($idJadwalItem); ?>">
-        
-        <div class="input-group mb-2">
-            <input type="text" class="form-control" name="token_absen" maxlength="4" placeholder="Masukkan 4 digit token" required>
-            <!-- Tombol dipastikan tidak ada atribut disabled agar warnanya biru (primary) -->
-            <button class="btn btn-primary btn-kirim-absen" type="submit" id="btn_submit_<?= esc($idJadwalItem); ?>">
-                Kirim Absen
-            </button>
-        </div>
-        <small class="text-muted gps-status-<?= esc($idJadwalItem); ?>" style="font-size: 11px;">Mendeteksi lokasi Anda...</small>
-    </form>
-
-    <!-- Script JavaScript untuk mendeteksi GPS otomatis -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const latInput = document.getElementById("user_latitude_<?= esc($idJadwalItem); ?>");
-            const lonInput = document.getElementById("user_longitude_<?= esc($idJadwalItem); ?>");
-            const statusText = document.querySelector(".gps-status-<?= esc($idJadwalItem); ?>");
-            const submitBtn = document.getElementById("btn_submit_<?= esc($idJadwalItem); ?>");
-
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    function(position) {
-                        latInput.value = position.coords.latitude;
-                        lonInput.value = position.coords.longitude;
-                        statusText.innerHTML = '<span class="text-success"><i class="bi bi-geo-alt-fill"></i> Lokasi terdeteksi</span>';
-                    },
-                    function(error) {
-                        console.warn("Gagal mendapatkan GPS: " + error.message);
-                        // Meskipun GPS gagal/ditolak, tombol tetap dibiarkan aktif agar peserta tetap bisa mencoba absen (atau sesuaikan dengan kebutuhan validasi controller Anda)
-                        statusText.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle"></i> GPS tidak aktif, pastikan izin lokasi diizinkan!</span>';
-                    },
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                );
-            } else {
-                statusText.innerHTML = '<span class="text-danger">Browser tidak mendukung GPS.</span>';
-            }
-        });
-    </script>
-<?php else : ?>
-    <span class="badge bg-secondary">Absensi Belum Dibuka</span>
-<?php endif; ?>
+                                                    <button type="button" class="btn btn-secondary w-100 rounded-pill fw-semibold mt-2" style="font-size: 12px; opacity: 0.65; cursor: not-allowed;" disabled>
+                                                        <i class="bi bi-lock-fill me-1"></i> Absensi Belum Dibuka
+                                                    </button>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
@@ -764,7 +756,7 @@
                                 </div>
                             <?php else: ?>
                                 <div class="alert alert-info border-0 shadow-sm rounded-4 mb-0">
-                                    <i class="bi bi-info-circle me-2"></i> Belum ada jadwal pertemuan.
+                                    <i class="bi bi-info-circle me-2"></i> Belum ada data sesi absensi resmi dari Laravel untuk kelas ini.
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -889,6 +881,62 @@ document.addEventListener('DOMContentLoaded', function () {
                 closeSidebar();
             }
         });
+    });
+
+    // Handle Form Absensi GPS
+    const forms = document.querySelectorAll('form.form-absen');
+    forms.forEach(form => {
+        const btnAbsen = form.querySelector('.btn-absen');
+        const inputLat = form.querySelector('.user_latitude');
+        const inputLon = form.querySelector('.user_longitude');
+
+        if (btnAbsen) {
+            btnAbsen.addEventListener('click', function(e) {
+                e.preventDefault();
+                btnAbsen.disabled = true;
+                btnAbsen.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Mendeteksi Lokasi GPS...';
+
+                if (navigator.geolocation) {
+                    let locationFound = false;
+                    const fallbackTimer = setTimeout(function() {
+                        if (!locationFound) {
+                            btnAbsen.className = "btn btn-danger btn-absen w-100 rounded-pill fw-semibold";
+                            btnAbsen.style.fontSize = "12px";
+                            btnAbsen.innerText = "Gagal Mendeteksi GPS (Timeout)";
+                            alert('Pencarian lokasi terlalu lama. Pastikan GPS aktif dan izin diberikan.');
+                        }
+                    }, 15000);
+
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        locationFound = true;
+                        clearTimeout(fallbackTimer);
+                        if (inputLat) inputLat.value = position.coords.latitude;
+                        if (inputLon) inputLon.value = position.coords.longitude;
+                        btnAbsen.innerHTML = "<i class='bi bi-check-circle-fill me-1'></i> Lokasi Ditemukan, Menyimpan...";
+                        form.submit();
+                    }, function(error) {
+                        locationFound = true;
+                        clearTimeout(fallbackTimer);
+                        btnAbsen.className = "btn btn-danger btn-absen w-100 rounded-pill fw-semibold";
+                        btnAbsen.style.fontSize = "12px";
+                        btnAbsen.innerText = "Gagal Mendeteksi GPS";
+                        let errorMsg = 'Gagal mendeteksi lokasi. Pastikan izin GPS perangkat Anda aktif!';
+                        if(error.code === 1) errorMsg = 'Izin lokasi ditolak oleh browser/pengguna.';
+                        if(error.code === 2) errorMsg = 'Sinyal lokasi tidak tersedia.';
+                        if(error.code === 3) errorMsg = 'Waktu permintaan lokasi habis (timeout).';
+                        alert(errorMsg);
+                    }, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    });
+                } else {
+                    btnAbsen.className = "btn btn-secondary btn-absen w-100 rounded-pill fw-semibold";
+                    btnAbsen.style.fontSize = "12px";
+                    btnAbsen.innerText = "GPS Tidak Didukung";
+                }
+            });
+        }
     });
 });
 </script>

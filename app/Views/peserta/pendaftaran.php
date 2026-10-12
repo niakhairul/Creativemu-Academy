@@ -202,22 +202,13 @@
         }
 
         .hero-title {
-<<<<<<< Updated upstream
             font-size: clamp(1.2rem, 2vw, 1.6rem);
-=======
-            font-size: clamp(1.15rem, 1.6vw, 1.45rem);
->>>>>>> Stashed changes
             line-height: 1.25;
         }
         
         .hero-desc {
-<<<<<<< Updated upstream
             max-width: 680px;
             font-size: clamp(0.75rem, 0.9vw, 0.85rem);
-=======
-            max-width: 650px;
-            font-size: clamp(0.75rem, 0.9vw, 0.82rem);
->>>>>>> Stashed changes
             line-height: 1.4;
         }
 
@@ -283,6 +274,71 @@
         textarea.form-control {
             resize: vertical;
             min-height: 48px;
+        }
+
+        /* Styling Dropdown Pilihan Materi Privat */
+        .materi-dropdown-toggle {
+            min-height: 38px;
+            border: 1.5px solid var(--purple-border);
+            background-color: #ffffff;
+            color: var(--text-main);
+            border-radius: var(--radius-sm);
+            padding: 7px 12px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease-in-out;
+            width: 100%;
+        }
+
+        .materi-dropdown-toggle:hover, .materi-dropdown-toggle:focus {
+            border-color: var(--purple-border-focus);
+            box-shadow: 0 0 0 3px var(--purple-glow);
+        }
+
+        .materi-dropdown-menu {
+            border: 1.5px solid var(--purple-border);
+            border-radius: var(--radius-md);
+            box-shadow: 0 10px 28px rgba(122, 63, 242, 0.12);
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .materi-dropdown-item:hover {
+            background-color: var(--purple-subtle);
+        }
+
+        .materi-pill {
+            background: #f4eeff;
+            color: #682bd8;
+            border: 1px solid #dfd2f7;
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .materi-pill:hover {
+            background: #ede3ff;
+        }
+
+        .materi-pill .btn-remove {
+            cursor: pointer;
+            color: #8b68bf;
+            font-size: 0.82rem;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .materi-pill .btn-remove:hover {
+            color: #dc2626;
         }
 
         /* Radio Selection Cards (Jenis Kelas & Metode Pembayaran) */
@@ -506,17 +562,10 @@
                 margin-bottom: 10px;
             }
             .hero-title {
-<<<<<<< Updated upstream
-                font-size: 20px !important;
-            }
-            .hero-desc {
-                font-size: 12.5px !important;
-=======
                 font-size: 18px !important;
             }
             .hero-desc {
                 font-size: 12px !important;
->>>>>>> Stashed changes
                 line-height: 1.4 !important;
             }
             .logo-wrap {
@@ -767,12 +816,18 @@
             <div class="col-md-auto border-start-md ps-md-4 text-center text-md-end">
                 <div class="small text-muted mb-1" style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Biaya Investasi</div>
                 <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-md-end">
-                    <span class="badge px-3 py-2 bg-success bg-opacity-10 text-success fw-bold" id="textSummaryHargaReguler" style="font-size: 0.8rem;">
-                        Reguler: Rp <?= number_format($kelas['harga_reguler'] ?? 0, 0, ',', '.') ?>
-                    </span>
-                    <span class="badge px-3 py-2" id="textSummaryHargaPrivat" style="background: var(--purple-subtle); color: var(--purple-primary); font-weight: 700; font-size: 0.8rem;">
-                        Privat: Rp <?= number_format($kelas['harga_privat'] ?? 0, 0, ',', '.') ?>
-                    </span>
+                    <?php 
+                        $isDefaultPrivat = isset($defaultJenisKelas) && strtolower($defaultJenisKelas) === 'privat';
+                    ?>
+                    <?php if ($isDefaultPrivat): ?>
+                        <span class="badge px-3 py-2" id="textSummaryHargaPrivat" style="background: var(--purple-primary); color: #fff; font-weight: 700; font-size: 0.85rem; box-shadow: 0 4px 12px rgba(122,63,242,0.25);">
+                            <i class="bi bi-person-fill-lock me-1"></i> Kelas Privat: Rp <?= number_format($kelas['harga_privat'] ?? 0, 0, ',', '.') ?>
+                        </span>
+                    <?php else: ?>
+                        <span class="badge px-3 py-2 bg-success bg-opacity-10 text-success fw-bold" id="textSummaryHargaReguler" style="font-size: 0.85rem;">
+                            <i class="bi bi-tag-fill me-1"></i> Biaya Reguler: Rp <?= number_format($kelas['harga_reguler'] ?? 0, 0, ',', '.') ?>
+                        </span>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -821,14 +876,14 @@
 </button>
                 </div>
                 
-                <img src="<?= base_url('uploads/syarat_dan_persetujuan/syarat_dan_persetujuan.jpeg') ?>" alt="Syarat dan Ketentuan Pendaftaran CreativeMU Academy" class="img-fluid" onerror="this.style.display='none';">
+                <img src="<?= base_url('assets/img/syarat_dan_persetujuan.jpeg') ?>" alt="Syarat dan Ketentuan Pendaftaran CreativeMU Academy" class="img-fluid" onerror="this.style.display='none';">
             </div>
 
             <!-- Checkbox Persetujuan Wajib (*) -->
             <div class="form-check p-3 rounded-3" style="background: #faf8fe; border: 1.5px solid var(--purple-border);">
                 <input class="form-check-input mt-1 ms-1 me-2" type="checkbox" value="1" id="persetujuan_syarat" name="persetujuan_syarat" checked required style="cursor: pointer; transform: scale(1.18);">
                 <label class="form-check-label small" for="persetujuan_syarat" style="color: var(--purple-dark); cursor: pointer; line-height: 1.55;">
-                    Saya telah membaca, memahami, dan menyetujui seluruh <a href="<?= base_url('uploads/syarat_dan_persetujuan/syarat_dan_persetujuan.jpeg') ?>" target="_blank" class="fw-bold text-decoration-underline" style="color: var(--purple-primary);">Syarat dan Ketentuan</a> serta <a href="<?= base_url('kebijakan-privasi') ?>" target="_blank" class="fw-bold text-decoration-underline" style="color: var(--purple-primary);">Kebijakan Privasi</a> yang berlaku di Creativemu Academy. <span class="required-star">*</span>
+                    Saya telah membaca, memahami, dan menyetujui seluruh <a href="<?= base_url('assets/img/syarat_dan_persetujuan.jpeg') ?>" target="_blank" class="fw-bold text-decoration-underline" style="color: var(--purple-primary);">Syarat dan Ketentuan</a> serta <a href="<?= base_url('kebijakan-privasi') ?>" target="_blank" class="fw-bold text-decoration-underline" style="color: var(--purple-primary);">Kebijakan Privasi</a> yang berlaku di Creativemu Academy. <span class="required-star">*</span>
                 </label>
             </div>
         </div>
@@ -1053,6 +1108,9 @@
                         </div>
 
                         <!-- 8. PILIH KELAS PELATIHAN DARI DATABASE -->
+                        <?php 
+                            $isDefaultPrivat = isset($defaultJenisKelas) && strtolower($defaultJenisKelas) === 'privat';
+                        ?>
                         <div class="mb-3">
                             <label for="select_kelas" class="form-label-custom mb-2">
                                 <span>Pilih Kelas Pelatihan <span class="required-star">*</span></span>
@@ -1077,76 +1135,77 @@
                                                 data-pertemuan="<?= esc($kOpt['jumlah_pertemuan'] ?? '6') ?>"
                                                 data-kuota="<?= esc($kOpt['kapasitas_tersedia'] ?? $kOpt['kapasitas'] ?? '0') ?>"
                                                 data-thumbnail="<?= esc($kOpt['thumbnail'] ?? '') ?>">
-                                                <?= esc($kOpt['nama_kelas']) ?> | Sisa kuota: <?= esc($kOpt['kapasitas_tersedia'] ?? $kOpt['kapasitas'] ?? '0') ?> kursi
+                                                <?php if ($isDefaultPrivat): ?>
+                                                    <?= esc($kOpt['nama_kelas']) ?>
+                                                <?php else: ?>
+                                                    <?= esc($kOpt['nama_kelas']) ?> | Sisa kuota: <?= esc($kOpt['kapasitas_tersedia'] ?? $kOpt['kapasitas'] ?? '0') ?> kursi
+                                                <?php endif; ?>
                                             </option>
                                         <?php endforeach; ?>
                                     <?php else: ?>
-                                        <option value="<?= esc($kelas['id_kelas']) ?>" selected><?= esc($kelas['nama_kelas']) ?> | Sisa kuota: <?= esc($kelas['kapasitas_tersedia'] ?? $kelas['kapasitas'] ?? '0') ?> kursi</option>
+                                        <option value="<?= esc($kelas['id_kelas']) ?>" selected>
+                                            <?php if ($isDefaultPrivat): ?>
+                                                <?= esc($kelas['nama_kelas']) ?>
+                                            <?php else: ?>
+                                                <?= esc($kelas['nama_kelas']) ?> | Sisa kuota: <?= esc($kelas['kapasitas_tersedia'] ?? $kelas['kapasitas'] ?? '0') ?> kursi
+                                            <?php endif; ?>
+                                        </option>
                                     <?php endif; ?>
                                 </select>
                             </div>
                             <small class="text-muted d-block mt-1" style="font-size: 0.72rem;"><i class="bi bi-info-circle me-1"></i>Hanya menampilkan kelas aktif yang belum pernah Anda daftarkan.</small>
                         </div>
 
-                        <!-- 9. Kategori Kelas (Paket Reguler vs Privat) -->
-                        <div class="mb-3">
-                            <label class="form-label-custom mb-2">
-                                <span>Pilih Kategori Kelas (Paket) <span class="required-star">*</span></span>
-                            </label>
-                            <div class="row g-3">
-                                <div class="col-6 col-sm-6">
-                                    <input type="radio" class="btn-check" name="jenis_kelas" id="kelas_reguler" value="Reguler" checked required onchange="updateBiayaTampil()">
-                                    <label class="selection-card" for="kelas_reguler">
-                                        <div class="selection-icon bg-success bg-opacity-10 text-success">
-                                            <i class="bi bi-people-fill"></i>
+                        <?php if ($isDefaultPrivat): ?>
+                            <!-- Mode Privat: Jenis kelas otomatis terkunci Privat -->
+                            <input type="hidden" name="jenis_kelas" id="kelas_privat" value="Privat">
+
+                            <!-- Permintaan Materi Khusus (Khusus Kelas Privat) -->
+                            <div class="mb-3" id="sectionMateriPrivat">
+                                <div class="p-3 rounded-3" style="background: var(--purple-card-bg); border: 1.5px solid var(--purple-border); box-shadow: 0 4px 15px rgba(122, 63, 242, 0.05);">
+                                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom" style="border-color: rgba(122, 63, 242, 0.12) !important;">
+                                        <div class="d-flex align-items-center">
+                                            <div class="selection-icon me-2" style="width: 34px; height: 34px; font-size: 0.95rem; background: var(--purple-subtle); color: var(--purple-primary); border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;">
+                                                <i class="bi bi-journal-text"></i>
+                                            </div>
+                                            <div>
+                                                <span class="fw-bold d-block" style="color: var(--purple-title); font-size: 0.92rem;">Permintaan Materi Khusus</span>
+                                                <small class="text-muted" style="font-size: 0.72rem;">Ajukan topik atau kebutuhan materi tambahan yang ingin dipelajari secara 1-on-1</small>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <span class="d-block fw-bold" style="color: var(--text-main); font-size: 0.85rem;">Kelas Reguler</span>
-                                            <small class="text-success fw-bold" id="labelHargaReguler">Rp <?= number_format($kelas['harga_reguler'] ?? 0, 0, ',', '.') ?></small>
-                                            <span class="d-block text-muted" style="font-size: 0.72rem;">Belajar kelompok interaktif</span>
+                                        <span class="badge bg-purple-subtle text-purple" style="font-size: 0.72rem; padding: 5px 10px;">Opsional</span>
+                                    </div>
+
+                                    <div class="mb-1">
+                                        <label for="custom_materi" class="form-label-custom mb-1" style="font-size: 0.82rem;">
+                                            <span>Permintaan Materi Khusus / Custom Materi (Opsional)</span>
+                                        </label>
+                                        <textarea class="form-control" id="custom_materi" name="custom_materi" rows="3" placeholder="Tuliskan materi spesifik atau topik tambahan yang ingin Anda pelajari secara khusus..." style="font-size: 0.82rem; border-color: var(--purple-border); border-radius: var(--radius-sm);"></textarea>
+                                        <div class="form-text text-muted mt-1" style="font-size: 0.7rem;">
+                                            <i class="bi bi-shield-check me-1 text-primary"></i>Permintaan materi khusus bersifat pengajuan dan akan ditinjau serta disetujui terlebih dahulu oleh pihak kantor/Admin sebelum pelaksanaan kelas.
                                         </div>
-                                    </label>
-                                </div>
-                                <div class="col-6 col-sm-6">
-                                    <input type="radio" class="btn-check" name="jenis_kelas" id="kelas_privat" value="Privat" onchange="updateBiayaTampil()">
-                                    <label class="selection-card" for="kelas_privat">
-                                        <div class="selection-icon" style="background: var(--purple-subtle); color: var(--purple-primary);">
-                                            <i class="bi bi-person-fill-lock"></i>
-                                        </div>
-                                        <div>
-                                            <span class="d-block fw-bold" style="color: var(--text-main); font-size: 0.85rem;">Kelas Privat</span>
-                                            <small class="fw-bold" style="color: var(--purple-primary);" id="labelHargaPrivat">Rp <?= number_format($kelas['harga_privat'] ?? 0, 0, ',', '.') ?></small>
-                                            <span class="d-block text-muted" style="font-size: 0.72rem;">1-on-1 Intensif</span>
-                                        </div>
-                                    </label>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        <?php else: ?>
+                            <!-- Mode Reguler: Jenis kelas otomatis terkunci Reguler tanpa materi privat -->
+                            <input type="hidden" name="jenis_kelas" id="kelas_reguler" value="Reguler">
+                        <?php endif; ?>
 
-                        <!-- Kategori Kelas & Metode Pembelajaran -->
+                        <!-- Metode Pembelajaran (Kategori Kelas Dihapus dari UI) -->
                         <?php 
                             $tipeKelasKelas = strtolower($kelas['tipe_kelas'] ?? 'offline');
                             $isOnlineKelas = ($tipeKelasKelas === 'online');
                         ?>
-                        <div class="row g-3 mb-3">
-                            <div class="col-sm-6">
-                                <label for="kategori_kelas" class="form-label-custom">
-                                    <span>Kategori Kelas <span class="required-star">*</span></span>
-                                </label>
-                                <select class="form-select" id="kategori_kelas" name="kategori_kelas" required>
-                                    <option value="Basic Pelatihan" <?= (isset($kelas['kategori_kelas']) && $kelas['kategori_kelas'] == 'Basic Pelatihan') ? 'selected' : '' ?>>Basic Pelatihan (Fundamental)</option>
-                                    <option value="Pelatihan Sertifikasi" <?= (isset($kelas['kategori_kelas']) && $kelas['kategori_kelas'] == 'Pelatihan Sertifikasi') ? 'selected' : '' ?>>Pelatihan Sertifikasi</option>
-                                </select>
-                            </div>
-                            <div class="col-sm-6">
-                                <label for="metode_pembelajaran" class="form-label-custom">
-                                    <span>Metode Pembelajaran <span class="required-star">*</span></span>
-                                </label>
-                                <select class="form-select" id="metode_pembelajaran" name="metode_pembelajaran" required onchange="toggleLokasiPelatihan()">
-                                    <option value="online" <?= $isOnlineKelas ? 'selected' : '' ?>>Online (Virtual Class)</option>
-                                    <option value="offline" <?= (!$isOnlineKelas) ? 'selected' : '' ?>>Offline (Tatap Muka)</option>
-                                </select>
-                            </div>
+                        <input type="hidden" name="kategori_kelas" id="kategori_kelas" value="<?= esc($kelas['kategori_kelas'] ?? $kelas['kategori'] ?? 'Basic Pelatihan') ?>">
+                        <div class="mb-3">
+                            <label for="metode_pembelajaran" class="form-label-custom">
+                                <span>Metode Pembelajaran <span class="required-star">*</span></span>
+                            </label>
+                            <select class="form-select" id="metode_pembelajaran" name="metode_pembelajaran" required onchange="toggleLokasiPelatihan()">
+                                <option value="online" <?= $isOnlineKelas ? 'selected' : '' ?>>Online (Virtual Class)</option>
+                                <option value="offline" <?= (!$isOnlineKelas) ? 'selected' : '' ?>>Offline (Tatap Muka)</option>
+                            </select>
                         </div>
 
                         <!-- 11. Tempat Pelatihan Offline (Kondisional) -->
@@ -1454,7 +1513,66 @@ function handleSelectKelas(selectEl) {
 }
 
 function updateBiayaTampil() {
-    // Reaktif saat radio reguler vs privat berganti
+    const elPrivat = document.getElementById('kelas_privat');
+    const isPrivat = elPrivat ? (elPrivat.checked || elPrivat.value === 'Privat') : false;
+    const sectionMateriPrivat = document.getElementById('sectionMateriPrivat');
+    if (sectionMateriPrivat) {
+        sectionMateriPrivat.style.display = isPrivat ? 'block' : 'none';
+    }
+}
+
+/**
+ * Logika Dropdown Pilihan Materi Privat Multi-Select
+ */
+function updateMateriPills() {
+    const checkboxes = document.querySelectorAll('.materi-checkbox:checked');
+    const labelDropdown = document.getElementById('labelDropdownMateri');
+    const container = document.getElementById('materiSelectedContainer');
+    const countEl = document.getElementById('materiSelectedCount');
+    const pillList = document.getElementById('materiPillList');
+
+    if (!labelDropdown || !container || !countEl || !pillList) return;
+
+    const count = checkboxes.length;
+    countEl.textContent = count;
+
+    if (count === 0) {
+        labelDropdown.innerHTML = '<i class="bi bi-check2-square me-2 text-purple"></i>Pilih satu atau beberapa materi pelatihan...';
+        container.style.display = 'none';
+        pillList.innerHTML = '';
+    } else {
+        labelDropdown.innerHTML = '<i class="bi bi-check-circle-fill me-2 text-success"></i><strong class="text-purple">' + count + ' materi</strong> telah dipilih';
+        container.style.display = 'block';
+
+        let html = '';
+        checkboxes.forEach(function(cb) {
+            const val = cb.value;
+            const safeVal = val.replace(/"/g, '&quot;');
+            html += '<span class="materi-pill">' +
+                    '<span>' + safeVal + '</span>' +
+                    '<span class="btn-remove" onclick="removeMateriPill(\'' + safeVal + '\')" title="Hapus materi">&times;</span>' +
+                    '</span>';
+        });
+        pillList.innerHTML = html;
+    }
+}
+
+function removeMateriPill(val) {
+    const checkboxes = document.querySelectorAll('.materi-checkbox');
+    checkboxes.forEach(function(cb) {
+        if (cb.value === val) {
+            cb.checked = false;
+        }
+    });
+    updateMateriPills();
+}
+
+function selectAllMateri(checked) {
+    const checkboxes = document.querySelectorAll('.materi-checkbox');
+    checkboxes.forEach(function(cb) {
+        cb.checked = checked;
+    });
+    updateMateriPills();
 }
 
 /**
@@ -1674,7 +1792,14 @@ document.addEventListener("DOMContentLoaded", function() {
         radio.addEventListener('change', togglePembayaran);
     });
 
+    const radioJenisKelas = document.querySelectorAll('input[name="jenis_kelas"]');
+    radioJenisKelas.forEach(function(radio) {
+        radio.addEventListener('change', updateBiayaTampil);
+    });
+
     // Jalankan inisialisasi awal saat load
+    updateBiayaTampil();
+    updateMateriPills();
     togglePembayaran();
     toggleLokasiPelatihan();
 });
@@ -1711,7 +1836,7 @@ document.addEventListener("DOMContentLoaded", function() {
     </button>
 
     <!-- Gambar Dokumen -->
-    <img src="<?= base_url('uploads/syarat_dan_persetujuan/syarat_dan_persetujuan.jpeg') ?>"
+    <img src="<?= base_url('assets/img/syarat_dan_persetujuan.jpeg') ?>"
          alt="Syarat dan Persetujuan"
          style="max-width: 95%;
                 max-height: 90vh;

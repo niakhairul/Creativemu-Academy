@@ -91,7 +91,7 @@
         .stat-card {
             background: #ffffff;
             border-radius: 14px;
-            box-shadow: var(--card-shadow);
+            box-shadow: 0 4px 16px rgba(121, 75, 196, 0.06);
             border: 1px solid var(--border-soft);
             padding: 16px;
             position: relative;
@@ -101,33 +101,55 @@
         }
 
         .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(121, 75, 196, 0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 24px rgba(121, 75, 196, 0.12);
         }
 
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+
+        .stat-card.stat-theme-purple::before { background: linear-gradient(90deg, #794bc4, #9b6fd9); }
+        .stat-card.stat-theme-blue::before   { background: linear-gradient(90deg, #2563eb, #38bdf8); }
+        .stat-card.stat-theme-cyan::before   { background: linear-gradient(90deg, #059669, #10b981); }
+        .stat-card.stat-theme-red::before    { background: linear-gradient(90deg, #dc2626, #f87171); }
+        .stat-card.stat-theme-amber::before  { background: linear-gradient(90deg, #d97706, #fbbf24); }
+
+        .stat-card.stat-theme-purple { border-color: rgba(121, 75, 196, 0.2); }
+        .stat-card.stat-theme-blue   { border-color: rgba(37, 99, 235, 0.2); }
+        .stat-card.stat-theme-cyan   { border-color: rgba(16, 185, 129, 0.2); }
+        .stat-card.stat-theme-red    { border-color: rgba(220, 38, 38, 0.2); }
+        .stat-card.stat-theme-amber  { border-color: rgba(217, 119, 6, 0.2); }
+
         .stat-card .stat-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             color: #fff;
             margin-bottom: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
         .stat-card .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
+            font-size: 1.55rem;
+            font-weight: 800;
             line-height: 1.2;
             color: var(--dark-purple);
         }
 
         .stat-card .stat-label {
             font-size: 0.75rem;
-            color: #6c757d;
-            font-weight: 500;
+            color: #64748b;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-top: 3px;
@@ -135,11 +157,11 @@
 
         /* GRADIENT ICON BACKGROUNDS */
         .bg-grad-purple { background: linear-gradient(135deg, #794bc4 0%, #5931a0 100%); }
-        .bg-grad-blue   { background: linear-gradient(135deg, #3a86ff 0%, #0056b3 100%); }
-        .bg-grad-cyan   { background: linear-gradient(135deg, #06d6a0 0%, #009688 100%); }
-        .bg-grad-pink   { background: linear-gradient(135deg, #ff006e 0%, #b5179e 100%); }
-        .bg-grad-amber  { background: linear-gradient(135deg, #ffb703 0%, #fb8500 100%); }
-        .bg-grad-red    { background: linear-gradient(135deg, #e63946 0%, #d62828 100%); }
+        .bg-grad-blue   { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }
+        .bg-grad-cyan   { background: linear-gradient(135deg, #059669 0%, #047857 100%); }
+        .bg-grad-pink   { background: linear-gradient(135deg, #db2777 0%, #be185d 100%); }
+        .bg-grad-amber  { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); }
+        .bg-grad-red    { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); }
 
         /* BUTTONS */
         .btn-purple {
@@ -295,27 +317,54 @@
 
         /* RANKING PODIUM CARD */
         .rank-card {
-            border-radius: 12px;
-            border: 1.2px solid #eef0f6;
-            padding: 15px;
+            border-radius: 14px;
+            border: 1.5px solid #eef0f6;
+            padding: 18px 15px;
             text-align: center;
             background: #fff;
             position: relative;
             overflow: hidden;
-            transition: transform 0.25s ease;
+            transition: all 0.3s ease;
         }
         .rank-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 20px rgba(121, 75, 196, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(121, 75, 196, 0.15);
+        }
+        .rank-card.rank-gold {
+            border-top: 5px solid #f59e0b;
+            background: linear-gradient(180deg, #fffbeb 0%, #ffffff 45%);
+            box-shadow: 0 6px 18px rgba(245, 158, 11, 0.15);
+        }
+        .rank-card.rank-silver {
+            border-top: 5px solid #94a3b8;
+            background: linear-gradient(180deg, #f8fafc 0%, #ffffff 45%);
+            box-shadow: 0 6px 18px rgba(148, 163, 184, 0.15);
+        }
+        .rank-card.rank-bronze {
+            border-top: 5px solid #d97706;
+            background: linear-gradient(180deg, #fff7ed 0%, #ffffff 45%);
+            box-shadow: 0 6px 18px rgba(217, 119, 6, 0.15);
         }
         .rank-badge {
-            font-size: 1.8rem;
+            font-size: 2rem;
             margin-bottom: 4px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
         .rank-score {
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             font-weight: 800;
             color: var(--primary-purple);
+        }
+        .avatar-initial {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
         }
 
         /* CHART BOX */
@@ -432,12 +481,28 @@
             <form action="<?= base_url($baseUrlReport); ?>" method="GET" id="filterMentorForm">
                 <div class="row g-2">
                     <!-- Bulan -->
-                    <div class="col-12 col-md-6 col-lg-2">
+                    <div class="col-6 col-md-3 col-lg-2">
                         <label class="form-label small fw-semibold text-muted mb-1">Bulan</label>
                         <select name="bulan" class="form-select">
                             <?php foreach ($bulanNames as $num => $namaBulan): ?>
                                 <option value="<?= $num; ?>" <?= ((int)$filters['bulan'] === $num) ? 'selected' : ''; ?>>
                                     <?= $namaBulan; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <!-- Tahun -->
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <label class="form-label small fw-semibold text-muted mb-1">Tahun</label>
+                        <select name="tahun" class="form-select">
+                            <?php 
+                            $currYear = $filters['tahun'] ?? date('Y');
+                            $yList = !empty($years) ? $years : [date('Y'), date('Y')-1, date('Y')-2];
+                            foreach ($yList as $y): 
+                            ?>
+                                <option value="<?= $y; ?>" <?= ((int)$currYear === (int)$y) ? 'selected' : ''; ?>>
+                                    <?= $y; ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -510,7 +575,7 @@
             
             <!-- Card 1: Total Instruktur -->
             <div class="col-12 col-sm-6 col-xl">
-                <div class="stat-card">
+                <div class="stat-card stat-theme-purple">
                     <div class="stat-icon bg-grad-purple"><i class="fas fa-chalkboard-user"></i></div>
                     <div class="stat-value"><?= number_format($stats['total_mentor']); ?></div>
                     <div class="stat-label">Total Instruktur</div>
@@ -519,7 +584,7 @@
 
             <!-- Card 2: Rata-rata Keaktifan -->
             <div class="col-12 col-sm-6 col-xl">
-                <div class="stat-card">
+                <div class="stat-card stat-theme-blue">
                     <div class="stat-icon bg-grad-blue"><i class="fas fa-chart-line"></i></div>
                     <div class="stat-value"><?= number_format($stats['avg_keaktifan'], 1); ?>%</div>
                     <div class="stat-label">Rata-rata Keaktifan</div>
@@ -528,27 +593,27 @@
 
             <!-- Card 3: Rata-rata Kehadiran -->
             <div class="col-12 col-sm-6 col-xl">
-                <div class="stat-card">
+                <div class="stat-card stat-theme-cyan">
                     <div class="stat-icon bg-grad-cyan"><i class="fas fa-user-check"></i></div>
-                    <div class="stat-value"><?= number_format($stats['avg_kehadiran'], 1); ?>%</div>
+                    <div class="stat-value text-success"><?= number_format($stats['avg_kehadiran'], 1); ?>%</div>
                     <div class="stat-label">Rata-rata Kehadiran</div>
                 </div>
             </div>
 
             <!-- Card 4: Rata-rata Keterlambatan -->
             <div class="col-12 col-sm-6 col-xl">
-                <div class="stat-card">
+                <div class="stat-card stat-theme-red">
                     <div class="stat-icon bg-grad-red"><i class="fas fa-stopwatch"></i></div>
-                    <div class="stat-value"><?= number_format($stats['avg_keterlambatan'], 1); ?>%</div>
+                    <div class="stat-value text-danger"><?= number_format($stats['avg_keterlambatan'], 1); ?>%</div>
                     <div class="stat-label">Rata-rata Keterlambatan</div>
                 </div>
             </div>
 
             <!-- Card 5: Rata-rata Angket -->
             <div class="col-12 col-sm-6 col-xl">
-                <div class="stat-card">
+                <div class="stat-card stat-theme-amber">
                     <div class="stat-icon bg-grad-amber"><i class="fas fa-star"></i></div>
-                    <div class="stat-value"><?= number_format($stats['avg_angket'], 2); ?></div>
+                    <div class="stat-value text-warning-emphasis"><?= number_format($stats['avg_angket'], 2); ?></div>
                     <div class="stat-label">Rata-rata Angket</div>
                 </div>
             </div>
@@ -562,21 +627,24 @@
                     <h6 class="fw-bold m-0" style="color: var(--dark-purple);">
                         <i class="fas fa-award text-warning me-1"></i> ⭐ Leaderboard & Ranking Performa Instruktur
                     </h6>
-                    <small class="text-muted" style="font-size: 0.72rem;">Kalkulasi bobot belum tersedia (menggunakan nilai default/0)</small>
+                    <small class="text-muted" style="font-size: 0.72rem;">Kalkulasi bobot performa berdasarkan kehadiran, keaktifan, dan evaluasi angket</small>
                 </div>
-                <span class="badge bg-light text-primary border px-2 py-1" style="font-size: 0.72rem;">Top Performers</span>
+                <span class="badge bg-purple-subtle text-purple border px-2 py-1" style="font-size: 0.72rem;">Top Performers</span>
             </div>
 
             <div class="row g-2">
                 <?php 
                     $medals = ['🥇 Juara 1', '🥈 Juara 2', '🥉 Juara 3'];
+                    $podiumClasses = ['rank-gold', 'rank-silver', 'rank-bronze'];
                     $topThree = array_slice($rankingList, 0, 3);
                     $idx = 0;
                     foreach ($topThree as $rm):
+                        $pClass = $podiumClasses[$idx] ?? '';
                 ?>
                 <div class="col-12 col-md-4">
-                    <div class="rank-card">
+                    <div class="rank-card <?= $pClass; ?>">
                         <div class="rank-badge"><?= explode(' ', $medals[$idx])[0]; ?></div>
+                        <span class="badge bg-light text-dark border px-2 py-0.5 mb-1" style="font-size: 0.72rem;"><?= $medals[$idx]; ?></span>
                         <h6 class="fw-bold text-dark m-0" style="font-size: 0.88rem;"><?= esc($rm['nama_mentor']); ?></h6>
                         <small class="text-muted d-block mb-1" style="font-size: 0.72rem;"><?= esc($rm['keahlian']); ?></small>
                         <div class="rank-score"><?= number_format($rm['skor_performa'], 1); ?>%</div>
@@ -761,36 +829,81 @@
                         <?php if (!empty($mentorList)): ?>
                             <?php $page = isset($page) ? $page : 1; $no = ($page - 1) * 10 + 1; foreach ($mentorList as $m): ?>
                             <tr class="mentor-row" data-search="<?= strtolower(esc($m['nama_mentor'] . ' ' . $m['pelatihan'] . ' ' . $m['kelas'] . ' ' . ($m['tempat_pelatihan'] ?? ''))); ?>">
-                                <td class="text-center fw-bold row-no"><?= $no++; ?></td>
+                                <td class="text-center fw-bold text-muted row-no"><?= $no++; ?></td>
                                 <td>
-                                    <div class="fw-bold text-dark" style="font-size: 0.82rem;"><?= esc($m['nama_mentor']); ?></div>
-                                    <small class="text-muted" style="font-size: 0.7rem;">NIP: <?= esc($m['nip']); ?></small>
+                                    <?php 
+                                        $initial = strtoupper(substr($m['nama_mentor'] ?? 'I', 0, 1));
+                                        $avatarColors = [
+                                            ['bg' => '#ede9fe', 'text' => '#794bc4'],
+                                            ['bg' => '#e0f2fe', 'text' => '#0284c7'],
+                                            ['bg' => '#dcfce7', 'text' => '#16a34a'],
+                                            ['bg' => '#fef3c7', 'text' => '#d97706'],
+                                            ['bg' => '#fce7f3', 'text' => '#db2777'],
+                                            ['bg' => '#ccfbf1', 'text' => '#0d9488'],
+                                        ];
+                                        $colorIdx = crc32($m['nama_mentor'] ?? '') % count($avatarColors);
+                                        $avCol = $avatarColors[abs($colorIdx)];
+                                    ?>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-initial me-2" style="background: <?= $avCol['bg']; ?>; color: <?= $avCol['text']; ?>;">
+                                            <?= $initial; ?>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark" style="font-size: 0.83rem;"><?= esc($m['nama_mentor']); ?></div>
+                                            <small class="text-muted" style="font-size: 0.7rem; font-family: monospace;">NIP: <?= esc($m['nip']); ?></small>
+                                        </div>
+                                    </div>
                                 </td>
-                                <td><span class="badge bg-light text-dark border" style="font-size: 0.7rem;"><?= esc($m['pelatihan']); ?></span></td>
-                                <td class="fw-semibold" style="font-size: 0.78rem;"><?= esc($m['kelas']); ?></td>
-                               
+                                <td>
+                                    <?php 
+                                        $pel = !empty($m['pelatihan']) && $m['pelatihan'] !== '-' ? $m['pelatihan'] : (!empty($m['keahlian']) ? $m['keahlian'] : 'Pelatihan Kejuruan');
+                                        $badgeColor = 'bg-primary-subtle text-primary border-primary-subtle';
+                                        if (stripos($pel, 'Sertifikasi') !== false) {
+                                            $badgeColor = 'bg-info-subtle text-info border-info-subtle';
+                                        } elseif (stripos($pel, 'Web') !== false || stripos($pel, 'Program') !== false) {
+                                            $badgeColor = 'bg-purple-subtle text-purple border-purple-subtle';
+                                        } elseif (stripos($pel, 'Perkantoran') !== false || stripos($pel, 'Office') !== false) {
+                                            $badgeColor = 'bg-success-subtle text-success border-success-subtle';
+                                        } elseif (stripos($pel, 'Affiliate') !== false || stripos($pel, 'Marketing') !== false) {
+                                            $badgeColor = 'bg-warning-subtle text-warning-emphasis border-warning-subtle';
+                                        }
+                                    ?>
+                                    <span class="badge <?= $badgeColor; ?> border px-2 py-1" style="font-size: 0.72rem;"><?= esc($pel); ?></span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark d-flex align-items-center" style="font-size: 0.8rem;">
+                                        <i class="fas fa-chalkboard-user text-purple me-1.5 flex-shrink-0" style="color: var(--primary-purple);"></i>
+                                        <span><?= esc(!empty($m['kelas']) && $m['kelas'] !== '-' ? $m['kelas'] : 'Kelas Pelatihan'); ?></span>
+                                    </div>
+                                </td>
                                     <?php
-    // Mengambil langsung dari hasil query database yang sudah dihitung jumlah pesertanya
-    $jumlahPusat       = $m['jumlah_kantor_pusat'] ?? 0;
-    $jumlahCabang      = $m['jumlah_kantor_cabang'] ?? 0;
-    $jumlahPerwakilan  = $m['jumlah_kantor_perwakilan'] ?? 0;
-?>
-<td class="location-value"><?= number_format($jumlahPusat); ?></td>
-<td class="location-value"><?= number_format($jumlahCabang); ?></td>
-<td class="location-value"><?= number_format($jumlahPerwakilan); ?></td>
+                                    // Mengambil langsung dari hasil query database yang sudah dihitung jumlah pesertanya
+                                    $jumlahPusat       = $m['jumlah_kantor_pusat'] ?? 0;
+                                    $jumlahCabang      = $m['jumlah_kantor_cabang'] ?? 0;
+                                    $jumlahPerwakilan  = $m['jumlah_kantor_perwakilan'] ?? 0;
+                                ?>
+                                <td class="location-value"><span class="badge <?= $jumlahPusat > 0 ? 'bg-primary-subtle text-primary' : 'bg-light text-muted border'; ?> px-2 py-1"><?= number_format($jumlahPusat); ?></span></td>
+                                <td class="location-value"><span class="badge <?= $jumlahCabang > 0 ? 'bg-info-subtle text-info' : 'bg-light text-muted border'; ?> px-2 py-1"><?= number_format($jumlahCabang); ?></span></td>
+                                <td class="location-value"><span class="badge <?= $jumlahPerwakilan > 0 ? 'bg-success-subtle text-success' : 'bg-light text-muted border'; ?> px-2 py-1"><?= number_format($jumlahPerwakilan); ?></span></td>
 
-                                <td class="text-center fw-bold text-primary"><?= $m['persen_keaktifan']; ?>%</td>
-                                <td class="text-center fw-bold text-success"><?= $m['persen_kehadiran']; ?>%</td>
                                 <td class="text-center">
-                                    <span class="badge <?= ($m['persen_keterlambatan'] > 10) ? 'bg-danger-subtle text-danger' : 'bg-light text-dark border'; ?>" style="font-size: 0.7rem;">
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fw-bold"><?= $m['persen_keaktifan']; ?>%</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 fw-bold"><?= $m['persen_kehadiran']; ?>%</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge <?= ($m['persen_keterlambatan'] > 10) ? 'bg-danger-subtle text-danger border border-danger-subtle' : 'bg-light text-secondary border'; ?> px-2 py-1" style="font-size: 0.72rem;">
                                         <?= $m['persen_keterlambatan']; ?>%
                                     </span>
                                 </td>
-                                <td class="text-center fw-bold text-warning">
-                                    <i class="fas fa-star me-1" style="font-size: 0.7rem;"></i><?= number_format($m['nilai_angket'], 2); ?>
+                                <td class="text-center">
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 fw-bold">
+                                        <i class="fas fa-star me-1 text-warning"></i><?= number_format($m['nilai_angket'], 2); ?>
+                                    </span>
                                 </td>
                                 <td class="text-center">
-                                    <span class="badge <?= $m['badge_class']; ?> px-1.5 py-0.5" style="font-size: 0.7rem;"><?= $m['predikat']; ?></span>
+                                    <span class="badge <?= $m['badge_class']; ?> px-2 py-1" style="font-size: 0.72rem;"><?= $m['predikat']; ?></span>
                                 </td>
                                 <td class="text-center">
                                     <button type="button" class="btn btn-sm btn-outline-purple py-0.5 px-2" style="font-size: 0.72rem;" onclick="openDetailModal(<?= $m['id_mentor']; ?>)">

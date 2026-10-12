@@ -69,6 +69,9 @@ class LaporanKehadiranController extends BaseController
         $bulan = $this->request->getGet('bulan');
         $bulan = (!empty($bulan) && is_numeric($bulan)) ? (int) $bulan : (int) date('n');
 
+        $tahun = $this->request->getGet('tahun');
+        $tahun = (!empty($tahun) && is_numeric($tahun)) ? (int) $tahun : (int) date('Y');
+
         $kategori        = $this->request->getGet('kategori') ?: 'all';
         $idKelas         = $this->request->getGet('id_kelas') ?: 'all';
         $idPeserta       = $this->request->getGet('id_peserta') ?: 'all';
@@ -78,7 +81,7 @@ class LaporanKehadiranController extends BaseController
 
         return [
             'periode'          => 'bulanan',
-            'tahun'            => (int) date('Y'),
+            'tahun'            => $tahun,
             'bulan'            => $bulan,
             'kategori'         => $kategori,
             'id_kelas'         => $idKelas,

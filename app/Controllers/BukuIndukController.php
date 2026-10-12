@@ -284,9 +284,15 @@ class BukuIndukController extends Controller
             $sheet->setCellValue('A' . $rowIdx, $no++);
             $sheet->setCellValueExplicit('B' . $rowIdx, (string) $item['nis'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
             $sheet->setCellValue('C' . $rowIdx, $item['nama_peserta']);
-            $sheet->setCellValue('D' . $rowIdx, $item['tanggal_masuk']);
+            $tglMasukExcel = (!empty($item['tanggal_masuk']) && $item['tanggal_masuk'] !== '-' && $item['tanggal_masuk'] !== '0000-00-00')
+                ? date('d/m/Y', strtotime($item['tanggal_masuk']))
+                : '-';
+            $sheet->setCellValue('D' . $rowIdx, $tglMasukExcel);
             $sheet->setCellValue('E' . $rowIdx, $item['nama_kelas']);
-            $sheet->setCellValue('F' . $rowIdx, $item['tanggal_selesai_kelas']);
+            $tglSelesaiExcel = (!empty($item['tanggal_selesai_kelas']) && $item['tanggal_selesai_kelas'] !== '-' && $item['tanggal_selesai_kelas'] !== '0000-00-00')
+                ? date('d/m/Y', strtotime($item['tanggal_selesai_kelas']))
+                : '-';
+            $sheet->setCellValue('F' . $rowIdx, $tglSelesaiExcel);
             $sheet->setCellValue('G' . $rowIdx, $item['status_sertifikat']);
             $sheet->setCellValue('H' . $rowIdx, $item['diterima']);
             $sheet->setCellValue('I' . $rowIdx, $item['kategori_kelas']);

@@ -124,155 +124,330 @@ class Pelatihan extends BaseController
 }
 
     public function dashboard()
-{
-    $session = session();
-    $userId = $session->get('id_users') ?? session()->get('id_user');
-    $userEmail = $session->get('email');
+    {
+        $session = session();
+        $userId = $session->get('id_users') ?? session()->get('id_user');
+        $userEmail = $session->get('email');
 
-    $idKelasDipilih = $this->request->getGet('id_kelas');
-  
-    $pendaftaranModel = new \App\Models\PendaftaranModel();
-    $userModel = new \App\Models\UserModel();
-    $jadwalModel = new \App\Models\JadwalModel();
+        $idKelasDipilih = $this->request->getGet('id_kelas');
 
-    // 1. Ambil semua data pendaftaran peserta
-    $semuaPendaftaran = [];
-    if ($userId) {
-        $builder = $pendaftaranModel->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas as jadwal_kelas, mentor.nama_mentor')
-            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-            ->where('pendaftaran.id_users', $userId);
+        $pendaftaranModel = new \App\Models\PendaftaranModel();
+        $userModel = new \App\Models\UserModel();
 
-        $semuaPendaftaran = $builder->orderBy('pendaftaran.id_pendaftaran', 'DESC')->findAll();
-    }
+        // 1. Ambil semua pendaftaran milik peserta yang sedang login (keamanan: isolasi per user)
+        $semuaPendaftaran = [];
+        if ($userId) {
+            $semuaPendaftaran = $pendaftaranModel
+                ->where('id_users', $userId)
+                ->orderBy('id_pendaftaran', 'DESC')
+                ->findAll();
+        }
 
-    if (empty($semuaPendaftaran) && $userEmail) {
-        $builder = $pendaftaranModel->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas as jadwal_kelas, mentor.nama_mentor')
-            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-            ->where('pendaftaran.email', $userEmail);
+        if (empty($semuaPendaftaran) && $userEmail) {
+            $semuaPendaftaran = $pendaftaranModel
+                ->where('email', $userEmail)
+                ->orderBy('id_pendaftaran', 'DESC')
+                ->findAll();
+        }
 
-        $semuaPendaftaran = $builder->orderBy('pendaftaran.id_pendaftaran', 'DESC')->findAll();
-    }
+        // 2. Hubungkan dengan API Laravel sebagai Single Source of Truth
+        $apiService = new \App\Services\LaravelApiService();
+        $laravelClassesMap = [];
+        try {
+            $response = $apiService->request('GET', 'classes');
+            $kelasApi = $response['data'] ?? $response ?? [];
+            if (!empty($kelasApi) && is_array($kelasApi)) {
+                foreach ($kelasApi as $k) {
+                    if (isset($k['id'])) {
+                        $laravelClassesMap[$k['id']] = $this->formatKelasFromApi($k);
+                    }
+                }
+            }
+        } catch (\Exception $eApi) {
+            log_message('warning', 'Gagal memuat daftar kelas Laravel di dashboard: ' . $eApi->getMessage());
+        }
 
-    // 2. Tentukan kelas aktif
-    $pendaftaran = null;
-    if (!empty($semuaPendaftaran)) {
-        if (!empty($idKelasDipilih)) {
-            foreach ($semuaPendaftaran as $p) {
-                if ($p['id_kelas'] == $idKelasDipilih) {
-                    $pendaftaran = $p;
+        // Perkaya data pendaftaran peserta dengan data resmi dari Laravel
+        foreach ($semuaPendaftaran as &$p) {
+            $idK = $p['id_kelas'] ?? null;
+            if ($idK && !isset($laravelClassesMap[$idK])) {
+                try {
+                    $resSingle = $apiService->request('GET', 'classes/' . $idK);
+                    $singleData = $resSingle['data'] ?? $resSingle ?? null;
+                    if (!empty($singleData) && is_array($singleData)) {
+                        $laravelClassesMap[$idK] = $this->formatKelasFromApi($singleData);
+                    }
+                } catch (\Exception $eSingle) {
+                    // Abaikan jika tidak ditemukan
+                }
+            }
+
+            if ($idK && isset($laravelClassesMap[$idK])) {
+                $cData = $laravelClassesMap[$idK];
+                $p['nama_kelas']          = $cData['nama_kelas'] ?? null;
+                $p['nama_mentor']         = $cData['nama_mentor'] ?? null;
+                $p['tanggal_mulai_kelas'] = $cData['tanggal_mulai_kelas'] ?? null;
+                $p['jadwal_kelas']        = $cData['tanggal_mulai_kelas'] ?? null;
+                $p['jumlah_pertemuan']    = $cData['jumlah_pertemuan'] ?? null;
+                $p['lokasi_media']        = $cData['lokasi_media'] ?? null;
+                $p['metode_pembelajaran'] = $cData['metode_pembelajaran'] ?? null;
+            }
+
+            if (empty($p['nama_kelas'])) {
+                $p['nama_kelas'] = !empty($p['pilihan_kelas']) ? $p['pilihan_kelas'] : (!empty($p['pilihan_pelatihan']) ? $p['pilihan_pelatihan'] : ('Kelas #' . ($p['id_kelas'] ?? '')));
+            }
+        }
+        unset($p);
+
+        // 3. Tentukan kelas aktif yang dipilih peserta
+        $pendaftaran = null;
+        if (!empty($semuaPendaftaran)) {
+            if (!empty($idKelasDipilih)) {
+                foreach ($semuaPendaftaran as $p) {
+                    if ($p['id_kelas'] == $idKelasDipilih) {
+                        $pendaftaran = $p;
+                        break;
+                    }
+                }
+            }
+            if (!$pendaftaran) {
+                $pendaftaran = $semuaPendaftaran[0];
+            }
+        }
+
+        // Ambil data user
+        $userData = null;
+        if ($userId) {
+            $userData = $userModel->find($userId);
+        }
+        if (!$userData && $userEmail) {
+            $userData = $userModel->where('email', $userEmail)->first();
+        }
+
+        if (!is_array($userData)) {
+            $userData = [];
+        }
+        if (empty($userData['nama'])) {
+            $userData['nama'] = $session->get('nama') ?? ($pendaftaran['nama'] ?? null) ?? 'Peserta';
+        }
+        if (empty($userData['email'])) {
+            $userData['email'] = $session->get('email') ?? ($pendaftaran['email'] ?? null) ?? null;
+        }
+        if (empty($userData['no_hp']) && !empty($pendaftaran['no_hp'])) {
+            $userData['no_hp'] = $pendaftaran['no_hp'];
+        }
+
+        // Resolusi nomor induk siswa (NIS) peserta
+        $nisPeserta = null;
+        if (!empty($pendaftaran['nis']) && $pendaftaran['nis'] !== '-') {
+            $nisPeserta = trim($pendaftaran['nis']);
+        }
+
+        if (!$nisPeserta && !empty($semuaPendaftaran)) {
+            foreach ($semuaPendaftaran as $sp) {
+                if (!empty($sp['nis']) && $sp['nis'] !== '-') {
+                    $nisPeserta = trim($sp['nis']);
                     break;
                 }
             }
         }
-        if (!$pendaftaran) {
-            $pendaftaran = $semuaPendaftaran[0];
-        }
-    }
 
-    if ($pendaftaran) {
-        $pendaftaran['jadwal'] = $pendaftaran['jadwal_kelas'] ?? $pendaftaran['tanggal_mulai_kelas'] ?? '-';
-        $pendaftaran['nama_mentor'] = $pendaftaran['nama_mentor'] ?? 'Mentor Belum Ditentukan';
-    }
-
-    // Ambil data user
-    $userData = null;
-    if ($userId) {
-        $userData = $userModel->find($userId);
-    }
-    if (!$userData && $userEmail) {
-        $userData = $userModel->where('email', $userEmail)->first();
-    }
-
-    if (!is_array($userData)) {
-        $userData = [];
-    }
-    if (empty($userData['nama'])) {
-        $userData['nama'] = $session->get('nama') ?? ($pendaftaran['nama'] ?? null) ?? 'Peserta';
-    }
-    if (empty($userData['email'])) {
-        $userData['email'] = $session->get('email') ?? ($pendaftaran['email'] ?? null) ?? '-';
-    }
-
-    $list_jadwal = [];
-    if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
-        $list_jadwal = $jadwalModel->select('jadwal.*, jadwal.absensi_dibuka')
-                                 ->where('id_kelas', $pendaftaran['id_kelas'])
-                                 ->orderBy('pertemuan_ke', 'ASC')
-                                 ->findAll();
-    }
-
-    // ==========================================
-    // 3. LOGIKA CEK STATUS KELULUSAN & NOTIFIKASI
-    // ==========================================
-    $db = \Config\Database::connect();
-    $notifikasiAngket = false;
-    $statusUjianKeluar = false;
-    $isLulus = false;
-
-    if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
-        $semuaUjian = $db->table('ujian')
-            ->where('id_kelas', $pendaftaran['id_kelas'])
-            ->get()
-            ->getResultArray();
-
-        if (!empty($semuaUjian)) {
-            $lulusSemua = true;
-            $adaNilai = false;
-            foreach ($semuaUjian as $u) {
-                // Sesuaikan 'id_user' atau 'id_peserta' dengan kolom database Anda
-                $cekNilai = $db->table('nilai_ujian')
+        $db = \Config\Database::connect();
+        if (!$nisPeserta && ($userId || $userEmail) && $db->tableExists('pendaftaran')) {
+            $nisRow = $db->table('pendaftaran')
+                ->select('nis')
+                ->groupStart()
                     ->where('id_users', $userId)
-                    ->where('id_ujian', $u['id_ujian'])
-                    ->get()
-                    ->getRowArray();
+                    ->orWhere('email', $userEmail)
+                ->groupEnd()
+                ->where('nis IS NOT NULL', null, false)
+                ->where('nis !=', '')
+                ->where('nis !=', '-')
+                ->orderBy('id_pendaftaran', 'ASC')
+                ->get()
+                ->getRowArray();
+            if (!empty($nisRow['nis'])) {
+                $nisPeserta = trim($nisRow['nis']);
+            }
+        }
 
-                if ($cekNilai) {
-                    $adaNilai = true;
-                    $nilaiAkhir = $cekNilai['nilai_remidi'] ?? $cekNilai['nilai_awal'] ?? $cekNilai['nilai'] ?? 0;
-                    if ((float)$nilaiAkhir < 70 || strtolower($cekNilai['status_kelulusan'] ?? '') !== 'lulus') {
+        // Jika peserta telah disetujui / pembayaran valid namun NIS belum ter-generate di database:
+        if (!$nisPeserta && !empty($semuaPendaftaran)) {
+            $activePend = $pendaftaran ?? $semuaPendaftaran[0];
+            $statusDaftar = strtolower(trim($activePend['status_pendaftaran'] ?? ''));
+            $statusBayar = strtolower(trim($activePend['status_pembayaran'] ?? ''));
+            $isApprovedOrValid = in_array($statusDaftar, ['disetujui', 'approved', 'diterima'], true)
+                || in_array($statusBayar, ['valid', 'lunas', 'terkonfirmasi'], true);
+
+            if ($isApprovedOrValid && $db->tableExists('pendaftaran')) {
+                $bukuIndukModel = new \App\Models\BukuIndukModel();
+                $createdDate = !empty($activePend['created_at']) ? $activePend['created_at'] : 'now';
+                $nisPeserta = $bukuIndukModel->generateNis(date('ym', strtotime($createdDate)));
+
+                $db->table('pendaftaran')
+                    ->groupStart()
+                        ->where('id_users', $userId)
+                        ->orWhere('email', $userEmail)
+                    ->groupEnd()
+                    ->update([
+                        'nis' => $nisPeserta,
+                        'status_pendaftaran' => 'Disetujui'
+                    ]);
+            }
+        }
+
+        if ($nisPeserta) {
+            $userData['nis'] = $nisPeserta;
+            if ($pendaftaran) {
+                $pendaftaran['nis'] = $nisPeserta;
+            }
+            foreach ($semuaPendaftaran as &$spObj) {
+                $spObj['nis'] = $nisPeserta;
+            }
+            unset($spObj);
+        }
+
+        // 4. Ambil Jadwal Kelas dari API Laravel (Single Source of Truth)
+        $list_jadwal = [];
+        if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
+            $idKelasAktif = $pendaftaran['id_kelas'];
+            $kelasAktifDetail = null;
+
+            try {
+                $resDetail = $apiService->request('GET', 'classes/' . $idKelasAktif);
+                $kelasAktifDetail = $resDetail['data'] ?? $resDetail ?? null;
+            } catch (\Exception $eDetail) {
+                $kelasAktifDetail = null;
+            }
+
+            if (empty($kelasAktifDetail) && isset($laravelClassesMap[$idKelasAktif])) {
+                $kelasAktifDetail = $laravelClassesMap[$idKelasAktif];
+            }
+
+            if (empty($kelasAktifDetail)) {
+                $kelasAktifDetail = is_array($pendaftaran) ? $pendaftaran : [];
+            } else {
+                if (is_array($pendaftaran)) {
+                    $kelasAktifDetail = array_merge($pendaftaran, $kelasAktifDetail);
+                }
+            }
+
+            $namaMentor = null;
+            if (!empty($kelasAktifDetail['trainers']) && is_array($kelasAktifDetail['trainers']) && isset($kelasAktifDetail['trainers'][0]['name'])) {
+                $namaMentor = trim($kelasAktifDetail['trainers'][0]['name']);
+            }
+
+            $lokasiJadwal = null;
+            if (!empty($kelasAktifDetail['location'])) {
+                if (is_array($kelasAktifDetail['location'])) {
+                    $lokasiJadwal = trim($kelasAktifDetail['location']['media'] ?? $kelasAktifDetail['location']['name'] ?? '');
+                } elseif (is_string($kelasAktifDetail['location'])) {
+                    $lokasiJadwal = trim($kelasAktifDetail['location']);
+                }
+            } elseif (!empty($kelasAktifDetail['schedule']['location']) && is_string($kelasAktifDetail['schedule']['location'])) {
+                $lokasiJadwal = trim($kelasAktifDetail['schedule']['location']);
+            }
+            if ($lokasiJadwal === '' || $lokasiJadwal === '-') {
+                $lokasiJadwal = null;
+            }
+
+            // Ambil seluruh sesi pelatihan (1 s.d. N / 10 pertemuan) dari data resmi Laravel & sinkronisasi
+            $allSessions = $this->getSessionsAndAttendanceForClass($idKelasAktif, (int)$userId, $kelasAktifDetail);
+
+            foreach ($allSessions as $sess) {
+                $pertemuanKe = $sess['pertemuan_ke'] ?? null;
+                $materiSess = (!empty($sess['materi']) && $sess['materi'] !== '-') ? $sess['materi'] : ($kelasAktifDetail['training']['name'] ?? $kelasAktifDetail['name'] ?? ('Pertemuan ' . $pertemuanKe));
+
+                $statusSess = 'Terjadwal';
+                if (!empty($sess['absensi'])) {
+                    $statusSess = 'Selesai';
+                } elseif (!empty($sess['absensi_dibuka']) && (int)$sess['absensi_dibuka'] === 1) {
+                    $statusSess = 'Dibuka';
+                }
+
+                $list_jadwal[] = [
+                    'nama_kelas'      => $kelasAktifDetail['name'] ?? $pendaftaran['nama_kelas'] ?? null,
+                    'materi'          => $materiSess,
+                    'nama_mentor'     => $namaMentor,
+                    'tanggal_mulai'   => (!empty($sess['tanggal_kbm']) && $sess['tanggal_kbm'] !== '-') ? $sess['tanggal_kbm'] : null,
+                    'tanggal_selesai' => null,
+                    'jam_mulai'       => (!empty($sess['waktu_mulai']) && $sess['waktu_mulai'] !== '-') ? substr($sess['waktu_mulai'], 0, 5) : null,
+                    'jam_selesai'     => (!empty($sess['waktu_selesai']) && $sess['waktu_selesai'] !== '-') ? substr($sess['waktu_selesai'], 0, 5) : null,
+                    'pertemuan'       => $pertemuanKe,
+                    'lokasi'          => $lokasiJadwal,
+                    'status'          => $statusSess,
+                ];
+            }
+        }
+
+        // ==========================================
+        // 5. LOGIKA CEK STATUS KELULUSAN & NOTIFIKASI
+        // ==========================================
+        $db = \Config\Database::connect();
+        $notifikasiAngket = false;
+        $statusUjianKeluar = false;
+        $isLulus = false;
+
+        if ($pendaftaran && !empty($pendaftaran['id_kelas'])) {
+            $semuaUjian = $db->table('ujian')
+                ->where('id_kelas', $pendaftaran['id_kelas'])
+                ->get()
+                ->getResultArray();
+
+            if (!empty($semuaUjian)) {
+                $lulusSemua = true;
+                $adaNilai = false;
+                foreach ($semuaUjian as $u) {
+                    $cekNilai = $db->table('nilai_ujian')
+                        ->where('id_users', $userId)
+                        ->where('id_ujian', $u['id_ujian'])
+                        ->get()
+                        ->getRowArray();
+
+                    if ($cekNilai) {
+                        $adaNilai = true;
+                        $nilaiAkhir = $cekNilai['nilai_remidi'] ?? $cekNilai['nilai_awal'] ?? $cekNilai['nilai'] ?? 0;
+                        if ((float)$nilaiAkhir < 70 || strtolower($cekNilai['status_kelulusan'] ?? '') !== 'lulus') {
+                            $lulusSemua = false;
+                        }
+                    } else {
                         $lulusSemua = false;
                     }
-                } else {
-                    $lulusSemua = false;
                 }
-            }
 
-            if ($adaNilai) {
-                $statusUjianKeluar = true; // Nilai ujian sudah keluar
-                $isLulus = $lulusSemua;    // Status kelulusan akhir
+                if ($adaNilai) {
+                    $statusUjianKeluar = true;
+                    $isLulus = $lulusSemua;
 
-                if ($lulusSemua) {
-                    // Cek apakah sudah isi angket
-                    $sudahAngket = $db->table('angket_penilaian')
-                        ->where('id_peserta', $userId)
-                        ->where('id_kelas', $pendaftaran['id_kelas'])
-                        ->get()
-                        ->getRow();
-                    
-                    if (!$sudahAngket) {
-                        $notifikasiAngket = true; // Belum isi angket, munculkan notifikasi
+                    if ($lulusSemua) {
+                        $sudahAngket = $db->table('angket_penilaian')
+                            ->where('id_peserta', $userId)
+                            ->where('id_kelas', $pendaftaran['id_kelas'])
+                            ->get()
+                            ->getRow();
+                        
+                        if (!$sudahAngket) {
+                            $notifikasiAngket = true;
+                        }
                     }
                 }
             }
         }
+
+        $data = [
+            'title'               => 'Dashboard Peserta',
+            'pendaftaran'         => $pendaftaran,        
+            'semua_pendaftaran'   => $semuaPendaftaran,   
+            'user'                => $userData, 
+            'list_jadwal'         => $list_jadwal,
+            'semua_kelas_peserta' => $semuaPendaftaran,   
+            'statusUjianKeluar'   => $statusUjianKeluar,
+            'is_lulus'            => $isLulus,
+            'notifikasiAngket'    => $notifikasiAngket, 
+        ];
+
+        return view('peserta/dashboard', $data);
     }
-
-    $data = [
-        'title'               => 'Dashboard Peserta',
-        'pendaftaran'         => $pendaftaran,        
-        'semua_pendaftaran'   => $semuaPendaftaran,   
-        'user'                => $userData, 
-        'list_jadwal'         => $list_jadwal,
-        'semua_kelas_peserta' => $semuaPendaftaran,   
-        'statusUjianKeluar'   => $statusUjianKeluar, // Sinkronisasi variabel ke view
-        'is_lulus'            => $isLulus,           // Sinkronisasi status kelulusan ke view
-        'notifikasiAngket'    => $notifikasiAngket, 
-    ];
-
-    return view('peserta/dashboard', $data);
-}
 
 
     public function profil()
@@ -371,6 +546,321 @@ class Pelatihan extends BaseController
 
     return view('pelatihan/form_daftar', $data);
 }
+    protected function formatKelasFromApi(array $k): array
+    {
+        // Instruktur asli dari Laravel
+        $namaMentor = null;
+        if (!empty($k['trainers']) && is_array($k['trainers']) && isset($k['trainers'][0]['name'])) {
+            $namaMentor = trim($k['trainers'][0]['name']);
+        }
+
+        // Lokasi Media dari respons Laravel API
+        $lokasiMedia = null;
+        if (!empty($k['lokasi_media']) && is_string($k['lokasi_media'])) {
+            $lokasiMedia = trim($k['lokasi_media']);
+        } elseif (!empty($k['location_media']) && is_string($k['location_media'])) {
+            $lokasiMedia = trim($k['location_media']);
+        } elseif (!empty($k['location'])) {
+            if (is_array($k['location'])) {
+                $lokasiMedia = trim($k['location']['media'] ?? $k['location']['name'] ?? $k['location']['lokasi'] ?? '');
+            } elseif (is_string($k['location'])) {
+                $lokasiMedia = trim($k['location']);
+            }
+        } elseif (!empty($k['schedule']['location']) && is_string($k['schedule']['location'])) {
+            $lokasiMedia = trim($k['schedule']['location']);
+        }
+        if ($lokasiMedia === '' || $lokasiMedia === '-') {
+            $lokasiMedia = null;
+        }
+
+        // Deskripsi & Ringkasan asli
+        $deskripsi = (!empty($k['description']) && trim($k['description']) !== '-') ? trim($k['description']) : null;
+        $ringkasan = (!empty($k['summary']) && trim($k['summary']) !== '-') ? trim($k['summary']) : null;
+
+        // Foto / Thumbnail asli
+        $foto = !empty($k['thumbnail']) ? $k['thumbnail'] : (!empty($k['image']) ? $k['image'] : (!empty($k['foto']) ? $k['foto'] : null));
+
+        // Kategori asli
+        $kategori = !empty($k['training']['name']) ? $k['training']['name'] : (!empty($k['category']) ? $k['category'] : null);
+
+        // Pertemuan, Kapasitas, Harga, Tanggal
+        $meetings = $k['schedule']['meetings'] ?? $k['sessions_count'] ?? $k['meetings'] ?? null;
+        $kapasitas = $k['capacity']['target_students'] ?? $k['capacity'] ?? null;
+        $kapasitasTersedia = $k['capacity']['remaining_students'] ?? $k['available_capacity'] ?? $kapasitas;
+        $hargaReguler = $k['pricing']['price'] ?? $k['regular_price'] ?? $k['price'] ?? null;
+        $hargaPrivat = $k['pricing']['price'] ?? $k['private_price'] ?? null;
+        $startDate = (!empty($k['schedule']['start_date']) && $k['schedule']['start_date'] !== '-') ? $k['schedule']['start_date'] : ($k['start_date'] ?? null);
+
+        return [
+            'id_kelas'            => $k['id'],
+            'nama_kelas'          => $k['name'] ?? null,
+            'thumbnail'           => $foto,
+            'foto'                => $foto,
+            'kategori'            => $kategori,
+            'status'              => $k['status'] ?? null,
+            'deskripsi'           => $deskripsi,
+            'ringkasan'           => $ringkasan,
+            'nama_mentor'         => $namaMentor,
+            'jumlah_pertemuan'    => $meetings,
+            'kapasitas'           => $kapasitas,
+            'kapasitas_tersedia'  => $kapasitasTersedia,
+            'harga_reguler'       => $hargaReguler,
+            'harga_privat'        => $hargaPrivat,
+            'tanggal_mulai_kelas' => $startDate,
+            'jenis_kelas'         => $k['jenis_kelas'] ?? $k['type'] ?? null,
+            'tipe_kelas'          => $k['jenis_kelas'] ?? $k['type'] ?? null,
+            'lokasi_media'        => $lokasiMedia,
+            'metode_pembelajaran' => $k['schedule']['method'] ?? $k['method'] ?? null,
+        ];
+    }
+
+    /**
+     * Mengambil seluruh sesi pertemuan dan riwayat kehadiran peserta resmi dari Laravel & sinkronisasi lokal
+     * Menghasilkan status absensi: Belum Dibuka (0), Absensi Dibuka (1), atau Sudah Absen
+     */
+    protected function getSessionsAndAttendanceForClass(int $idKelas, int $userId, ?array $kelas = null): array
+    {
+        $db = \Config\Database::connect();
+        $apiService = new \App\Services\LaravelApiService();
+        $jadwal = [];
+
+        // 1. Ambil detail kelas dari Laravel jika belum tersedia
+        $sched = [];
+        $totalMeetings = 0;
+        if (!empty($kelas['jumlah_pertemuan'])) {
+            $totalMeetings = (int)$kelas['jumlah_pertemuan'];
+        }
+
+        try {
+            $resDetail = $apiService->request('GET', 'classes/' . $idKelas);
+            $kelasApi = $resDetail['data'] ?? $resDetail ?? null;
+            if (!empty($kelasApi) && is_array($kelasApi)) {
+                $sched = $kelasApi['schedule'] ?? [];
+                if ($totalMeetings < 1 && !empty($sched['meetings'])) {
+                    $totalMeetings = (int)$sched['meetings'];
+                }
+            }
+        } catch (\Exception $e) {
+            log_message('warning', 'Gagal memuat detail kelas Laravel: ' . $e->getMessage());
+        }
+
+        // 2. Coba panggil sessions resmi dari Laravel
+        $laravelSessions = [];
+        try {
+            $resSessions = $apiService->request('GET', 'classes/' . $idKelas . '/sessions');
+            if (!empty($resSessions['data']) && is_array($resSessions['data'])) {
+                $laravelSessions = $resSessions['data'];
+            }
+        } catch (\Exception $eSess) {
+            log_message('info', 'Laravel sessions endpoint unavailable: ' . $eSess->getMessage());
+        }
+
+        // 3. Ambil data jadwal lokal untuk pemetaan ID jadwal lokal & status buka jika tabel lokal ada
+        $localMap = [];
+        if ($db->tableExists('jadwal')) {
+            $existingJadwal = $db->table('jadwal')
+                ->where('id_kelas', $idKelas)
+                ->orderBy('pertemuan_ke', 'ASC')
+                ->get()
+                ->getResultArray();
+            foreach ($existingJadwal as $jRow) {
+                $localMap[(int)($jRow['pertemuan_ke'] ?? 0)] = $jRow;
+            }
+        }
+
+        if (!empty($laravelSessions)) {
+            foreach ($laravelSessions as $sess) {
+                $num = (int)($sess['session_number'] ?? $sess['meeting_number'] ?? $sess['pertemuan'] ?? 1);
+                $localRow = $localMap[$num] ?? null;
+                $idJadwal = $localRow['id_jadwal'] ?? ($sess['id'] ?? $num);
+
+                // Status absensi dibuka otomatis saat instruktur membuka di Laravel
+                $absensiDibuka = (
+                    !empty($sess['is_attendance_open']) ||
+                    !empty($sess['is_open']) ||
+                    in_array(strtolower($sess['status'] ?? ''), ['open', 'opened', 'dibuka', 'aktif'], true) ||
+                    (!empty($localRow['absensi_dibuka']) && (int)$localRow['absensi_dibuka'] === 1)
+                ) ? 1 : 0;
+
+                // Cek absensi peserta (dari Laravel attendance atau database lokal)
+                $userAbsensi = null;
+                if (!empty($sess['attendance']) && is_array($sess['attendance'])) {
+                    $userAbsensi = $sess['attendance'];
+                }
+                if (!$userAbsensi && $idJadwal && $db->tableExists('absensi')) {
+                    $userAbsensi = $db->table('absensi')
+                        ->where('id_user', $userId)
+                        ->groupStart()
+                            ->where('id_jadwal', $idJadwal)
+                            ->orWhere('id_jadwal_kelas', $idJadwal)
+                        ->groupEnd()
+                        ->get()
+                        ->getRowArray();
+                }
+
+                $jadwal[] = [
+                    'id_jadwal'       => $idJadwal,
+                    'pertemuan_ke'    => $num,
+                    'materi'          => (!empty($sess['topic']) && $sess['topic'] !== '-') ? $sess['topic'] : ((!empty($sess['title']) && $sess['title'] !== '-') ? $sess['title'] : null),
+                    'tanggal_kbm'     => (!empty($sess['date']) && $sess['date'] !== '-') ? $sess['date'] : null,
+                    'waktu_mulai'     => (!empty($sess['start_time']) && $sess['start_time'] !== '-') ? substr($sess['start_time'], 0, 5) : null,
+                    'waktu_selesai'   => (!empty($sess['end_time']) && $sess['end_time'] !== '-') ? substr($sess['end_time'], 0, 5) : null,
+                    'absensi'         => $userAbsensi,
+                    'absensi_dibuka'  => $absensiDibuka,
+                ];
+            }
+        } else {
+            // Jika endpoint sessions belum ada / error 500 di Laravel,
+            // bangkitkan seluruh sesi pertemuan dari jumlah_pertemuan resmi Laravel
+            if ($totalMeetings < 1) {
+                if (!empty($kelas['jumlah_pertemuan'])) {
+                    $totalMeetings = (int)$kelas['jumlah_pertemuan'];
+                } elseif (!empty($localMap)) {
+                    $totalMeetings = max(array_keys($localMap));
+                } else {
+                    $totalMeetings = 10;
+                }
+            }
+
+            $waktuMulai = (!empty($sched['start_time']) && $sched['start_time'] !== '-') ? substr($sched['start_time'], 0, 5) : null;
+            $waktuSelesai = (!empty($sched['end_time']) && $sched['end_time'] !== '-') ? substr($sched['end_time'], 0, 5) : null;
+            
+            $tglMulai = (!empty($sched['start_date']) && $sched['start_date'] !== '-') ? $sched['start_date'] : null;
+            if (empty($tglMulai) && !empty($kelas['tanggal_mulai_kelas']) && $kelas['tanggal_mulai_kelas'] !== '-') {
+                $tglMulai = $kelas['tanggal_mulai_kelas'];
+            }
+            if (empty($tglMulai) && !empty($kelas['start_date']) && $kelas['start_date'] !== '-') {
+                $tglMulai = $kelas['start_date'];
+            }
+            if (empty($tglMulai) && !empty($kelas['tanggal_mulai']) && $kelas['tanggal_mulai'] !== '-') {
+                $tglMulai = $kelas['tanggal_mulai'];
+            }
+
+            // Jika masih kosong, cari dari tabel pendaftaran
+            if (empty($tglMulai) && $db->tableExists('pendaftaran')) {
+                $pendaftaranDb = $db->table('pendaftaran')
+                    ->where('id_kelas', $idKelas)
+                    ->orderBy('id_pendaftaran', 'DESC')
+                    ->get()
+                    ->getRowArray();
+                if (!empty($pendaftaranDb['tanggal_mulai_kelas']) && $pendaftaranDb['tanggal_mulai_kelas'] !== '-') {
+                    $tglMulai = $pendaftaranDb['tanggal_mulai_kelas'];
+                } elseif (!empty($pendaftaranDb['created_at'])) {
+                    $tglMulai = date('Y-m-d', strtotime($pendaftaranDb['created_at']));
+                }
+            }
+
+            // Fallback absolut tanggal awal agar tidak pernah null
+            if (empty($tglMulai) || $tglMulai === '-') {
+                $tglMulai = date('Y-m-d');
+            }
+
+            $tglSelesai = (!empty($sched['end_date']) && $sched['end_date'] !== '-') ? $sched['end_date'] : null;
+            if (empty($tglSelesai) && !empty($kelas['end_date']) && $kelas['end_date'] !== '-') {
+                $tglSelesai = $kelas['end_date'];
+            }
+
+            for ($i = 1; $i <= $totalMeetings; $i++) {
+                // Kalkulasi tanggal presisi untuk pertemuan ke-$i
+                $tglPertemuan = $tglMulai;
+                if (!empty($tglMulai)) {
+                    $startTs = strtotime($tglMulai);
+                    if (!empty($tglSelesai) && $totalMeetings > 1) {
+                        $endTs = strtotime($tglSelesai);
+                        $diffDays = round(($endTs - $startTs) / 86400);
+                        if ($diffDays > 0) {
+                            $step = $diffDays / ($totalMeetings - 1);
+                            $offset = round(($i - 1) * $step);
+                            $tglPertemuan = date('Y-m-d', strtotime('+' . $offset . ' days', $startTs));
+                        } else {
+                            $tglPertemuan = date('Y-m-d', strtotime('+' . ($i - 1) . ' days', $startTs));
+                        }
+                    } elseif ($totalMeetings > 1) {
+                        $tglPertemuan = date('Y-m-d', strtotime('+' . ($i - 1) . ' days', $startTs));
+                    }
+                }
+
+                if (empty($tglPertemuan) || $tglPertemuan === '-') {
+                    $tglPertemuan = date('Y-m-d', strtotime('+' . ($i - 1) . ' days'));
+                }
+
+                $waktuMulaiDb = !empty($waktuMulai) ? $waktuMulai : '08:00:00';
+                $waktuSelesaiDb = !empty($waktuSelesai) ? $waktuSelesai : '10:00:00';
+
+                if (!isset($localMap[$i]) && $db->tableExists('jadwal')) {
+                    try {
+                        $db->table('jadwal')->insert([
+                            'id_kelas'        => $idKelas,
+                            'pertemuan_ke'    => $i,
+                            'tanggal_kbm'     => $tglPertemuan,
+                            'waktu_mulai'     => $waktuMulaiDb,
+                            'waktu_selesai'   => $waktuSelesaiDb,
+                            'materi'          => 'Pertemuan ' . $i,
+                            'absensi_dibuka'  => 0,
+                            'radius_meter'    => 100,
+                            'created_at'      => date('Y-m-d H:i:s'),
+                        ]);
+                        $newId = $db->insertID();
+                    } catch (\Throwable $eInsert) {
+                        log_message('error', 'Gagal insert jadwal lokal: ' . $eInsert->getMessage());
+                        $newId = $i;
+                    }
+                    $localMap[$i] = [
+                        'id_jadwal'       => $newId,
+                        'id_kelas'        => $idKelas,
+                        'pertemuan_ke'    => $i,
+                        'tanggal_kbm'     => $tglPertemuan,
+                        'waktu_mulai'     => $waktuMulai,
+                        'waktu_selesai'   => $waktuSelesai,
+                        'materi'          => 'Pertemuan ' . $i,
+                        'absensi_dibuka'  => 0,
+                    ];
+                } elseif (isset($localMap[$i]) && $db->tableExists('jadwal')) {
+                    if (empty($localMap[$i]['tanggal_kbm']) || $localMap[$i]['tanggal_kbm'] === '-' || ($i > 1 && $localMap[$i]['tanggal_kbm'] === $tglMulai && $tglPertemuan !== $tglMulai)) {
+                        try {
+                            $db->table('jadwal')->where('id_jadwal', $localMap[$i]['id_jadwal'])->update(['tanggal_kbm' => $tglPertemuan]);
+                            $localMap[$i]['tanggal_kbm'] = $tglPertemuan;
+                        } catch (\Throwable $eUpd) {
+                            // ignore
+                        }
+                    }
+                }
+
+                $localRow = $localMap[$i] ?? [];
+                $idJadwal = (int)($localRow['id_jadwal'] ?? $i);
+                $absensiDibuka = (int)($localRow['absensi_dibuka'] ?? 0);
+
+                // Cek absensi peserta untuk pertemuan ini
+                $userAbsensi = null;
+                if ($db->tableExists('absensi')) {
+                    $userAbsensi = $db->table('absensi')
+                        ->where('id_user', $userId)
+                        ->groupStart()
+                            ->where('id_jadwal', $idJadwal)
+                            ->orWhere('id_jadwal_kelas', $idJadwal)
+                        ->groupEnd()
+                        ->get()
+                        ->getRowArray();
+                }
+
+                $tglFinal = (!empty($localRow['tanggal_kbm']) && $localRow['tanggal_kbm'] !== '-') ? $localRow['tanggal_kbm'] : $tglPertemuan;
+
+                $jadwal[] = [
+                    'id_jadwal'       => $idJadwal,
+                    'pertemuan_ke'    => $i,
+                    'materi'          => (!empty($localRow['materi']) && $localRow['materi'] !== '-') ? $localRow['materi'] : ('Pertemuan ' . $i),
+                    'tanggal_kbm'     => $tglFinal,
+                    'waktu_mulai'     => (!empty($localRow['waktu_mulai']) && $localRow['waktu_mulai'] !== '-') ? substr($localRow['waktu_mulai'], 0, 5) : $waktuMulai,
+                    'waktu_selesai'   => (!empty($localRow['waktu_selesai']) && $localRow['waktu_selesai'] !== '-') ? substr($localRow['waktu_selesai'], 0, 5) : $waktuSelesai,
+                    'absensi'         => $userAbsensi,
+                    'absensi_dibuka'  => $absensiDibuka,
+                ];
+            }
+        }
+
+        return $jadwal;
+    }
+
     public function pendaftaran($id_kelas = null)
     {
         $db = \Config\Database::connect();
@@ -396,23 +886,38 @@ class Pelatihan extends BaseController
             if (!empty($kelasApi) && is_array($kelasApi)) {
                 foreach ($kelasApi as $k) {
                     if (empty($takenClassIds) || !in_array($k['id'], $takenClassIds)) {
-                        $availableClasses[] = [
-                            'id_kelas' => $k['id'],
-                            'nama_kelas' => $k['name'] ?? 'Kelas',
-                            'kategori' => $k['training']['name'] ?? $k['category'] ?? 'Umum',
-                            'kapasitas' => $k['capacity']['target_students'] ?? $k['capacity'] ?? 0,
-                            'harga_reguler' => $k['pricing']['price'] ?? $k['regular_price'] ?? $k['price'] ?? 0,
-                            'harga_privat' => $k['pricing']['price'] ?? $k['private_price'] ?? 0,
-                            'nama_mentor' => (!empty($k['trainers']) && isset($k['trainers'][0]['name'])) 
-                                              ? $k['trainers'][0]['name'] 
-                                              : 'Mentor Belum Ditentukan',
-                            'tanggal_mulai_kelas' => $k['schedule']['start_date'] ?? $k['start_date'] ?? '-',
-                        ];
+                        $availableClasses[] = $this->formatKelasFromApi($k);
                     }
                 }
             }
         } catch (\Exception $e) {
             log_message('error', 'Gagal memuat kelas dari API: ' . $e->getMessage());
+        }
+
+        // Ambil daftar materi resmi khusus kelas privat dari API Laravel
+        $materiPrivatList = [];
+        $materiApiError = null;
+        try {
+            $responseMateri = $apiService->request('GET', 'trainings?jenis_kelas=Private');
+            $trainingsData = $responseMateri['data'] ?? $responseMateri ?? [];
+            if (!empty($trainingsData) && is_array($trainingsData)) {
+                $seenNames = [];
+                foreach ($trainingsData as $t) {
+                    $name = trim($t['name'] ?? '');
+                    if ($name !== '' && !isset($seenNames[$name])) {
+                        $seenNames[$name] = true;
+                        $materiPrivatList[] = [
+                            'id'          => $t['id'] ?? null,
+                            'nama_materi' => $name,
+                            'deskripsi'   => $t['description'] ?? null,
+                            'status'      => $t['status'] ?? 'active',
+                        ];
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            $materiApiError = 'Gagal memuat data materi resmi dari API Laravel: ' . $e->getMessage();
+            log_message('error', $materiApiError);
         }
 
         // Hitung kapasitas tersedia & fallback nama mentor
@@ -508,13 +1013,18 @@ class Pelatihan extends BaseController
             $userData['status_locked']       = !empty($statusDB);
         }
 
+        $defaultJenisKelas = $this->request->getGet('jenis') ?: ($selectedKelas['jenis_kelas'] ?? 'Reguler');
+
         $data = [
-            'title'          => 'Formulir Pendaftaran Pelatihan - Creativemu Academy',
-            'kelas'          => $selectedKelas,
-            'kelasList'      => $availableClasses,
-            'user'           => $userData,
-            'isStatusLocked' => $userData['status_locked'],
-            'lokasiPelatihan' => $db->table('lokasi_pelatihan')
+            'title'              => 'Formulir Pendaftaran Pelatihan - Creativemu Academy',
+            'kelas'              => $selectedKelas,
+            'kelasList'          => $availableClasses,
+            'user'               => $userData,
+            'isStatusLocked'     => $userData['status_locked'],
+            'materiPrivatList'   => $materiPrivatList,
+            'materiApiError'     => $materiApiError,
+            'defaultJenisKelas'  => $defaultJenisKelas,
+            'lokasiPelatihan'    => $db->table('lokasi_pelatihan')
                 ->where('is_online !=', 1)
                 ->notLike('nama_lokasi', 'Online')
                 ->notLike('nama_lokasi', 'Surakarta')
@@ -554,11 +1064,24 @@ class Pelatihan extends BaseController
             }
         }
 
-        // Ambil data kelas dari database
+        // Ambil data kelas dari database lokal atau fallback ke API Laravel
         $kelas = $db->table('kelas')
             ->where('id_kelas', $idKelas)
             ->get()
             ->getRowArray();
+
+        if (!$kelas) {
+            try {
+                $apiService = new \App\Services\LaravelApiService();
+                $resApi = $apiService->request('GET', 'classes/' . $idKelas);
+                $kApi = $resApi['data'] ?? $resApi ?? [];
+                if (!empty($kApi) && isset($kApi['id'])) {
+                    $kelas = $this->formatKelasFromApi($kApi);
+                }
+            } catch (\Exception $e) {
+                log_message('error', 'Gagal memuat kelas dari API pada simpanPendaftaran: ' . $e->getMessage());
+            }
+        }
 
         if (!$kelas) {
             return redirect()->back()
@@ -714,12 +1237,51 @@ class Pelatihan extends BaseController
             'persetujuan_syarat'  => $this->request->getPost('persetujuan_syarat') ? 1 : 0,
         ];
 
+        // Pemrosesan pilihan materi privat & custom materi
+        $materiPrivatPost = $this->request->getPost('materi_privat');
+        $materiPrivatStr  = null;
+        if (!empty($materiPrivatPost)) {
+            if (is_array($materiPrivatPost)) {
+                $materiPrivatStr = implode(', ', array_filter(array_map('trim', $materiPrivatPost)));
+            } else {
+                $materiPrivatStr = trim((string)$materiPrivatPost);
+            }
+        }
+        $customMateri = trim((string)$this->request->getPost('custom_materi'));
+
+        // Jika bukan kelas privat, materi privat dan custom materi dikosongkan
+        if (strtolower($jenisKelas) !== 'privat') {
+            $materiPrivatStr = null;
+            $customMateri    = null;
+        }
+
+        if ($db->fieldExists('materi_privat', 'pendaftaran')) {
+            $dataPendaftaran['materi_privat'] = $materiPrivatStr;
+        }
+        if ($db->fieldExists('custom_materi', 'pendaftaran')) {
+            $dataPendaftaran['custom_materi'] = $customMateri ?: null;
+        }
+
         if ($db->fieldExists('sumber_informasi', 'pendaftaran')) {
             $dataPendaftaran['sumber_informasi'] = $sumberInformasi;
         }
 
         try {
-            if ($pendaftaranModel->insert($dataPendaftaran)) {
+            $insertId = $pendaftaranModel->insert($dataPendaftaran);
+            if ($insertId) {
+                // Sinkronisasi data pendaftar ke Laravel API jika tersedia
+                try {
+                    $apiService = new \App\Services\LaravelApiService();
+                    $apiService->request('POST', 'classes/' . $idKelas . '/registrants', [
+                        'json' => [
+                            'external_registration_id' => 'REG-' . $insertId,
+                            'name'                     => $nama,
+                        ]
+                    ]);
+                } catch (\Exception $eApi) {
+                    log_message('warning', 'Sinkronisasi registrant ke API Laravel: ' . $eApi->getMessage());
+                }
+
                 if ($userId) {
                     return redirect()
                         ->to(base_url('pelatihan/daftar-kelas-peserta'))
@@ -990,25 +1552,7 @@ public function setujuiPendaftaran($id_pendaftaran)
             $kelasApi = $response['data'] ?? $response ?? [];
             if (!empty($kelasApi) && is_array($kelasApi)) {
                 foreach ($kelasApi as $k) {
-                    $data['kelas'][] = [
-                        'id_kelas' => $k['id'],
-                        'nama_kelas' => $k['name'] ?? 'Kelas',
-                        'thumbnail' => $k['thumbnail'] ?? $k['image'] ?? '',
-                        'kategori' => $k['training']['name'] ?? $k['category'] ?? 'Umum',
-                        'status' => $k['status'] ?? 'aktif',
-                        'deskripsi' => $k['description'] ?? $k['summary'] ?? '-',
-                        'nama_mentor' => (!empty($k['trainers']) && isset($k['trainers'][0]['name'])) 
-                                          ? $k['trainers'][0]['name'] 
-                                          : 'Mentor Belum Ditentukan',
-                        'jumlah_pertemuan' => $k['schedule']['meetings'] ?? $k['sessions_count'] ?? $k['meetings'] ?? 0,
-                        'kapasitas' => $k['capacity']['target_students'] ?? $k['capacity'] ?? 0,
-                        'kapasitas_tersedia' => $k['capacity']['remaining_students'] ?? $k['available_capacity'] ?? $k['capacity'] ?? 0,
-                        'harga_reguler' => $k['pricing']['price'] ?? $k['regular_price'] ?? $k['price'] ?? 0,
-                        'harga_privat' => $k['pricing']['price'] ?? $k['private_price'] ?? 0,
-                        'tanggal_mulai_kelas' => $k['schedule']['start_date'] ?? $k['start_date'] ?? '-',
-                        'jenis_kelas' => $k['type'] ?? 'Reguler',
-                        'metode_pembelajaran' => $k['schedule']['method'] ?? $k['method'] ?? 'offline'
-                    ];
+                    $data['kelas'][] = $this->formatKelasFromApi($k);
                 }
             }
         } catch (\Exception $e) {
@@ -1018,6 +1562,43 @@ public function setujuiPendaftaran($id_pendaftaran)
         }
 
         return view('peserta/daftar_kelas', $data);
+    }
+
+    /**
+     * Halaman Khusus Kelas Privat
+     * Mengambil dan menampilkan kelas dengan sumber data dari API Laravel
+     */
+    public function kelasPrivat()
+    {
+        $apiService = new \App\Services\LaravelApiService();
+        $data['kelas'] = [];
+        $data['is_privat_page'] = true;
+        
+        try {
+            // Coba ambil kelas dengan filter type/jenis_kelas=Private atau endpoint classes
+            $response = $apiService->request('GET', 'classes', ['type' => 'Private']);
+            $kelasApi = $response['data'] ?? $response ?? [];
+
+            // Jika kosong, coba ambil seluruh classes lalu filter tipe privat / atau ambil trainings privat
+            if (empty($kelasApi) || !is_array($kelasApi)) {
+                $response = $apiService->request('GET', 'classes');
+                $kelasApi = $response['data'] ?? $response ?? [];
+            }
+
+            if (!empty($kelasApi) && is_array($kelasApi)) {
+                foreach ($kelasApi as $k) {
+                    $row = $this->formatKelasFromApi($k);
+                    $row['jenis_kelas'] = 'Privat';
+                    $data['kelas'][] = $row;
+                }
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Gagal mengambil data kelas privat dari API Laravel: ' . $e->getMessage());
+            $data['kelas'] = [];
+            $data['api_error'] = true;
+        }
+
+        return view('peserta/kelas_privat', $data);
     }
 
     /**
@@ -1091,51 +1672,69 @@ public function setujuiPendaftaran($id_pendaftaran)
     // Method tambahan untuk mengatasi error "Controller method is not found: kelas"
     // Method untuk halaman KBM (Absen, Materi, Ujian, Sertifikat, Angket)
     public function kelas()
-{
-    if ($redirect = $this->requireLogin()) {
-        return $redirect;
-    }
-
-    $idKelas = $this->request->getGet('id_kelas');
-
-    $kelasBuilder = (new PendaftaranModel())
-        ->select('pendaftaran.*, kelas.*, mentor.nama_mentor')
-        ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-        ->where('pendaftaran.id_users', $this->userId());
-
-    if (!empty($idKelas)) {
-        $kelasBuilder->where('pendaftaran.id_kelas', $idKelas);
-    }
-
-    $kelas = $kelasBuilder
-        ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
-        ->first();
-
-    $db = \Config\Database::connect();
-
-    $jadwal = [];
-    if ($kelas) {
-        $jadwal = $db->table('jadwal_kelas')
-            ->select('jadwal_kelas.*')
-            ->where('id_kelas', $kelas['id_kelas'])
-            ->orderBy('pertemuan_ke', 'ASC')
-            ->get()
-            ->getResultArray();
-
-        foreach ($jadwal as &$item) {
-            $idJadwal = (int) ($item['id_jadwal'] ?? $item['id_jadwal_kelas'] ?? 0);
-            $item['absensi'] = $db->table('absensi')
-                ->where('id_user', $this->userId())
-                ->groupStart()
-                    ->where('id_jadwal_kelas', $idJadwal)
-                    ->orWhere('id_jadwal', $idJadwal)
-                ->groupEnd()
-                ->get()
-                ->getRowArray();
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
         }
-        unset($item);
-    }
+
+        $userId = $this->userId();
+        $idKelas = $this->request->getGet('id_kelas');
+        $db = \Config\Database::connect();
+        $pendaftaranModel = new \App\Models\PendaftaranModel();
+
+        // 1. Ambil pendaftaran kelas milik peserta yang sedang login (isolasi user)
+        $pendaftaranBuilder = $pendaftaranModel->where('id_users', $userId);
+        if (!empty($idKelas)) {
+            $pendaftaranBuilder->where('id_kelas', $idKelas);
+        }
+        $pendaftaran = $pendaftaranBuilder->orderBy('id_pendaftaran', 'DESC')->first();
+
+        if (!$pendaftaran) {
+            return redirect()->to(base_url('pelatihan/daftar-kelas-peserta'))
+                ->with('error', 'Anda tidak memiliki akses ke kelas tersebut.');
+        }
+
+        $idKelas = $pendaftaran['id_kelas'];
+
+        // 2. Ambil data kelas langsung dari API Laravel (Single Source of Truth)
+        $apiService = new \App\Services\LaravelApiService();
+        $kelas = null;
+        try {
+            $resApi = $apiService->request('GET', 'classes/' . $idKelas);
+            $kelasApi = $resApi['data'] ?? $resApi ?? null;
+            if (!empty($kelasApi) && is_array($kelasApi)) {
+                $kelas = $this->formatKelasFromApi($kelasApi);
+            }
+        } catch (\Exception $e) {
+            log_message('warning', 'Gagal memuat kelas Laravel di KBM: ' . $e->getMessage());
+        }
+
+        if (!$kelas) {
+            $kelas = [
+                'id_kelas'            => $idKelas,
+                'nama_kelas'          => $pendaftaran['nama_kelas'] ?? 'Kelas Pelatihan',
+                'nama_mentor'         => null,
+                'thumbnail'           => null,
+                'foto'                => null,
+                'kategori'            => null,
+                'status'              => null,
+                'deskripsi'           => null,
+                'ringkasan'           => null,
+                'jumlah_pertemuan'    => null,
+                'kapasitas'           => null,
+                'kapasitas_tersedia'  => null,
+                'harga_reguler'       => null,
+                'harga_privat'        => null,
+                'tanggal_mulai_kelas' => null,
+                'jenis_kelas'         => null,
+                'tipe_kelas'          => null,
+                'lokasi_media'        => null,
+                'metode_pembelajaran' => null,
+            ];
+        }
+
+        // 3. Ambil data seluruh sesi dan absensi resmi dari Laravel & sinkronisasi peserta
+        $jadwal = $this->getSessionsAndAttendanceForClass((int)$idKelas, (int)$userId, $kelas);
 
     // Ambil data ujian & nilai peserta
     $ujian = [];
@@ -1293,25 +1892,7 @@ if ($kelas) {
                 return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('error', 'Data kelas tidak ditemukan di server utama.');
             }
 
-            $data['kelas'] = [
-                'id_kelas' => $k['id'],
-                'nama_kelas' => $k['name'] ?? 'Kelas',
-                'thumbnail' => $k['thumbnail'] ?? $k['image'] ?? '',
-                'kategori' => $k['training']['name'] ?? $k['category'] ?? 'Umum',
-                'status' => $k['status'] ?? 'aktif',
-                'deskripsi' => $k['description'] ?? $k['summary'] ?? '-',
-                'nama_mentor' => (!empty($k['trainers']) && isset($k['trainers'][0]['name'])) 
-                                  ? $k['trainers'][0]['name'] 
-                                  : 'Mentor Belum Ditentukan',
-                'jumlah_pertemuan' => $k['schedule']['meetings'] ?? $k['sessions_count'] ?? $k['meetings'] ?? 0,
-                'kapasitas' => $k['capacity']['target_students'] ?? $k['capacity'] ?? 0,
-                'kapasitas_tersedia' => $k['capacity']['remaining_students'] ?? $k['available_capacity'] ?? $k['capacity'] ?? 0,
-                'harga_reguler' => $k['pricing']['price'] ?? $k['regular_price'] ?? $k['price'] ?? 0,
-                'harga_privat' => $k['pricing']['price'] ?? $k['private_price'] ?? 0,
-                'tanggal_mulai_kelas' => $k['schedule']['start_date'] ?? $k['start_date'] ?? '-',
-                'jenis_kelas' => $k['type'] ?? 'Reguler',
-                'metode_pembelajaran' => $k['schedule']['method'] ?? $k['method'] ?? 'offline'
-            ];
+            $data['kelas'] = $this->formatKelasFromApi($k);
 
             $data['title'] = 'Detail Kelas: ' . $data['kelas']['nama_kelas'];
         } catch (\Exception $e) {
@@ -1344,147 +1925,13 @@ if ($kelas) {
     return view('peserta/detail_jadwal', $data);
 }
 
-   public function kbm($id_kelas = null)
-{
-    $db = \Config\Database::connect();
-    
-    // Sesuaikan cara pengambilan ID user dari session aplikasi Anda (contoh: session('id_users') atau session('id_user'))
-    $userId = session()->get('id_users') ?? session()->get('id_user');
-
-    if (!$userId) {
-        return redirect()->to(base_url('pelatihan/login'))->with('error', 'Silakan login terlebih dahulu.');
-    }
-
-    // 1. Ambil id_kelas dari parameter URL (segment) atau Query String (?id_kelas=...)
-    if (!$id_kelas) {
-        $id_kelas = $this->request->getGet('id_kelas');
-    }
-
-    // 2. Validasi apakah peserta benar-benar terdaftar di kelas tersebut
-    if ($id_kelas) {
-        $cekPendaftaran = $db->table('pendaftaran')
-            ->where('id_users', $userId)
-            ->where('id_kelas', $id_kelas)
-            ->get()
-            ->getRowArray();
-
-        if (!$cekPendaftaran) {
-            return redirect()->to(base_url('pelatihan/daftar-kelas-peserta'))
-                ->with('error', 'Anda tidak memiliki akses ke ruang KBM kelas tersebut.');
+    public function kbm($id_kelas = null)
+    {
+        if ($id_kelas) {
+            $_GET['id_kelas'] = $id_kelas;
         }
-    } else {
-        // Jika tetap kosong, ambil kelas pendaftaran terakhir milik peserta
-        $pendaftaran = $db->table('pendaftaran')
-            ->where('id_users', $userId)
-            ->orderBy('id_pendaftaran', 'DESC')
-            ->get()
-            ->getRowArray();
-        $id_kelas = $pendaftaran['id_kelas'] ?? null;
+        return $this->kelas();
     }
-
-    if (!$id_kelas) {
-        return redirect()->to(base_url('pelatihan/daftar-kelas-peserta'))
-            ->with('error', 'Belum ada kelas aktif yang diikuti.');
-    }
-
-    // 3. Ambil data kelas & mentor berdasarkan $id_kelas yang dipilih
-    $kelas = $db->table('kelas')
-        ->select('kelas.*, mentor.nama_mentor')
-        ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
-        ->where('kelas.id_kelas', $id_kelas)
-        ->get()
-        ->getRowArray();
-
-    // 4. Ambil data materi & jadwal sesuai id_kelas
-    $materi = $db->table('materi')->where('id_kelas', $id_kelas)->get()->getResultArray();
-    $jadwal = $db->table('jadwal')->where('id_kelas', $id_kelas)->orderBy('pertemuan_ke', 'ASC')->get()->getResultArray();
-
-    foreach ($jadwal as &$item) {
-        $idJadwal = (int) ($item['id_jadwal'] ?? $item['id_jadwal_kelas'] ?? 0);
-        $item['absensi'] = $db->table('absensi')
-            ->where('id_user', $userId)
-            ->groupStart()
-                ->where('id_jadwal_kelas', $idJadwal)
-                ->orWhere('id_jadwal', $idJadwal)
-            ->groupEnd()
-            ->get()
-            ->getRowArray();
-    }
-    unset($item);
-
-    // 5. Ambil Nilai Ujian Peserta
-    $nilaiUjianRow = null;
-    if ($userId && $id_kelas) {
-        $builderNilai = $db->table('nilai_ujian')->where('id_users', $userId);
-        if ($db->fieldExists('id_kelas', 'nilai_ujian')) {
-            $builderNilai->where('id_kelas', $id_kelas);
-        }
-        $nilaiUjianRow = $builderNilai->orderBy('id_nilai_ujian', 'DESC')->get()->getRowArray();
-
-        if (!$nilaiUjianRow) {
-            $nilaiUjianRow = $db->table('nilai_ujian')
-                ->select('nilai_ujian.*')
-                ->join('ujian', 'ujian.id_ujian = nilai_ujian.id_ujian', 'inner')
-                ->where('nilai_ujian.id_users', $userId)
-                ->where('ujian.id_kelas', $id_kelas)
-                ->orderBy('nilai_ujian.id_nilai_ujian', 'DESC')
-                ->get()
-                ->getRowArray();
-        }
-    }
-
-    $nilaiUjian = '-';
-    $statusKelulusan = '';
-    $statusRemidi = '';
-    $idNilaiUjian = null;
-
-    if ($nilaiUjianRow) {
-        $nilaiUjian = $nilaiUjianRow['nilai_remidi'] ?? $nilaiUjianRow['nilai_awal'] ?? $nilaiUjianRow['nilai'] ?? '-';
-        $statusKelulusan = strtolower($nilaiUjianRow['status_kelulusan'] ?? '');
-        $statusRemidi = strtolower($nilaiUjianRow['status_remidi'] ?? '');
-        $idNilaiUjian = $nilaiUjianRow['id_nilai_ujian'] ?? null;
-    }
-
-    $bisaIsiAngket = ($statusKelulusan === 'lulus' || ($nilaiUjian !== '-' && is_numeric($nilaiUjian) && (float)$nilaiUjian >= 70 && $statusKelulusan !== 'remidi' && $statusKelulusan !== 'tidak lulus'));
-
-    // Cek status pengisian angket
-    $sudahIsiAngket = false;
-    if ($userId && $id_kelas) {
-        $cekAngket = $db->table('jawaban_angket')
-            ->select('jawaban_angket.*')
-            ->join('angket_pertanyaan', 'angket_pertanyaan.id_angket_pertanyaan = jawaban_angket.id_pertanyaan')
-            ->where('jawaban_angket.id_siswa', $userId)
-            ->where('angket_pertanyaan.id_kelas', $id_kelas)
-            ->get()
-            ->getRowArray();
-        
-        if ($cekAngket) {
-            $sudahIsiAngket = true;
-        }
-    }
-
-    $sertifikatTerbit = (new \App\Models\SertifikatModel())
-        ->where('id_kelas', $id_kelas)
-        ->where('id_user', $userId)
-        ->first();
-
-    // 6. Kirim data ke view
-    $data = [
-        'kelas'           => $kelas,
-        'materi'          => $materi,
-        'jadwal'          => $jadwal,
-        'nilai_ujian'     => $nilaiUjian,
-        'status_kelulusan'=> $statusKelulusan,
-        'status_remidi'   => $statusRemidi,
-        'id_nilai_ujian'  => $idNilaiUjian,
-        'bisa_isi_angket' => $bisaIsiAngket,
-        'sudah_isi_angket'=> $sudahIsiAngket,
-        'pendaftaran'     => $db->table('pendaftaran')->where('id_users', $userId)->where('id_kelas', $id_kelas)->get()->getRowArray(),
-        'sertifikatTerbit'=> $sertifikatTerbit,
-    ];
-
-    return view('peserta/kelas', $data); 
-}
 
     public function ikutRemidi()
 {
@@ -2950,23 +3397,8 @@ public function simpanJawabanUjian()
             $pendaftaran['metode_pembelajaran'] ?? null
         );
 
-        // Ambil jadwal kelas
-        $jadwal = (new JadwalModel())
-            ->where('id_kelas', $pendaftaran['id_kelas'])
-            ->orderBy('pertemuan_ke', 'ASC')
-            ->findAll();
-
-        $absensiModel = new AbsensiModel();
-        foreach ($jadwal as &$item) {
-            $idJadwal = (int) ($item['id_jadwal'] ?? $item['id_jadwal_kelas'] ?? 0);
-            $item['absensi'] = $absensiModel
-                ->where('id_user', $this->userId())
-                ->groupStart()
-                    ->where('id_jadwal_kelas', $idJadwal)
-                    ->orWhere('id_jadwal', $idJadwal)
-                ->groupEnd()
-                ->first();
-        }
+        // Ambil jadwal & absensi dari API Laravel (Single Source of Truth) & sinkronisasi
+        $jadwal = $this->getSessionsAndAttendanceForClass((int)$pendaftaran['id_kelas'], (int)$this->userId(), $pendaftaran);
 
     // ==========================================
     // Evaluasi Status Kelulusan Seluruh Ujian

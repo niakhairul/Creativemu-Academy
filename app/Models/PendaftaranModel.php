@@ -40,6 +40,8 @@ class PendaftaranModel extends Model
         'status_pembayaran',
         'alasan_penolakan',
         'persetujuan_syarat',
+        'materi_privat',
+        'custom_materi',
     ];
 
     // Dates

@@ -145,17 +145,21 @@
         }
 
         /* THEME GRADIENTS FOR STATS */
-        .stat-theme-purple .stat-icon { background: #f3effa; color: var(--primary-purple); }
-        .stat-theme-purple::after { background: var(--primary-purple); }
+        .stat-card.stat-theme-purple { border-color: rgba(121, 75, 196, 0.2); }
+        .stat-card.stat-theme-purple::after { background: linear-gradient(180deg, #794bc4, #9b6fd9); width: 5px; }
+        .stat-theme-purple .stat-icon { background: linear-gradient(135deg, #794bc4 0%, #5931a0 100%); color: #ffffff; box-shadow: 0 6px 14px rgba(121, 75, 196, 0.25); }
 
-        .stat-theme-blue .stat-icon { background: #e8f3fc; color: #1976d2; }
-        .stat-theme-blue::after { background: #1976d2; }
+        .stat-card.stat-theme-blue { border-color: rgba(37, 99, 235, 0.2); }
+        .stat-card.stat-theme-blue::after { background: linear-gradient(180deg, #2563eb, #38bdf8); width: 5px; }
+        .stat-theme-blue .stat-icon { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff; box-shadow: 0 6px 14px rgba(37, 99, 235, 0.25); }
 
-        .stat-theme-gold .stat-icon { background: #fef8e7; color: #f59e0b; }
-        .stat-theme-gold::after { background: #f59e0b; }
+        .stat-card.stat-theme-gold { border-color: rgba(245, 158, 11, 0.25); }
+        .stat-card.stat-theme-gold::after { background: linear-gradient(180deg, #f59e0b, #fbbf24); width: 5px; }
+        .stat-theme-gold .stat-icon { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; box-shadow: 0 6px 14px rgba(245, 158, 11, 0.25); }
 
-        .stat-theme-green .stat-icon { background: #eafaf1; color: #2e7d32; }
-        .stat-theme-green::after { background: #2e7d32; }
+        .stat-card.stat-theme-green { border-color: rgba(16, 185, 129, 0.2); }
+        .stat-card.stat-theme-green::after { background: linear-gradient(180deg, #10b981, #34d399); width: 5px; }
+        .stat-theme-green .stat-icon { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; box-shadow: 0 6px 14px rgba(16, 185, 129, 0.25); }
 
         /* BUTTONS */
         .btn-creative-primary {
@@ -253,25 +257,52 @@
         .podium-card {
             border-radius: 16px;
             border: 1.5px solid #ede8f5;
-            padding: 20px;
+            padding: 22px 18px;
             text-align: center;
             background: #ffffff;
             position: relative;
             overflow: hidden;
-            transition: all 0.25s ease;
+            transition: all 0.3s ease;
         }
         .podium-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 25px rgba(121, 75, 196, 0.12);
+            transform: translateY(-6px);
+            box-shadow: 0 14px 28px rgba(121, 75, 196, 0.15);
+        }
+        .podium-card.podium-gold {
+            border-top: 5px solid #f59e0b;
+            background: linear-gradient(180deg, #fffbeb 0%, #ffffff 45%);
+            box-shadow: 0 8px 22px rgba(245, 158, 11, 0.15);
+        }
+        .podium-card.podium-silver {
+            border-top: 5px solid #94a3b8;
+            background: linear-gradient(180deg, #f8fafc 0%, #ffffff 45%);
+            box-shadow: 0 8px 22px rgba(148, 163, 184, 0.15);
+        }
+        .podium-card.podium-bronze {
+            border-top: 5px solid #d97706;
+            background: linear-gradient(180deg, #fff7ed 0%, #ffffff 45%);
+            box-shadow: 0 8px 22px rgba(217, 119, 6, 0.15);
         }
         .podium-badge {
             font-size: 2.2rem;
             margin-bottom: 6px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
         .podium-score {
             font-size: 1.6rem;
             font-weight: 800;
             color: var(--primary-purple);
+        }
+        .avatar-initial-angket {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
         }
 
         /* CHART BOX */
@@ -564,14 +595,16 @@
                     <div class="row g-3">
                         <?php
                             $medals = ['🥇 Juara 1', '🥈 Juara 2', '🥉 Juara 3'];
-                            $podiumBorder = ['#f59e0b', '#94a3b8', '#d97706'];
+                            $podiumClasses = ['podium-gold', 'podium-silver', 'podium-bronze'];
                             $top3 = array_slice($rankingList, 0, 3);
                             $podiumIdx = 0;
                         ?>
                         <?php if (!empty($top3)): ?>
-                            <?php foreach ($top3 as $top): ?>
+                            <?php foreach ($top3 as $top): 
+                                $podClass = $podiumClasses[$podiumIdx] ?? '';
+                            ?>
                             <div class="col-12 col-md-4">
-                                <div class="podium-card" style="border-top: 4px solid <?= $podiumBorder[$podiumIdx]; ?>;">
+                                <div class="podium-card <?= $podClass; ?>">
                                     <div class="podium-badge"><?= explode(' ', $medals[$podiumIdx])[0]; ?></div>
                                     <span class="badge bg-light text-dark border px-2 py-1 mb-2 fw-semibold"><?= $medals[$podiumIdx]; ?></span>
                                     <h5 class="fw-bold mb-1 text-truncate" title="<?= esc($top['nama_mentor']); ?>">
@@ -870,45 +903,84 @@
                             <tr>
                                 <td class="text-center fw-bold text-muted"><?= $no++; ?></td>
                                 <td>
+                                    <?php 
+                                        $initial = strtoupper(substr($m['nama_mentor'] ?? 'I', 0, 1));
+                                        $avatarColors = [
+                                            ['bg' => '#ede9fe', 'text' => '#794bc4'],
+                                            ['bg' => '#e0f2fe', 'text' => '#0284c7'],
+                                            ['bg' => '#dcfce7', 'text' => '#16a34a'],
+                                            ['bg' => '#fef3c7', 'text' => '#d97706'],
+                                            ['bg' => '#fce7f3', 'text' => '#db2777'],
+                                            ['bg' => '#ccfbf1', 'text' => '#0d9488'],
+                                        ];
+                                        $colorIdx = crc32($m['nama_mentor'] ?? '') % count($avatarColors);
+                                        $avCol = $avatarColors[abs($colorIdx)];
+                                    ?>
                                     <div class="d-flex align-items-center">
-                                        <div class="stat-icon me-2" style="width: 38px; height: 38px; border-radius: 10px; font-size: 1rem; background: #efe9f8; color: var(--primary-purple);">
-                                            <i class="fas fa-user-tie"></i>
+                                        <div class="avatar-initial-angket me-2" style="background: <?= $avCol['bg']; ?>; color: <?= $avCol['text']; ?>;">
+                                            <?= $initial; ?>
                                         </div>
                                         <div>
-                                            <div class="fw-bold text-dark"><?= esc($m['nama_mentor']); ?></div>
-                                            <div class="small text-muted">NIP: <?= esc($m['nip'] ?? '-'); ?></div>
+                                            <div class="fw-bold text-dark" style="font-size: 0.84rem;"><?= esc($m['nama_mentor']); ?></div>
+                                            <div class="small text-muted" style="font-size: 0.7rem; font-family: monospace;">NIP: <?= esc($m['nip'] ?? '-'); ?></div>
                                         </div>
                                     </div>
                                 </td>
-                                <td><span class="badge bg-light text-dark border"><?= esc($m['pelatihan']); ?></span></td>
-                                <td><span class="fw-semibold text-secondary small"><?= esc($m['kelas']); ?></span></td>
-                                <td class="text-center fw-semibold text-dark"><?= ($m['responden_pusat'] ?? 0) > 0 ? number_format($m['responden_pusat']) : '-'; ?></td>
-                                <td class="text-center fw-semibold text-dark"><?= ($m['responden_cabang'] ?? 0) > 0 ? number_format($m['responden_cabang']) : '-'; ?></td>
-                                <td class="text-center fw-semibold text-dark"><?= ($m['responden_perwakilan'] ?? 0) > 0 ? number_format($m['responden_perwakilan']) : '-'; ?></td>
+                                <td>
+                                    <?php 
+                                        $pel = !empty($m['pelatihan']) && $m['pelatihan'] !== '-' ? $m['pelatihan'] : 'Pelatihan Kejuruan';
+                                        $badgeColor = 'bg-primary-subtle text-primary border-primary-subtle';
+                                        if (stripos($pel, 'Sertifikasi') !== false) {
+                                            $badgeColor = 'bg-info-subtle text-info border-info-subtle';
+                                        } elseif (stripos($pel, 'Web') !== false || stripos($pel, 'Program') !== false) {
+                                            $badgeColor = 'bg-purple-subtle text-purple border-purple-subtle';
+                                        } elseif (stripos($pel, 'Perkantoran') !== false || stripos($pel, 'Office') !== false) {
+                                            $badgeColor = 'bg-success-subtle text-success border-success-subtle';
+                                        } elseif (stripos($pel, 'Affiliate') !== false || stripos($pel, 'Marketing') !== false) {
+                                            $badgeColor = 'bg-warning-subtle text-warning-emphasis border-warning-subtle';
+                                        }
+                                    ?>
+                                    <span class="badge <?= $badgeColor; ?> border px-2 py-1" style="font-size: 0.72rem;"><?= esc($pel); ?></span>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-dark d-flex align-items-center small">
+                                        <i class="fas fa-chalkboard-user text-purple me-1.5 flex-shrink-0" style="color: var(--primary-purple);"></i>
+                                        <span><?= esc(!empty($m['kelas']) && $m['kelas'] !== '-' ? $m['kelas'] : 'Kelas Pelatihan'); ?></span>
+                                    </div>
+                                </td>
+                                <?php 
+                                    $pusatVal = (int)($m['responden_pusat'] ?? 0);
+                                    $cabangVal = (int)($m['responden_cabang'] ?? 0);
+                                    $perwVal = (int)($m['responden_perwakilan'] ?? 0);
+                                ?>
+                                <td class="text-center"><span class="badge <?= $pusatVal > 0 ? 'bg-primary-subtle text-primary' : 'bg-light text-muted border'; ?> px-2 py-1"><?= number_format($pusatVal); ?></span></td>
+                                <td class="text-center"><span class="badge <?= $cabangVal > 0 ? 'bg-info-subtle text-info' : 'bg-light text-muted border'; ?> px-2 py-1"><?= number_format($cabangVal); ?></span></td>
+                                <td class="text-center"><span class="badge <?= $perwVal > 0 ? 'bg-success-subtle text-success' : 'bg-light text-muted border'; ?> px-2 py-1"><?= number_format($perwVal); ?></span></td>
                                 <td class="text-center">
-                                    <span class="fw-bold text-dark"><?= number_format($m['jumlah_responden']); ?></span>
-                                    <span class="text-muted small"> Siswa</span>
+                                    <span class="badge bg-purple-subtle text-purple border border-purple-subtle px-2 py-1 fw-bold">
+                                        <i class="fas fa-users me-1"></i><?= number_format($m['jumlah_responden']); ?>
+                                    </span>
                                 </td>
                                 <td class="text-center">
                                     <div class="d-inline-flex align-items-center gap-1">
                                         <i class="fas fa-star text-warning"></i>
-                                        <span class="fw-bold fs-6 text-primary"><?= number_format($m['nilai_rata'], 2); ?></span>
+                                        <span class="fw-bold text-dark"><?= number_format($m['nilai_rata'], 2); ?></span>
                                         <small class="text-muted">/4.0</small>
                                     </div>
                                 </td>
                                 <td class="text-center">
                                     <span class="fw-bold text-success"><?= number_format($m['persen_kepuasan'], 1); ?>%</span>
-                                    <div class="progress progress-custom mt-1" style="height: 5px;">
+                                    <div class="progress progress-custom mt-1" style="height: 6px;">
                                         <div class="progress-bar progress-bar-custom" style="width: <?= $m['persen_kepuasan']; ?>%;"></div>
                                     </div>
                                 </td>
                                 <td class="text-center">
-                                    <span class="badge <?= $m['badge_class']; ?> px-3 py-2 rounded-pill">
+                                    <span class="badge <?= $m['badge_class']; ?> px-2.5 py-1 rounded-pill" style="font-size: 0.72rem;">
                                         <?= $m['predikat']; ?>
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <button type="button" class="btn btn-sm btn-outline-primary" style="border-radius:8px;" onclick="openModalKomentar(<?= $m['id_mentor']; ?>, '<?= esc($m['nama_mentor']); ?>')">
+                                    <button type="button" class="btn btn-sm btn-outline-primary py-0.5 px-2" style="border-radius:8px; font-size: 0.72rem;" onclick="openModalKomentar(<?= $m['id_mentor']; ?>, '<?= esc($m['nama_mentor']); ?>')">
                                         <i class="fas fa-comments me-1"></i> Detail
                                     </button>
                                 </td>

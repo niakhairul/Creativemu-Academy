@@ -266,51 +266,109 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
 
         <!-- === STAT CARDS === -->
         <div class="row g-3 mb-3">
-            <div class="col-xl-4 col-md-6">
+            <div class="col-xl-3 col-md-6">
                 <div class="stat-card d-flex align-items-center justify-content-between">
                     <div>
-                        <small>TOTAL SISWA</small>
-                        <h3><?= $total_peserta ?? 0; ?></h3>
+                        <small>TOTAL KELAS</small>
+                        <h3><?= $total_kelas ?? 0; ?></h3>
+                        <span class="badge bg-light text-primary border" style="font-size: 0.65rem;">API Laravel</span>
                     </div>
-                    <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
+                    <div class="stat-icon"><i class="fas fa-book-open"></i></div>
                 </div>
             </div>
-            <div class="col-xl-4 col-md-6">
+            <div class="col-xl-3 col-md-6">
                 <div class="stat-card d-flex align-items-center justify-content-between">
                     <div>
                         <small>TOTAL INSTRUKTUR</small>
                         <h3><?= $total_mentor ?? 0; ?></h3>
+                        <span class="badge bg-light text-primary border" style="font-size: 0.65rem;">API Laravel</span>
                     </div>
-                    <div class="stat-icon"><i class="fas fa-user-tie"></i></div>
+                    <div class="stat-icon"><i class="fas fa-chalkboard-user"></i></div>
                 </div>
             </div>
-            <div class="col-xl-4 col-md-6">
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card d-flex align-items-center justify-content-between">
+                    <div>
+                        <small>TOTAL SISWA</small>
+                        <h3><?= $total_peserta ?? 0; ?></h3>
+                        <span class="badge bg-light text-success border" style="font-size: 0.65rem;">Peserta Aktif</span>
+                    </div>
+                    <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
                 <div class="stat-card d-flex align-items-center justify-content-between">
                     <div>
                         <small>PENDING VALIDASI</small>
                         <h3 class="text-warning"><?= $pending_validasi ?? 0; ?></h3>
+                        <span class="badge bg-light text-warning border" style="font-size: 0.65rem;">Menunggu</span>
                     </div>
                     <div class="stat-icon" style="background: #fff8e1; color: #fbc02d;"><i class="fas fa-clock-rotate-left"></i></div>
                 </div>
             </div>
         </div>
 
-        <!-- === DIAGRAM SECTION === -->
+        <!-- === DIAGRAM & MONITORING SECTION === -->
         <div class="row g-3 mb-3">
-            <div class="col-lg-6">
-                <div class="chart-box">
-                    <div class="chart-title">
+            <div class="col-lg-5">
+                <div class="chart-box h-100">
+                    <div class="chart-title mb-2">
                         <i class="fas fa-chart-column text-primary"></i> Monitoring Angket Kepuasan
                     </div>
-                    <canvas id="angketChart" height="110"></canvas>
+                    <canvas id="angketChart" height="130"></canvas>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <div class="chart-box">
-                    <div class="chart-title">
-                        <i class="fas fa-chart-line text-primary"></i> Absensi Kehadiran Instruktur
+            <div class="col-lg-7">
+                <div class="chart-box h-100 d-flex flex-column p-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
+                        <div class="chart-title mb-0">
+                            <i class="fas fa-clipboard-user text-primary"></i> Monitoring Kehadiran Mentor
+                        </div>
+                        <span class="badge bg-light text-primary border" style="font-size: 0.72rem;">
+                            <i class="fas fa-database me-1"></i> API Laravel
+                        </span>
                     </div>
-                    <canvas id="absensiChart" height="110"></canvas>
+
+                    <div class="table-responsive flex-grow-1">
+                        <table class="table table-hover table-custom align-middle mb-0" style="font-size: 0.82rem;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 45px;">No</th>
+                                    <th>Nama Mentor</th>
+                                    <th>Tanggal</th>
+                                    <th>Status Kehadiran</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($absensi_mentor_list) && is_array($absensi_mentor_list)): ?>
+                                    <?php $noAbs = 1; foreach ($absensi_mentor_list as $absen): ?>
+                                        <tr>
+                                            <td class="fw-semibold text-muted"><?= $noAbs++; ?></td>
+                                            <td class="fw-bold text-dark"><?= esc($absen['nama_mentor']); ?></td>
+                                            <td><?= esc($absen['tanggal'] ?? '-'); ?></td>
+                                            <td>
+                                                <span class="badge bg-success" style="font-size: 0.72rem;"><?= esc($absen['status_kehadiran']); ?></span>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4">
+                                            <div class="d-flex flex-column align-items-center justify-content-center">
+                                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2" style="width: 42px; height: 42px;">
+                                                    <i class="fas fa-calendar-xmark text-muted fs-5"></i>
+                                                </div>
+                                                <span class="fw-bold text-dark small mb-1">Data absensi belum tersedia</span>
+                                                <p class="text-muted small mb-0" style="font-size: 0.75rem; max-width: 360px;">
+                                                    <?= esc($keterangan_absensi ?? 'Endpoint monitoring kehadiran mentor belum disediakan pada API Laravel.'); ?>
+                                                </p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -390,7 +448,7 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                     </td>
                                     <td>
                                         <span class="badge bg-light text-primary border border-primary-subtle px-2 py-1" style="font-size: 0.7rem;">
-                                            <?= esc($row['nama_kelas']); ?>
+                                            <?= esc(!empty($row['nama_kelas']) ? $row['nama_kelas'] : (!empty($row['nama_kursus']) ? $row['nama_kursus'] : 'Pelatihan')); ?>
                                         </span>
                                     </td>
                                     <td><small class="text-muted" style="font-size: 0.75rem;"><?= date('d M Y', strtotime($row['created_at'] ?? 'now')); ?></small></td>
@@ -421,58 +479,67 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
         // Format Tanggal Bahasa Indonesia
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         const today = new Date();
-        document.getElementById('current-date').innerText = today.toLocaleDateString('id-ID', options);
+        const dateEl = document.getElementById('current-date');
+        if (dateEl) {
+            dateEl.innerText = today.toLocaleDateString('id-ID', options);
+        }
 
         // Chart Angket
-        const ctxAngket = document.getElementById('angketChart').getContext('2d');
-        new Chart(ctxAngket, {
-            type: 'bar',
-            data: {
-                labels: ['Sangat Puas', 'Puas', 'Cukup', 'Kurang'],
-                datasets: [{
-                    label: 'Jumlah Responden',
-                    data: [0, 0, 0, 0],
-                    backgroundColor: '#e9ecef',
-                    borderRadius: 6,
-                    barThickness: 28
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false }, tooltip: { enabled: false } },
-                scales: {
-                    y: { beginAtZero: true, max: 10, grid: { color: '#f0edf6' } },
-                    x: { grid: { display: false } }
+        const angketCanvas = document.getElementById('angketChart');
+        if (angketCanvas) {
+            const ctxAngket = angketCanvas.getContext('2d');
+            new Chart(ctxAngket, {
+                type: 'bar',
+                data: {
+                    labels: ['Sangat Puas', 'Puas', 'Cukup', 'Kurang'],
+                    datasets: [{
+                        label: 'Jumlah Responden',
+                        data: <?= json_encode($angket_data ?? [0, 0, 0, 0]) ?>,
+                        backgroundColor: '#e9ecef',
+                        borderRadius: 6,
+                        barThickness: 28
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                    scales: {
+                        y: { beginAtZero: true, max: 10, grid: { color: '#f0edf6' } },
+                        x: { grid: { display: false } }
+                    }
                 }
-            }
-        });
+            });
+        }
 
-        // Chart Absensi
-        const ctxAbsensi = document.getElementById('absensiChart').getContext('2d');
-        new Chart(ctxAbsensi, {
-            type: 'line',
-            data: {
-                labels: <?= json_encode($absensi_labels ?? []) ?>,
-                datasets: [{
-                    label: 'Absensi Instruktur',
-                    data: <?= json_encode($absensi_data ?? []) ?>,
-                    borderColor: '#794bc4',
-                    backgroundColor: 'rgba(121, 75, 196, 0.08)',
-                    fill: true,
-                    tension: 0.3,
-                    borderWidth: 2,
-                    pointRadius: 3
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { position: 'bottom', labels: { font: { family: 'Poppins', size: 11 } } }, tooltip: { enabled: false } },
-                scales: {
-                    y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f0edf6' } },
-                    x: { grid: { display: false } }
+        // Chart Absensi (Hanya jika data dan canvas tersedia)
+        const absensiCanvas = document.getElementById('absensiChart');
+        if (absensiCanvas) {
+            const ctxAbsensi = absensiCanvas.getContext('2d');
+            new Chart(ctxAbsensi, {
+                type: 'line',
+                data: {
+                    labels: <?= json_encode($absensi_labels ?? []) ?>,
+                    datasets: [{
+                        label: 'Absensi Instruktur',
+                        data: <?= json_encode($absensi_data ?? []) ?>,
+                        borderColor: '#794bc4',
+                        backgroundColor: 'rgba(121, 75, 196, 0.08)',
+                        fill: true,
+                        tension: 0.3,
+                        borderWidth: 2,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom', labels: { font: { family: 'Poppins', size: 11 } } }, tooltip: { enabled: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f0edf6' } },
+                        x: { grid: { display: false } }
+                    }
                 }
-            }
-        });
+            });
+        }
     </script>
 </body>
 </html>

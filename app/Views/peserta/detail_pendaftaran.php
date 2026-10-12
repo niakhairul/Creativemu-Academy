@@ -90,6 +90,22 @@
                         <td>: <?= esc($detail['kategori_kelas'] ?? '-') ?></td>
                     </tr>
                     <tr>
+                        <td class="fw-semibold text-muted">Paket Kelas</td>
+                        <td>: <span class="badge" style="background: #f4eeff; color: #7a3ff2; font-weight: 600;"><?= esc($detail['jenis_kelas'] ?? 'Reguler') ?></span></td>
+                    </tr>
+                    <?php if (!empty($detail['materi_privat'])): ?>
+                    <tr>
+                        <td class="fw-semibold text-muted">Materi Privat Dipilih</td>
+                        <td class="fw-bold" style="color: #682bd8;">: <?= esc($detail['materi_privat']) ?></td>
+                    </tr>
+                    <?php endif; ?>
+                    <?php if (!empty($detail['custom_materi'])): ?>
+                    <tr>
+                        <td class="fw-semibold text-muted">Permintaan Materi Khusus</td>
+                        <td class="fst-italic text-muted">: <?= esc($detail['custom_materi']) ?></td>
+                    </tr>
+                    <?php endif; ?>
+                    <tr>
                         <td class="fw-semibold text-muted">Mentor Pengampu</td>
                         <td>: <?= esc($detail['nama_mentor'] ?? 'Mentor Creativemu') ?></td>
                     </tr>

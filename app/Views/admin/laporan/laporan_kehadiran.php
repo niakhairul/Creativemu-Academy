@@ -140,15 +140,44 @@
             line-height: 1.1;
         }
 
-        /* THEMES FOR STAT CARDS */
-        .stat-theme-purple .stat-icon { background: #f3effa; color: var(--primary-purple); }
-        .stat-theme-blue .stat-icon { background: #e8f3fc; color: #1976d2; }
-        .stat-theme-green .stat-icon { background: #eafaf1; color: #2e7d32; }
-        .stat-theme-warning .stat-icon { background: #fef8e7; color: #d97706; }
-        .stat-theme-info .stat-icon { background: #e0f2fe; color: #0284c7; }
-        .stat-theme-secondary .stat-icon { background: #f1f5f9; color: #64748b; }
-        .stat-theme-danger .stat-icon { background: #fee2e2; color: #dc2626; }
-        .stat-theme-primary .stat-icon { background: #ede9fe; color: #6d28d9; }
+        /* THEMES FOR STAT CARDS (Vibrant Gradients) */
+        .stat-card {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid var(--border-soft);
+            box-shadow: 0 4px 15px rgba(121, 75, 196, 0.05);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+            transition: all 0.25s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 22px rgba(121, 75, 196, 0.12);
+        }
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            margin-right: 14px;
+            flex-shrink: 0;
+            color: #ffffff;
+        }
+        .stat-theme-purple .stat-icon { background: linear-gradient(135deg, #794bc4 0%, #5931a0 100%); box-shadow: 0 4px 12px rgba(121, 75, 196, 0.28); }
+        .stat-theme-blue .stat-icon   { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.28); }
+        .stat-theme-primary .stat-icon{ background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); box-shadow: 0 4px 12px rgba(139, 92, 246, 0.28); }
+        .stat-theme-green .stat-icon  { background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.28); }
+        .stat-theme-warning .stat-icon{ background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.28); }
+        .stat-theme-info .stat-icon   { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); box-shadow: 0 4px 12px rgba(6, 182, 212, 0.28); }
+        .stat-theme-secondary .stat-icon{ background: linear-gradient(135deg, #64748b 0%, #475569 100%); box-shadow: 0 4px 12px rgba(100, 116, 139, 0.28); }
+        .stat-theme-danger .stat-icon { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.28); }
 
         /* BUTTONS (Compact) */
         .btn-creative-primary {
@@ -549,31 +578,85 @@
                             $no = ($page - 1) * 10 + 1; 
                             foreach ($rekapList as $row): 
                             ?>
+                            <?php
+                                $pelatihanName = !empty($row['pelatihan']) && $row['pelatihan'] !== '-' ? trim($row['pelatihan']) : 'Umum';
+                                $pelLower = strtolower($pelatihanName);
+                                $pelBadge = 'bg-primary-subtle text-primary border-primary-subtle';
+                                if (str_contains($pelLower, 'kantor') || str_contains($pelLower, 'administrasi')) $pelBadge = 'bg-info-subtle text-info-emphasis border-info-subtle';
+                                elseif (str_contains($pelLower, 'basic') || str_contains($pelLower, 'dasar')) $pelBadge = 'bg-warning-subtle text-warning-emphasis border-warning-subtle';
+                                elseif (str_contains($pelLower, 'affiliate') || str_contains($pelLower, 'marketing')) $pelBadge = 'bg-success-subtle text-success-emphasis border-success-subtle';
+                                elseif (str_contains($pelLower, 'program') || str_contains($pelLower, 'web') || str_contains($pelLower, 'flutter')) $pelBadge = 'bg-purple-subtle text-purple border-purple-subtle';
+
+                                $persenHadir = (float)($row['persentase_kehadiran'] ?? 0);
+                                $persenBadgeClass = ($persenHadir >= 85) ? 'bg-success' : (($persenHadir >= 70) ? 'bg-primary' : 'bg-danger');
+                            ?>
                             <tr class="table-row-item">
                                 <td class="text-center text-muted fw-bold"><?= $no++; ?></td>
-                                <td class="text-center"><code><?= esc($row['nis']); ?></code></td>
+                                <td class="text-center">
+                                    <span class="badge bg-light text-dark border px-2 py-1 font-monospace" style="font-size: 0.72rem; letter-spacing: 0.5px;"><?= esc($row['nis']); ?></span>
+                                </td>
                                 <td>
-                                    <strong class="text-dark"><?= esc($row['nama_peserta']); ?></strong>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-purple-subtle text-purple d-flex align-items-center justify-content-center me-2 fw-bold flex-shrink-0" style="width: 32px; height: 32px; font-size: 0.75rem; border: 1px solid rgba(121, 75, 196, 0.2);">
+                                            <?= strtoupper(substr(trim($row['nama_peserta'] ?? 'P'), 0, 1)); ?>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark" style="font-size: 0.82rem;"><?= esc($row['nama_peserta']); ?></div>
+                                            <small class="text-muted" style="font-size: 0.7rem;"><?= esc($row['kelas'] ?? 'Kelas Pelatihan'); ?></small>
+                                        </div>
+                                    </div>
                                 </td>
-                                <td><span class="badge bg-light text-dark border"><?= esc($row['kelas']); ?></span></td>
-                                <td><span class="text-secondary small fw-semibold"><?= esc($row['pelatihan']); ?></span></td>
-                                <td class="small"><?= esc($row['tempat_pelatihan'] ?? '-'); ?></td>
-                                <td class="text-center fw-bold"><?= $row['total_pertemuan']; ?></td>
-                                <td class="text-center fw-bold text-success"><?= $row['hadir']; ?></td>
-                                <td class="text-center"><?= $row['izin']; ?></td>
-                                <td class="text-center"><?= $row['sakit']; ?></td>
-                                <td class="text-center fw-bold text-danger"><?= $row['alpa']; ?></td>
-                                <td class="text-center fw-bold text-warning"><?= $row['terlambat']; ?></td>
+                                <td>
+                                    <div class="fw-bold text-dark d-flex align-items-center" style="font-size: 0.8rem;">
+                                        <i class="fas fa-graduation-cap text-purple me-1.5 flex-shrink-0"></i>
+                                        <span><?= esc($row['kelas']); ?></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge <?= $pelBadge; ?> border px-2 py-1" style="font-size: 0.7rem;">
+                                        <?= esc($pelatihanName); ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="text-secondary d-flex align-items-center" style="font-size: 0.74rem; max-width: 170px;" title="<?= esc($row['tempat_pelatihan'] ?? '-'); ?>">
+                                        <i class="fas fa-location-dot text-danger me-1 flex-shrink-0" style="font-size: 0.75rem;"></i>
+                                        <span class="text-truncate"><?= esc($row['tempat_pelatihan'] ?? '-'); ?></span>
+                                    </div>
+                                </td>
+                                <td class="text-center fw-bold text-dark"><?= $row['total_pertemuan']; ?></td>
                                 <td class="text-center">
-                                    <span class="fw-bold text-primary"><?= number_format($row['persentase_kehadiran'], 1); ?>%</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 fw-bold" style="font-size: 0.72rem;"><?= $row['hadir']; ?></span>
                                 </td>
                                 <td class="text-center">
-                                    <span class="badge <?= $row['badge_class']; ?> px-2 py-0.5" style="font-size: 0.7rem;">
-                                        <?= esc($row['predikat']); ?>
+                                    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-1 fw-bold" style="font-size: 0.72rem;"><?= $row['izin']; ?></span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 fw-bold" style="font-size: 0.72rem;"><?= $row['sakit']; ?></span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 fw-bold" style="font-size: 0.72rem;"><?= $row['alpa']; ?></span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 fw-bold" style="font-size: 0.72rem;"><?= $row['terlambat']; ?></span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge <?= $persenBadgeClass; ?> text-white px-2 py-1 fw-bold shadow-sm" style="font-size: 0.72rem; border-radius: 20px;">
+                                        <?= number_format($persenHadir, 1); ?>%
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <button type="button" class="btn btn-sm btn-outline-primary px-2 py-0.5" style="font-size: 0.75rem; border-radius:6px;" onclick="openModalDetail(<?= $row['id_pendaftaran']; ?>, '<?= esc($row['nama_peserta']); ?>')">
+                                    <?php if ($row['predikat'] === 'Sangat Baik'): ?>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 fw-semibold" style="font-size: 0.7rem;"><i class="fas fa-circle-check me-1"></i>Sangat Baik</span>
+                                    <?php elseif ($row['predikat'] === 'Baik'): ?>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fw-semibold" style="font-size: 0.7rem;"><i class="fas fa-check me-1"></i>Baik</span>
+                                    <?php elseif ($row['predikat'] === 'Cukup'): ?>
+                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 fw-semibold" style="font-size: 0.7rem;"><i class="fas fa-clock me-1"></i>Cukup</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 fw-semibold" style="font-size: 0.7rem;"><i class="fas fa-triangle-exclamation me-1"></i>Kurang</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-outline-purple px-2 py-1" style="font-size: 0.75rem; border-radius: 8px;" onclick="openModalDetail(<?= $row['id_pendaftaran']; ?>, '<?= esc($row['nama_peserta']); ?>')" title="Lihat Detail Presensi">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </td>

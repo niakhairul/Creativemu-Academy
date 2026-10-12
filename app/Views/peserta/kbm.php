@@ -683,7 +683,7 @@
                     </span>
 
                     <h2 class="fw-bold mb-2">
-                        <?= esc($kelas['nama_kelas']) ?>
+                        <?= esc($kelas['nama_kelas'] ?? $kelas['name'] ?? $kelas['pilihan_kelas'] ?? 'Kelas Pelatihan') ?>
                     </h2>
 
                     <p class="kbm-hero-description mb-3">

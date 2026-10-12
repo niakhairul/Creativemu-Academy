@@ -509,55 +509,73 @@
                                     <?php foreach ($jadwal as $item): ?>
                                         <?php
                                             $absensi = $item['absensi'] ?? null;
-                                            $statusAbsensi = $absensi['status'] ?? null;
+                                            $statusAbsensi = strtolower(trim($absensi['status'] ?? ''));
                                             $idJadwalItem = $item['id_jadwal'] ?? $item['id_jadwal_kelas'] ?? '';
-                                            $absensiDibuka = 1; 
+                                            $absensiDibuka = (int)($item['absensi_dibuka'] ?? 0);
                                         ?>
                                         <div class="col-lg-6">
                                             <div class="materi-card">
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <span class="materi-badge">Pertemuan <?= esc($item['pertemuan_ke'] ?? '-') ?></span>
+                                                    <?php if (!empty($item['pertemuan_ke'])): ?>
+                                                        <span class="materi-badge">Pertemuan <?= esc($item['pertemuan_ke']) ?></span>
+                                                    <?php endif; ?>
                                                     <?php if ($statusAbsensi === 'hadir'): ?>
                                                         <span class="badge bg-success bg-opacity-15 text-success px-2.5 py-1 rounded-pill fw-bold" style="font-size: 11px;">
-                                                            <i class="bi bi-check-circle-fill me-1"></i> Hadir
+                                                            <i class="bi bi-check-circle-fill me-1"></i> Sudah Absen
+                                                        </span>
+                                                    <?php elseif ($absensiDibuka === 1): ?>
+                                                        <span class="badge bg-primary bg-opacity-15 text-primary px-2.5 py-1 rounded-pill fw-bold" style="font-size: 11px;">
+                                                            <i class="bi bi-broadcast me-1"></i> Absensi Dibuka
                                                         </span>
                                                     <?php else: ?>
-                                                        <span class="badge bg-light text-muted px-2.5 py-1 rounded-pill fw-semibold border" style="font-size: 11px;">
-                                                            <i class="bi bi-clock me-1"></i> Belum Absen
+                                                        <span class="badge bg-secondary bg-opacity-15 text-secondary px-2.5 py-1 rounded-pill fw-bold" style="font-size: 11px;">
+                                                            <i class="bi bi-lock-fill me-1"></i> Belum Dibuka
                                                         </span>
                                                     <?php endif; ?>
                                                 </div>
-                                                <h5 class="fw-bold mt-1 mb-1 text-dark" style="font-size: 13.5px;">Sesi Pertemuan Ke-<?= esc($item['pertemuan_ke'] ?? '-') ?></h5>
-                                                <p class="text-muted mb-1" style="font-size: 12px;">
-                                                    <i class="bi bi-clock me-1" style="color: var(--color-orange);"></i>
-                                                    Jam Absensi: <?= !empty($item['waktu_mulai']) ? date('H.i', strtotime($item['waktu_mulai'])) : '--.--' ?> - <?= !empty($item['waktu_selesai']) ? date('H.i', strtotime($item['waktu_selesai'])) : '--.--' ?>
-                                                </p>
-                                                  <?php if ($statusAbsensi === 'hadir' && !empty($absensi['waktu_absen'])): ?>
-                                                  <p class="text-success mb-2 fw-semibold" style="font-size: 12px;">
-                                                      <i class="bi bi-check-circle me-1"></i>
-                                                      Jam Presensi: <?= date('H.i', strtotime($absensi['waktu_absen'])) ?> WIB
-                                                  </p>
-                                                  <?php endif; ?>
+                                                <h5 class="fw-bold mt-1 mb-1 text-dark" style="font-size: 13.5px;">
+                                                    <?= !empty($item['materi']) ? esc($item['materi']) : (!empty($item['pertemuan_ke']) ? 'Sesi Pertemuan Ke-' . esc($item['pertemuan_ke']) : 'Sesi Pertemuan'); ?>
+                                                </h5>
+
+                                                <?php if (!empty($item['tanggal_kbm'])): ?>
+                                                    <p class="text-muted mb-1" style="font-size: 12px;">
+                                                        <i class="bi bi-calendar-event me-1" style="color: var(--color-purple);"></i>
+                                                        Tanggal: <?= date('d M Y', strtotime($item['tanggal_kbm'])) ?>
+                                                    </p>
+                                                <?php endif; ?>
+
+                                                <?php if (!empty($item['waktu_mulai'])): ?>
+                                                    <p class="text-muted mb-1" style="font-size: 12px;">
+                                                        <i class="bi bi-clock me-1" style="color: var(--color-orange);"></i>
+                                                        Jam Absensi: <?= date('H.i', strtotime($item['waktu_mulai'])) ?><?= !empty($item['waktu_selesai']) ? ' - ' . date('H.i', strtotime($item['waktu_selesai'])) : '' ?> WIB
+                                                    </p>
+                                                <?php endif; ?>
+
+                                                <?php if ($statusAbsensi === 'hadir' && !empty($absensi['waktu_absen'])): ?>
+                                                    <p class="text-success mb-2 fw-semibold" style="font-size: 12px;">
+                                                        <i class="bi bi-check-circle me-1"></i>
+                                                        Waktu Presensi: <?= date('d M Y, H.i', strtotime($absensi['waktu_absen'])) ?> WIB
+                                                    </p>
+                                                <?php endif; ?>
 
                                                 <?php if ($statusAbsensi === 'hadir'): ?>
                                                     <div class="alert alert-success border-0 bg-success bg-opacity-10 text-success mb-0 rounded-3 py-1.5 small fw-semibold" style="font-size: 12px;">
-                                                        Kehadiran Anda telah tervalidasi sistem.
+                                                        <i class="bi bi-check-circle-fill me-1"></i> Kehadiran Anda telah tervalidasi sistem.
                                                     </div>
-                                                <?php else: ?>
-                                                    <?php if ($absensiDibuka == 1) : ?>
-                                                        <form action="<?= base_url('pelatihan/prosesAbsen/' . $idJadwalItem); ?>" method="POST" class="mt-2">
-                                                            <?= csrf_field(); ?>
-                                                            <input type="hidden" name="user_latitude" class="user_latitude">
-                                                            <input type="hidden" name="user_longitude" class="user_longitude">
+                                                <?php elseif ($absensiDibuka === 1): ?>
+                                                    <form action="<?= base_url('pelatihan/prosesAbsen/' . $idJadwalItem); ?>" method="POST" class="mt-2">
+                                                        <?= csrf_field(); ?>
+                                                        <input type="hidden" name="user_latitude" class="user_latitude">
+                                                        <input type="hidden" name="user_longitude" class="user_longitude">
 
-                                                            <button type="submit" class="btn btn-absen w-100 rounded-pill fw-semibold text-white shadow-sm" style="background: var(--color-purple); font-size: 12px;" disabled>
-                                                                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                                                                Mendeteksi Lokasi GPS...
-                                                            </button>
-                                                        </form>
-                                                    <?php else : ?>
-                                                        <span class="badge bg-secondary py-1.5 rounded-pill" style="font-size: 11px;">Absensi Belum Dibuka</span>
-                                                    <?php endif; ?>
+                                                        <button type="submit" class="btn btn-absen w-100 rounded-pill fw-semibold text-white shadow-sm" style="background: var(--color-purple); font-size: 12px;">
+                                                            <i class="bi bi-geo-alt-fill me-1"></i> Kirim Absen Sekarang
+                                                        </button>
+                                                    </form>
+                                                <?php else: ?>
+                                                    <button type="button" class="btn btn-secondary w-100 rounded-pill fw-semibold mt-2" style="font-size: 12px; opacity: 0.65; cursor: not-allowed;" disabled>
+                                                        <i class="bi bi-lock-fill me-1"></i> Absensi Belum Dibuka
+                                                    </button>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
@@ -566,8 +584,8 @@
                             <?php else: ?>
                                 <div class="text-center py-4">
                                     <div class="text-muted fs-2 mb-2"><i class="bi bi-calendar-x opacity-50"></i></div>
-                                    <h6 class="fw-bold text-dark" style="font-size: 14px;">Belum Ada Jadwal</h6>
-                                    <p class="text-muted small" style="font-size: 13px;">Jadwal kelas belum diatur oleh mentor.</p>
+                                    <h6 class="fw-bold text-dark" style="font-size: 14px;">Belum Ada Sesi Absensi</h6>
+                                    <p class="text-muted small" style="font-size: 13px;">Data presensi dan sesi pertemuan resmi dari Laravel belum tersedia untuk kelas ini.</p>
                                 </div>
                             <?php endif; ?>
                         </div>

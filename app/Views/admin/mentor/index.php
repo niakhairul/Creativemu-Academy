@@ -358,8 +358,10 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                     <thead>
                         <tr>
                             <th style="width: 50px;">No</th>
-                            <th>NIP & Nama</th>
-                            <th>Kontak</th>
+                            <th style="width: 120px;">NIP</th>
+                            <th>Nama Instruktur</th>
+                            <th>Email</th>
+                            <th>No. HP / WhatsApp</th>
                             <th>Status</th>
                             <th>CV</th>
                         </tr>
@@ -370,12 +372,30 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                 <tr>
                                     <td class="fw-semibold text-muted"><?= $no++; ?></td>
                                     <td>
-                                        <span class="badge bg-light text-dark border mb-1" style="font-size: 0.7rem;">NIP: <?= esc($m['nip'] ?? '-'); ?></span>
+                                        <?php if (!empty($m['nip']) && $m['nip'] !== '-'): ?>
+                                            <span class="badge bg-light text-dark border px-2 py-1 fw-medium" style="font-size: 0.75rem; letter-spacing: 0.3px;">
+                                                <?= esc($m['nip']); ?>
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="text-muted small fst-italic">Belum ada</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
                                         <div class="fw-bold" style="color: var(--dark-purple); font-size: 0.88rem;"><?= esc($m['nama_mentor']); ?></div>
                                     </td>
                                     <td>
-                                        <small class="text-muted d-block"><i class="fas fa-envelope me-1"></i> <?= esc($m['email']); ?></small>
-                                        <small class="text-muted d-block"><i class="fas fa-phone me-1"></i> <?= esc($m['telepon']); ?></small>
+                                        <?php if (!empty($m['email']) && $m['email'] !== '-'): ?>
+                                            <span class="text-muted d-block small"><i class="fas fa-envelope text-primary me-1"></i> <?= esc($m['email']); ?></span>
+                                        <?php else: ?>
+                                            <span class="text-muted small fst-italic">Tidak tersedia</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if (!empty($m['telepon']) && $m['telepon'] !== '-'): ?>
+                                            <span class="text-muted d-block small"><i class="fab fa-whatsapp text-success me-1"></i> <?= esc($m['telepon']); ?></span>
+                                        <?php else: ?>
+                                            <span class="text-muted small fst-italic">Tidak tersedia</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
                                         <?php if($m['status'] == 'Aktif'): ?>
@@ -392,11 +412,12 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                         <?php else: ?>
                                             <span class="text-muted small">Tidak ada</span>
                                         <?php endif; ?>
-                                    </tr>
+                                    </td>
+                                </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="5" class="text-center py-4 text-muted small">Belum ada data instruktur yang tersedia.</td>
+                                <td colspan="7" class="text-center py-4 text-muted small">Belum ada data instruktur yang tersedia.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>

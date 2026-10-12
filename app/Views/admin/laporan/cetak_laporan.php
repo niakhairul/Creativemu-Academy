@@ -291,17 +291,17 @@
                         <td><?= esc($p['resolved_nis']); ?></td>
                         <td><strong><?= esc($p['nama_peserta']); ?></strong></td>
                         <td><?= esc($p['resolved_gender']); ?></td>
-                        <td><?= esc($p['nama_kelas'] ?? '-'); ?></td>
-                        <td><?= esc($p['kategori'] ?? '-'); ?></td>
-                        <td><?= esc($p['tempat_pelatihan'] ?? '-'); ?></td>
+                        <td><?= esc(!empty($p['nama_kelas']) && $p['nama_kelas'] !== '-' ? $p['nama_kelas'] : 'Kelas Pelatihan'); ?></td>
+                        <td><?= esc(!empty($p['kategori']) && $p['kategori'] !== '-' ? $p['kategori'] : 'Pelatihan Kejuruan'); ?></td>
+                        <td><?= esc(!empty($p['tempat_pelatihan']) && $p['tempat_pelatihan'] !== '-' ? $p['tempat_pelatihan'] : 'Kantor Pusat'); ?></td>
                         <td class="text-center"><?= !empty($p['tanggal_daftar']) ? date('d/m/Y', strtotime($p['tanggal_daftar'])) : '-'; ?></td>
                         <td class="text-center">
-                            <strong><?= esc($p['status_kelulusan']); ?></strong>
+                            <strong><?= esc($p['status_kelulusan'] ?? 'Dalam Proses'); ?></strong>
                         </td>
                     </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <tr><td colspan="8" class="text-center py-3 text-muted">Tidak ada data peserta pada periode yang dipilih.</td></tr>
+                    <tr><td colspan="9" class="text-center py-3 text-muted">Tidak ada data peserta pada periode yang dipilih.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>

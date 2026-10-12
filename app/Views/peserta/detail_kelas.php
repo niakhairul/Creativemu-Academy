@@ -103,31 +103,46 @@
         <div class="modal-body-scroll">
             
             <!-- Thumbnail Kelas -->
-            <?php $gambarFile = $kelas['thumbnail'] ?? ''; ?>
-            <?php if (!empty($gambarFile) && file_exists(FCPATH . 'uploads/kelas/' . $gambarFile)) : ?>
-                <img src="<?= base_url('uploads/kelas/' . $gambarFile) ?>" class="img-detail mb-3" alt="<?= esc($kelas['nama_kelas']) ?>">
-            <?php else : ?>
-                <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80" class="img-detail mb-3" alt="Default Thumbnail">
+            <?php 
+                $gambarFile = !empty($kelas['thumbnail']) ? $kelas['thumbnail'] : (!empty($kelas['foto']) ? $kelas['foto'] : (!empty($kelas['image']) ? $kelas['image'] : null)); 
+            ?>
+            <?php if (!empty($gambarFile)): ?>
+                <?php if (filter_var($gambarFile, FILTER_VALIDATE_URL)): ?>
+                    <img src="<?= esc($gambarFile) ?>" class="img-detail mb-3" alt="<?= esc($kelas['nama_kelas'] ?? 'Kelas') ?>">
+                <?php elseif (file_exists(FCPATH . 'uploads/kelas/' . $gambarFile)): ?>
+                    <img src="<?= base_url('uploads/kelas/' . $gambarFile) ?>" class="img-detail mb-3" alt="<?= esc($kelas['nama_kelas'] ?? 'Kelas') ?>">
+                <?php endif; ?>
             <?php endif; ?>
 
-            <!-- Kategori & Tipe -->
+            <!-- Kategori, Tipe & Status -->
             <div class="d-flex flex-wrap gap-2 mb-2">
-                <span class="badge-kategori"><?= esc($kelas['kategori']) ?></span>
-                <span class="badge-tipe">
-                    <i class="bi <?= strtolower($kelas['tipe_kelas'] ?? '') == 'online' ? 'bi-camera-video-fill' : 'bi-building-fill' ?> me-1"></i>
-                    <?= esc($kelas['tipe_kelas'] ?? 'Belum ditentukan') ?>
-                </span>
-                <?php $status = strtolower($kelas['status'] ?? 'aktif'); ?>
-                <span class="badge <?= $status == 'aktif' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle' ?> px-2 py-1 rounded-pill" style="font-size: 0.7rem;">
-                    <?= ucfirst($kelas['status'] ?? 'Aktif') ?>
-                </span>
+                <?php if (!empty($kelas['kategori'])): ?>
+                    <span class="badge-kategori"><?= esc($kelas['kategori']) ?></span>
+                <?php endif; ?>
+
+                <?php if (!empty($kelas['tipe_kelas']) || !empty($kelas['metode_pembelajaran'])): ?>
+                    <?php $tipeTampil = $kelas['tipe_kelas'] ?? $kelas['metode_pembelajaran']; ?>
+                    <span class="badge-tipe">
+                        <i class="bi <?= strtolower($tipeTampil) == 'online' ? 'bi-camera-video-fill' : 'bi-building-fill' ?> me-1"></i>
+                        <?= esc(ucfirst($tipeTampil)) ?>
+                    </span>
+                <?php endif; ?>
+
+                <?php if (!empty($kelas['status'])): ?>
+                    <?php $status = strtolower($kelas['status']); ?>
+                    <span class="badge <?= in_array($status, ['aktif', '1', 'active', 'approved']) ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-warning border border-warning-subtle' ?> px-2 py-1 rounded-pill" style="font-size: 0.7rem;">
+                        <?= ucfirst(esc($kelas['status'])) ?>
+                    </span>
+                <?php endif; ?>
             </div>
 
             <!-- Judul Kelas -->
-            <h3 class="fw-bold text-dark fs-5 mb-2"><?= esc($kelas['nama_kelas']) ?></h3>
+            <?php if (!empty($kelas['nama_kelas'])): ?>
+                <h3 class="fw-bold text-dark fs-5 mb-2"><?= esc($kelas['nama_kelas']) ?></h3>
+            <?php endif; ?>
 
             <!-- Ringkasan Singkat -->
-            <?php if (!empty($kelas['ringkasan'])) : ?>
+            <?php if (!empty($kelas['ringkasan']) && $kelas['ringkasan'] !== '-'): ?>
                 <p class="text-muted mb-3" style="font-size: 0.85rem;"><?= esc($kelas['ringkasan']) ?></p>
             <?php endif; ?>
 
@@ -135,54 +150,77 @@
 
             <!-- Informasi Detail (Grid Ringkas) -->
             <div class="row g-2 mb-2">
-                <div class="col-md-6">
-                    <div class="info-box">
-                        <span class="text-muted d-block" style="font-size: 0.7rem;"><i class="bi bi-person-workspace text-primary me-1"></i> Mentor Pengampu</span>
-                        <strong class="text-dark" style="font-size: 0.8rem;"><?= esc($kelas['nama_mentor'] ?? 'Belum ditentukan') ?></strong>
+                <?php if (!empty($kelas['nama_mentor'])): ?>
+                    <div class="col-md-6">
+                        <div class="info-box">
+                            <span class="text-muted d-block" style="font-size: 0.7rem;"><i class="bi bi-person-workspace text-primary me-1"></i> Instruktur Pengampu</span>
+                            <strong class="text-dark" style="font-size: 0.8rem;"><?= esc($kelas['nama_mentor']) ?></strong>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="info-box">
-                        <span class="text-muted d-block" style="font-size: 0.7rem;"><i class="bi bi-clock-fill text-primary me-1"></i> Jumlah Pertemuan</span>
-                        <strong class="text-dark" style="font-size: 0.8rem;"><?= esc($kelas['jumlah_pertemuan']) ?> Pertemuan</strong>
+                <?php endif; ?>
+
+                <?php if (!empty($kelas['jumlah_pertemuan'])): ?>
+                    <div class="col-md-6">
+                        <div class="info-box">
+                            <span class="text-muted d-block" style="font-size: 0.7rem;"><i class="bi bi-clock-fill text-primary me-1"></i> Jumlah Pertemuan</span>
+                            <strong class="text-dark" style="font-size: 0.8rem;"><?= esc($kelas['jumlah_pertemuan']) ?> Pertemuan</strong>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="info-box">
-                        <span class="text-muted d-block" style="font-size: 0.7rem;"><i class="bi bi-people-fill text-primary me-1"></i> Kapasitas Peserta</span>
-                        <strong class="text-dark" style="font-size: 0.8rem;"><?= esc($kelas['kapasitas_tersedia'] ?? $kelas['kapasitas'] ?? '-') ?> Orang</strong>
+                <?php endif; ?>
+
+                <?php if (isset($kelas['kapasitas']) && $kelas['kapasitas'] !== null && $kelas['kapasitas'] !== ''): ?>
+                    <div class="col-md-6">
+                        <div class="info-box">
+                            <span class="text-muted d-block" style="font-size: 0.7rem;"><i class="bi bi-people-fill text-primary me-1"></i> Kapasitas Peserta</span>
+                            <strong class="text-dark" style="font-size: 0.8rem;"><?= esc($kelas['kapasitas_tersedia'] ?? $kelas['kapasitas']) ?> Orang</strong>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="info-box">
-                        <span class="text-muted d-block" style="font-size: 0.7rem;"><i class="bi bi-geo-alt-fill text-primary me-1"></i> Lokasi / Media Kelas</span>
-                        <strong class="text-dark" style="font-size: 0.8rem;"><?= esc($kelas['lokasi_pelatihan'] ?? 'Belum diatur') ?></strong>
+                <?php endif; ?>
+
+                <?php if (!empty($kelas['lokasi_media'])): ?>
+                    <div class="col-md-6">
+                        <div class="info-box">
+                            <span class="text-muted d-block" style="font-size: 0.7rem;"><i class="bi bi-geo-alt-fill text-primary me-1"></i> Lokasi Media</span>
+                            <strong class="text-dark" style="font-size: 0.8rem;"><?= esc($kelas['lokasi_media']) ?></strong>
+                        </div>
                     </div>
-                </div>
+                <?php endif; ?>
             </div>
 
             <!-- Deskripsi Lengkap -->
-            <div class="section-title">Deskripsi Lengkap</div>
-            <div class="text-secondary mb-3 p-3 bg-light rounded-3" style="font-size: 0.82rem; line-height: 1.6;">
-                <?= nl2br(esc($kelas['deskripsi'])) ?>
-            </div>
+            <?php if (!empty($kelas['deskripsi']) && $kelas['deskripsi'] !== '-'): ?>
+                <div class="section-title">Deskripsi Lengkap</div>
+                <div class="text-secondary mb-3 p-3 bg-light rounded-3" style="font-size: 0.82rem; line-height: 1.6;">
+                    <?= nl2br(esc($kelas['deskripsi'])) ?>
+                </div>
+            <?php endif; ?>
 
             <!-- Informasi Harga -->
-            <div class="section-title">Rincian Biaya Pendaftaran</div>
-            <div class="row g-2 mb-3">
-                <div class="col-6">
-                    <div class="p-2 border rounded-3 bg-white text-center">
-                        <span class="text-muted d-block" style="font-size: 0.7rem;">Reguler</span>
-                        <span class="fw-bold text-dark" style="font-size: 0.85rem;">Rp <?= number_format($kelas['harga_reguler'] ?? 0, 0, ',', '.') ?></span>
-                    </div>
+            <?php 
+                $hasReguler = isset($kelas['harga_reguler']) && $kelas['harga_reguler'] !== null && $kelas['harga_reguler'] !== '';
+                $hasPrivat = isset($kelas['harga_privat']) && $kelas['harga_privat'] !== null && $kelas['harga_privat'] !== '';
+            ?>
+            <?php if ($hasReguler || $hasPrivat): ?>
+                <div class="section-title">Rincian Biaya Pendaftaran</div>
+                <div class="row g-2 mb-3">
+                    <?php if ($hasReguler): ?>
+                        <div class="<?= $hasPrivat ? 'col-6' : 'col-12' ?>">
+                            <div class="p-2 border rounded-3 bg-white text-center">
+                                <span class="text-muted d-block" style="font-size: 0.7rem;">Reguler</span>
+                                <span class="fw-bold text-dark" style="font-size: 0.85rem;">Rp <?= number_format((float)$kelas['harga_reguler'], 0, ',', '.') ?></span>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ($hasPrivat): ?>
+                        <div class="<?= $hasReguler ? 'col-6' : 'col-12' ?>">
+                            <div class="p-2 border rounded-3 bg-light text-center border-primary">
+                                <span class="text-primary d-block fw-semibold" style="font-size: 0.7rem;">Privat</span>
+                                <span class="fw-bold text-primary" style="font-size: 0.85rem;">Rp <?= number_format((float)$kelas['harga_privat'], 0, ',', '.') ?></span>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 </div>
-                <div class="col-6">
-                    <div class="p-2 border rounded-3 bg-light text-center border-primary">
-                        <span class="text-primary d-block fw-semibold" style="font-size: 0.7rem;">Privat</span>
-                        <span class="fw-bold text-primary" style="font-size: 0.85rem;">Rp <?= number_format($kelas['harga_privat'] ?? 0, 0, ',', '.') ?></span>
-                    </div>
-                </div>
-            </div>
+            <?php endif; ?>
 
         </div>
 

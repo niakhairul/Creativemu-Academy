@@ -461,6 +461,25 @@
                         </select>
                     </div>
 
+                    <div class="col-12 col-sm-6 col-md-2">
+                        <label class="form-label mb-1 super-small fw-semibold text-muted" style="font-size: 0.725rem;">Status Kelulusan</label>
+                        <select name="status_kelulusan" class="form-select form-select-sm">
+                            <?php $currentStatus = $filters['status_kelulusan'] ?? 'all'; ?>
+                            <option value="all" <?= ($currentStatus === 'all') ? 'selected' : ''; ?>>-- Semua Status --</option>
+                            <option value="lulus" <?= ($currentStatus === 'lulus') ? 'selected' : ''; ?>>Lulus</option>
+                            <option value="tidak_lulus" <?= ($currentStatus === 'tidak_lulus') ? 'selected' : ''; ?>>Tidak Lulus</option>
+                            <option value="proses" <?= ($currentStatus === 'proses') ? 'selected' : ''; ?>>Dalam Proses</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-sm-6 col-md-4">
+                        <label class="form-label mb-1 super-small fw-semibold text-muted" style="font-size: 0.725rem;">Cari Peserta (Nama / NIS / Email / No. HP)</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted" style="font-size: 0.75rem;"></i></span>
+                            <input type="text" name="q" class="form-control border-start-0" placeholder="Ketik kata kunci pencarian..." value="<?= esc($filters['q'] ?? ''); ?>">
+                        </div>
+                    </div>
+
                     <div class="col-12 d-flex gap-2 justify-content-end align-items-center mt-2 pt-1">
                         <a href="<?= base_url($baseUrlReport); ?>" class="btn btn-outline-purple">
                             <i class="fas fa-rotate-left me-1"></i> Reset
@@ -580,11 +599,20 @@
         </div>
 
         <!-- TABEL REKAPITULASI -->
-        <div class="custom-card">
+        <div class="custom-card shadow-sm border-0 mb-4" style="border-radius: 14px;">
             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                <h6 class="fw-bold m-0" style="color: var(--dark-purple); font-size: 0.85rem;">
-                    <i class="fas fa-list-check me-1" style="color: var(--primary-purple);"></i> Rekapitulasi Jumlah Peserta
-                </h6>
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(121, 75, 196, 0.12); display: flex; align-items: center; justify-content: center; color: var(--primary-purple);">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold m-0" style="color: var(--dark-purple); font-size: 0.92rem;">Rekapitulasi Peserta Per Kelas</h6>
+                        <small class="text-muted" style="font-size: 0.72rem;">Distribusi jumlah peserta dan status kelulusan berdasarkan kelas pelatihan</small>
+                    </div>
+                </div>
+                <span class="badge bg-purple-subtle text-purple border px-2.5 py-1" style="font-size: 0.75rem;">
+                    <i class="fas fa-chalkboard-user me-1"></i><?= count($rekapKelas ?? []); ?> Kelas Aktif
+                </span>
             </div>
 
             <div class="table-responsive">
@@ -604,9 +632,9 @@
                             <th rowspan="2" class="text-center align-middle">Tidak Lulus</th>
                         </tr>
                         <tr>
-                            <th class="text-center bg-dark-subtle text-dark" style="font-size: 0.725rem; min-width: 110px;">Kantor Pusat</th>
-                            <th class="text-center bg-dark-subtle text-dark" style="font-size: 0.725rem; min-width: 110px;">Kantor Cabang</th>
-                            <th class="text-center bg-dark-subtle text-dark" style="font-size: 0.725rem; min-width: 110px;">Kantor Perwakilan</th>
+                            <th class="text-center bg-dark-subtle text-dark" style="font-size: 0.725rem; min-width: 105px;">Kantor Pusat</th>
+                            <th class="text-center bg-dark-subtle text-dark" style="font-size: 0.725rem; min-width: 105px;">Kantor Cabang</th>
+                            <th class="text-center bg-dark-subtle text-dark" style="font-size: 0.725rem; min-width: 105px;">Kantor Perwakilan</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -627,29 +655,81 @@
                                             }
                                         }
                                     }
+
+                                    $kat = trim($k['kategori'] ?? 'Umum');
+                                    $katLower = strtolower($kat);
+                                    $katBadgeClass = 'bg-primary-subtle text-primary border-primary-subtle';
+                                    $katIcon = 'fa-certificate';
+                                    if (str_contains($katLower, 'kantor') || str_contains($katLower, 'administrasi')) {
+                                        $katBadgeClass = 'bg-info-subtle text-info-emphasis border-info-subtle';
+                                        $katIcon = 'fa-briefcase';
+                                    } elseif (str_contains($katLower, 'basic') || str_contains($katLower, 'dasar')) {
+                                        $katBadgeClass = 'bg-warning-subtle text-warning-emphasis border-warning-subtle';
+                                        $katIcon = 'fa-book-open';
+                                    } elseif (str_contains($katLower, 'affiliate') || str_contains($katLower, 'marketing')) {
+                                        $katBadgeClass = 'bg-success-subtle text-success-emphasis border-success-subtle';
+                                        $katIcon = 'fa-chart-line';
+                                    } elseif (str_contains($katLower, 'program') || str_contains($katLower, 'web') || str_contains($katLower, 'flutter')) {
+                                        $katBadgeClass = 'bg-purple-subtle text-purple border-purple-subtle';
+                                        $katIcon = 'fa-code';
+                                    }
                                 ?>
                                 <tr>
-                                    <td class="text-center fw-bold"><?= $no++; ?></td>
-                                    <td class="fw-semibold text-dark"><?= esc($k['nama_kelas']); ?></td>
-                                    <td><span class="badge bg-light text-dark border"><?= esc($k['kategori']); ?></span></td>
-                                    <td class="text-center fw-semibold text-primary"><?= number_format($pusat); ?></td>
-                                    <td class="text-center fw-semibold text-primary"><?= number_format($cabang); ?></td>
-                                    <td class="text-center fw-semibold text-primary"><?= number_format($perwakilan); ?></td>
-                                    <td class="text-center fw-bold text-purple"><?= number_format($k['jumlah_peserta']); ?></td>
-                                    <td class="text-center text-muted"><?= number_format($k['laki_laki']); ?></td>
-                                    <td class="text-center text-muted"><?= number_format($k['perempuan']); ?></td>
-                                    <td class="text-center">
-                                        <span class="badge bg-success-subtle text-success"><?= number_format($k['lulus']); ?></span>
+                                    <td class="text-center fw-bold text-muted"><?= $no++; ?></td>
+                                    <td>
+                                        <div class="fw-bold text-dark d-flex align-items-center">
+                                            <span class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center me-2 flex-shrink-0" style="width: 28px; height: 28px; border: 1px solid #e0dbf0;">
+                                                <i class="fas fa-graduation-cap text-purple" style="font-size: 0.75rem;"></i>
+                                            </span>
+                                            <span><?= esc($k['nama_kelas']); ?></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge <?= $katBadgeClass; ?> border px-2 py-1" style="font-size: 0.72rem;">
+                                            <i class="fas <?= $katIcon; ?> me-1"></i><?= esc($kat); ?>
+                                        </span>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge bg-danger-subtle text-danger"><?= number_format($k['tidak_lulus']); ?></span>
+                                        <span class="badge bg-light text-primary border px-2 py-1 fw-bold"><?= number_format($pusat); ?></span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-light text-secondary border px-2 py-1 fw-bold"><?= number_format($cabang); ?></span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-light text-secondary border px-2 py-1 fw-bold"><?= number_format($perwakilan); ?></span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge px-2.5 py-1 fw-bold text-white shadow-sm" style="background: var(--sidebar-active-gradient); font-size: 0.75rem;">
+                                            <?= number_format($k['jumlah_peserta']); ?> Siswa
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary-subtle text-primary border px-2 py-1" style="font-size: 0.7rem;">
+                                            <i class="fas fa-mars me-1"></i><?= number_format($k['laki_laki']); ?>
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-danger-subtle text-danger border px-2 py-1" style="font-size: 0.7rem;">
+                                            <i class="fas fa-venus me-1"></i><?= number_format($k['perempuan']); ?>
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 fw-bold" style="font-size: 0.72rem;">
+                                            <i class="fas fa-check-circle me-1"></i><?= number_format($k['lulus']); ?>
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 fw-bold" style="font-size: 0.72rem;">
+                                            <i class="fas fa-times-circle me-1"></i><?= number_format($k['tidak_lulus']); ?>
+                                        </span>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
                                 <td colspan="11" class="text-center py-4 text-muted">
-                                    Tidak ada data rekapitulasi.
+                                    <i class="fas fa-folder-open mb-2 d-block" style="font-size: 1.5rem; opacity: 0.5;"></i>
+                                    Tidak ada data rekapitulasi pada filter yang dipilih.
                                 </td>
                             </tr>
                         <?php endif; ?>
@@ -659,13 +739,16 @@
         </div>
 
         <!-- TABEL DETAIL DATA PESERTA -->
-        <div class="custom-card">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-2 pb-2 border-bottom">
-                <div>
-                    <h6 class="fw-bold m-0" style="color: var(--dark-purple); font-size: 0.85rem;">
-                        <i class="fas fa-address-book me-1" style="color: var(--primary-purple);"></i> Detail Data Peserta
-                    </h6>
-                    <small class="text-muted" style="font-size: 0.7rem;">Total: <?= esc($totalDetail ?? count($detailList ?? [])); ?> peserta terdaftar</small>
+        <div class="custom-card shadow-sm border-0" style="border-radius: 14px;">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(89, 49, 160, 0.12); display: flex; align-items: center; justify-content: center; color: var(--secondary-purple);">
+                        <i class="fas fa-address-book"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold m-0" style="color: var(--dark-purple); font-size: 0.92rem;">Detail Data Peserta Pelatihan</h6>
+                        <small class="text-muted" style="font-size: 0.72rem;">Total: <?= esc($totalDetail ?? count($detailList ?? [])); ?> peserta terdaftar pada periode ini</small>
+                    </div>
                 </div>
 
                 <div class="d-flex gap-2 flex-wrap">
@@ -675,7 +758,7 @@
                         <option value="tidak lulus">Tidak Lulus</option>
                         <option value="dalam proses">Dalam Proses</option>
                     </select>
-                    <div class="input-group input-group-sm" style="width: 220px;">
+                    <div class="input-group input-group-sm" style="width: 230px;">
                         <input type="text" id="searchDetailInput" class="form-control" placeholder="Cari nama, NIS, kelas..." onkeyup="filterDetailTable()">
                         <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
                     </div>
@@ -683,18 +766,18 @@
             </div>
 
             <div class="table-responsive">
-                <table class="table-custom" id="detailPesertaTable">
+                <table class="table-custom border" id="detailPesertaTable">
                     <thead>
                         <tr>
-                            <th width="4%" class="text-center">No</th>
-                            <th>Nama Peserta</th>
-                            <th>ID / NIS</th>
-                            <th>Gender</th>
-                            <th>Kelas</th>
-                            <th>Pelatihan</th>
-                            <th>Tempat Pelatihan</th>
-                            <th>Tanggal Daftar</th>
-                            <th class="text-center">Status Kelulusan</th>
+                            <th width="4%" class="text-center align-middle">No</th>
+                            <th class="align-middle">Nama Peserta</th>
+                            <th class="align-middle">ID / NIS</th>
+                            <th class="align-middle">Gender</th>
+                            <th class="align-middle">Kelas</th>
+                            <th class="align-middle">Pelatihan</th>
+                            <th class="align-middle">Tempat Pelatihan</th>
+                            <th class="align-middle">Tanggal Daftar</th>
+                            <th class="text-center align-middle">Status Kelulusan</th>
                         </tr>
                     </thead>
                     <tbody id="detailPesertaTbody">
@@ -704,46 +787,72 @@
                             if ($page < 1) $page = 1;
                             $no = 1 + ($page - 1) * 10;
                             foreach ($detailList as $p): 
+                                $namaKelas = !empty($p['nama_kelas']) && $p['nama_kelas'] !== '-' ? trim($p['nama_kelas']) : 'Kelas Pelatihan';
+                                $katPeserta = !empty($p['kategori']) && $p['kategori'] !== '-' ? trim($p['kategori']) : 'Pelatihan Kejuruan';
+                                $tempatPelatihan = !empty($p['tempat_pelatihan']) && $p['tempat_pelatihan'] !== '-' ? trim($p['tempat_pelatihan']) : 'Kantor Pusat';
+
+                                $katLower = strtolower($katPeserta);
+                                $pKatBadge = 'bg-primary-subtle text-primary border-primary-subtle';
+                                if (str_contains($katLower, 'kantor') || str_contains($katLower, 'administrasi')) $pKatBadge = 'bg-info-subtle text-info-emphasis border-info-subtle';
+                                elseif (str_contains($katLower, 'basic') || str_contains($katLower, 'dasar')) $pKatBadge = 'bg-warning-subtle text-warning-emphasis border-warning-subtle';
+                                elseif (str_contains($katLower, 'affiliate') || str_contains($katLower, 'marketing')) $pKatBadge = 'bg-success-subtle text-success-emphasis border-success-subtle';
+                                elseif (str_contains($katLower, 'program') || str_contains($katLower, 'web') || str_contains($katLower, 'flutter')) $pKatBadge = 'bg-purple-subtle text-purple border-purple-subtle';
                             ?>
                             <tr class="detail-row" 
                                 data-status="<?= strtolower($p['status_kelulusan'] ?? 'dalam proses'); ?>"
-                                data-search="<?= strtolower(esc(($p['nama_peserta'] ?? '') . ' ' . ($p['resolved_nis'] ?? '') . ' ' . ($p['nama_kelas'] ?? '') . ' ' . ($p['kategori'] ?? '') . ' ' . ($p['tempat_pelatihan'] ?? ''))); ?>">
-                                <td class="text-center fw-bold row-no"><?= $no++; ?></td>
+                                data-search="<?= strtolower(esc(($p['nama_peserta'] ?? '') . ' ' . ($p['resolved_nis'] ?? '') . ' ' . $namaKelas . ' ' . $katPeserta . ' ' . $tempatPelatihan)); ?>">
+                                <td class="text-center fw-bold row-no text-muted"><?= $no++; ?></td>
                                 <td>
-                                    <div class="fw-semibold text-dark"><?= esc($p['nama_peserta'] ?? '-'); ?></div>
-                                    <small class="text-muted" style="font-size: 0.7rem;"><?= esc($p['resolved_email'] ?? '-'); ?></small>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-purple-subtle text-purple d-flex align-items-center justify-content-center me-2 fw-bold flex-shrink-0" style="width: 32px; height: 32px; font-size: 0.75rem; border: 1px solid rgba(121, 75, 196, 0.2);">
+                                            <?= strtoupper(substr(trim($p['nama_peserta'] ?? 'P'), 0, 1)); ?>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark" style="font-size: 0.82rem;"><?= esc($p['nama_peserta'] ?? '-'); ?></div>
+                                            <small class="text-muted" style="font-size: 0.7rem;"><i class="far fa-envelope me-1"></i><?= esc($p['resolved_email'] ?? '-'); ?></small>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td>
-                                    <span class="badge bg-light text-dark border px-2 py-1 fw-mono" style="font-size: 0.7rem;"><?= esc($p['resolved_nis'] ?? '-'); ?></span>
+                                    <span class="badge bg-light text-dark border px-2 py-1 font-monospace" style="font-size: 0.7rem; letter-spacing: 0.5px;"><?= esc($p['resolved_nis'] ?? '-'); ?></span>
                                 </td>
                                 <td>
                                     <?php 
                                     $isMale = !str_contains(strtolower($p['resolved_gender'] ?? ''), 'perempuan');
                                     ?>
-                                    <span class="badge <?= $isMale ? 'bg-primary-subtle text-primary' : 'bg-danger-subtle text-danger'; ?>" style="font-size: 0.68rem;">
+                                    <span class="badge <?= $isMale ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle'; ?>" style="font-size: 0.68rem;">
                                         <i class="fas <?= $isMale ? 'fa-mars' : 'fa-venus'; ?> me-1"></i>
                                         <?= esc($p['resolved_gender'] ?? '-'); ?>
                                     </span>
                                 </td>
-                                <td class="fw-semibold text-dark"><?= esc($p['nama_kelas'] ?? '-'); ?></td>
-                                <td><span class="badge bg-light text-secondary border" style="font-size: 0.68rem;"><?= esc($p['kategori'] ?? '-'); ?></span></td>
-                                
                                 <td>
-                                    <span class="text-dark" style="max-width: 200px; display: inline-block; white-space: normal; font-size: 0.75rem;">
-                                        <?= esc($p['tempat_pelatihan'] ?? '-'); ?>
+                                    <div class="fw-bold text-dark d-flex align-items-center" style="font-size: 0.8rem;">
+                                        <i class="fas fa-graduation-cap text-purple me-1.5 flex-shrink-0"></i>
+                                        <span><?= esc($namaKelas); ?></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge <?= $pKatBadge; ?> border px-2 py-1" style="font-size: 0.7rem;">
+                                        <?= esc($katPeserta); ?>
                                     </span>
                                 </td>
-
-                                <td class="text-muted" style="font-size: 0.725rem;">
+                                <td>
+                                    <div class="text-secondary d-flex align-items-center" style="font-size: 0.74rem; max-width: 220px;" title="<?= esc($tempatPelatihan); ?>">
+                                        <i class="fas fa-location-dot text-danger me-1 flex-shrink-0" style="font-size: 0.75rem;"></i>
+                                        <span class="text-truncate"><?= esc($tempatPelatihan); ?></span>
+                                    </div>
+                                </td>
+                                <td class="text-muted text-nowrap" style="font-size: 0.725rem;">
+                                    <i class="far fa-calendar-alt me-1 text-muted"></i>
                                     <?= !empty($p['tanggal_daftar']) ? date('d M Y, H:i', strtotime($p['tanggal_daftar'])) : '-'; ?>
                                 </td>
                                 <td class="text-center">
                                     <?php if (($p['status_kelulusan'] ?? '') === 'Lulus'): ?>
-                                        <span class="badge-lulus"><i class="fas fa-check-circle"></i> Lulus</span>
+                                        <span class="badge bg-success text-white px-2.5 py-1 shadow-sm" style="border-radius: 20px; font-size: 0.7rem;"><i class="fas fa-check-circle me-1"></i> Lulus</span>
                                     <?php elseif (($p['status_kelulusan'] ?? '') === 'Tidak Lulus'): ?>
-                                        <span class="badge-tidak-lulus"><i class="fas fa-times-circle"></i> Tidak Lulus</span>
+                                        <span class="badge bg-danger text-white px-2.5 py-1 shadow-sm" style="border-radius: 20px; font-size: 0.7rem;"><i class="fas fa-times-circle me-1"></i> Tidak Lulus</span>
                                     <?php else: ?>
-                                        <span class="badge-proses"><i class="fas fa-clock"></i> Dalam Proses</span>
+                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1" style="border-radius: 20px; font-size: 0.7rem;"><i class="fas fa-clock me-1"></i> Dalam Proses</span>
                                     <?php endif; ?>
                                 </td>
                             </tr>

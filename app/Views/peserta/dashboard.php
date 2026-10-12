@@ -397,9 +397,9 @@
                                 <li><h6 class="dropdown-header text-uppercase text-muted" style="font-size: 10px;">Ganti Kelas Aktif:</h6></li>
                                 <?php foreach ($semua_kelas_peserta as $kp): ?>
                                     <li>
-                                        <a class="dropdown-item rounded-2 py-1.5 small <?= (isset($pendaftaran['id_kelas']) && $pendaftaran['id_kelas'] == $kp['id_kelas']) ? 'active bg-purple-soft text-purple-custom fw-bold' : 'text-dark' ?>" 
-                                           href="<?= base_url('peserta/dashboard?id_kelas=' . $kp['id_kelas']) ?>" style="font-size: 13px;">
-                                            <i class="bi bi-check2-circle me-1" style="color: var(--color-cyan);"></i><?= esc($kp['nama_kelas']) ?>
+                                        <a class="dropdown-item rounded-2 py-1.5 small <?= (isset($pendaftaran['id_kelas']) && $pendaftaran['id_kelas'] == ($kp['id_kelas'] ?? null)) ? 'active bg-purple-soft text-purple-custom fw-bold' : 'text-dark' ?>" 
+                                           href="<?= base_url('peserta/dashboard?id_kelas=' . ($kp['id_kelas'] ?? '')) ?>" style="font-size: 13px;">
+                                            <i class="bi bi-check2-circle me-1" style="color: var(--color-cyan);"></i><?= esc($kp['nama_kelas'] ?? $kp['pilihan_kelas'] ?? $kp['pilihan_pelatihan'] ?? 'Kelas Pelatihan') ?>
                                         </a>
                                     </li>
                                 <?php endforeach; ?>
@@ -473,19 +473,28 @@
                             <table class="table table-borderless align-middle mb-0" style="font-size: 13px;">
                                 <tr>
                                     <td width="110" class="text-muted fw-semibold py-1.5">NIS</td>
-                                    <td class="fw-bold py-1.5">: <span class="badge bg-purple-soft text-purple-custom px-2 py-0.5" style="color: var(--color-purple) !important;"><?= esc($user['nis'] ?? $pendaftaran['nis'] ?? '-') ?></span></td>
+                                    <td class="fw-bold py-1.5">: 
+                                        <?php 
+                                            $nisTampil = !empty($user['nis']) && $user['nis'] !== '-' ? $user['nis'] : (!empty($pendaftaran['nis']) && $pendaftaran['nis'] !== '-' ? $pendaftaran['nis'] : null);
+                                        ?>
+                                        <?php if (!empty($nisTampil)): ?>
+                                            <span class="badge bg-purple-soft text-purple-custom px-2 py-0.5 fw-bold" style="color: var(--color-purple) !important; font-family: monospace; font-size: 13px;"><?= esc($nisTampil) ?></span>
+                                        <?php else: ?>
+                                            <span class="text-muted small">Menunggu Validasi</span>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td class="text-muted fw-semibold py-1.5">Nama</td>
-                                    <td class="fw-bold text-dark py-1.5">: <?= esc($user['nama'] ?? '-') ?></td>
+                                    <td class="fw-bold text-dark py-1.5">: <?= esc($user['nama'] ?? $pendaftaran['nama'] ?? '-') ?></td>
                                 </tr>
                                 <tr>
                                     <td class="text-muted fw-semibold py-1.5">Email</td>
-                                    <td class="fw-bold text-dark py-1.5">: <?= esc($user['email'] ?? '-') ?></td>
+                                    <td class="fw-bold text-dark py-1.5">: <?= esc($user['email'] ?? $pendaftaran['email'] ?? '-') ?></td>
                                 </tr>
                                 <tr>
                                     <td class="text-muted fw-semibold py-1.5">No HP</td>
-                                    <td class="fw-bold text-dark py-1.5">: <?= esc($user['no_hp'] ?? '-') ?></td>
+                                    <td class="fw-bold text-dark py-1.5">: <?= esc($user['no_hp'] ?? $pendaftaran['no_hp'] ?? '-') ?></td>
                                 </tr>
                             </table>
                         </div>
@@ -539,7 +548,7 @@
                                     <?php foreach ($dataPendaftaran as $kelasItem): ?>
                                         <?php
                                             $namaKelasItem = $kelasItem['nama_kelas'] ?? 'Kelas Pelatihan';
-                                            $jadwalItem = $kelasItem['jadwal_kelas'] ?? $kelasItem['tanggal_mulai_kelas'] ?? '-';
+                                            $jadwalItem = (!empty($kelasItem['jadwal_kelas']) && $kelasItem['jadwal_kelas'] !== '-') ? $kelasItem['jadwal_kelas'] : ((!empty($kelasItem['tanggal_mulai_kelas']) && $kelasItem['tanggal_mulai_kelas'] !== '-') ? $kelasItem['tanggal_mulai_kelas'] : null);
                                             $statusDaftarItem = strtolower(trim($kelasItem['status_pendaftaran'] ?? ''));
                                             $statusBayarItem = strtolower(trim($kelasItem['status_pembayaran'] ?? ''));
 
@@ -559,7 +568,9 @@
                                                     </div>
                                                     <div>
                                                         <h6 class="fw-bold mb-0 text-dark" style="font-size: 13px;"><?= esc($namaKelasItem) ?></h6>
-                                                        <span class="text-muted" style="font-size: 11px;"><i class="bi bi-calendar-event me-1"></i> Mulai: <?= esc($jadwalItem) ?></span>
+                                                        <?php if (!empty($jadwalItem)): ?>
+                                                            <span class="text-muted" style="font-size: 11px;"><i class="bi bi-calendar-event me-1"></i> Mulai: <?= esc($jadwalItem) ?></span>
+                                                        <?php endif; ?>
                                                     </div>
                                                 </div>
                                                 <div class="text-end">
@@ -596,26 +607,59 @@
                                 <div class="p-2 rounded-3 me-2.5" style="background: rgba(226, 160, 72, 0.12); color: var(--color-orange);">
                                     <i class="bi bi-calendar-range fs-5"></i>
                                 </div>
-                                <h5 class="fw-bold mb-0" style="color: var(--color-purple); font-size: 15px;">Jadwal Pelatihan & Materi</h5>
+                                <h5 class="fw-bold mb-0" style="color: var(--color-purple); font-size: 15px;">Jadwal Pelatihan Setiap Pertemuan</h5>
                             </div>
 
                             <?php if (!empty($list_jadwal) && is_array($list_jadwal)): ?>
-                                <div class="d-flex flex-column gap-2.5">
+                                <div class="d-flex flex-column gap-2.5" style="max-height: 480px; overflow-y: auto; padding-right: 4px;">
                                     <?php foreach ($list_jadwal as $jdl): ?>
                                         <div class="p-3 border border-purple border-opacity-25 rounded-3 bg-white shadow-sm">
-                                            <div class="d-flex justify-content-between align-items-center mb-1.5">
-                                                <h6 class="fw-bold mb-0 text-dark" style="font-size: 13px;"><?= esc($jdl['materi'] ?? 'Materi Pertemuan'); ?></h6>
-                                                <span class="badge px-2 py-0.5" style="font-size: 11px; background: rgba(223, 107, 224, 0.15); color: var(--color-pink);"><?= esc($jdl['status'] ?? 'Terjadwal'); ?></span>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="badge rounded-pill fw-bold" style="background: rgba(123, 90, 246, 0.15); color: var(--color-purple); font-size: 11.5px;">
+                                                        <i class="bi bi-journal-bookmark me-1"></i> Pertemuan <?= esc($jdl['pertemuan'] ?? '-'); ?>
+                                                    </span>
+                                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 13.5px;">
+                                                        <?= esc($jdl['materi'] ?? $jdl['nama_kelas'] ?? 'Sesi Pelatihan'); ?>
+                                                    </h6>
+                                                </div>
+                                                <?php if (!empty($jdl['status'])): ?>
+                                                    <span class="badge px-2 py-0.5 rounded-pill" style="font-size: 11px; background: rgba(223, 107, 224, 0.15); color: var(--color-pink);"><?= esc(ucfirst($jdl['status'])); ?></span>
+                                                <?php endif; ?>
                                             </div>
-                                            <p class="text-muted mb-0.5" style="font-size: 12px;"><i class="bi bi-calendar-event me-1.5" style="color: var(--color-purple);"></i><strong>Tanggal:</strong> <?= esc($jdl['tanggal_kbm'] ?? '-'); ?></p>
-                                            <p class="text-muted mb-0" style="font-size: 12px;"><i class="bi bi-clock me-1.5" style="color: var(--color-purple);"></i><strong>Waktu:</strong> <?= esc($jdl['waktu_mulai'] ?? '-') ?> - <?= esc($jdl['waktu_selesai'] ?? '-') ?></p>
+
+                                            <!-- INFORMASI UTAMA: TANGGAL & JAM PELATIHAN -->
+                                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                                <?php if (!empty($jdl['tanggal_mulai'])): ?>
+                                                    <span class="badge px-2.5 py-1.5 rounded-pill" style="font-size: 11.5px; background: rgba(90, 197, 232, 0.15); color: #0284c7;">
+                                                        <i class="bi bi-calendar-event me-1"></i> Tanggal: <?= date('d M Y', strtotime($jdl['tanggal_mulai'])); ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                                <?php if (!empty($jdl['jam_mulai'])): ?>
+                                                    <span class="badge px-2.5 py-1.5 rounded-pill" style="font-size: 11.5px; background: rgba(226, 160, 72, 0.15); color: var(--color-orange);">
+                                                        <i class="bi bi-clock me-1"></i> Jam: <?= esc($jdl['jam_mulai']); ?><?= !empty($jdl['jam_selesai']) ? ' - ' . esc($jdl['jam_selesai']) . ' WIB' : ' WIB'; ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </div>
+
+                                            <?php if (!empty($jdl['nama_mentor'])): ?>
+                                                <p class="text-muted mb-1" style="font-size: 12px;">
+                                                    <i class="bi bi-person-badge me-1.5" style="color: var(--color-purple);"></i><strong>Instruktur:</strong> <?= esc($jdl['nama_mentor']); ?>
+                                                </p>
+                                            <?php endif; ?>
+
+                                            <?php if (!empty($jdl['lokasi'])): ?>
+                                                <p class="text-muted mb-0" style="font-size: 12px;">
+                                                    <i class="bi bi-geo-alt me-1.5" style="color: var(--color-purple);"></i><strong>Lokasi:</strong> <?= esc($jdl['lokasi']); ?>
+                                                </p>
+                                            <?php endif; ?>
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
                             <?php else: ?>
                                 <div class="text-center py-4">
                                     <div class="text-muted mb-2"><i class="bi bi-calendar-x fs-2 opacity-50"></i></div>
-                                    <p class="text-muted small mb-0" style="font-size: 13px;">Belum ada jadwal pelatihan atau materi yang dikirimkan.</p>
+                                    <p class="text-muted small mb-0" style="font-size: 13px;">Belum ada jadwal kelas yang tersedia.</p>
                                 </div>
                             <?php endif; ?>
                         </div>
