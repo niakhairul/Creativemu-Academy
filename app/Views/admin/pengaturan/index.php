@@ -243,6 +243,17 @@
                         <i class="fas fa-sliders me-1" style="color: var(--primary-purple);"></i> Informasi & Keamanan Akun
                     </h6>
                     
+                    <?php if (session()->getFlashdata('success')): ?>
+                        <div class="alert alert-success py-2 px-3 mb-3" style="font-size: 0.8rem; border-radius: 8px;">
+                            <i class="fas fa-check-circle me-1"></i> <?= esc(session()->getFlashdata('success')); ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if (session()->getFlashdata('error')): ?>
+                        <div class="alert alert-danger py-2 px-3 mb-3" style="font-size: 0.8rem; border-radius: 8px;">
+                            <i class="fas fa-exclamation-circle me-1"></i> <?= esc(session()->getFlashdata('error')); ?>
+                        </div>
+                    <?php endif; ?>
+
                     <form action="<?= base_url('admin/pengaturan/update'); ?>" method="post" enctype="multipart/form-data">
                         <?= csrf_field(); ?>
                         
@@ -267,17 +278,17 @@
                         
                         <div class="mb-2">
                             <label class="form-label">Kata Sandi Saat Ini</label>
-                            <input type="password" name="password_lama" class="form-control" placeholder="Kosongkan jika tidak ingin mengubah sandi">
+                            <input type="password" name="password_lama" class="form-control" autocomplete="new-password" placeholder="Kosongkan jika tidak ingin mengubah sandi">
                         </div>
 
                         <div class="row g-2">
                             <div class="col-md-6 mb-2">
                                 <label class="form-label">Kata Sandi Baru</label>
-                                <input type="password" name="password_baru" class="form-control" placeholder="Minimal 6 karakter">
+                                <input type="password" name="password_baru" class="form-control" autocomplete="new-password" placeholder="Minimal 6 karakter">
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label class="form-label">Konfirmasi Kata Sandi Baru</label>
-                                <input type="password" name="konfirmasi_password" class="form-control" placeholder="Ulangi sandi baru">
+                                <input type="password" name="konfirmasi_password" class="form-control" autocomplete="new-password" placeholder="Ulangi sandi baru">
                             </div>
                         </div>
 

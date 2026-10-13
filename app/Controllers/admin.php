@@ -1742,569 +1742,458 @@ $data = [
 
 
     public function validasi()
-{
-    $db = \Config\Database::connect();
-    $keyword = trim((string) ($this->request->getGet('keyword') ?? ''));
-    $status = strtolower(trim((string) ($this->request->getGet('status') ?? '')));
-    $idKelas = trim((string) ($this->request->getGet('id_kelas') ?? ''));
-    $bulan = trim((string) ($this->request->getGet('bulan') ?? ''));
-    
-    // Konfigurasi Paginasi (10 data per halaman)
-    $perPage = 10;
-    $page = max(1, (int) ($this->request->getGet('page') ?? 1));
-    $offset = ($page - 1) * $perPage;
+    {
+        $db = \Config\Database::connect();
+        $keyword = trim((string) ($this->request->getGet('keyword') ?? ''));
+        $status = strtolower(trim((string) ($this->request->getGet('status') ?? '')));
+        $idKelas = trim((string) ($this->request->getGet('id_kelas') ?? ''));
+        $bulan = trim((string) ($this->request->getGet('bulan') ?? ''));
 
-    $buildQuery = function () use ($db, $keyword, $status, $idKelas, $bulan) {
-        $builder = $db->table('pendaftaran')
-            ->select('pendaftaran.*, kelas.nama_kelas, kelas.tanggal_mulai_kelas AS tanggal_mulai_master')
-            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left');
+        // Ambil daftar kelas dari API Laravel (Single Source of Truth)
+        $apiService = new \App\Services\LaravelApiService();
+        $pelatihanCtrl = new \App\Controllers\Pelatihan();
+        $laravelClassesMap = $pelatihanCtrl->fetchLaravelClassesMap($apiService);
 
-        if ($keyword !== '') {
-            $builder->groupStart()
-                ->like('pendaftaran.nama', $keyword)
-                ->orLike('pendaftaran.email', $keyword)
-                ->orLike('pendaftaran.no_hp', $keyword)
-                ->orLike('pendaftaran.nis', $keyword)
-                ->orLike('kelas.nama_kelas', $keyword)
-            ->groupEnd();
-        }
-
-        if ($idKelas !== '') {
-            $builder->where('pendaftaran.id_kelas', $idKelas);
-        }
-
-        if ($bulan !== '') {
-            $builder->where('MONTH(pendaftaran.created_at)', (int) $bulan);
-        }
-
-        if ($status !== '') {
-            if (in_array($status, ['disetujui', 'valid'], true)) {
-                $builder->groupStart()
-                    ->where('pendaftaran.status_pembayaran', 'valid')
-                    ->orWhere('pendaftaran.status_pendaftaran', 'Disetujui')
-                ->groupEnd();
-            } elseif (in_array($status, ['ditolak', 'rejected'], true)) {
-                $builder->groupStart()
-                    ->where('pendaftaran.status_pembayaran', 'rejected')
-                    ->orWhere('pendaftaran.status_pendaftaran', 'Ditolak')
-                ->groupEnd();
-            } elseif (in_array($status, ['menunggu', 'pending'], true)) {
-                $builder->groupStart()
-                    ->where('pendaftaran.status_pembayaran', 'pending')
-                    ->orWhere('pendaftaran.status_pendaftaran', 'Menunggu')
-                    ->orWhere('pendaftaran.status_pendaftaran IS NULL', null, false)
-                ->groupEnd();
+        $matchingLaravelClassIds = [];
+        if ($keyword !== '' && !empty($laravelClassesMap)) {
+            foreach ($laravelClassesMap as $cid => $cInfo) {
+                $haystack = strtolower(($cInfo['nama_kelas'] ?? '') . ' ' . ($cInfo['kategori'] ?? '') . ' ' . ($cInfo['kode_kelas'] ?? ''));
+                if (str_contains($haystack, strtolower($keyword))) {
+                    $matchingLaravelClassIds[] = (int) $cid;
+                }
             }
         }
 
-        return $builder;
-    };
-
-    // Hitung total data untuk paginasi
-    $totalRows = $buildQuery()->countAllResults(false);
-    $totalPages = max(1, (int) ceil($totalRows / $perPage));
-    if ($page > $totalPages) {
-        $page = $totalPages;
+        // Konfigurasi Paginasi (10 data per halaman)
+        $perPage = 10;
+        $page = max(1, (int) ($this->request->getGet('page') ?? 1));
         $offset = ($page - 1) * $perPage;
-    }
 
-    // Ambil data sesuai halaman aktif (limit 10)
-    $pendaftaran = $buildQuery()
-        ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
-        ->limit($perPage, $offset)
-        ->get()
-        ->getResultArray();
+        $buildQuery = function () use ($db, $keyword, $status, $idKelas, $bulan, $matchingLaravelClassIds) {
+            $builder = $db->table('pendaftaran')
+                ->select('pendaftaran.*, kelas.nama_kelas AS nama_kelas_lokal, kelas.tanggal_mulai_kelas AS tanggal_mulai_master')
+                ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left');
 
-    $kelasList = $db->table('kelas')
-        ->select('id_kelas, nama_kelas')
-        ->orderBy('nama_kelas', 'ASC')
-        ->get()
-        ->getResultArray();
+            if ($keyword !== '') {
+                $builder->groupStart()
+                    ->like('pendaftaran.nama', $keyword)
+                    ->orLike('pendaftaran.email', $keyword)
+                    ->orLike('pendaftaran.no_hp', $keyword)
+                    ->orLike('pendaftaran.nis', $keyword)
+                    ->orLike('pendaftaran.pilihan_kelas', $keyword)
+                    ->orLike('pendaftaran.pilihan_pelatihan', $keyword)
+                    ->orLike('pendaftaran.kategori_kelas', $keyword)
+                    ->orLike('pendaftaran.materi_privat', $keyword)
+                    ->orLike('pendaftaran.custom_materi', $keyword)
+                    ->orLike('kelas.nama_kelas', $keyword);
+                if (!empty($matchingLaravelClassIds)) {
+                    $builder->orWhereIn('pendaftaran.id_kelas', $matchingLaravelClassIds);
+                }
+                $builder->groupEnd();
+            }
 
-    // Hitung ringkasan total keseluruhan data (tanpa limit)
-    $allDataForSummary = $buildQuery()->get()->getResultArray();
-    $summary = ['total' => $totalRows, 'menunggu' => 0, 'disetujui' => 0, 'ditolak' => 0];
-    
-    // Jika ingin summary menghitung keseluruhan status tanpa terpengaruh filter status:
-    $summaryRows = $db->table('pendaftaran')->select('status_pembayaran, status_pendaftaran, status')->get()->getResultArray();
-    $summary['total'] = count($summaryRows);
-    foreach ($summaryRows as $row) {
-        $statusGabungan = strtolower(($row['status_pembayaran'] ?? '') . ' ' . ($row['status_pendaftaran'] ?? '') . ' ' . ($row['status'] ?? ''));
-        if (str_contains($statusGabungan, 'valid') || str_contains($statusGabungan, 'disetujui')) {
-            $summary['disetujui']++;
-        } elseif (str_contains($statusGabungan, 'rejected') || str_contains($statusGabungan, 'ditolak')) {
-            $summary['ditolak']++;
-        } else {
-            $summary['menunggu']++;
+            if ($idKelas !== '') {
+                $builder->where('pendaftaran.id_kelas', $idKelas);
+            }
+
+            if ($bulan !== '') {
+                $builder->where('MONTH(pendaftaran.created_at)', (int) $bulan);
+            }
+
+            if ($status !== '') {
+                if (in_array($status, ['disetujui', 'valid'], true)) {
+                    $builder->where('pendaftaran.status_pendaftaran', 'Disetujui');
+                } elseif (in_array($status, ['ditolak', 'rejected'], true)) {
+                    $builder->groupStart()
+                        ->where('pendaftaran.status_pembayaran', 'rejected')
+                        ->orWhere('pendaftaran.status_pendaftaran', 'Ditolak')
+                    ->groupEnd();
+                } elseif (in_array($status, ['menunggu', 'pending'], true)) {
+                    $builder->groupStart()
+                        ->where('pendaftaran.status_pendaftaran', 'Menunggu')
+                        ->orWhere('pendaftaran.status_pendaftaran IS NULL', null, false)
+                        ->orWhere('pendaftaran.status_pendaftaran', '')
+                    ->groupEnd();
+                }
+            }
+
+            return $builder;
+        };
+
+        // Hitung total data untuk paginasi
+        $totalRows = $buildQuery()->countAllResults(false);
+        $totalPages = max(1, (int) ceil($totalRows / $perPage));
+        if ($page > $totalPages) {
+            $page = $totalPages;
+            $offset = ($page - 1) * $perPage;
         }
+
+        // Ambil data sesuai halaman aktif (limit 10)
+        $pendaftaran = $buildQuery()
+            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+            ->limit($perPage, $offset)
+            ->get()
+            ->getResultArray();
+
+        // Sinkronkan & perkaya setiap baris dengan data kelas Laravel
+        foreach ($pendaftaran as &$row) {
+            $row = $pelatihanCtrl->syncAndEnrichPendaftaranRow($row, $laravelClassesMap, $apiService);
+        }
+        unset($row);
+
+        // Susun opsi dropdown filter kelas dari Laravel API
+        $kelasList = [];
+        foreach ($laravelClassesMap as $cid => $cInfo) {
+            $kelasList[] = [
+                'id_kelas'   => $cid,
+                'nama_kelas' => $cInfo['nama_kelas'] ?? ('Kelas #' . $cid),
+            ];
+        }
+        usort($kelasList, static fn($a, $b) => strcasecmp($a['nama_kelas'] ?? '', $b['nama_kelas'] ?? ''));
+
+        // Hitung ringkasan keseluruhan status pendaftaran
+        $summaryRows = $db->table('pendaftaran')
+            ->select('status_pembayaran, status_pendaftaran, status, jenis_kelas')
+            ->get()
+            ->getResultArray();
+        $summary = ['total' => count($summaryRows), 'menunggu' => 0, 'disetujui' => 0, 'ditolak' => 0];
+        foreach ($summaryRows as $sRow) {
+            $stDaftar = strtolower(trim((string) ($sRow['status_pendaftaran'] ?? '')));
+            $stBayar  = strtolower(trim((string) ($sRow['status_pembayaran'] ?? '')));
+            if (in_array($stDaftar, ['ditolak', 'rejected', 'batal'], true) || in_array($stBayar, ['rejected', 'ditolak'], true)) {
+                $summary['ditolak']++;
+            } elseif (in_array($stDaftar, ['disetujui', 'approved', 'diterima'], true)) {
+                $summary['disetujui']++;
+            } else {
+                $summary['menunggu']++;
+            }
+        }
+
+        $data = [
+            'title'       => 'Validasi Pendaftaran - Panel Admin',
+            'pendaftaran' => $pendaftaran,
+            'kelasList'   => $kelasList,
+            'filters'     => [
+                'keyword'  => $keyword,
+                'status'   => $status,
+                'id_kelas' => $idKelas,
+                'bulan'    => $bulan,
+            ],
+            'summary'     => $summary,
+            'pagination'  => [
+                'page'       => $page,
+                'perPage'    => $perPage,
+                'totalRows'  => $totalRows,
+                'totalPages' => $totalPages,
+                'offset'     => $offset,
+            ],
+        ];
+
+        return view('admin/validasi/index', $data);
     }
-
-    $data = [
-        'title'       => 'Validasi Pendaftaran - Panel Admin',
-        'pendaftaran' => $pendaftaran,
-        'kelasList'   => $kelasList,
-        'filters'     => [
-            'keyword'  => $keyword,
-            'status'   => $status,
-            'id_kelas' => $idKelas,
-            'bulan'    => $bulan,
-        ],
-        'summary'     => $summary,
-        'pagination'  => [
-            'page'       => $page,
-            'perPage'    => $perPage,
-            'totalRows'  => $totalRows,
-            'totalPages' => $totalPages,
-            'offset'     => $offset,
-        ],
-    ];
-
-    return view('admin/validasi/index', $data);
-}
-
-
 
     public function updateValidasi($id_pendaftaran, $aksi)
-
     {
-
         if (!in_array($aksi, ['setuju', 'tolak'], true)) {
-
             return redirect()->to(base_url('admin/validasi'))
-
                 ->with('error', 'Aksi tidak valid: ' . $aksi);
-
         }
 
-
-
         $db = \Config\Database::connect();
+        $apiService = new \App\Services\LaravelApiService();
+        $pelatihanCtrl = new \App\Controllers\Pelatihan();
+        $laravelClassesMap = $pelatihanCtrl->fetchLaravelClassesMap($apiService);
 
         $db->transBegin();
 
-
-
         try {
-
             $pendaftaran = $db->query(
-
                 'SELECT * FROM pendaftaran WHERE id_pendaftaran = ? FOR UPDATE',
-
                 [(int) $id_pendaftaran]
-
             )->getRowArray();
 
-
-
             if (!$pendaftaran) {
-
                 $db->transRollback();
-
                 return redirect()->to(base_url('admin/validasi'))
-
                     ->with('error', 'Data pendaftaran tidak ditemukan.');
-
             }
 
+            $idKelas = (int) ($pendaftaran['id_kelas'] ?? 0);
+            $kelasInfo = $laravelClassesMap[$idKelas] ?? null;
+            if ($idKelas > 0 && !$kelasInfo) {
+                try {
+                    $resSingle = $apiService->request('GET', 'classes/' . $idKelas);
+                    $singleData = $resSingle['data'] ?? $resSingle ?? null;
+                    if (!empty($singleData) && is_array($singleData)) {
+                        $rawJenis = strtolower(trim((string) ($singleData['training']['jenis_kelas'] ?? $singleData['jenis_kelas'] ?? $singleData['type'] ?? '')));
+                        $kelasInfo = [
+                            'id_kelas'     => $singleData['id'] ?? $idKelas,
+                            'kode_kelas'   => $singleData['code'] ?? '',
+                            'nama_kelas'   => $singleData['name'] ?? '',
+                            'kategori'     => $singleData['training']['name'] ?? 'Pelatihan',
+                            'training_id'  => $singleData['training_id'] ?? ($singleData['training']['id'] ?? null),
+                            'jenis_kelas'  => in_array($rawJenis, ['private', 'privat'], true) ? 'Privat' : 'Reguler',
+                            'status'       => strtolower($singleData['status'] ?? 'active'),
+                            'harga_privat' => (float) ($singleData['pricing']['price'] ?? $singleData['price'] ?? 0),
+                        ];
+                    }
+                } catch (\Exception $eSingle) {
+                    // ignore
+                }
+            }
 
+            $isPrivat = strtolower(trim((string) ($pendaftaran['jenis_kelas'] ?? ($kelasInfo['jenis_kelas'] ?? 'Reguler')))) === 'privat';
+            $laravelClassStatus = strtolower(trim((string) ($kelasInfo['status'] ?? '')));
+
+            // Jika Kelas Privat belum disetujui di Laravel (masih pending atau baru akan diajukan), status kelas harus tetap Menunggu Persetujuan Laravel
+            $waitingLaravelPrivateApproval = false;
+            if ($aksi === 'setuju' && $isPrivat) {
+                $alreadyPrivateInLaravel = strtolower((string) ($kelasInfo['jenis_kelas'] ?? '')) === 'privat';
+                if (!$alreadyPrivateInLaravel || $laravelClassStatus === 'pending' || $laravelClassStatus === '') {
+                    $waitingLaravelPrivateApproval = true;
+                }
+            }
 
             $nisBaru = $pendaftaran['nis'] ?? null;
 
-
-
             $dataUpdate = [
-
                 'status_pembayaran'  => $aksi === 'setuju' ? 'valid' : 'rejected',
-
-                'status_pendaftaran' => $aksi === 'setuju' ? 'Disetujui' : 'Ditolak',
-
-                'status'             => $aksi === 'setuju' ? 'Disetujui' : 'Ditolak',
-
+                'status_pendaftaran' => $aksi === 'setuju'
+                    ? ($waitingLaravelPrivateApproval ? 'Menunggu' : 'Disetujui')
+                    : 'Ditolak',
+                'status'             => $aksi === 'setuju'
+                    ? ($waitingLaravelPrivateApproval ? 'Pending' : 'Disetujui')
+                    : 'Ditolak',
             ];
 
+            // Jika disetujui, gunakan satu NIS yang sama untuk peserta dengan email yang sama
+            if ($aksi === 'setuju') {
+                $pendaftaranLama = $db->table('pendaftaran')
+                    ->select('nis')
+                    ->where('email', $pendaftaran['email'] ?? null)
+                    ->where('nis IS NOT NULL', null, false)
+                    ->where('nis !=', '')
+                    ->orderBy('id_pendaftaran', 'ASC')
+                    ->get()
+                    ->getRowArray();
 
+                if (!empty($pendaftaranLama['nis'])) {
+                    $nisBaru = $pendaftaranLama['nis'];
+                } else {
+                    $nisBaru = $this->generateNisPendaftaran($db, $pendaftaran);
+                }
 
-// Jika disetujui, gunakan satu NIS yang sama untuk peserta dengan email yang sama
+                // Samakan NIS hanya untuk kolom nis (tanpa mengubah status_pendaftaran kelas lain)
+                $db->table('pendaftaran')
+                    ->where('email', $pendaftaran['email'] ?? null)
+                    ->update(['nis' => $nisBaru]);
 
-if ($aksi === 'setuju') {
-
-    $pendaftaranLama = $db->table('pendaftaran')
-
-        ->select('nis')
-
-        ->where('email', $pendaftaran['email'] ?? null)
-
-        ->where('nis IS NOT NULL', null, false)
-
-        ->where('nis !=', '')
-
-        ->orderBy('id_pendaftaran', 'ASC')
-
-        ->get()
-
-        ->getRowArray();
-
-
-
-    if (!empty($pendaftaranLama['nis'])) {
-
-        // Gunakan NIS peserta yang sudah ada
-
-        $nisBaru = $pendaftaranLama['nis'];
-
-    } else {
-
-        // Peserta belum memiliki NIS
-
-        $nisBaru = $this->generateNisPendaftaran($db, $pendaftaran);
-
-    }
-
-
-
-    // Samakan NIS seluruh pendaftaran dengan email yang sama
-
-    $db->table('pendaftaran')
-
-        ->where('email', $pendaftaran['email'] ?? null)
-
-        ->update(['nis' => $nisBaru]);
-
-
-
-    $dataUpdate['nis'] = $nisBaru;
-
-}
-
-
-
-            $db->table('pendaftaran')
-
-                ->where('id_pendaftaran', $id_pendaftaran)
-
-                ->update($dataUpdate);
-
-
-
-            if ($db->transStatus() === false) {
-
-                $db->transRollback();
-
-                return redirect()->to(base_url('admin/validasi'))
-
-                    ->with('error', 'Database gagal diperbarui.');
-
+                $dataUpdate['nis'] = $nisBaru;
             }
 
+            $db->table('pendaftaran')
+                ->where('id_pendaftaran', $id_pendaftaran)
+                ->update($dataUpdate);
 
+            if ($db->transStatus() === false) {
+                $db->transRollback();
+                return redirect()->to(base_url('admin/validasi'))
+                    ->with('error', 'Database gagal diperbarui.');
+            }
 
             $db->transCommit();
 
+            // Sinkronkan status pendaftaran ke API Laravel
+            $pendaftaranSync = array_merge($pendaftaran, $dataUpdate);
+            $pelatihanCtrl->syncRegistrationToLaravel($pendaftaranSync, $kelasInfo ?? [], $apiService);
+
         } catch (\Throwable $e) {
-
             $db->transRollback();
-
             return redirect()->to(base_url('admin/validasi'))
-
                 ->with('error', 'Validasi gagal diproses: ' . $e->getMessage());
-
         }
 
-
-
-        if (!empty($pendaftaran['email'])) {
-
+        if (!empty($pendaftaran['email']) && empty($waitingLaravelPrivateApproval)) {
             $email = \Config\Services::email();
-
             $email->setTo($pendaftaran['email']);
-
             $email->setFrom('email_anda@gmail.com', 'Creativemu Academy');
 
-
-
             if ($aksi === 'setuju') {
-
                 $email->setSubject('Selamat! Pendaftaran Kelas Anda di Creativemu Academy Telah Diterima');
-
                 $email->setMessage('
-
                     <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background-color: #faf5ff; border-radius: 10px;">
-
                         <h2 style="color: #7c3aed;">Halo, ' . esc($pendaftaran['nama'] ?? 'Peserta') . '</h2>
-
                         <p>Kabar gembira! Pendaftaran Anda untuk mengikuti pelatihan di <strong>Creativemu Academy</strong> telah <strong>DISETUJUI</strong>.</p>
-
                         <p>NIS Anda adalah: <strong>' . esc($nisBaru) . '</strong></p>
-
                         <p>Silakan login dan lengkapi aktivitas pelatihan Anda melalui akun peserta.</p>
-
                         <p>Salam hangat,<br><strong>Tim Akademik Creativemu</strong></p>
-
                     </div>
-
                 ');
-
             } else {
-
                 $email->setSubject('Informasi Status Pendaftaran Kelas Creativemu Academy');
-
                 $email->setMessage('
-
                     <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background-color: #fff1f2; border-radius: 10px;">
-
                         <h2 style="color: #e11d48;">Halo, ' . esc($pendaftaran['nama'] ?? 'Peserta') . '</h2>
-
                         <p>Mohon maaf, pendaftaran Anda di <strong>Creativemu Academy</strong> belum dapat kami setujui saat ini.</p>
-
                         <p>Salam hangat,<br><strong>Tim Akademik Creativemu</strong></p>
-
                     </div>
-
                 ');
-
             }
-
-
 
             if (!$email->send()) {
-
                 return redirect()->to(base_url('admin/validasi'))
-
                     ->with('warning', 'Status pendaftaran berhasil diperbarui, tetapi email notifikasi gagal dikirim.');
-
             }
-
         }
 
-
-
-        $pesan = $aksi === 'setuju'
-
-            ? 'Pendaftaran berhasil disetujui. NIS: ' . $nisBaru
-
-            : 'Pendaftaran berhasil ditolak.';
-
-
+        if ($aksi === 'setuju' && !empty($waitingLaravelPrivateApproval)) {
+            $pesan = 'Pembayaran divalidasi (NIS: ' . $nisBaru . ') & permintaan Kelas Privat telah disinkronkan ke sistem Laravel. Status kelas menunggu persetujuan pembuatan kelas privat di Laravel.';
+        } else {
+            $pesan = $aksi === 'setuju'
+                ? 'Pendaftaran berhasil disetujui dan disinkronkan ke Laravel. NIS: ' . $nisBaru
+                : 'Pendaftaran berhasil ditolak dan disinkronkan ke Laravel.';
+        }
 
         return redirect()->to(base_url('admin/validasi'))->with('success', $pesan);
-
     }
-
-
 
     public function proses_validasi($id_pendaftaran)
+    {
+        $status = (string) $this->request->getPost('status_pembayaran');
+        $alasan = $this->request->getPost('alasan_penolakan');
+        $isDisetujui = in_array($status, ['valid', 'Disetujui', 'approved'], true);
+        $isDitolak = in_array($status, ['rejected', 'Ditolak'], true);
 
-{
+        $apiService = new \App\Services\LaravelApiService();
+        $pelatihanCtrl = new \App\Controllers\Pelatihan();
+        $laravelClassesMap = $pelatihanCtrl->fetchLaravelClassesMap($apiService);
 
-    $status = (string) $this->request->getPost('status_pembayaran');
-
-    $alasan = $this->request->getPost('alasan_penolakan');
-
-    $isDisetujui = in_array($status, ['valid', 'Disetujui', 'approved'], true);
-
-    $isDitolak = in_array($status, ['rejected', 'Ditolak'], true);
-
-
-
-    $dataUpdate = [
-
-        'status_pembayaran'  => $isDisetujui ? 'valid' : ($isDitolak ? 'rejected' : 'pending'),
-
-        'status_pendaftaran' => $isDisetujui ? 'Disetujui' : ($isDitolak ? 'Ditolak' : 'Menunggu'),
-
-        'status'             => $isDisetujui ? 'Disetujui' : ($isDitolak ? 'Ditolak' : 'Pending'),
-
-        'alasan_penolakan'   => $isDitolak ? $alasan : null,
-
-    ];
-
-
-
-    $fileBukti = $this->request->getFile('bukti_pembayaran');
-
-    if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
-
-        $newName = $fileBukti->getRandomName();
-
-        $folderTujuan = FCPATH . 'uploads/bukti/';
-
-        if (!is_dir($folderTujuan)) {
-
-            mkdir($folderTujuan, 0777, true);
-
+        $fileBukti = $this->request->getFile('bukti_pembayaran');
+        $newBuktiName = null;
+        if ($fileBukti && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
+            $newBuktiName = $fileBukti->getRandomName();
+            $folderTujuan = FCPATH . 'uploads/bukti/';
+            if (!is_dir($folderTujuan)) {
+                mkdir($folderTujuan, 0777, true);
+            }
+            $fileBukti->move($folderTujuan, $newBuktiName);
         }
 
-        $fileBukti->move($folderTujuan, $newName);
+        $db = \Config\Database::connect();
+        $db->transBegin();
 
-        $dataUpdate['bukti_pembayaran'] = $newName;
+        try {
+            $pendaftaranLama = $db->query(
+                'SELECT * FROM pendaftaran WHERE id_pendaftaran = ? FOR UPDATE',
+                [(int) $id_pendaftaran]
+            )->getRowArray();
 
-    }
+            if (!$pendaftaranLama) {
+                $db->transRollback();
+                return redirect()->to(base_url('admin/validasi'))->with('error', 'Data pendaftaran tidak ditemukan.');
+            }
 
+            $idKelas = (int) ($pendaftaranLama['id_kelas'] ?? 0);
+            $kelasInfo = $laravelClassesMap[$idKelas] ?? null;
+            $isPrivat = strtolower(trim((string) ($pendaftaranLama['jenis_kelas'] ?? ($kelasInfo['jenis_kelas'] ?? 'Reguler')))) === 'privat';
+            $laravelClassStatus = strtolower(trim((string) ($kelasInfo['status'] ?? '')));
 
+            $waitingLaravelPrivateApproval = false;
+            if ($isDisetujui && $isPrivat) {
+                $alreadyPrivateInLaravel = strtolower((string) ($kelasInfo['jenis_kelas'] ?? '')) === 'privat';
+                if (!$alreadyPrivateInLaravel || $laravelClassStatus === 'pending' || $laravelClassStatus === '') {
+                    $waitingLaravelPrivateApproval = true;
+                }
+            }
 
-    $db = \Config\Database::connect();
+            $dataUpdate = [
+                'status_pembayaran'  => $isDisetujui ? 'valid' : ($isDitolak ? 'rejected' : 'pending'),
+                'status_pendaftaran' => $isDisetujui ? ($waitingLaravelPrivateApproval ? 'Menunggu' : 'Disetujui') : ($isDitolak ? 'Ditolak' : 'Menunggu'),
+                'status'             => $isDisetujui ? ($waitingLaravelPrivateApproval ? 'Pending' : 'Disetujui') : ($isDitolak ? 'Ditolak' : 'Pending'),
+                'alasan_penolakan'   => $isDitolak ? $alasan : null,
+            ];
 
-    $db->transBegin();
+            if ($newBuktiName) {
+                $dataUpdate['bukti_pembayaran'] = $newBuktiName;
+            }
 
+            $nisBaru = $pendaftaranLama['nis'] ?? null;
+            if ($isDisetujui && empty($nisBaru)) {
+                $nisBaru = $this->generateNisPendaftaran($db, $pendaftaranLama);
+                $dataUpdate['nis'] = $nisBaru;
+            }
 
+            $berhasilUpdate = $db->table('pendaftaran')
+                ->where('id_pendaftaran', $id_pendaftaran)
+                ->update($dataUpdate);
 
-    try {
+            if (!$berhasilUpdate || $db->transStatus() === false) {
+                $db->transRollback();
+                return redirect()->to(base_url('admin/validasi'))
+                    ->with('error', 'Database gagal diperbarui.');
+            }
 
-        $pendaftaranLama = $db->query(
+            $db->transCommit();
 
-            'SELECT * FROM pendaftaran WHERE id_pendaftaran = ? FOR UPDATE',
+            // Sinkronkan ke API Laravel
+            $pendaftaranSync = array_merge($pendaftaranLama, $dataUpdate);
+            $pelatihanCtrl->syncRegistrationToLaravel($pendaftaranSync, $kelasInfo ?? [], $apiService);
 
-            [(int) $id_pendaftaran]
-
-        )->getRowArray();
-
-
-
-        if (!$pendaftaranLama) {
-
+        } catch (\Throwable $e) {
             $db->transRollback();
-
-            return redirect()->to(base_url('admin/validasi'))->with('error', 'Data pendaftaran tidak ditemukan.');
-
-        }
-
-
-
-        $nisBaru = $pendaftaranLama['nis'] ?? null;
-
-        if ($isDisetujui && empty($nisBaru)) {
-
-            $nisBaru = $this->generateNisPendaftaran($db, $pendaftaranLama);
-
-            $dataUpdate['nis'] = $nisBaru;
-
-        }
-
-
-
-        $berhasilUpdate = $db->table('pendaftaran')
-
-            ->where('id_pendaftaran', $id_pendaftaran)
-
-            ->update($dataUpdate);
-
-
-
-        if (!$berhasilUpdate || $db->transStatus() === false) {
-
-            $db->transRollback();
-
             return redirect()->to(base_url('admin/validasi'))
-
-                ->with('error', 'Database gagal diperbarui.');
-
+                ->with('error', 'Validasi gagal diproses: ' . $e->getMessage());
         }
 
+        if ($pendaftaranLama && !empty($pendaftaranLama['email']) && empty($waitingLaravelPrivateApproval)) {
+            $email = \Config\Services::email();
+            $email->setTo($pendaftaranLama['email']);
+            $email->setFrom('email_anda@gmail.com', 'Creativemu Academy');
 
-
-        $db->transCommit();
-
-    } catch (\Throwable $e) {
-
-        $db->transRollback();
-
-        return redirect()->to(base_url('admin/validasi'))
-
-            ->with('error', 'Validasi gagal diproses: ' . $e->getMessage());
-
-    }
-
-
-
-    if ($pendaftaranLama && !empty($pendaftaranLama['email'])) {
-
-        $email = \Config\Services::email();
-
-        $email->setTo($pendaftaranLama['email']);
-
-        $email->setFrom('email_anda@gmail.com', 'Creativemu Academy');
-
-
-
-        if ($isDisetujui) {
-
-            $email->setSubject('Selamat! Pendaftaran Kelas Anda di Creativemu Academy Telah Diterima');
-
-            $email->setMessage('
-
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; color: #333; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
-
-                    <h2 style="color: #7c3aed; margin-top: 0;">Halo, ' . esc($pendaftaranLama['nama'] ?? 'Peserta') . '</h2>
-
-                    <p>Kabar gembira! Pendaftaran Anda untuk mengikuti pelatihan di <strong>Creativemu Academy</strong> telah resmi <strong>DISETUJUI</strong>.</p>
-
-                    <p>NIS Anda adalah: <strong>' . esc($nisBaru ?? '-') . '</strong></p>
-
-                    <p>Silakan login dan mengikuti informasi pelatihan melalui akun peserta Anda.</p>
-
-                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-
-                    <p style="font-size: 13px; color: #94a3b8; margin-bottom: 0;">Salam hangat,<br><strong>Tim Akademik Creativemu Academy</strong></p>
-
-                </div>
-
-            ');
-
-        } else {
-
-            $email->setSubject('Informasi Penting: Status Pendaftaran Creativemu Academy');
-
-            $email->setMessage('
-
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; color: #333; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
-
-                    <h2 style="color: #e11d48; margin-top: 0;">Halo, ' . esc($pendaftaranLama['nama'] ?? 'Peserta') . '</h2>
-
-                    <p>Terima kasih telah mendaftar di <strong>Creativemu Academy</strong>. Mohon maaf, pendaftaran Anda saat ini <strong>belum dapat kami setujui</strong>.</p>
-
-                    <div style="background-color: #fff1f2; border-left: 4px solid #e11d48; padding: 15px; margin: 20px 0; border-radius: 4px;">
-
-                        <p style="margin: 0 0 5px 0; font-weight: bold; color: #9f1239;">Catatan / Alasan Penolakan:</p>
-
-                        <p style="margin: 0; color: #881337;">' . esc($alasan ?? 'Tidak ada catatan khusus.') . '</p>
-
+            if ($isDisetujui) {
+                $email->setSubject('Selamat! Pendaftaran Kelas Anda di Creativemu Academy Telah Diterima');
+                $email->setMessage('
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; color: #333; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+                        <h2 style="color: #7c3aed; margin-top: 0;">Halo, ' . esc($pendaftaranLama['nama'] ?? 'Peserta') . '</h2>
+                        <p>Kabar gembira! Pendaftaran Anda untuk mengikuti pelatihan di <strong>Creativemu Academy</strong> telah resmi <strong>DISETUJUI</strong>.</p>
+                        <p>NIS Anda adalah: <strong>' . esc($nisBaru ?? '-') . '</strong></p>
+                        <p>Silakan login dan mengikuti informasi pelatihan melalui akun peserta Anda.</p>
+                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                        <p style="font-size: 13px; color: #94a3b8; margin-bottom: 0;">Salam hangat,<br><strong>Tim Akademik Creativemu Academy</strong></p>
                     </div>
+                ');
+            } else {
+                $email->setSubject('Informasi Penting: Status Pendaftaran Creativemu Academy');
+                $email->setMessage('
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; color: #333; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+                        <h2 style="color: #e11d48; margin-top: 0;">Halo, ' . esc($pendaftaranLama['nama'] ?? 'Peserta') . '</h2>
+                        <p>Terima kasih telah mendaftar di <strong>Creativemu Academy</strong>. Mohon maaf, pendaftaran Anda saat ini <strong>belum dapat kami setujui</strong>.</p>
+                        <div style="background-color: #fff1f2; border-left: 4px solid #e11d48; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                            <p style="margin: 0 0 5px 0; font-weight: bold; color: #9f1239;">Catatan / Alasan Penolakan:</p>
+                            <p style="margin: 0; color: #881337;">' . esc($alasan ?? 'Tidak ada catatan khusus.') . '</p>
+                        </div>
+                        <p style="font-size: 13px; color: #94a3b8; margin-bottom: 0;">Salam hangat,<br><strong>Tim Akademik Creativemu Academy</strong></p>
+                    </div>
+                ');
+            }
 
-                    <p style="font-size: 13px; color: #94a3b8; margin-bottom: 0;">Salam hangat,<br><strong>Tim Akademik Creativemu Academy</strong></p>
-
-                </div>
-
-            ');
-
+            if (!$email->send()) {
+                return redirect()->to(base_url('admin/validasi'))
+                    ->with('warning', 'Status pendaftaran berhasil diperbarui, tetapi email notifikasi gagal dikirim.');
+            }
         }
 
-
-
-        if (!$email->send()) {
-
-            return redirect()->to(base_url('admin/validasi'))
-
-                ->with('warning', 'Status pendaftaran berhasil diperbarui, tetapi email notifikasi gagal dikirim.');
-
+        if ($isDisetujui && !empty($waitingLaravelPrivateApproval)) {
+            $pesan = 'Pembayaran divalidasi (NIS: ' . ($nisBaru ?? '-') . ') & permintaan Kelas Privat telah disinkronkan ke Laravel. Status kelas menunggu persetujuan di Laravel.';
+        } else {
+            $pesan = $isDitolak ? 'Pendaftaran berhasil ditolak.' : 'Pendaftaran berhasil disetujui.';
+            if ($isDisetujui && !empty($nisBaru)) {
+                $pesan .= ' NIS: ' . $nisBaru;
+            }
         }
 
+        return redirect()->to(base_url('admin/validasi'))->with('success', $pesan);
     }
-
-
-
-    $pesan = $isDitolak ? 'Pendaftaran berhasil ditolak.' : 'Pendaftaran berhasil disetujui.';
-
-    if ($isDisetujui && !empty($nisBaru)) {
-
-        $pesan .= ' NIS: ' . $nisBaru;
-
-    }
-
-
-
-    return redirect()->to(base_url('admin/validasi'))->with('success', $pesan);
-
-}
 
 
 
@@ -4398,9 +4287,14 @@ public function downloadFileSertifikat($id)
         $session = session();
         $userId = $session->get('id_users');
 
-        $namaAdmin    = $this->request->getPost('nama_admin');
-        $emailAdmin   = $this->request->getPost('email_admin');
-        $passwordBaru = $this->request->getPost('password_baru');
+        $namaAdmin          = trim((string) $this->request->getPost('nama_admin'));
+        $emailAdmin         = trim((string) $this->request->getPost('email_admin'));
+        $passwordLama       = trim((string) $this->request->getPost('password_lama'));
+        $passwordBaru       = trim((string) $this->request->getPost('password_baru'));
+        $konfirmasiPassword = trim((string) $this->request->getPost('konfirmasi_password'));
+
+        $db = \Config\Database::connect();
+        $currentUser = $db->table('users')->where('id_users', $userId)->get()->getRowArray();
 
         $dataUpdate = [
             'nama'  => $namaAdmin,
@@ -4416,11 +4310,22 @@ public function downloadFileSertifikat($id)
             $session->set('foto_profil', $namaFile);
         }
 
-        if (!empty($passwordBaru)) {
-            $dataUpdate['password'] = password_hash($passwordBaru, PASSWORD_DEFAULT); // <-- Diperbaiki dari $password_baru menjadi $passwordBaru
+        if ($passwordBaru !== '') {
+            if ($passwordLama === '') {
+                return redirect()->to(base_url('admin/pengaturan'))
+                    ->with('error', 'Masukkan kata sandi saat ini untuk mengubah kata sandi.');
+            }
+            if ($currentUser && !password_verify($passwordLama, (string) ($currentUser['password'] ?? ''))) {
+                return redirect()->to(base_url('admin/pengaturan'))
+                    ->with('error', 'Kata sandi saat ini tidak sesuai.');
+            }
+            if ($passwordBaru !== $konfirmasiPassword) {
+                return redirect()->to(base_url('admin/pengaturan'))
+                    ->with('error', 'Konfirmasi kata sandi baru tidak cocok.');
+            }
+            $dataUpdate['password'] = password_hash($passwordBaru, PASSWORD_DEFAULT);
         }
 
-        $db = \Config\Database::connect();
         $db->table('users')
            ->where('id_users', $userId)
            ->update($dataUpdate);

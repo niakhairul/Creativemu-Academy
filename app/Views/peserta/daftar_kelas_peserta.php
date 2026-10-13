@@ -11,11 +11,10 @@
     <!-- FontAwesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            /* 4 Warna Sesuai Dashboard */
             --color-purple: #7b5af6;
             --color-pink: #df6be0;
             --color-orange: #e2a048;
@@ -31,6 +30,7 @@
         * {
             scrollbar-width: thin;
             scrollbar-color: rgba(123, 90, 246, 0.4) transparent;
+            box-sizing: border-box;
         }
 
         body {
@@ -142,7 +142,6 @@
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
         }
 
-        /* Menu Aktif dipindah ke Daftar Kelas Saya */
         .sidebar-menu a.active {
             background: linear-gradient(90deg, rgba(226, 160, 72, 0.4), rgba(90, 197, 232, 0.3));
             color: white;
@@ -158,166 +157,388 @@
         .main-content {
             flex: 1;
             margin-left: 220px;
-            padding: 20px 24px;
+            padding: 22px 26px 40px;
             width: calc(100% - 220px);
         }
 
-        /* Hero Header Banner ala Dashboard */
+        /* Hero Header Banner */
         .header-banner {
-            background: linear-gradient(165deg, #7b5af6 0%, #df6be0 50%, #5ac5e8 100%);
-            background-size: 220% 220%;
-            animation: headerGlow 10s ease infinite;
-            border-radius: 14px;
+            background: linear-gradient(135deg, #5b3fd6 0%, #7b5af6 48%, #df6be0 100%);
+            border-radius: 18px;
             color: white;
-            padding: 18px 24px;
+            padding: 22px 26px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 6px 20px rgba(123, 90, 246, 0.25);
-            border-left: 4px solid #df6be0;
+            box-shadow: 0 10px 28px rgba(91, 63, 214, 0.22);
         }
 
-        @keyframes headerGlow {
-            0% { background-position: 0% 0%; }
-            50% { background-position: 100% 100%; }
-            100% { background-position: 0% 0%; }
+        .header-banner::before {
+            content: '';
+            position: absolute;
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 70%);
+            top: -80px;
+            right: -60px;
+            pointer-events: none;
         }
 
-        /* Override row spacing to group cards closely in center */
-        .header-banner ~ .row {
+        .btn-tambah-kelas {
+            background: #ffffff;
+            color: var(--purple-deep);
+            font-weight: 700;
+            font-size: 13px;
+            padding: 10px 20px;
+            border-radius: 50rem;
+            box-shadow: 0 6px 16px rgba(20, 10, 60, 0.16);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.25s ease;
+            border: none;
+        }
+
+        .btn-tambah-kelas:hover {
+            background: var(--purple-soft);
+            color: var(--purple-deep);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(20, 10, 60, 0.22);
+        }
+
+        /* Summary & Filter Bar */
+        .filter-toolbar {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(123, 90, 246, 0.14);
+            border-radius: 16px;
+            padding: 14px 18px;
+            box-shadow: 0 4px 16px rgba(123, 90, 246, 0.05);
+        }
+
+        .status-tab-group {
             display: flex;
             flex-wrap: wrap;
-            justify-content: center;
-            gap: 24px;
-        }
-        
-        /* Remove strict bootstrap col widths to let cards dictate size */
-        .header-banner ~ .row > [class*="col-"] {
-            flex: 0 0 auto !important;
-            width: auto !important;
-            max-width: 100% !important;
-            padding: 0 !important;
+            gap: 8px;
         }
 
-        /* Course Card Style Sesuai Tema Dashboard */
+        .status-tab-btn {
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            font-size: 12.5px;
+            padding: 7px 14px;
+            border-radius: 50rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .status-tab-btn:hover {
+            border-color: #cbd5e1;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .status-tab-btn.active {
+            background: linear-gradient(135deg, var(--purple-deep), var(--color-purple));
+            color: #ffffff;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(123, 90, 246, 0.25);
+        }
+
+        .status-tab-count {
+            background: rgba(15, 23, 42, 0.08);
+            color: inherit;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 1px 7px;
+            border-radius: 50rem;
+        }
+
+        .status-tab-btn.active .status-tab-count {
+            background: rgba(255, 255, 255, 0.22);
+            color: #ffffff;
+        }
+
+        .search-input-wrap {
+            position: relative;
+        }
+
+        .search-input-wrap i {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .search-input-wrap .form-control {
+            padding-left: 34px;
+            border-radius: 50rem;
+            font-size: 12.5px;
+            border-color: #e2e8f0;
+            height: 36px;
+        }
+
+        .search-input-wrap .form-control:focus {
+            border-color: var(--color-purple);
+            box-shadow: 0 0 0 3px rgba(123, 90, 246, 0.12);
+        }
+
+        /* Modern Course Card */
         .course-card {
-            border: 1px solid rgba(123, 90, 246, 0.1);
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.98);
-            box-shadow: 0 4px 12px rgba(123, 90, 246, 0.04);
+            border: 1px solid rgba(123, 90, 246, 0.14);
+            border-radius: 16px;
+            background: #ffffff;
+            box-shadow: 0 6px 20px rgba(30, 41, 59, 0.05);
             transition: all 0.25s ease;
             display: flex;
             flex-direction: column;
             height: 100%;
             overflow: hidden;
-            width: 380px;
-            max-width: 100%;
+            position: relative;
         }
 
         .course-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(123, 90, 246, 0.1) !important;
-            border-color: rgba(123, 90, 246, 0.2);
+            transform: translateY(-4px);
+            box-shadow: 0 14px 30px rgba(123, 90, 246, 0.12);
+            border-color: rgba(123, 90, 246, 0.28);
         }
 
-        .card-img-wrapper {
-            position: relative;
-            height: 110px;
-            overflow: hidden;
-        }
-
-        .card-img-top {
+        .card-status-strip {
+            height: 5px;
             width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.4s ease;
+        }
+        .strip-siap_diakses { background: linear-gradient(90deg, #10b981, #059669); }
+        .strip-disetujui { background: linear-gradient(90deg, #0ea5e9, #2563eb); }
+        .strip-menunggu { background: linear-gradient(90deg, #f59e0b, #d97706); }
+        .strip-ditolak { background: linear-gradient(90deg, #ef4444, #dc2626); }
+
+        .card-header-clean {
+            padding: 16px 18px 12px;
+            border-bottom: 1px solid #f1f5f9;
         }
 
-        .course-card:hover .card-img-top {
-            transform: scale(1.05);
+        /* Status Badges (4 Kondisi) */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 50rem;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+        }
+        .status-pill-siap_diakses {
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+        }
+        .status-pill-disetujui {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+        .status-pill-menunggu {
+            background: #fffbeb;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+        .status-pill-ditolak {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
         }
 
-        .card-img-overlay-badge {
-            position: absolute;
-            top: 6px;
-            left: 6px;
-            display: flex;
+        /* Category & Type Badges */
+        .badge-kategori {
+            background: var(--purple-soft);
+            color: var(--purple-deep);
+            font-weight: 700;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
             gap: 4px;
         }
 
-        .custom-badge {
-            background: rgba(91, 63, 214, 0.85);
-            backdrop-filter: blur(4px);
-            color: white;
-            font-weight: 600;
-            font-size: 9.5px;
-            padding: 2px 7px;
-            border-radius: 8px;
-        }
-
-        .badge-category {
-            background: var(--purple-soft);
-            color: var(--color-purple);
+        .badge-jenis-privat {
+            background: linear-gradient(135deg, #6d28d9, #9333ea);
+            color: #ffffff;
             font-weight: 700;
+            font-size: 10.5px;
+            padding: 3.5px 9px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        .info-item {
+        .badge-jenis-reguler {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            font-weight: 700;
+            font-size: 10.5px;
+            padding: 3.5px 9px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .course-title {
+            font-size: 15.5px;
+            font-weight: 800;
+            color: #1e293b;
+            line-height: 1.35;
+            margin: 10px 0 4px;
+        }
+
+        /* Info Grid inside Card */
+        .course-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .course-info-box {
             display: flex;
             align-items: flex-start;
-            margin-bottom: 4px;
-            font-size: 11.5px;
+            gap: 8px;
+            min-width: 0;
         }
 
-        .info-item i {
-            font-size: 12px;
-            margin-right: 6px;
+        .course-info-box.full-span {
+            grid-column: 1 / -1;
+            border-top: 1px dashed #e2e8f0;
+            padding-top: 8px;
+        }
+
+        .info-icon-circle {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            background: #ffffff;
             color: var(--color-purple);
-            margin-top: 2px;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
         }
 
+        .info-label {
+            font-size: 10.5px;
+            color: #64748b;
+            font-weight: 600;
+            display: block;
+            line-height: 1.2;
+            margin-bottom: 2px;
+        }
+
+        .info-val {
+            font-size: 12px;
+            color: #1e293b;
+            font-weight: 700;
+            display: block;
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        /* Status Notice Box */
+        .status-notice-box {
+            border-radius: 10px;
+            padding: 9px 12px;
+            font-size: 11.5px;
+            line-height: 1.4;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .notice-menunggu {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #92400e;
+        }
+        .notice-disetujui {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+        }
+        .notice-ditolak {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        /* Action Buttons */
         .btn-kbm {
-            background: linear-gradient(135deg, var(--color-purple), var(--color-pink));
+            background: linear-gradient(135deg, var(--purple-deep), var(--color-purple));
             color: white;
             border: none;
-            border-radius: 6px;
-            padding: 6px;
+            border-radius: 10px;
+            padding: 9px 14px;
             font-weight: 700;
-            font-size: 12px;
-            box-shadow: 0 4px 10px rgba(123, 90, 246, 0.15);
-            transition: all 0.25s ease;
+            font-size: 12.5px;
+            box-shadow: 0 4px 12px rgba(91, 63, 214, 0.22);
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
         .btn-kbm:hover {
             color: white;
-            opacity: 0.95;
             transform: translateY(-1px);
-            box-shadow: 0 6px 14px rgba(123, 90, 246, 0.25);
+            box-shadow: 0 6px 16px rgba(91, 63, 214, 0.32);
         }
 
-        .btn-tambah-kelas {
-            background: #ffffff;
-            color: var(--color-orange);
+        .btn-detail-outline {
+            background: #f8fafc;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 9px 14px;
             font-weight: 700;
             font-size: 12.5px;
-            padding: 7px 16px;
-            border-radius: 50rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.2s ease;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            transition: all 0.25s ease;
+            justify-content: center;
+            gap: 6px;
         }
 
-        .btn-tambah-kelas:hover {
+        .btn-detail-outline:hover {
             background: var(--purple-soft);
-            color: var(--color-orange);
-            transform: translateY(-1px);
+            color: var(--purple-deep);
+            border-color: rgba(123, 90, 246, 0.3);
         }
 
         .empty-state-card {
-            background: rgba(255, 255, 255, 0.92);
-            border-radius: 14px;
-            border: 1.5px dashed rgba(123, 90, 246, 0.2);
-            padding: 30px 20px;
+            background: rgba(255, 255, 255, 0.94);
+            border-radius: 18px;
+            border: 1.5px dashed rgba(123, 90, 246, 0.25);
+            padding: 42px 24px;
         }
 
         /* Mobile Topbar & Responsive */
@@ -371,7 +592,28 @@
             .main-content {
                 margin-left: 0 !important;
                 width: 100% !important;
-                padding: 16px 12px !important;
+                padding: 16px 14px 32px !important;
+            }
+            .header-banner {
+                padding: 18px 20px;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .course-info-grid {
+                grid-template-columns: 1fr;
+            }
+            .course-info-box {
+                border-bottom: 1px dashed #e2e8f0;
+                padding-bottom: 8px;
+            }
+            .course-info-box:last-child {
+                border-bottom: none;
+                padding-bottom: 0;
+            }
+            .course-info-box.full-span {
+                border-top: none;
+                padding-top: 0;
             }
         }
     </style>
@@ -398,7 +640,7 @@
 <!-- SIDEBAR -->
 <nav class="sidebar" id="sidebarMenu">
     <div class="d-flex align-items-start justify-content-between pb-3 mb-3 border-bottom border-white border-opacity-10 position-relative">
-        <a href="#" class="sidebar-brand text-decoration-none d-flex flex-column align-items-center w-100 mb-0 pb-0 border-0 text-center">
+        <a href="<?= base_url('peserta/dashboard') ?>" class="sidebar-brand text-decoration-none d-flex flex-column align-items-center w-100 mb-0 pb-0 border-0 text-center">
             <div style="background-color: #ffffff; border-radius: 14px; padding: 10px 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.22); width: 90%; margin: 0 auto 12px auto;">
                 <img src="<?= base_url('assets/img/logo_creativemu_admin.png'); ?>" alt="Logo" style="width: 100%; max-width: 180px; height: auto; max-height: 55px; object-fit: contain; display: block;">
             </div>
@@ -430,111 +672,301 @@
     </ul>
 </nav>
 
+<?php
+    $daftarKelas = (!empty($kelas) && is_array($kelas)) ? $kelas : [];
+    $counts = [
+        'all'          => count($daftarKelas),
+        'siap_diakses' => 0,
+        'disetujui'    => 0,
+        'menunggu'     => 0,
+        'ditolak'      => 0,
+    ];
+    foreach ($daftarKelas as $itemK) {
+        $ks = $itemK['kode_status'] ?? 'menunggu';
+        if (isset($counts[$ks])) {
+            $counts[$ks]++;
+        }
+    }
+?>
+
 <div class="app-wrapper">
     <div class="main-content">
-        <div class="container-fluid py-1">
+        <div class="container-fluid px-0">
             
-            <!-- Hero Header Banner Sesuai Tema Dashboard -->
-            <div class="header-banner mb-4">
-                <div class="row align-items-center">
+            <!-- Hero Header Banner -->
+            <div class="header-banner mb-3">
+                <div class="row align-items-center g-3">
                     <div class="col-lg-8">
                         <span class="badge bg-white bg-opacity-25 text-white px-3 py-1 rounded-pill mb-2 fw-semibold" style="font-size: 11px;">
-                            <i class="bi bi-journal-check me-1"></i> Area Pembelajaran Aktif
+                            <i class="bi bi-journals me-1"></i> Portal Kelas Pelatihan Peserta
                         </span>
-                        <h4 class="fw-bold mb-1" style="font-size: 20px;">Daftar Kelas Saya</h4>
-                        <p class="mb-0 text-white-50" style="font-size: 13px;">Kelola, pantau, dan akses kelas pelatihan interaktif yang sedang Anda ikuti di Creativemu Academy.</p>
+                        <h4 class="fw-bold mb-1" style="font-size: 21px;">Daftar Kelas Saya</h4>
+                        <p class="mb-0 text-white text-opacity-75" style="font-size: 13px;">
+                            Pantau status persetujuan kelas reguler maupun privat, jadwal pelaksanaan, dan akses ruang belajar Anda.
+                        </p>
                     </div>
-                    <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                        <a href="<?= base_url('pelatihan/pendaftaran') ?>" class="btn btn-tambah-kelas shadow-sm">
-                            <i class="bi bi-plus-circle-fill me-1.5" style="color: var(--color-purple);"></i> Tambah Kelas
+                    <div class="col-lg-4 text-lg-end">
+                        <a href="<?= base_url('pelatihan/pendaftaran') ?>" class="btn-tambah-kelas">
+                            <i class="bi bi-plus-circle-fill" style="color: var(--color-purple);"></i> Daftar Kelas Baru
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- List Card Kelas -->
-            <div class="row g-3">
-                <?php if (!empty($kelas) && is_array($kelas)): ?>
-                    <?php foreach ($kelas as $k): ?>
-                        <div class="col-xl-4 col-md-6">
+            <?php if (!empty($daftarKelas)): ?>
+                <!-- Filter & Search Toolbar -->
+                <div class="filter-toolbar mb-4">
+                    <div class="row g-2 align-items-center justify-content-between">
+                        <div class="col-lg-8">
+                            <div class="status-tab-group" id="statusFilterTabs">
+                                <button type="button" class="status-tab-btn active" data-filter="all">
+                                    Semua <span class="status-tab-count"><?= $counts['all'] ?></span>
+                                </button>
+                                <button type="button" class="status-tab-btn" data-filter="siap_diakses">
+                                    <i class="bi bi-play-circle-fill text-success"></i> Siap Diakses <span class="status-tab-count"><?= $counts['siap_diakses'] ?></span>
+                                </button>
+                                <button type="button" class="status-tab-btn" data-filter="disetujui">
+                                    <i class="bi bi-check-circle-fill text-primary"></i> Disetujui <span class="status-tab-count"><?= $counts['disetujui'] ?></span>
+                                </button>
+                                <button type="button" class="status-tab-btn" data-filter="menunggu">
+                                    <i class="bi bi-hourglass-split text-warning"></i> Menunggu Persetujuan <span class="status-tab-count"><?= $counts['menunggu'] ?></span>
+                                </button>
+                                <?php if ($counts['ditolak'] > 0): ?>
+                                <button type="button" class="status-tab-btn" data-filter="ditolak">
+                                    <i class="bi bi-x-circle-fill text-danger"></i> Ditolak <span class="status-tab-count"><?= $counts['ditolak'] ?></span>
+                                </button>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="search-input-wrap">
+                                <i class="bi bi-search"></i>
+                                <input type="text" id="searchKelasInput" class="form-control" placeholder="Cari nama kelas, kategori, metode...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid Card Kelas -->
+                <div class="row g-3" id="kelasCardsGrid">
+                    <?php foreach ($daftarKelas as $k): ?>
+                        <?php
+                            $idPendaftaran = (int) ($k['id_pendaftaran'] ?? 0);
+                            $idKelas       = (int) ($k['id_kelas'] ?? 0);
+                            $namaKelas     = $k['nama_kelas'] ?? $k['pilihan_kelas'] ?? $k['pilihan_pelatihan'] ?? 'Kelas Pelatihan';
+                            $kategoriKelas = $k['kategori_kelas'] ?? 'Pelatihan';
+                            $jenisKelas    = $k['jenis_kelas'] ?? 'Reguler';
+                            $isPrivat      = strtolower(trim((string) $jenisKelas)) === 'privat';
+                            $metodeBelajar = !empty($k['metode_pembelajaran']) && $k['metode_pembelajaran'] !== '-' ? ucfirst($k['metode_pembelajaran']) : 'Tatap Muka / Online';
+                            $lokasiKelas   = !empty($k['lokasi_pelatihan']) && $k['lokasi_pelatihan'] !== '-' ? $k['lokasi_pelatihan'] : null;
+
+                            $kodeStatus    = $k['kode_status'] ?? 'menunggu';
+                            $labelStatus   = $k['label_status'] ?? 'Menunggu Persetujuan';
+                            $bisaDiakses   = !empty($k['bisa_diakses']);
+
+                            $statusIcon = 'bi-hourglass-split';
+                            if ($kodeStatus === 'siap_diakses') {
+                                $statusIcon = 'bi-play-circle-fill';
+                            } elseif ($kodeStatus === 'disetujui') {
+                                $statusIcon = 'bi-check-circle-fill';
+                            } elseif ($kodeStatus === 'ditolak') {
+                                $statusIcon = 'bi-x-circle-fill';
+                            }
+
+                            $jadwalTampil = null;
+                            if ($bisaDiakses) {
+                                if (!empty($k['jadwal_kelas']) && $k['jadwal_kelas'] !== '-') {
+                                    $jadwalTampil = $k['jadwal_kelas'];
+                                } elseif (!empty($k['tanggal_mulai_kelas']) && $k['tanggal_mulai_kelas'] !== '-') {
+                                    $jadwalTampil = date('d M Y', strtotime($k['tanggal_mulai_kelas']));
+                                }
+                            }
+
+                            $materiKhusus = !empty($k['custom_materi']) ? $k['custom_materi'] : (!empty($k['materi_privat']) ? $k['materi_privat'] : null);
+                            $searchKeywords = strtolower($namaKelas . ' ' . $kategoriKelas . ' ' . $jenisKelas . ' ' . $metodeBelajar . ' ' . $labelStatus . ' ' . ($materiKhusus ?? ''));
+                        ?>
+                        <div class="col-12 col-md-6 col-xl-4 kelas-card-col" data-status="<?= esc($kodeStatus) ?>" data-keywords="<?= esc($searchKeywords) ?>">
                             <div class="course-card">
-                                <div class="card-img-wrapper">
-                                    <?php 
-                                        $fotoPelatihan = !empty($k['thumbnail']) && file_exists(FCPATH . 'uploads/kelas/' . $k['thumbnail']) 
-                                            ? base_url('uploads/kelas/' . $k['thumbnail']) 
-                                            : (!empty($k['pas_foto']) ? base_url('uploads/foto/' . $k['pas_foto']) : 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop'); 
-                                    ?>
-                                    <img src="<?= $fotoPelatihan ?>" class="card-img-top" alt="Thumbnail Kelas">
-                                    <div class="card-img-overlay-badge">
-                                        <span class="custom-badge badge-category">
-                                            <i class="bi bi-tag-fill me-1"></i> <?= esc($k['kategori_kelas'] ?? 'Umum') ?>
+                                <div class="card-status-strip strip-<?= esc($kodeStatus) ?>"></div>
+
+                                <!-- Card Header: Badges & Title -->
+                                <div class="card-header-clean">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                        <div class="d-flex align-items-center flex-wrap gap-1.5">
+                                            <span class="badge-kategori">
+                                                <i class="bi bi-tag-fill"></i> <?= esc($kategoriKelas) ?>
+                                            </span>
+                                            <?php if ($isPrivat): ?>
+                                                <span class="badge-jenis-privat">
+                                                    <i class="bi bi-shield-lock-fill"></i> Privat
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="badge-jenis-reguler">
+                                                    <i class="bi bi-people-fill"></i> Reguler
+                                                </span>
+                                            <?php endif; ?>
+                                        </div>
+
+                                        <span class="status-pill status-pill-<?= esc($kodeStatus) ?>">
+                                            <i class="bi <?= $statusIcon ?>"></i> <?= esc($labelStatus) ?>
                                         </span>
-                                        <span class="custom-badge"><?= esc($k['jenis_kelas'] ?? 'Reguler') ?></span>
                                     </div>
+
+                                    <h5 class="course-title"><?= esc($namaKelas) ?></h5>
+
+                                    <?php if ($isPrivat && !empty($materiKhusus)): ?>
+                                        <div class="mt-1.5">
+                                            <span class="badge bg-purple-soft text-dark border rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 11px; background: #f5f3ff; border-color: #ddd6fe !important; color: #5b21b6 !important;">
+                                                <i class="bi bi-journal-bookmark-fill me-1"></i> Materi: <?= esc($materiKhusus) ?>
+                                            </span>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
 
-                                <div class="card-body d-flex flex-column" style="padding: 12px;">
-                                    <h5 class="fw-bold" style="color: var(--color-purple); font-size: 13.5px; line-height: 1.3; margin-bottom: 8px;">
-                                        <?= esc($k['nama_kelas'] ?? $k['pilihan_pelatihan'] ?? $k['pilihan_kelas'] ?? 'Kelas Pelatihan') ?>
-                                    </h5>
+                                <!-- Card Body: Structured Information & Actions -->
+                                <div class="card-body d-flex flex-column p-3">
+                                    <div class="course-info-grid">
+                                        <!-- Metode Pembelajaran -->
+                                        <div class="course-info-box">
+                                            <div class="info-icon-circle">
+                                                <i class="bi bi-laptop"></i>
+                                            </div>
+                                            <div>
+                                                <span class="info-label">Metode Belajar</span>
+                                                <span class="info-val"><?= esc($metodeBelajar) ?></span>
+                                            </div>
+                                        </div>
 
-                                    <div class="flex-grow-1" style="margin-bottom: 8px;">
-                                        <div class="info-item">
-                                            <i class="bi bi-person-badge-fill"></i>
+                                        <!-- Mentor / Instruktur -->
+                                        <div class="course-info-box">
+                                            <div class="info-icon-circle">
+                                                <i class="bi bi-person-badge"></i>
+                                            </div>
                                             <div>
-                                                <span class="text-muted d-block" style="font-size: 10px;">Mentor Pengampu</span>
-                                                <strong class="text-dark" style="font-size: 11.5px;"><?= esc($k['nama_mentor'] ?? 'Belum Ditentukan') ?></strong>
+                                                <span class="info-label">Instruktur</span>
+                                                <?php if (in_array($kodeStatus, ['siap_diakses', 'disetujui'], true)): ?>
+                                                    <span class="info-val"><?= esc(!empty($k['nama_mentor']) && $k['nama_mentor'] !== '-' ? $k['nama_mentor'] : 'Sedang Dijadwalkan') ?></span>
+                                                <?php elseif ($kodeStatus === 'menunggu'): ?>
+                                                    <span class="info-val text-muted fw-normal fst-italic" style="font-size: 11.5px;">Menunggu persetujuan</span>
+                                                <?php else: ?>
+                                                    <span class="info-val text-muted fw-normal">-</span>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
-                                        <div class="info-item">
-                                            <i class="bi bi-geo-alt-fill"></i>
-                                            <div>
-                                                <span class="text-muted d-block" style="font-size: 10px;">Tempat / Lokasi Pelatihan</span>
-                                                <strong class="text-dark" style="font-size: 11.5px;"><?= esc($k['lokasi_pelatihan'] ?? '-') ?></strong>
+
+                                        <!-- Jadwal Pelatihan (Hanya ditampilkan setelah disetujui) -->
+                                        <div class="course-info-box full-span">
+                                            <div class="info-icon-circle" style="color: var(--color-orange);">
+                                                <i class="bi bi-calendar-week"></i>
                                             </div>
-                                        </div>
-                                        <div class="info-item">
-                                            <i class="bi bi-laptop-fill"></i>
-                                            <div>
-                                                <span class="text-muted d-block" style="font-size: 10px;">Metode Pembelajaran</span>
-                                                <strong class="text-dark text-capitalize" style="font-size: 11.5px;"><?= esc($k['metode_pembelajaran'] ?? '-') ?></strong>
-                                            </div>
-                                        </div>
-                                        <div class="info-item mb-0">
-                                            <i class="bi bi-calendar-check-fill"></i>
-                                            <div>
-                                                <span class="text-muted d-block" style="font-size: 10px;">Mulai Pelatihan</span>
-                                                <strong class="text-dark" style="font-size: 11.5px;"><?= esc($k['tanggal_mulai_kelas'] ?? '-') ?></strong>
+                                            <div class="flex-grow-1">
+                                                <span class="info-label">Jadwal Pelatihan</span>
+                                                <?php if ($bisaDiakses && !empty($jadwalTampil)): ?>
+                                                    <span class="info-val text-success">
+                                                        <i class="bi bi-calendar-check me-1"></i> <?= esc($jadwalTampil) ?>
+                                                        <?php if (!empty($k['waktu_mulai']) && $k['waktu_mulai'] !== '-'): ?>
+                                                            <span class="text-muted fw-semibold ms-1">(<?= esc(substr($k['waktu_mulai'], 0, 5)) ?> WIB)</span>
+                                                        <?php endif; ?>
+                                                    </span>
+                                                <?php elseif ($kodeStatus === 'disetujui'): ?>
+                                                    <span class="info-val text-primary fw-semibold" style="font-size: 11.5px;">
+                                                        Menunggu penetapan jadwal oleh akademik
+                                                    </span>
+                                                <?php elseif ($kodeStatus === 'menunggu'): ?>
+                                                    <span class="info-val text-muted fw-normal fst-italic" style="font-size: 11.5px;">
+                                                        Ditampilkan setelah kelas disetujui
+                                                    </span>
+                                                <?php else: ?>
+                                                    <span class="info-val text-muted fw-normal" style="font-size: 11.5px;">Tidak tersedia</span>
+                                                <?php endif; ?>
+
+                                                <?php if ($bisaDiakses && !empty($lokasiKelas)): ?>
+                                                    <small class="text-muted d-block mt-0.5" style="font-size: 11px;">
+                                                        <i class="bi bi-geo-alt me-1"></i><?= esc($lokasiKelas) ?>
+                                                    </small>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="mt-auto">
-                                        <a href="<?= base_url('pelatihan/kbm?id_kelas=' . $k['id_kelas']) ?>" class="btn btn-kbm w-100 d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-mortarboard-fill me-2 fs-6"></i> Masuk Ruang KBM
-                                        </a>
+                                    <!-- Notice sesuai kondisi status -->
+                                    <?php if ($kodeStatus === 'menunggu'): ?>
+                                        <div class="status-notice-box notice-menunggu">
+                                            <i class="bi bi-info-circle-fill mt-0.5"></i>
+                                            <div>
+                                                <?php if ($isPrivat): ?>
+                                                    Permintaan <strong>Kelas Privat</strong> sedang menunggu persetujuan sistem. Jadwal dan akses ruang kelas akan dibuka setelah disetujui.
+                                                <?php else: ?>
+                                                    Pendaftaran Anda sedang dalam proses verifikasi. Jadwal dan akses kelas akan tampil setelah disetujui.
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    <?php elseif ($kodeStatus === 'disetujui'): ?>
+                                        <div class="status-notice-box notice-disetujui">
+                                            <i class="bi bi-calendar2-check-fill mt-0.5"></i>
+                                            <div>
+                                                Pendaftaran telah <strong>Disetujui</strong>. Tombol masuk kelas akan otomatis aktif begitu jadwal kelas tersedia.
+                                            </div>
+                                        </div>
+                                    <?php elseif ($kodeStatus === 'ditolak'): ?>
+                                        <div class="status-notice-box notice-ditolak">
+                                            <i class="bi bi-exclamation-octagon-fill mt-0.5"></i>
+                                            <div>
+                                                Mohon maaf, pengajuan pendaftaran kelas ini tidak disetujui sehingga kelas tidak dapat diakses.
+                                            </div>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <!-- Action Buttons -->
+                                    <div class="mt-auto d-flex gap-2">
+                                        <?php if ($bisaDiakses): ?>
+                                            <a href="<?= base_url('pelatihan/kbm?id_kelas=' . $idKelas) ?>" class="btn-kbm flex-grow-1">
+                                                <i class="bi bi-mortarboard-fill"></i> Masuk Ruang KBM
+                                            </a>
+                                            <?php if ($idPendaftaran > 0): ?>
+                                                <a href="<?= base_url('pelatihan/detailPendaftaran/' . $idPendaftaran) ?>" class="btn-detail-outline" title="Detail Pendaftaran">
+                                                    <i class="bi bi-file-earmark-text"></i> Detail
+                                                </a>
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            <?php if ($idPendaftaran > 0): ?>
+                                                <a href="<?= base_url('pelatihan/detailPendaftaran/' . $idPendaftaran) ?>" class="btn-detail-outline w-100">
+                                                    <i class="bi bi-eye"></i> Lihat Detail & Status Pendaftaran
+                                                </a>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     <?php endforeach; ?>
-                <?php else: ?>
-                    <div class="col-12">
-                        <div class="empty-state-card text-center">
-                            <div class="mb-3">
-                                <span class="p-3 rounded-circle bg-white d-inline-block shadow-sm" style="color: var(--color-purple);">
-                                    <i class="bi bi-journal-x fs-2"></i>
-                                </span>
-                            </div>
-                            <h5 class="fw-bold mb-1" style="color: var(--color-purple); font-size: 16px;">Belum Ada Kelas yang Diambil</h5>
-                            <p class="text-muted mb-3 mx-auto" style="max-width: 380px; font-size: 13px;">Anda belum terdaftar di kelas pelatihan apapun. Silakan pilih kelas terlebih dahulu untuk mulai belajar.</p>
-                            <a href="<?= base_url('pelatihan/pendaftaran') ?>" class="btn btn-kbm px-4 py-2 rounded-pill d-inline-flex align-items-center shadow-sm" style="font-size: 13px;">
-                                <i class="bi bi-plus-circle-fill me-2"></i> Tambah Kelas Sekarang
-                            </a>
-                        </div>
+                </div>
+
+                <!-- Empty Filter Result Notice -->
+                <div id="emptyFilterNotice" class="empty-state-card text-center d-none mt-2">
+                    <div class="mb-2 text-muted">
+                        <i class="bi bi-funnel fs-2"></i>
                     </div>
-                <?php endif; ?>
-            </div>
+                    <h6 class="fw-bold text-dark mb-1">Tidak Ada Kelas yang Sesuai Filter</h6>
+                    <p class="text-muted small mb-0">Coba ubah tab status atau kata kunci pencarian Anda.</p>
+                </div>
+
+            <?php else: ?>
+                <div class="empty-state-card text-center">
+                    <div class="mb-3">
+                        <span class="p-3 rounded-circle bg-white d-inline-block shadow-sm" style="color: var(--color-purple);">
+                            <i class="bi bi-journal-x fs-2"></i>
+                        </span>
+                    </div>
+                    <h5 class="fw-bold mb-1" style="color: var(--color-purple); font-size: 16px;">Belum Ada Kelas yang Diikuti</h5>
+                    <p class="text-muted mb-3 mx-auto" style="max-width: 400px; font-size: 13px;">
+                        Anda belum terdaftar di kelas pelatihan reguler maupun privat. Silakan daftar kelas terlebih dahulu untuk mulai belajar.
+                    </p>
+                    <a href="<?= base_url('pelatihan/pendaftaran') ?>" class="btn-kbm px-4 py-2.5 rounded-pill d-inline-flex align-items-center shadow-sm" style="font-size: 13px;">
+                        <i class="bi bi-plus-circle-fill me-1"></i> Daftar Kelas Sekarang
+                    </a>
+                </div>
+            <?php endif; ?>
 
         </div>
     </div>
@@ -565,8 +997,52 @@ document.addEventListener('DOMContentLoaded', function () {
     if (toggleBtn) toggleBtn.addEventListener('click', openSidebar);
     if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
     if (backdrop) backdrop.addEventListener('click', closeSidebar);
+
+    // Filter Tab & Search Interaktif
+    const filterTabs = document.querySelectorAll('#statusFilterTabs .status-tab-btn');
+    const searchInput = document.getElementById('searchKelasInput');
+    const cardCols = document.querySelectorAll('.kelas-card-col');
+    const emptyNotice = document.getElementById('emptyFilterNotice');
+    let activeStatus = 'all';
+
+    function applyFilters() {
+        const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
+        let visibleCount = 0;
+
+        cardCols.forEach(function (col) {
+            const cardStatus = col.getAttribute('data-status') || '';
+            const keywords = col.getAttribute('data-keywords') || '';
+            const matchStatus = (activeStatus === 'all') || (cardStatus === activeStatus);
+            const matchSearch = (query === '') || keywords.includes(query);
+
+            if (matchStatus && matchSearch) {
+                col.classList.remove('d-none');
+                visibleCount++;
+            } else {
+                col.classList.add('d-none');
+            }
+        });
+
+        if (emptyNotice) {
+            emptyNotice.classList.toggle('d-none', visibleCount > 0);
+        }
+    }
+
+    filterTabs.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            filterTabs.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeStatus = btn.getAttribute('data-filter') || 'all';
+            applyFilters();
+        });
+    });
+
+    if (searchInput) {
+        searchInput.addEventListener('input', applyFilters);
+    }
 });
 </script>
+
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <?php if (session()->getFlashdata('success')): ?>
@@ -578,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', function () {
         title: 'Berhasil!',
         text: '<?= addslashes(session()->getFlashdata('success')) ?>',
         showConfirmButton: false,
-        timer: 3500,
+        timer: 3800,
         timerProgressBar: true,
         background: '#fff',
         color: '#1e293b',
@@ -595,10 +1071,10 @@ document.addEventListener('DOMContentLoaded', function () {
         toast: true,
         position: 'top',
         icon: 'error',
-        title: 'Oops...',
+        title: 'Perhatian',
         text: '<?= addslashes(session()->getFlashdata('error')) ?>',
         showConfirmButton: false,
-        timer: 3500,
+        timer: 3800,
         timerProgressBar: true,
         background: '#fff',
         color: '#1e293b',

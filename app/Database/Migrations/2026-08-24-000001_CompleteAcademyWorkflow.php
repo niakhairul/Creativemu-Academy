@@ -53,11 +53,27 @@ class CompleteAcademyWorkflow extends Migration
             $this->forge->addField($fields);
             $this->forge->addKey('id_users', true);
             $this->forge->createTable('users', true);
-            return;
+        } else {
+            unset($fields['id_users']);
+            $this->addMissingColumns('users', $fields);
         }
 
-        unset($fields['id_users']);
-        $this->addMissingColumns('users', $fields);
+        // Pastikan akun admin utama tersedia
+        $admin = $this->db->table('users')
+            ->where('LOWER(email)', 'admin1@creativemu.ac.id')
+            ->get()
+            ->getRowArray();
+
+        if (! $admin) {
+            $this->db->table('users')->insert([
+                'nama'       => 'Admin',
+                'email'      => 'admin1@creativemu.ac.id',
+                'password'   => password_hash('admin123', PASSWORD_DEFAULT),
+                'role'       => 'admin',
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+        }
     }
 
     private function ensureMentor(): void

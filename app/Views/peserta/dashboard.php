@@ -548,16 +548,27 @@
                                     <?php foreach ($dataPendaftaran as $kelasItem): ?>
                                         <?php
                                             $namaKelasItem = $kelasItem['nama_kelas'] ?? 'Kelas Pelatihan';
-                                            $jadwalItem = (!empty($kelasItem['jadwal_kelas']) && $kelasItem['jadwal_kelas'] !== '-') ? $kelasItem['jadwal_kelas'] : ((!empty($kelasItem['tanggal_mulai_kelas']) && $kelasItem['tanggal_mulai_kelas'] !== '-') ? $kelasItem['tanggal_mulai_kelas'] : null);
-                                            $statusDaftarItem = strtolower(trim($kelasItem['status_pendaftaran'] ?? ''));
-                                            $statusBayarItem = strtolower(trim($kelasItem['status_pembayaran'] ?? ''));
+                                            $kodeStatusItem = $kelasItem['kode_status'] ?? 'menunggu';
+                                            $labelStatus = $kelasItem['label_status'] ?? 'Menunggu Persetujuan';
+                                            $bisaDiaksesItem = !empty($kelasItem['bisa_diakses']);
 
-                                            if (in_array($statusDaftarItem, ['disetujui', 'approved', 'diterima'], true) || in_array($statusBayarItem, ['terkonfirmasi', 'valid', 'lunas'], true)) {
-                                                $labelStatus = 'Disetujui'; $statusClass = 'status-approved'; $statusIcon = 'bi-check-circle-fill';
-                                            } elseif (in_array($statusDaftarItem, ['ditolak', 'rejected', 'batal'], true)) {
-                                                $labelStatus = 'Ditolak'; $statusClass = 'status-rejected'; $statusIcon = 'bi-x-circle-fill';
+                                            // Hanya tampilkan jadwal jika sudah disetujui dan siap diakses
+                                            $jadwalItem = null;
+                                            if ($bisaDiaksesItem) {
+                                                $jadwalItem = (!empty($kelasItem['jadwal_kelas']) && $kelasItem['jadwal_kelas'] !== '-')
+                                                    ? $kelasItem['jadwal_kelas']
+                                                    : ((!empty($kelasItem['tanggal_mulai_kelas']) && $kelasItem['tanggal_mulai_kelas'] !== '-') ? $kelasItem['tanggal_mulai_kelas'] : null);
+                                            }
+
+                                            if ($kodeStatusItem === 'siap_diakses' || $kodeStatusItem === 'disetujui') {
+                                                $statusClass = 'status-approved';
+                                                $statusIcon = ($kodeStatusItem === 'siap_diakses') ? 'bi-play-circle-fill' : 'bi-check-circle-fill';
+                                            } elseif ($kodeStatusItem === 'ditolak') {
+                                                $statusClass = 'status-rejected';
+                                                $statusIcon = 'bi-x-circle-fill';
                                             } else {
-                                                $labelStatus = 'Menunggu'; $statusClass = 'status-pending'; $statusIcon = 'bi-clock-fill';
+                                                $statusClass = 'status-pending';
+                                                $statusIcon = 'bi-clock-fill';
                                             }
                                         ?>
                                         <div class="registration-item py-2 px-3">
@@ -567,15 +578,24 @@
                                                         <i class="bi bi-laptop-fill"></i>
                                                     </div>
                                                     <div>
-                                                        <h6 class="fw-bold mb-0 text-dark" style="font-size: 13px;"><?= esc($namaKelasItem) ?></h6>
+                                                        <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                                            <h6 class="fw-bold mb-0 text-dark" style="font-size: 13px;"><?= esc($namaKelasItem) ?></h6>
+                                                            <?php if (strtolower($kelasItem['jenis_kelas'] ?? '') === 'privat'): ?>
+                                                                <span class="badge rounded-pill px-2 py-0.5" style="font-size: 9.5px; background: rgba(123, 90, 246, 0.12); color: var(--color-purple);">Privat</span>
+                                                            <?php endif; ?>
+                                                        </div>
                                                         <?php if (!empty($jadwalItem)): ?>
                                                             <span class="text-muted" style="font-size: 11px;"><i class="bi bi-calendar-event me-1"></i> Mulai: <?= esc($jadwalItem) ?></span>
+                                                        <?php elseif ($kodeStatusItem === 'menunggu'): ?>
+                                                            <span class="text-muted" style="font-size: 11px;"><i class="bi bi-hourglass-split me-1"></i> Jadwal ditampilkan setelah disetujui</span>
+                                                        <?php elseif ($kodeStatusItem === 'disetujui'): ?>
+                                                            <span class="text-muted" style="font-size: 11px;"><i class="bi bi-calendar-plus me-1"></i> Menunggu jadwal pelatihan</span>
                                                         <?php endif; ?>
                                                     </div>
                                                 </div>
                                                 <div class="text-end">
                                                     <span class="registration-status <?= $statusClass ?> d-inline-block mb-0.5">
-                                                        <i class="bi <?= $statusIcon ?> me-0.5"></i> <?= $labelStatus ?>
+                                                        <i class="bi <?= $statusIcon ?> me-0.5"></i> <?= esc($labelStatus) ?>
                                                     </span>
                                                     <div>
                                                         <?php 
@@ -655,6 +675,18 @@
                                             <?php endif; ?>
                                         </div>
                                     <?php endforeach; ?>
+                                </div>
+                            <?php elseif (!empty($pendaftaran) && ($pendaftaran['kode_status'] ?? '') === 'menunggu'): ?>
+                                <div class="text-center py-4 px-3">
+                                    <div class="text-warning mb-2"><i class="bi bi-hourglass-split fs-2"></i></div>
+                                    <h6 class="fw-bold text-dark mb-1" style="font-size: 13.5px;">Menunggu Persetujuan Kelas</h6>
+                                    <p class="text-muted small mb-0" style="font-size: 12.5px;">Jadwal pelatihan dan akses kelas baru akan ditampilkan setelah pendaftaran disetujui.</p>
+                                </div>
+                            <?php elseif (!empty($pendaftaran) && ($pendaftaran['kode_status'] ?? '') === 'ditolak'): ?>
+                                <div class="text-center py-4 px-3">
+                                    <div class="text-danger mb-2"><i class="bi bi-x-circle fs-2"></i></div>
+                                    <h6 class="fw-bold text-dark mb-1" style="font-size: 13.5px;">Pendaftaran Ditolak</h6>
+                                    <p class="text-muted small mb-0" style="font-size: 12.5px;">Jadwal dan ruang kelas tidak dapat diakses.</p>
                                 </div>
                             <?php else: ?>
                                 <div class="text-center py-4">

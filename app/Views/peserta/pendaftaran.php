@@ -792,33 +792,47 @@
     <?php 
         $kelas = isset($kelas) ? $kelas : [];
         $user  = isset($user) ? $user : [];
-        $fotoKelas = !empty($kelas['thumbnail']) ? $kelas['thumbnail'] : (!empty($kelas['foto']) ? $kelas['foto'] : 'default.jpg');
         $tipeKelas = !empty($kelas['tipe_kelas']) ? $kelas['tipe_kelas'] : 'Online'; 
-        $mentorName = !empty($kelas['nama_mentor']) ? $kelas['nama_mentor'] : (!empty($kelas['mentor']) ? $kelas['mentor'] : (!empty($kelas['pengajar']) ? $kelas['pengajar'] : 'Mentor'));
+        $mentorName = !empty($kelas['nama_mentor']) ? $kelas['nama_mentor'] : (!empty($kelas['mentor']) ? $kelas['mentor'] : (!empty($kelas['pengajar']) ? $kelas['pengajar'] : 'Mentor Creativemu'));
+        $isDefaultPrivat = isset($defaultJenisKelas) && strtolower($defaultJenisKelas) === 'privat';
     ?>
 
     <!-- RINGKASAN KELAS TERPILIH (Wide Banner Horizontal) -->
     <div class="class-summary-card">
         <div class="row g-3 align-items-center">
             <div class="col-md-auto text-center text-md-start">
-                <img id="imgSummaryFoto" src="<?= base_url('uploads/kelas/' . $fotoKelas); ?>" alt="Banner <?= esc($kelas['nama_kelas'] ?? 'Kelas') ?>" class="class-thumb-sm" onerror="this.onerror=null; this.src='<?= base_url('assets/img/default-class.jpg') ?>';">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-4 shadow-sm" style="width: 64px; height: 64px; background: var(--purple-subtle); color: var(--purple-primary); font-size: 1.75rem; border: 1.5px solid var(--purple-border);">
+                    <i class="bi <?= $isDefaultPrivat ? 'bi-person-workspace' : 'bi-mortarboard-fill' ?>"></i>
+                </div>
             </div>
             <div class="col-md">
-                <h4 class="fw-bold mb-1 fs-5" id="titleSummaryNamaKelas" style="color: var(--purple-dark);">
-                    <?= esc($kelas['nama_kelas'] ?? $kelas['nama'] ?? 'Pelatihan CreativeMU') ?>
-                </h4>
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                    <h4 class="fw-bold mb-0 fs-5" id="titleSummaryNamaKelas" style="color: var(--purple-dark);">
+                        <?= esc($kelas['nama_kelas'] ?? $kelas['nama'] ?? 'Pelatihan CreativeMU') ?>
+                    </h4>
+                    <?php if ($isDefaultPrivat): ?>
+                        <span class="badge rounded-pill px-2 py-1" style="background: #f3e8ff; color: #6d28d9; font-size: 0.72rem; font-weight: 700;">
+                            <i class="bi bi-stars me-1"></i>Program Privat 1-on-1
+                        </span>
+                    <?php else: ?>
+                        <span class="badge rounded-pill px-2 py-1" style="background: #e0f2fe; color: #0369a1; font-size: 0.72rem; font-weight: 700;">
+                            <i class="bi bi-people-fill me-1"></i>Program Reguler
+                        </span>
+                    <?php endif; ?>
+                </div>
                 <div class="d-flex flex-wrap align-items-center gap-3 text-muted small">
                     <span><i class="bi bi-person-badge text-primary me-1"></i> Mentor: <strong id="textSummaryMentor"><?= esc($mentorName) ?></strong></span>
-                    <span><i class="bi bi-calendar3 text-primary me-1"></i> Mulai: <strong id="textSummaryTanggal"><?= esc($kelas['tanggal_mulai_kelas'] ?? $kelas['awal_pelatihan'] ?? 'Sesuai Jadwal') ?></strong></span>
+                    <?php if ($isDefaultPrivat): ?>
+                        <span><i class="bi bi-hourglass-split text-warning me-1"></i> Jadwal: <strong id="textSummaryTanggal" class="text-warning-emphasis">Ditampilkan Setelah Disetujui</strong></span>
+                    <?php else: ?>
+                        <span><i class="bi bi-calendar3 text-primary me-1"></i> Mulai: <strong id="textSummaryTanggal"><?= esc($kelas['tanggal_mulai_kelas'] ?? $kelas['awal_pelatihan'] ?? 'Menunggu Jadwal') ?></strong></span>
+                    <?php endif; ?>
                     <span><i class="bi bi-layers text-success me-1"></i> Durasi: <strong id="textSummaryDurasi"><?= esc($kelas['jumlah_pertemuan'] ?? '6') ?> Sesi</strong></span>
                 </div>
             </div>
             <div class="col-md-auto border-start-md ps-md-4 text-center text-md-end">
                 <div class="small text-muted mb-1" style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Biaya Investasi</div>
                 <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-md-end">
-                    <?php 
-                        $isDefaultPrivat = isset($defaultJenisKelas) && strtolower($defaultJenisKelas) === 'privat';
-                    ?>
                     <?php if ($isDefaultPrivat): ?>
                         <span class="badge px-3 py-2" id="textSummaryHargaPrivat" style="background: var(--purple-primary); color: #fff; font-weight: 700; font-size: 0.85rem; box-shadow: 0 4px 12px rgba(122,63,242,0.25);">
                             <i class="bi bi-person-fill-lock me-1"></i> Kelas Privat: Rp <?= number_format($kelas['harga_privat'] ?? 0, 0, ',', '.') ?>
@@ -841,7 +855,7 @@
         <input type="hidden" name="id_kelas" id="hidden_id_kelas" value="<?= $kelas['id_kelas'] ?? $kelas['id'] ?? ''; ?>">
         <input type="hidden" name="pilihan_pelatihan" id="hidden_pilihan_pelatihan" value="<?= esc($kelas['nama_kelas'] ?? $kelas['nama'] ?? 'Pelatihan Umum') ?>">
         <input type="hidden" name="pilihan_kelas" id="hidden_pilihan_kelas" value="<?= esc($kelas['nama_kelas'] ?? $kelas['nama'] ?? 'Kelas Umum') ?>">
-        <input type="hidden" name="tanggal_mulai_kelas" id="hidden_tanggal_mulai_kelas" value="<?= esc($kelas['tanggal_mulai_kelas'] ?? $kelas['awal_pelatihan'] ?? date('Y-m-d')) ?>">
+        <input type="hidden" name="tanggal_mulai_kelas" id="hidden_tanggal_mulai_kelas" value="<?= esc($kelas['tanggal_mulai_kelas'] ?? $kelas['awal_pelatihan'] ?? '') ?>">
 
         <!-- ============================================================== -->
         <!-- 1. BAGIAN PERSETUJUAN (PALING ATAS, LEBAR PENUH CARD KHUSUS)  -->
@@ -1091,207 +1105,190 @@
                 </div>
             </div>
 
-            <!-- KOLOM KANAN: PILIHAN PELATIHAN & DOKUMEN -->
+            <!-- KOLOM KANAN: PILIHAN PELATIHAN & INFORMASI -->
             <div class="col-lg-6">
-                <div class="d-flex flex-column gap-4 h-100">
-                    
-                    <!-- KARTU PILIHAN PELATIHAN & SUMBER INFORMASI -->
-                    <div class="form-section-card mb-0">
-                        <div class="section-header">
-                            <div class="section-icon-badge">
-                                <i class="bi bi-mortarboard"></i>
-                            </div>
-                            <div>
-                                <h5 class="section-title">Pilihan Pelatihan & Informasi</h5>
-                                <p class="section-subtitle">Pilih kelas yang ingin diambil, metode belajar, dan kategori pelatihan.</p>
-                            </div>
+                <div class="form-section-card h-100 mb-0">
+                    <div class="section-header">
+                        <div class="section-icon-badge">
+                            <i class="bi bi-mortarboard"></i>
                         </div>
-
-                        <!-- 8. PILIH KELAS PELATIHAN DARI DATABASE -->
-                        <?php 
-                            $isDefaultPrivat = isset($defaultJenisKelas) && strtolower($defaultJenisKelas) === 'privat';
-                        ?>
-                        <div class="mb-3">
-                            <label for="select_kelas" class="form-label-custom mb-2">
-                                <span>Pilih Kelas Pelatihan <span class="required-star">*</span></span>
-                                <span class="badge bg-purple-subtle text-purple ms-2" style="font-size: 0.72rem;">Daftar Kelas Dibuka</span>
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 text-muted" style="border-color: var(--purple-border); border-radius: var(--radius-md) 0 0 var(--radius-md);">
-                                    <i class="bi bi-journal-bookmark-fill text-primary"></i>
-                                </span>
-                                <select class="form-select border-start-0" id="select_kelas" name="id_kelas" required onchange="handleSelectKelas(this)" style="border-radius: 0 var(--radius-md) var(--radius-md) 0; font-weight: 600;">
-                                    <?php if (!empty($kelasList)): ?>
-                                        <?php foreach ($kelasList as $kOpt): ?>
-                                            <option value="<?= esc($kOpt['id_kelas']) ?>"
-                                                <?= ($kOpt['id_kelas'] == $kelas['id_kelas']) ? 'selected' : '' ?>
-                                                data-nama="<?= esc($kOpt['nama_kelas']) ?>"
-                                                data-kategori="<?= esc($kOpt['kategori'] ?? 'Pelatihan') ?>"
-                                                data-tipe="<?= esc(strtolower($kOpt['tipe_kelas'] ?? 'offline')) ?>"
-                                                data-reguler="<?= (float)($kOpt['harga_reguler'] ?? 0) ?>"
-                                                data-privat="<?= (float)($kOpt['harga_privat'] ?? 0) ?>"
-                                                data-mentor="<?= esc($kOpt['nama_mentor'] ?? 'Mentor Creativemu') ?>"
-                                                data-tanggal="<?= esc($kOpt['tanggal_mulai_kelas'] ?? '-') ?>"
-                                                data-pertemuan="<?= esc($kOpt['jumlah_pertemuan'] ?? '6') ?>"
-                                                data-kuota="<?= esc($kOpt['kapasitas_tersedia'] ?? $kOpt['kapasitas'] ?? '0') ?>"
-                                                data-thumbnail="<?= esc($kOpt['thumbnail'] ?? '') ?>">
-                                                <?php if ($isDefaultPrivat): ?>
-                                                    <?= esc($kOpt['nama_kelas']) ?>
-                                                <?php else: ?>
-                                                    <?= esc($kOpt['nama_kelas']) ?> | Sisa kuota: <?= esc($kOpt['kapasitas_tersedia'] ?? $kOpt['kapasitas'] ?? '0') ?> kursi
-                                                <?php endif; ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    <?php else: ?>
-                                        <option value="<?= esc($kelas['id_kelas']) ?>" selected>
-                                            <?php if ($isDefaultPrivat): ?>
-                                                <?= esc($kelas['nama_kelas']) ?>
-                                            <?php else: ?>
-                                                <?= esc($kelas['nama_kelas']) ?> | Sisa kuota: <?= esc($kelas['kapasitas_tersedia'] ?? $kelas['kapasitas'] ?? '0') ?> kursi
-                                            <?php endif; ?>
-                                        </option>
-                                    <?php endif; ?>
-                                </select>
-                            </div>
-                            <small class="text-muted d-block mt-1" style="font-size: 0.72rem;"><i class="bi bi-info-circle me-1"></i>Hanya menampilkan kelas aktif yang belum pernah Anda daftarkan.</small>
+                        <div>
+                            <h5 class="section-title">Pilihan Pelatihan & Informasi</h5>
+                            <p class="section-subtitle">Pilih kelas yang ingin diambil, metode belajar, dan informasi pendaftaran.</p>
                         </div>
-
-                        <?php if ($isDefaultPrivat): ?>
-                            <!-- Mode Privat: Jenis kelas otomatis terkunci Privat -->
-                            <input type="hidden" name="jenis_kelas" id="kelas_privat" value="Privat">
-
-                            <!-- Permintaan Materi Khusus (Khusus Kelas Privat) -->
-                            <div class="mb-3" id="sectionMateriPrivat">
-                                <div class="p-3 rounded-3" style="background: var(--purple-card-bg); border: 1.5px solid var(--purple-border); box-shadow: 0 4px 15px rgba(122, 63, 242, 0.05);">
-                                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom" style="border-color: rgba(122, 63, 242, 0.12) !important;">
-                                        <div class="d-flex align-items-center">
-                                            <div class="selection-icon me-2" style="width: 34px; height: 34px; font-size: 0.95rem; background: var(--purple-subtle); color: var(--purple-primary); border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;">
-                                                <i class="bi bi-journal-text"></i>
-                                            </div>
-                                            <div>
-                                                <span class="fw-bold d-block" style="color: var(--purple-title); font-size: 0.92rem;">Permintaan Materi Khusus</span>
-                                                <small class="text-muted" style="font-size: 0.72rem;">Ajukan topik atau kebutuhan materi tambahan yang ingin dipelajari secara 1-on-1</small>
-                                            </div>
-                                        </div>
-                                        <span class="badge bg-purple-subtle text-purple" style="font-size: 0.72rem; padding: 5px 10px;">Opsional</span>
-                                    </div>
-
-                                    <div class="mb-1">
-                                        <label for="custom_materi" class="form-label-custom mb-1" style="font-size: 0.82rem;">
-                                            <span>Permintaan Materi Khusus / Custom Materi (Opsional)</span>
-                                        </label>
-                                        <textarea class="form-control" id="custom_materi" name="custom_materi" rows="3" placeholder="Tuliskan materi spesifik atau topik tambahan yang ingin Anda pelajari secara khusus..." style="font-size: 0.82rem; border-color: var(--purple-border); border-radius: var(--radius-sm);"></textarea>
-                                        <div class="form-text text-muted mt-1" style="font-size: 0.7rem;">
-                                            <i class="bi bi-shield-check me-1 text-primary"></i>Permintaan materi khusus bersifat pengajuan dan akan ditinjau serta disetujui terlebih dahulu oleh pihak kantor/Admin sebelum pelaksanaan kelas.
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php else: ?>
-                            <!-- Mode Reguler: Jenis kelas otomatis terkunci Reguler tanpa materi privat -->
-                            <input type="hidden" name="jenis_kelas" id="kelas_reguler" value="Reguler">
-                        <?php endif; ?>
-
-                        <!-- Metode Pembelajaran (Kategori Kelas Dihapus dari UI) -->
-                        <?php 
-                            $tipeKelasKelas = strtolower($kelas['tipe_kelas'] ?? 'offline');
-                            $isOnlineKelas = ($tipeKelasKelas === 'online');
-                        ?>
-                        <input type="hidden" name="kategori_kelas" id="kategori_kelas" value="<?= esc($kelas['kategori_kelas'] ?? $kelas['kategori'] ?? 'Basic Pelatihan') ?>">
-                        <div class="mb-3">
-                            <label for="metode_pembelajaran" class="form-label-custom">
-                                <span>Metode Pembelajaran <span class="required-star">*</span></span>
-                            </label>
-                            <select class="form-select" id="metode_pembelajaran" name="metode_pembelajaran" required onchange="toggleLokasiPelatihan()">
-                                <option value="online" <?= $isOnlineKelas ? 'selected' : '' ?>>Online (Virtual Class)</option>
-                                <option value="offline" <?= (!$isOnlineKelas) ? 'selected' : '' ?>>Offline (Tatap Muka)</option>
-                            </select>
-                        </div>
-
-                        <!-- 11. Tempat Pelatihan Offline (Kondisional) -->
-                        <div class="mb-3" id="lokasiPelatihanContainer" style="display: none;">
-                            <div class="p-3 rounded-3" style="background: #faf8fe; border: 1.5px dashed var(--purple-border);">
-                                <label for="pilihan_lokasi" class="form-label-custom">
-                                    <span>Pilih Tempat Pelatihan Offline <span class="required-star">*</span></span>
-                                    <span class="badge bg-warning bg-opacity-25 text-dark" style="font-size: 0.72rem;">Wajib untuk Offline</span>
-                                </label>
-                                <select class="form-select" id="pilihan_lokasi" name="pilihan_lokasi">
-                                    <option value="" disabled selected>Pilih Lokasi Kantor / Ruang Kelas</option>
-                                    <?php foreach (($lokasiPelatihan ?? []) as $lokasi): ?>
-                                        <?php $labelLokasi = trim(($lokasi['nama_lokasi'] ?? '') . (!empty($lokasi['alamat']) ? ' - ' . $lokasi['alamat'] : '')); ?>
-                                        <option value="<?= esc($labelLokasi) ?>"><?= esc($lokasi['nama_lokasi'] ?? '-') ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Sumber Informasi (12 Pilihan Resmi) -->
-                        <div class="mb-0">
-                            <label for="sumber_informasi" class="form-label-custom">
-                                <span>Anda mengetahui CreativeMU dari mana? <span class="required-star">*</span></span>
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 text-muted" style="border-color: var(--purple-border); border-radius: var(--radius-md) 0 0 var(--radius-md);">
-                                    <i class="bi bi-compass-fill text-primary"></i>
-                                </span>
-                                <select class="form-select border-start-0" id="sumber_informasi" name="sumber_informasi" required style="border-radius: 0 var(--radius-md) var(--radius-md) 0;">
-                                    <option value="" disabled selected>-- Pilih sumber informasi --</option>
-                                    <option value="TikTok">TikTok</option>
-                                    <option value="Facebook">Facebook</option>
-                                    <option value="Instagram">Instagram</option>
-                                    <option value="WhatsApp">WhatsApp</option>
-                                    <option value="Brosur">Brosur</option>
-                                    <option value="YouTube">YouTube</option>
-                                    <option value="Twitter/X">Twitter/X</option>
-                                    <option value="Teman">Teman</option>
-                                    <option value="Alumni CreativeMU">Alumni CreativeMU</option>
-                                    <option value="Website CreativeMU">Website CreativeMU</option>
-                                    <option value="Google">Google</option>
-                                    <option value="Keluarga">Keluarga</option>
-                                    <option value="Media Elektronik">Media Elektronik</option>
-                                </select>
-                            </div>
-                        </div>
-
                     </div>
 
-                    <!-- KARTU DOKUMEN PENDUKUNG (PAS FOTO) -->
-                    <div class="form-section-card mb-0 flex-grow-1">
-                        <div class="section-header">
-                            <div class="section-icon-badge">
-                                <i class="bi bi-file-earmark-person-fill"></i>
-                            </div>
-                            <div>
-                                <h5 class="section-title">Dokumen Pendukung</h5>
-                                <p class="section-subtitle">Foto profil untuk database peserta & sertifikat resmi.</p>
+                    <!-- 8. PILIH KELAS PELATIHAN DARI DATABASE / API LARAVEL -->
+                    <?php 
+                        $isDefaultPrivat = isset($defaultJenisKelas) && strtolower($defaultJenisKelas) === 'privat';
+                    ?>
+                    <div class="mb-3">
+                        <label for="select_kelas" class="form-label-custom mb-2">
+                            <span>Pilih Kelas Pelatihan <span class="required-star">*</span></span>
+                            <span class="badge bg-purple-subtle text-purple ms-2" style="font-size: 0.72rem;">Daftar Kelas Dibuka</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted" style="border-color: var(--purple-border); border-radius: var(--radius-md) 0 0 var(--radius-md);">
+                                <i class="bi bi-journal-bookmark-fill text-primary"></i>
+                            </span>
+                            <select class="form-select border-start-0" id="select_kelas" name="id_kelas" required onchange="handleSelectKelas(this)" style="border-radius: 0 var(--radius-md) var(--radius-md) 0; font-weight: 600;">
+                                <?php if (!empty($kelasList)): ?>
+                                    <?php foreach ($kelasList as $kOpt): ?>
+                                        <option value="<?= esc($kOpt['id_kelas']) ?>"
+                                            <?= ($kOpt['id_kelas'] == $kelas['id_kelas']) ? 'selected' : '' ?>
+                                            data-nama="<?= esc($kOpt['nama_kelas']) ?>"
+                                            data-kategori="<?= esc($kOpt['kategori'] ?? 'Pelatihan') ?>"
+                                            data-tipe="<?= esc(strtolower($kOpt['tipe_kelas'] ?? 'offline')) ?>"
+                                            data-reguler="<?= (float)($kOpt['harga_reguler'] ?? 0) ?>"
+                                            data-privat="<?= (float)($kOpt['harga_privat'] ?? 0) ?>"
+                                            data-mentor="<?= esc($kOpt['nama_mentor'] ?? 'Mentor Creativemu') ?>"
+                                            data-tanggal="<?= esc($kOpt['tanggal_mulai_kelas'] ?? '-') ?>"
+                                            data-pertemuan="<?= esc($kOpt['jumlah_pertemuan'] ?? '6') ?>"
+                                            data-kuota="<?= esc($kOpt['kapasitas_tersedia'] ?? $kOpt['kapasitas'] ?? '0') ?>">
+                                            <?php if ($isDefaultPrivat): ?>
+                                                <?= esc($kOpt['nama_kelas']) ?>
+                                            <?php else: ?>
+                                                <?= esc($kOpt['nama_kelas']) ?> | Sisa kuota: <?= esc($kOpt['kapasitas_tersedia'] ?? $kOpt['kapasitas'] ?? '0') ?> kursi
+                                            <?php endif; ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <option value="<?= esc($kelas['id_kelas']) ?>" selected>
+                                        <?php if ($isDefaultPrivat): ?>
+                                            <?= esc($kelas['nama_kelas']) ?>
+                                        <?php else: ?>
+                                            <?= esc($kelas['nama_kelas']) ?> | Sisa kuota: <?= esc($kelas['kapasitas_tersedia'] ?? $kelas['kapasitas'] ?? '0') ?> kursi
+                                        <?php endif; ?>
+                                    </option>
+                                <?php endif; ?>
+                            </select>
+                        </div>
+                        <small class="text-muted d-block mt-1" style="font-size: 0.72rem;"><i class="bi bi-info-circle me-1"></i>Menampilkan kelas aktif yang tersedia untuk didaftarkan.</small>
+                    </div>
+
+                    <?php if ($isDefaultPrivat): ?>
+                        <!-- Mode Privat: Jenis kelas otomatis terkunci Privat -->
+                        <input type="hidden" name="jenis_kelas" id="kelas_privat" value="Privat">
+
+                        <!-- Permintaan Materi Khusus (Khusus Kelas Privat) -->
+                        <div class="mb-3" id="sectionMateriPrivat">
+                            <div class="p-3 rounded-3" style="background: var(--purple-card-bg); border: 1.5px solid var(--purple-border); box-shadow: 0 4px 15px rgba(122, 63, 242, 0.05);">
+                                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom" style="border-color: rgba(122, 63, 242, 0.12) !important;">
+                                    <div class="d-flex align-items-center">
+                                        <div class="selection-icon me-2" style="width: 34px; height: 34px; font-size: 0.95rem; background: var(--purple-subtle); color: var(--purple-primary); border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-journal-text"></i>
+                                        </div>
+                                        <div>
+                                            <span class="fw-bold d-block" style="color: var(--purple-title); font-size: 0.92rem;">Pengajuan Kelas Privat & Materi Khusus</span>
+                                            <small class="text-muted" style="font-size: 0.72rem;">Ajukan topik atau kebutuhan materi tambahan yang ingin dipelajari secara 1-on-1</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-purple-subtle text-purple" style="font-size: 0.72rem; padding: 5px 10px;">Kelas Privat</span>
+                                </div>
+
+                                <?php if (!empty($materiPrivatList)): ?>
+                                    <div class="mb-3">
+                                        <label class="form-label-custom mb-1" style="font-size: 0.82rem;">
+                                            <span>Topik Materi Privat Tersedia (Opsional)</span>
+                                        </label>
+                                        <div class="dropdown">
+                                            <button class="btn w-100 text-start d-flex align-items-center justify-content-between bg-white" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="border: 1.5px solid var(--purple-border); border-radius: var(--radius-sm); padding: 9px 12px; font-size: 0.82rem;">
+                                                <span id="labelDropdownMateri"><i class="bi bi-check2-square me-2 text-purple"></i>Pilih satu atau beberapa materi pelatihan...</span>
+                                                <i class="bi bi-chevron-down text-muted small"></i>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-2 shadow-sm" style="max-height: 220px; overflow-y: auto; border: 1.5px solid var(--purple-border); border-radius: var(--radius-sm);">
+                                                <?php foreach ($materiPrivatList as $idxM => $mItem): ?>
+                                                    <?php $mName = $mItem['nama_materi'] ?? ''; if ($mName === '') continue; ?>
+                                                    <div class="form-check py-1 px-3 rounded-2">
+                                                        <input class="form-check-input materi-checkbox" type="checkbox" name="materi_privat[]" value="<?= esc($mName) ?>" id="materi_priv_<?= $idxM ?>" onchange="updateMateriPills()">
+                                                        <label class="form-check-label small fw-medium d-block" for="materi_priv_<?= $idxM ?>" style="cursor: pointer;">
+                                                            <?= esc($mName) ?>
+                                                        </label>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        </div>
+                                        <div id="materiSelectedContainer" class="mt-2" style="display: none;">
+                                            <small class="text-muted d-block mb-1" style="font-size: 0.72rem;"><span id="materiSelectedCount">0</span> topik dipilih:</small>
+                                            <div id="materiPillList" class="d-flex flex-wrap gap-1"></div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+
+                                <div class="mb-1">
+                                    <label for="custom_materi" class="form-label-custom mb-1" style="font-size: 0.82rem;">
+                                        <span>Permintaan Materi Khusus / Custom Materi (Opsional)</span>
+                                    </label>
+                                    <textarea class="form-control" id="custom_materi" name="custom_materi" rows="3" placeholder="Tuliskan materi spesifik atau topik tambahan yang ingin Anda pelajari secara khusus..." style="font-size: 0.82rem; border-color: var(--purple-border); border-radius: var(--radius-sm);"></textarea>
+                                    <div class="form-text text-muted mt-2 p-2 rounded-2" style="font-size: 0.72rem; background: #ffffff; border: 1px dashed var(--purple-border);">
+                                        <i class="bi bi-hourglass-split me-1 text-warning"></i><strong>Alur Kelas Privat:</strong> Pendaftaran Anda akan berstatus <strong>Menunggu Persetujuan</strong> terlebih dahulu. Jadwal kelas dan akses ruang belajar baru akan dibuka setelah pembuatan kelas privat disetujui oleh Admin.
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                    <?php else: ?>
+                        <!-- Mode Reguler: Jenis kelas otomatis terkunci Reguler tanpa materi privat -->
+                        <input type="hidden" name="jenis_kelas" id="kelas_reguler" value="Reguler">
+                    <?php endif; ?>
 
-                        <div class="mb-0">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <label for="pas_foto" class="form-label-custom mb-0">
-                                    <span>Pas Foto Peserta (Ukuran 3x4)</span>
-                                </label>
-                                <span class="badge-optional">
-                                    <i class="bi bi-info-circle me-1"></i> Opsional
-                                </span>
-                            </div>
+                    <!-- Metode Pembelajaran (Kategori Kelas Dihapus dari UI) -->
+                    <?php 
+                        $tipeKelasKelas = strtolower($kelas['tipe_kelas'] ?? 'offline');
+                        $isOnlineKelas = ($tipeKelasKelas === 'online');
+                    ?>
+                    <input type="hidden" name="kategori_kelas" id="kategori_kelas" value="<?= esc($kelas['kategori_kelas'] ?? $kelas['kategori'] ?? 'Basic Pelatihan') ?>">
+                    <div class="mb-3">
+                        <label for="metode_pembelajaran" class="form-label-custom">
+                            <span>Metode Pembelajaran <span class="required-star">*</span></span>
+                        </label>
+                        <select class="form-select" id="metode_pembelajaran" name="metode_pembelajaran" required onchange="toggleLokasiPelatihan()">
+                            <option value="online" <?= $isOnlineKelas ? 'selected' : '' ?>>Online (Virtual Class)</option>
+                            <option value="offline" <?= (!$isOnlineKelas) ? 'selected' : '' ?>>Offline (Tatap Muka)</option>
+                        </select>
+                    </div>
 
-                            <div class="upload-dropzone" id="dropzoneFoto" onclick="triggerFileInput('pas_foto')">
-                                <div class="upload-icon-circle">
-                                    <i class="bi bi-camera-fill"></i>
-                                </div>
-                                <h6 class="fw-bold mb-1" style="color: var(--purple-title); font-size: 0.85rem;">
-                                    Pilih Berkas Pas Foto
-                                </h6>
-                                <p class="text-muted small mb-2" style="font-size: 0.8rem;">
-                                    Format formal/semi-formal (JPG/PNG, Maks. 2 MB). Dapat disusulkan nanti.
-                                </p>
-                                <div id="previewFotoWrap" class="mt-2 text-success fw-bold small" style="display: none;">
-                                    <i class="bi bi-check-circle-fill me-1"></i> File foto: <span id="namaFileFoto">-</span>
-                                </div>
-                                <input type="file" id="pas_foto" name="pas_foto" class="d-none" accept="image/png, image/jpeg, image/jpg" onchange="handleFileChange(this, 'namaFileFoto', 'previewFotoWrap')">
-                            </div>
+                    <!-- 11. Tempat Pelatihan Offline (Kondisional) -->
+                    <div class="mb-3" id="lokasiPelatihanContainer" style="display: none;">
+                        <div class="p-3 rounded-3" style="background: #faf8fe; border: 1.5px dashed var(--purple-border);">
+                            <label for="pilihan_lokasi" class="form-label-custom">
+                                <span>Pilih Tempat Pelatihan Offline <span class="required-star">*</span></span>
+                                <span class="badge bg-warning bg-opacity-25 text-dark" style="font-size: 0.72rem;">Wajib untuk Offline</span>
+                            </label>
+                            <select class="form-select" id="pilihan_lokasi" name="pilihan_lokasi">
+                                <option value="" disabled selected>Pilih Lokasi Kantor / Ruang Kelas</option>
+                                <?php foreach (($lokasiPelatihan ?? []) as $lokasi): ?>
+                                    <?php $labelLokasi = trim(($lokasi['nama_lokasi'] ?? '') . (!empty($lokasi['alamat']) ? ' - ' . $lokasi['alamat'] : '')); ?>
+                                    <option value="<?= esc($labelLokasi) ?>"><?= esc($lokasi['nama_lokasi'] ?? '-') ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Sumber Informasi (12 Pilihan Resmi) -->
+                    <div class="mb-0">
+                        <label for="sumber_informasi" class="form-label-custom">
+                            <span>Anda mengetahui CreativeMU dari mana? <span class="required-star">*</span></span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted" style="border-color: var(--purple-border); border-radius: var(--radius-md) 0 0 var(--radius-md);">
+                                <i class="bi bi-compass-fill text-primary"></i>
+                            </span>
+                            <select class="form-select border-start-0" id="sumber_informasi" name="sumber_informasi" required style="border-radius: 0 var(--radius-md) var(--radius-md) 0;">
+                                <option value="" disabled selected>-- Pilih sumber informasi --</option>
+                                <option value="TikTok">TikTok</option>
+                                <option value="Facebook">Facebook</option>
+                                <option value="Instagram">Instagram</option>
+                                <option value="WhatsApp">WhatsApp</option>
+                                <option value="Brosur">Brosur</option>
+                                <option value="YouTube">YouTube</option>
+                                <option value="Twitter/X">Twitter/X</option>
+                                <option value="Teman">Teman</option>
+                                <option value="Alumni CreativeMU">Alumni CreativeMU</option>
+                                <option value="Website CreativeMU">Website CreativeMU</option>
+                                <option value="Google">Google</option>
+                                <option value="Keluarga">Keluarga</option>
+                                <option value="Media Elektronik">Media Elektronik</option>
+                            </select>
                         </div>
                     </div>
 
@@ -1461,7 +1458,7 @@ function handleSelectKelas(selectEl) {
     const mentor = opt.dataset.mentor || 'Mentor Creativemu';
     const tanggal = opt.dataset.tanggal || '-';
     const pertemuan = opt.dataset.pertemuan || '6';
-    const thumbnail = opt.dataset.thumbnail || '';
+    const isPrivat = !!document.getElementById('kelas_privat');
 
     // 1. Update hidden inputs
     const hiddenId = document.getElementById('hidden_id_kelas');
@@ -1471,7 +1468,9 @@ function handleSelectKelas(selectEl) {
     const hiddenPilihanKelas = document.getElementById('hidden_pilihan_kelas');
     if (hiddenPilihanKelas) hiddenPilihanKelas.value = namaKelas;
     const hiddenTanggal = document.getElementById('hidden_tanggal_mulai_kelas');
-    if (hiddenTanggal) hiddenTanggal.value = tanggal;
+    if (hiddenTanggal) hiddenTanggal.value = (tanggal !== '-' ? tanggal : '');
+    const hiddenKategori = document.getElementById('kategori_kelas');
+    if (hiddenKategori) hiddenKategori.value = kategori;
 
     // 2. Update Class Summary Card
     const titleEl = document.getElementById('titleSummaryNamaKelas');
@@ -1479,24 +1478,16 @@ function handleSelectKelas(selectEl) {
     const mentorEl = document.getElementById('textSummaryMentor');
     if (mentorEl) mentorEl.textContent = mentor;
     const tanggalEl = document.getElementById('textSummaryTanggal');
-    if (tanggalEl) tanggalEl.textContent = tanggal;
+    if (tanggalEl) {
+        tanggalEl.textContent = isPrivat ? 'Ditampilkan Setelah Disetujui' : (tanggal !== '-' ? tanggal : 'Menunggu Jadwal');
+    }
     const durasiEl = document.getElementById('textSummaryDurasi');
     if (durasiEl) durasiEl.textContent = pertemuan + ' Sesi';
 
     const hargaRegulerEl = document.getElementById('textSummaryHargaReguler');
-    if (hargaRegulerEl) hargaRegulerEl.textContent = 'Reguler: Rp ' + reguler.toLocaleString('id-ID');
+    if (hargaRegulerEl) hargaRegulerEl.innerHTML = '<i class="bi bi-tag-fill me-1"></i> Biaya Reguler: Rp ' + reguler.toLocaleString('id-ID');
     const hargaPrivatEl = document.getElementById('textSummaryHargaPrivat');
-    if (hargaPrivatEl) hargaPrivatEl.textContent = 'Privat: Rp ' + privat.toLocaleString('id-ID');
-
-    // Thumbnail img
-    const thumbImg = document.getElementById('imgSummaryFoto');
-    if (thumbImg) {
-        if (thumbnail) {
-            thumbImg.src = '<?= base_url("uploads/kelas/") ?>/' + thumbnail;
-        } else {
-            thumbImg.src = '<?= base_url("assets/img/default-class.jpg") ?>';
-        }
-    }
+    if (hargaPrivatEl) hargaPrivatEl.innerHTML = '<i class="bi bi-person-fill-lock me-1"></i> Kelas Privat: Rp ' + privat.toLocaleString('id-ID');
 
     // 3. Update Radio Harga
     const labelReg = document.getElementById('labelHargaReguler');
@@ -1507,7 +1498,7 @@ function handleSelectKelas(selectEl) {
     // 4. Update Metode Pembelajaran
     const metodeSelect = document.getElementById('metode_pembelajaran');
     if (metodeSelect) {
-        metodeSelect.value = tipe;
+        metodeSelect.value = (tipe === 'online' ? 'online' : 'offline');
         toggleLokasiPelatihan();
     }
 }

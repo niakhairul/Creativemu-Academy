@@ -6,14 +6,30 @@ $pagination = $pagination ?? ['offset' => 0, 'totalPages' => 1, 'page' => 1, 'pe
 if (!function_exists('validasi_status_badge')) {
     function validasi_status_badge(array $row): array
     {
-        $text = strtolower(($row['status_pembayaran'] ?? '') . ' ' . ($row['status_pendaftaran'] ?? '') . ' ' . ($row['status'] ?? ''));
-        if (str_contains($text, 'valid') || str_contains($text, 'disetujui')) return ['Disetujui', 'success'];
-        if (str_contains($text, 'rejected') || str_contains($text, 'ditolak')) return ['Ditolak', 'danger'];
+        $kodeStatus = strtolower(trim((string) ($row['kode_status'] ?? '')));
+        if ($kodeStatus === 'siap_diakses' || $kodeStatus === 'disetujui') {
+            return ['Disetujui', 'success'];
+        }
+        if ($kodeStatus === 'ditolak') {
+            return ['Ditolak', 'danger'];
+        }
+        if ($kodeStatus === 'menunggu') {
+            return ['Menunggu', 'warning'];
+        }
+
+        $stDaftar = strtolower(trim((string) ($row['status_pendaftaran'] ?? '')));
+        $stBayar  = strtolower(trim((string) ($row['status_pembayaran'] ?? '')));
+        if (in_array($stDaftar, ['ditolak', 'rejected', 'batal'], true) || in_array($stBayar, ['rejected', 'ditolak'], true)) {
+            return ['Ditolak', 'danger'];
+        }
+        if (in_array($stDaftar, ['disetujui', 'approved', 'diterima'], true)) {
+            return ['Disetujui', 'success'];
+        }
         return ['Menunggu', 'warning'];
     }
     function validasi_tanggal($value): string
     {
-        return !empty($value) ? date('d M Y', strtotime($value)) : '-';
+        return (!empty($value) && $value !== '-') ? date('d M Y', strtotime($value)) : '-';
     }
 }
 ?>
@@ -364,6 +380,9 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                 $modalId='validasiDetail'.(int)$row['id_pendaftaran']; 
                                 $isApproved=$statusLabel==='Disetujui'; 
                                 $isRejected=$statusLabel==='Ditolak'; 
+                                $isPrivatRow = strtolower(trim((string)($row['jenis_kelas'] ?? ''))) === 'privat';
+                                $laravelPendingPriv = $isPrivatRow && ($row['status_kelas_laravel'] ?? '') === 'pending';
+                                $payValidated = strtolower(trim((string)($row['status_pembayaran'] ?? ''))) === 'valid';
                                 
                                 $metodeBayar = strtolower($row['metode_pembayaran'] ?? $row['metode_pembelajaran'] ?? '');
                                 $isCod = str_contains($metodeBayar, 'cod') || str_contains($metodeBayar, 'tempat') || str_contains($metodeBayar, 'tunai');
@@ -375,7 +394,25 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                     <div class="text-muted" style="font-size:0.72rem"><?= esc($row['email'] ?? '-'); ?></div>
                                     <?= !empty($row['nis']) ? '<span class="nis-badge mt-1">'.esc($row['nis']).'</span>' : '<span class="badge bg-warning-subtle text-warning-emphasis rounded-pill mt-1" style="font-size:0.68rem">NIS belum dibuat</span>'; ?>
                                 </td>
-                                <td><?= esc($row['nama_kelas'] ?? $row['pilihan_kelas'] ?? '-'); ?></td>
+                                <td>
+                                    <div class="fw-bold text-dark"><?= esc($row['nama_kelas'] ?? $row['pilihan_kelas'] ?? '-'); ?></div>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        <?php if ($isPrivatRow): ?>
+                                            <span class="badge rounded-pill" style="background:#f3e8ff;color:#6b21a8;border:1px solid #d8b4fe;font-size:0.68rem;">
+                                                <i class="fas fa-user-lock me-1"></i>Kelas Privat
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge rounded-pill" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;font-size:0.68rem;">
+                                                <i class="fas fa-users me-1"></i>Reguler
+                                            </span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($row['materi_privat']) || !empty($row['custom_materi'])): ?>
+                                            <span class="badge bg-light text-secondary border rounded-pill" style="font-size:0.68rem;">
+                                                <?= esc($row['custom_materi'] ?: $row['materi_privat']); ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
                                 <td><?= esc(validasi_tanggal($row['created_at'] ?? null)); ?></td>
                                 <td>
                                     <?php if (!empty($row['bukti_pembayaran'])): ?>
@@ -386,12 +423,21 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                         <span class="text-muted small">Belum ada bukti</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><span class="badge bg-<?= $statusClass; ?> badge-status"><?= esc($statusLabel); ?></span></td>
+                                <td>
+                                    <span class="badge bg-<?= $statusClass; ?> badge-status"><?= esc($statusLabel); ?></span>
+                                    <?php if ($laravelPendingPriv): ?>
+                                        <div class="mt-1">
+                                            <span class="badge rounded-pill" style="background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;font-size:0.65rem;">
+                                                <i class="fas fa-rotate me-1"></i>Menunggu ACC Laravel
+                                            </span>
+                                        </div>
+                                    <?php endif; ?>
+                                </td>
                                 <td>
                                     <div class="actions">
                                         <button class="btn btn-soft btn-sm" data-bs-toggle="modal" data-bs-target="#<?= $modalId; ?>"><i class="fas fa-eye me-1"></i>Detail</button>
-                                        <?php if (!$isApproved): ?>
-                                            <a class="btn btn-success btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('Setujui pendaftaran ini dan buat NIS otomatis?')"><i class="fas fa-check me-1"></i>Setujui</a>
+                                        <?php if (!$isApproved && !($laravelPendingPriv && $payValidated)): ?>
+                                            <a class="btn btn-success btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('Setujui pendaftaran ini dan sinkronkan ke sistem Laravel?')"><i class="fas fa-check me-1"></i><?= $isPrivatRow ? 'Validasi & Sinkron' : 'Setujui'; ?></a>
                                         <?php endif; ?>
                                         <?php if (!$isRejected): ?>
                                             <a class="btn btn-danger btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" onclick="return confirm('Tolak pendaftaran ini? NIS tidak akan dibuat.')"><i class="fas fa-xmark me-1"></i>Tolak</a>
@@ -415,6 +461,9 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                         $modalId='validasiMobile'.(int)$row['id_pendaftaran']; 
                         $isApproved=$statusLabel==='Disetujui'; 
                         $isRejected=$statusLabel==='Ditolak'; 
+                        $isPrivatRow = strtolower(trim((string)($row['jenis_kelas'] ?? ''))) === 'privat';
+                        $laravelPendingPriv = $isPrivatRow && ($row['status_kelas_laravel'] ?? '') === 'pending';
+                        $payValidated = strtolower(trim((string)($row['status_pembayaran'] ?? ''))) === 'valid';
                         $metodeBayar = strtolower($row['metode_pembayaran'] ?? $row['metode_pembelajaran'] ?? '');
                         $isCod = str_contains($metodeBayar, 'cod') || str_contains($metodeBayar, 'tempat') || str_contains($metodeBayar, 'tunai');
                     ?>
@@ -427,12 +476,12 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                             <span class="badge bg-<?= $statusClass; ?> badge-status align-self-start"><?= esc($statusLabel); ?></span>
                         </div>
                         <div class="card-row"><span>NIS</span><span><?= esc($row['nis'] ?: 'Belum dibuat'); ?></span></div>
-                        <div class="card-row"><span>Kelas</span><span><?= esc($row['nama_kelas'] ?? $row['pilihan_kelas'] ?? '-'); ?></span></div>
+                        <div class="card-row"><span>Kelas</span><span><?= esc($row['nama_kelas'] ?? $row['pilihan_kelas'] ?? '-'); ?> (<?= $isPrivatRow ? 'Privat' : 'Reguler'; ?>)</span></div>
                         <div class="card-row"><span>Metode / Bukti</span><span><?= $isCod ? 'Bayar di Tempat (COD)' : (!empty($row['bukti_pembayaran']) ? 'Ada Bukti Transfer' : 'Tidak ada'); ?></span></div>
                         <div class="card-row"><span>Tanggal Daftar</span><span><?= esc(validasi_tanggal($row['created_at'] ?? null)); ?></span></div>
                         <div class="actions mt-3">
                             <button class="btn btn-soft btn-sm" data-bs-toggle="modal" data-bs-target="#<?= $modalId; ?>">Detail</button>
-                            <?php if (!$isApproved): ?><a class="btn btn-success btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('Setujui pendaftaran ini dan buat NIS otomatis?')">Setujui</a><?php endif; ?>
+                            <?php if (!$isApproved && !($laravelPendingPriv && $payValidated)): ?><a class="btn btn-success btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('Setujui pendaftaran ini dan sinkronkan ke sistem Laravel?')"><?= $isPrivatRow ? 'Validasi & Sinkron' : 'Setujui'; ?></a><?php endif; ?>
                             <?php if (!$isRejected): ?><a class="btn btn-danger btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" onclick="return confirm('Tolak pendaftaran ini?')">Tolak</a><?php endif; ?>
                         </div>
                     </article>
@@ -496,6 +545,9 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
         <?php 
             $modalId=$prefix.(int)$row['id_pendaftaran']; 
             [$statusLabel,$statusClass]=validasi_status_badge($row); 
+            $isPrivatRow = strtolower(trim((string)($row['jenis_kelas'] ?? ''))) === 'privat';
+            $laravelPendingPriv = $isPrivatRow && ($row['status_kelas_laravel'] ?? '') === 'pending';
+            $payValidated = strtolower(trim((string)($row['status_pembayaran'] ?? ''))) === 'valid';
             $metodeBayar = strtolower($row['metode_pembayaran'] ?? $row['metode_pembelajaran'] ?? '');
             $isCod = str_contains($metodeBayar, 'cod') || str_contains($metodeBayar, 'tempat') || str_contains($metodeBayar, 'tunai');
         ?>
@@ -529,7 +581,16 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                 <div class="detail-item"><div class="detail-label">Jenis Kelas</div><div class="detail-value"><?= esc($row['jenis_kelas'] ?? '-'); ?></div></div>
                                 <div class="detail-item"><div class="detail-label">Metode Pembelajaran</div><div class="detail-value"><?= esc($row['metode_pembelajaran'] ?? '-'); ?></div></div>
                                 <div class="detail-item"><div class="detail-label">Lokasi</div><div class="detail-value"><?= esc($row['lokasi_pelatihan'] ?? $row['lokasi_media'] ?? '-'); ?></div></div>
-                                <div class="detail-item"><div class="detail-label">Tanggal Mulai</div><div class="detail-value"><?= esc(validasi_tanggal($row['tanggal_mulai_kelas'] ?? $row['tanggal_mulai_master'] ?? null)); ?></div></div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Jadwal Mulai</div>
+                                    <div class="detail-value">
+                                        <?php if ($statusLabel === 'Disetujui'): ?>
+                                            <?= esc(validasi_tanggal($row['tanggal_mulai_kelas'] ?? $row['tanggal_mulai_master'] ?? null)); ?>
+                                        <?php else: ?>
+                                            <span class="text-muted fst-italic">Ditampilkan setelah disetujui</span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
                                 <div class="detail-item"><div class="detail-label">Tanggal Daftar</div><div class="detail-value"><?= esc(validasi_tanggal($row['created_at'] ?? null)); ?></div></div>
                                 <?php if (!empty($row['materi_privat'])): ?>
                                     <div class="detail-item" style="grid-column: span 2;">
@@ -555,14 +616,30 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                         <?php endif; ?>
                                     </div>
                                 </div>
-                                <div class="detail-item" style="grid-column: span 2;"><div class="detail-label">Status Validasi</div><div class="detail-value"><span class="badge bg-<?= $statusClass; ?> badge-status"><?= esc($statusLabel); ?></span></div></div>
+                                <div class="detail-item" style="grid-column: span 2;">
+                                    <div class="detail-label">Status Validasi & Sinkronisasi Laravel</div>
+                                    <div class="detail-value d-flex flex-wrap align-items-center gap-2 mt-1">
+                                        <span class="badge bg-<?= $statusClass; ?> badge-status"><?= esc($statusLabel); ?></span>
+                                        <?php if ($isPrivatRow): ?>
+                                            <?php if ($laravelPendingPriv): ?>
+                                                <span class="badge rounded-pill px-3 py-1" style="background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;font-size:0.74rem;">
+                                                    <i class="fas fa-rotate me-1"></i>Tersinkron ke Laravel (ID #<?= (int)($row['id_kelas'] ?? 0) ?>) — Menunggu Persetujuan Pembuatan Kelas Privat di Laravel
+                                                </span>
+                                            <?php elseif ($statusLabel === 'Disetujui'): ?>
+                                                <span class="badge rounded-pill px-3 py-1" style="background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;font-size:0.74rem;">
+                                                    <i class="fas fa-check-double me-1"></i>Disetujui oleh Sistem Laravel
+                                                </span>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer py-3 px-4 bg-light">
                         <button class="btn btn-soft btn-sm" data-bs-dismiss="modal">Tutup</button>
-                        <?php if ($statusLabel !== 'Disetujui'): ?>
-                            <a class="btn btn-success btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('Setujui pendaftaran ini dan buat NIS otomatis?')">Setujui</a>
+                        <?php if ($statusLabel !== 'Disetujui' && !($laravelPendingPriv && $payValidated)): ?>
+                            <a class="btn btn-success btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('Setujui pendaftaran ini dan sinkronkan ke sistem Laravel?')"><?= $isPrivatRow ? 'Validasi Pembayaran & Sinkron ke Laravel' : 'Setujui'; ?></a>
                         <?php endif; ?>
                         <?php if ($statusLabel !== 'Ditolak'): ?>
                             <a class="btn btn-danger btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" onclick="return confirm('Tolak pendaftaran ini?')">Tolak</a>

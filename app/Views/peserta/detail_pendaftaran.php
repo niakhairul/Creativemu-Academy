@@ -35,15 +35,33 @@
             </div>
 
             <div class="card p-4 p-md-5">
+                <?php
+                    $kodeStatus  = $detail['kode_status'] ?? 'menunggu';
+                    $labelStatus = $detail['label_status'] ?? ($detail['status_pendaftaran'] ?? 'Menunggu Persetujuan');
+                    $bisaDiakses = !empty($detail['bisa_diakses']);
+                    $sudahDisetujui = in_array($kodeStatus, ['disetujui', 'siap_diakses'], true);
+
+                    $bannerStyle = 'background: #fffbeb; border: 1.5px solid #fde68a; color: #92400e;';
+                    if ($kodeStatus === 'siap_diakses') {
+                        $bannerStyle = 'background: #ecfdf5; border: 1.5px solid #a7f3d0; color: #065f46;';
+                    } elseif ($kodeStatus === 'disetujui') {
+                        $bannerStyle = 'background: #eff6ff; border: 1.5px solid #bfdbfe; color: #1e40af;';
+                    } elseif ($kodeStatus === 'ditolak') {
+                        $bannerStyle = 'background: #fef2f2; border: 1.5px solid #fecaca; color: #991b1b;';
+                    }
+                ?>
                 <!-- Status Banner -->
-                <div class="alert alert-info d-flex align-items-center justify-content-between rounded-4 mb-4">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 rounded-4 p-3 mb-4" style="<?= $bannerStyle ?>">
                     <div>
-                        <small class="text-muted d-block">Status Pendaftaran:</small>
-                        <strong class="fs-5 text-uppercase"><?= esc($detail['status_pendaftaran'] ?? 'Menunggu') ?></strong>
+                        <small class="d-block opacity-75 fw-semibold">Status Persetujuan Kelas:</small>
+                        <strong class="fs-5 text-uppercase"><?= esc($labelStatus) ?></strong>
+                        <?php if (!empty($detail['keterangan_status'])): ?>
+                            <div class="small mt-1"><?= esc($detail['keterangan_status']) ?></div>
+                        <?php endif; ?>
                     </div>
-                    <div>
-                        <small class="text-muted d-block">Status Pembayaran:</small>
-                        <span class="badge bg-secondary"><?= esc($detail['status_pembayaran'] ?? 'Pending') ?></span>
+                    <div class="text-md-end">
+                        <small class="d-block opacity-75 fw-semibold mb-1">Status Pembayaran:</small>
+                        <span class="badge bg-dark bg-opacity-75 px-3 py-2 rounded-pill"><?= esc(strtoupper($detail['status_pembayaran'] ?? 'PENDING')) ?></span>
                     </div>
                 </div>
 
@@ -51,7 +69,7 @@
                 <table class="table table-striped table-borderless align-middle mb-4">
                     <tr>
                         <td width="35%" class="fw-semibold text-muted">Nomor Induk Siswa (NIS)</td>
-                        <td class="fw-bold">: <?= esc($detail['nis'] ?? '-') ?></td>
+                        <td class="fw-bold">: <?= ($sudahDisetujui && !empty($detail['nis'])) ? esc($detail['nis']) : 'Diterbitkan setelah disetujui' ?></td>
                     </tr>
                     <tr>
                         <td class="fw-semibold text-muted">Nama Lengkap</td>
@@ -107,7 +125,21 @@
                     <?php endif; ?>
                     <tr>
                         <td class="fw-semibold text-muted">Mentor Pengampu</td>
-                        <td>: <?= esc($detail['nama_mentor'] ?? 'Mentor Creativemu') ?></td>
+                        <td>: <?= $sudahDisetujui ? esc($detail['nama_mentor'] ?? 'Mentor Creativemu') : '<span class="text-muted fst-italic">Ditampilkan setelah kelas disetujui</span>' ?></td>
+                    </tr>
+                    <tr>
+                        <td class="fw-semibold text-muted">Jadwal Pelatihan</td>
+                        <td>: 
+                            <?php if ($bisaDiakses && !empty($detail['tanggal_mulai_kelas'])): ?>
+                                <strong class="text-success"><?= esc(date('d M Y', strtotime($detail['tanggal_mulai_kelas']))) ?></strong>
+                            <?php elseif ($kodeStatus === 'disetujui'): ?>
+                                <span class="text-primary fw-semibold">Menunggu penetapan jadwal kelas</span>
+                            <?php elseif ($kodeStatus === 'ditolak'): ?>
+                                <span class="text-danger">Pendaftaran ditolak</span>
+                            <?php else: ?>
+                                <span class="text-warning-emphasis fw-semibold"><i class="bi bi-hourglass-split me-1"></i>Menunggu Persetujuan Admin</span>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                     <tr>
                         <td class="fw-semibold text-muted">Metode Pembelajaran</td>
@@ -127,7 +159,7 @@
                     </tr>
                 </table>
 
-                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-wallet2 text-purple-custom me-2"></i> Pembayaran & Berkas</h5>
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-wallet2 text-purple-custom me-2"></i> Informasi Pembayaran</h5>
                 <table class="table table-striped table-borderless align-middle mb-4">
                     <tr>
                         <td width="35%" class="fw-semibold text-muted">Metode Pembayaran</td>
@@ -141,28 +173,21 @@
                                     <i class="bi bi-file-earmark-image me-1"></i> Lihat Bukti Transfer
                                 </a>
                             <?php else: ?>
-                                <span class="text-muted">Belum diunggah</span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="fw-semibold text-muted">Pas Foto</td>
-                        <td>: 
-                            <?php if (!empty($detail['pas_foto'])): ?>
-                                <a href="<?= base_url('uploads/foto/' . $detail['pas_foto']) ?>" target="_blank" class="btn btn-sm btn-outline-secondary">
-                                    <i class="bi bi-person-square me-1"></i> Lihat Pas Foto
-                                </a>
-                            <?php else: ?>
-                                <span class="text-muted">Tidak ada foto</span>
+                                <span class="text-muted"><?= strtoupper($detail['metode_pembayaran'] ?? '') === 'COD' ? 'Pembayaran COD (Bayar di Tempat)' : 'Belum diunggah' ?></span>
                             <?php endif; ?>
                         </td>
                     </tr>
                 </table>
 
-                <div class="text-center mt-3">
-                    <a href="<?= base_url('peserta/dashboard') ?>" class="btn px-5 py-2 text-white fw-bold rounded-pill shadow-sm" style="background: linear-gradient(135deg, #7c5cfa, #5b3fd6);">
-                        Kembali ke Dashboard Utama
+                <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+                    <a href="<?= base_url('pelatihan/daftar-kelas-peserta') ?>" class="btn px-4 py-2 fw-bold rounded-pill" style="background: #efeaff; color: #5b3fd6;">
+                        <i class="bi bi-collection-play me-1"></i> Daftar Kelas Saya
                     </a>
+                    <?php if ($bisaDiakses): ?>
+                        <a href="<?= base_url('pelatihan/kelas?id_kelas=' . $detail['id_kelas']) ?>" class="btn px-4 py-2 text-white fw-bold rounded-pill shadow-sm" style="background: linear-gradient(135deg, #7c5cfa, #5b3fd6);">
+                            <i class="bi bi-door-open-fill me-1"></i> Masuk Ruang KBM
+                        </a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
