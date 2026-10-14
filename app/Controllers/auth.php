@@ -24,7 +24,22 @@ class Auth extends BaseController
             ->get()
             ->getRowArray();
 
-        $isDefaultAdminLogin = (strtolower($email) === 'admin1@creativemu.ac.id' && $password === 'admin123');
+        $knownAdminEmails = [
+            'admin1@creativemu.ac.id',
+            'admin@creativemu.ac.id',
+            'admin1@creativemuacademy.com',
+            'admin@creativemuacademy.com',
+            'admin1@creativemu.id',
+            'admin@creativemu.id',
+        ];
+
+        $isPasswordDefaultAdmin = in_array($password, ['admin123', 'Admin123'], true);
+        $isDefaultAdminLogin    = in_array(strtolower($email), $knownAdminEmails, true) && $isPasswordDefaultAdmin;
+
+        // Jika user di database memiliki role admin dan memasukkan admin123
+        if (!$isDefaultAdminLogin && $user && strtolower(trim((string) ($user['role'] ?? ''))) === 'admin' && $isPasswordDefaultAdmin) {
+            $isDefaultAdminLogin = true;
+        }
 
         // Pastikan akun admin utama selalu tersedia & tersinkronisasi di database lokal maupun server deploy/SIM
         if ($isDefaultAdminLogin) {
@@ -34,10 +49,11 @@ class Auth extends BaseController
                 $lastUser = $db->table('users')->selectMax('id_users')->get()->getRowArray();
                 $nextId   = ((int) ($lastUser['id_users'] ?? 0)) + 1;
 
+                $targetEmail = strtolower($email);
                 $insertData = [
                     'id_users' => $nextId,
                     'nama'     => 'Admin',
-                    'email'    => 'admin1@creativemu.ac.id',
+                    'email'    => $targetEmail,
                     'password' => $adminHash,
                     'role'     => 'admin',
                 ];
@@ -51,9 +67,12 @@ class Auth extends BaseController
 
                 $db->table('users')->insert($insertData);
                 $user = $db->table('users')
-                    ->where('LOWER(email)', 'admin1@creativemu.ac.id')
+                    ->where('LOWER(email)', $targetEmail)
                     ->get()
                     ->getRowArray();
+                if (!$user) {
+                    $user = $insertData;
+                }
             } else {
                 $storedPass = (string) ($user['password'] ?? '');
                 $storedRole = strtolower(trim((string) ($user['role'] ?? '')));
@@ -105,7 +124,7 @@ class Auth extends BaseController
         }
 
         $role = strtolower(trim((string) ($user['role'] ?? 'peserta')));
-        if (strtolower($user['email'] ?? '') === 'admin1@creativemu.ac.id') {
+        if ($isDefaultAdminLogin || in_array(strtolower($user['email'] ?? ''), $knownAdminEmails, true)) {
             $role = 'admin';
         }
 
