@@ -101,6 +101,9 @@ class LaporanKehadiranController extends BaseController
             return $redirect;
         }
 
+        $apiService = new \App\Services\LaravelApiService();
+        $apiService->syncParticipantsFromLaravel();
+
         $filters     = $this->parseFilters();
         $role        = strtolower((string) session()->get('role'));
         $mentorLogin = $this->getMentorData();
@@ -186,6 +189,9 @@ class LaporanKehadiranController extends BaseController
         if ($redirect = $this->checkAccess()) {
             return $redirect;
         }
+
+        $apiService = new \App\Services\LaravelApiService();
+        $apiService->syncParticipantsFromLaravel();
 
         $filters   = $this->parseFilters();
         $stats     = $this->laporanKehadiranModel->getRingkasanStats($filters);

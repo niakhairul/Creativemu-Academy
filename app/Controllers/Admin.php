@@ -1428,8 +1428,8 @@ $data = [
     {
 
         $db = \Config\Database::connect();
-
-
+        $apiService = new \App\Services\LaravelApiService();
+        $apiService->syncParticipantsFromLaravel();
 
         $keyword         = trim((string) ($this->request->getGet('keyword') ?? ''));
 
@@ -1615,25 +1615,30 @@ $data = [
 
 
 
-        // Ambil opsi tempat pelatihan unik yang tidak kosong
-
-        $tempatPelatihanOptions = $db->table('kelas')
-
-            ->select('lokasi_pelatihan AS lokasi_pelatihan')
-
+        // Ambil opsi tempat pelatihan unik yang tidak kosong dari kelas dan pendaftaran
+        $locKelas = $db->table('kelas')
+            ->select('lokasi_pelatihan')
             ->where('lokasi_pelatihan IS NOT NULL')
-
             ->where('lokasi_pelatihan !=', '')
-
             ->where('lokasi_pelatihan !=', '-')
-
             ->groupBy('lokasi_pelatihan')
-
-            ->orderBy('lokasi_pelatihan', 'ASC')
-
             ->get()
-
             ->getResultArray();
+        $locPendaftaran = $db->table('pendaftaran')
+            ->select('lokasi_pelatihan')
+            ->where('lokasi_pelatihan IS NOT NULL')
+            ->where('lokasi_pelatihan !=', '')
+            ->where('lokasi_pelatihan !=', '-')
+            ->groupBy('lokasi_pelatihan')
+            ->get()
+            ->getResultArray();
+
+        $allLocs = array_values(array_unique(array_filter(array_merge(
+            array_column($locKelas, 'lokasi_pelatihan'),
+            array_column($locPendaftaran, 'lokasi_pelatihan')
+        ))));
+        sort($allLocs);
+        $tempatPelatihanOptions = array_map(fn($loc) => ['lokasi_pelatihan' => $loc], $allLocs);
 
 
 
@@ -1720,6 +1725,8 @@ $data = [
     public function pendaftaran()
 
     {
+        $apiService = new \App\Services\LaravelApiService();
+        $apiService->syncParticipantsFromLaravel();
 
         $pendaftaranModel = new PendaftaranModel();
 
@@ -1753,6 +1760,9 @@ $data = [
 
     public function validasi()
     {
+        $apiService = new \App\Services\LaravelApiService();
+        $apiService->syncParticipantsFromLaravel();
+
         $db = \Config\Database::connect();
         $keyword = trim((string) ($this->request->getGet('keyword') ?? ''));
         $status = strtolower(trim((string) ($this->request->getGet('status') ?? '')));
@@ -1760,7 +1770,6 @@ $data = [
         $bulan = trim((string) ($this->request->getGet('bulan') ?? ''));
 
         // Ambil daftar kelas dari API Laravel (Single Source of Truth)
-        $apiService = new \App\Services\LaravelApiService();
         $pelatihanCtrl = new \App\Controllers\Pelatihan();
         $laravelClassesMap = $pelatihanCtrl->fetchLaravelClassesMap($apiService);
 

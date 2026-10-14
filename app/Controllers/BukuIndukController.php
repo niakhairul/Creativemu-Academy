@@ -40,6 +40,9 @@ class BukuIndukController extends Controller
             return $redirect;
         }
 
+        $apiService = new \App\Services\LaravelApiService();
+        $apiService->syncParticipantsFromLaravel();
+
         // Tangkap parameter filter & search
         $filters = [
             'tahun'             => $this->request->getGet('tahun') ?? date('Y'),
@@ -200,6 +203,9 @@ class BukuIndukController extends Controller
         if (session()->get('role') !== 'admin') {
             return redirect()->to(base_url('pelatihan/login'));
         }
+
+        $apiService = new \App\Services\LaravelApiService();
+        $apiService->syncParticipantsFromLaravel();
 
         $filters = [
             'tahun'             => $this->request->getGet('tahun') ?? 'all',

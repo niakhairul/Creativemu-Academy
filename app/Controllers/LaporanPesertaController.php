@@ -105,6 +105,9 @@ class LaporanPesertaController extends BaseController
             return $redirect;
         }
 
+        $apiService = new \App\Services\LaravelApiService();
+        $apiService->syncParticipantsFromLaravel();
+
         $filters = $this->parseFilters();
         $mentor = $this->getMentorData();
         $idMentor = $mentor ? (int) $mentor['id_mentor'] : null;
@@ -155,6 +158,9 @@ class LaporanPesertaController extends BaseController
         if ($redirect = $this->checkAccess()) {
             return $redirect;
         }
+
+        $apiService = new \App\Services\LaravelApiService();
+        $apiService->syncParticipantsFromLaravel();
 
         $filters    = $this->parseFilters();
         $stats      = $this->laporanModel->getRingkasanStats($filters);

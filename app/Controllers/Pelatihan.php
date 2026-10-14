@@ -686,21 +686,25 @@ class Pelatihan extends BaseController
         $idKelas       = (int) ($row['id_kelas'] ?? 0);
         $extId         = 'REG-' . $idPendaftaran;
 
-        if ($idKelas > 0 && (!isset($laravelClassesMap[$idKelas]) || empty($laravelClassesMap[$idKelas]['detail_loaded']))) {
-            try {
-                $resSingle = $apiService->request('GET', 'classes/' . $idKelas);
-                $singleData = $resSingle['data'] ?? $resSingle ?? null;
-                if (!empty($singleData) && is_array($singleData) && isset($singleData['id'])) {
-                    $laravelClassesMap[$idKelas] = $this->formatKelasFromApi($singleData);
-                }
-            } catch (\Exception $eSingle) {
-                if (isset($laravelClassesMap[$idKelas])) {
-                    $laravelClassesMap[$idKelas]['detail_loaded'] = true;
+        if ($idKelas > 0 && (!isset($laravelClassesMap[$idKelas]) || (is_array($laravelClassesMap[$idKelas]) && empty($laravelClassesMap[$idKelas]['detail_loaded'])))) {
+            if (isset($laravelClassesMap[$idKelas]) && $laravelClassesMap[$idKelas] === false) {
+                // Kelas tidak ada di Laravel, skip request
+            } else {
+                try {
+                    $resSingle = $apiService->request('GET', 'classes/' . $idKelas);
+                    $singleData = $resSingle['data'] ?? $resSingle ?? null;
+                    if (!empty($singleData) && is_array($singleData) && isset($singleData['id'])) {
+                        $laravelClassesMap[$idKelas] = $this->formatKelasFromApi($singleData);
+                    } else {
+                        $laravelClassesMap[$idKelas] = false;
+                    }
+                } catch (\Exception $eSingle) {
+                    $laravelClassesMap[$idKelas] = false;
                 }
             }
         }
 
-        $cData = ($idKelas > 0 && isset($laravelClassesMap[$idKelas])) ? $laravelClassesMap[$idKelas] : null;
+        $cData = ($idKelas > 0 && isset($laravelClassesMap[$idKelas]) && is_array($laravelClassesMap[$idKelas])) ? $laravelClassesMap[$idKelas] : null;
 
         // Cari data registrant untuk pendaftaran ini di dalam kelas Laravel
         $laravelReg = null;
