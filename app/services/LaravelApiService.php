@@ -30,14 +30,16 @@ class LaravelApiService
      */
     public function request($method, $endpoint, $data = [])
     {
-        // Menyiapkan Header wajib sesuai panduan
+        // Menyiapkan Header wajib dan batasan timeout agar tidak hang/loading lama
         $options = [
-            'headers' => [
+            'timeout'         => 3, // Maksimal 3 detik agar page tidak hang jika server luar lambat
+            'connect_timeout' => 2, // Maksimal 2 detik untuk koneksi
+            'headers'         => [
                 'X-API-KEY'    => $this->apiKey,
                 'Accept'       => 'application/json',
                 'Content-Type' => 'application/json',
             ],
-            'http_errors' => false // Mencegah error bawaan CI4 agar response 404/422/500 dari Laravel tetap bisa dibaca
+            'http_errors'     => false // Mencegah error bawaan CI4 agar response 404/422/500 dari Laravel tetap bisa dibaca
         ];
 
         // Jika ada data yang mau dikirim (biasanya untuk POST)
@@ -49,10 +51,16 @@ class LaravelApiService
             $options['query'] = $data;
         }
 
-        // Mengeksekusi request ke endpoint (misalnya: /classes)
-        $response = $this->client->request($method, $endpoint, $options);
-        
-        // Mengubah hasil JSON dari Laravel menjadi Array PHP
-        return json_decode($response->getBody(), true);
+        try {
+            // Mengeksekusi request ke endpoint (misalnya: /classes)
+            $response = $this->client->request($method, $endpoint, $options);
+            
+            // Mengubah hasil JSON dari Laravel menjadi Array PHP
+            $decoded = json_decode($response->getBody(), true);
+            return is_array($decoded) ? $decoded : [];
+        } catch (\Throwable $e) {
+            log_message('warning', "LaravelApiService request [{$method} {$endpoint}] failed: " . $e->getMessage());
+            return [];
+        }
     }
 }

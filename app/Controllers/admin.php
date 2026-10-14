@@ -112,6 +112,11 @@ class Admin extends BaseController
             log_message('error', 'Dashboard API classes error: ' . $e->getMessage());
         }
 
+        // Fallback jika API kosong atau error, ambil dari DB lokal
+        if ($totalKelas === 0 && $db->tableExists('kelas')) {
+            $totalKelas = $db->table('kelas')->countAllResults();
+        }
+
         // 2. Data Instruktur/Mentor dari API Laravel
         $totalMentor = 0;
         try {
@@ -122,6 +127,11 @@ class Admin extends BaseController
             }
         } catch (\Exception $e) {
             log_message('error', 'Dashboard API trainers error: ' . $e->getMessage());
+        }
+
+        // Fallback jika API kosong atau error, ambil dari DB lokal
+        if ($totalMentor === 0 && $db->tableExists('mentor')) {
+            $totalMentor = $db->table('mentor')->countAllResults();
         }
 
         // 3. Data Pendaftaran & Peserta dari Database CI4 yang sudah berjalan

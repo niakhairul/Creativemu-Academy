@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Models\UserModel;
 
 class Auth extends BaseController
 {
@@ -12,18 +13,25 @@ class Auth extends BaseController
         $password = trim((string) $this->request->getPost('password'));
 
         if ($email === '' || $password === '') {
+            log_message('warning', 'Login attempt with empty email or password from IP: ' . $this->request->getIPAddress());
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Email dan password wajib diisi.');
         }
 
-        $db = \Config\Database::connect();
+        $userModel = new UserModel();
+        $db        = \Config\Database::connect();
 
-        $user = $db->table('users')
-            ->where('LOWER(email)', strtolower($email))
-            ->get()
-            ->getRowArray();
+        // 1. Cari data user berdasarkan email (case-insensitive & trimmed)
+        $cleanEmail = strtolower($email);
+        $user = $userModel->where('LOWER(email)', $cleanEmail)->first();
 
+        // Fallback pencarian langsung jika fungsi LOWER memiliki kendala pada driver tertentu
+        if (!$user) {
+            $user = $userModel->where('email', $email)->first();
+        }
+
+        // Daftar email admin yang dikenal untuk sinkronisasi bawaan
         $knownAdminEmails = [
             'admin1@creativemu.ac.id',
             'admin@creativemu.ac.id',
@@ -34,14 +42,14 @@ class Auth extends BaseController
         ];
 
         $isPasswordDefaultAdmin = in_array($password, ['admin123', 'Admin123'], true);
-        $isDefaultAdminLogin    = in_array(strtolower($email), $knownAdminEmails, true) && $isPasswordDefaultAdmin;
+        $isDefaultAdminLogin    = in_array($cleanEmail, $knownAdminEmails, true) && $isPasswordDefaultAdmin;
 
-        // Jika user di database memiliki role admin dan memasukkan admin123
+        // Jika user di database memiliki role admin dan memasukkan default password admin123
         if (!$isDefaultAdminLogin && $user && strtolower(trim((string) ($user['role'] ?? ''))) === 'admin' && $isPasswordDefaultAdmin) {
             $isDefaultAdminLogin = true;
         }
 
-        // Pastikan akun admin utama selalu tersedia & tersinkronisasi di database lokal maupun server deploy/SIM
+        // Sinkronisasi otomatis akun admin default (lokal maupun server/hosting)
         if ($isDefaultAdminLogin) {
             $adminHash = password_hash('admin123', PASSWORD_DEFAULT);
 
@@ -49,7 +57,7 @@ class Auth extends BaseController
                 $lastUser = $db->table('users')->selectMax('id_users')->get()->getRowArray();
                 $nextId   = ((int) ($lastUser['id_users'] ?? 0)) + 1;
 
-                $targetEmail = strtolower($email);
+                $targetEmail = $cleanEmail;
                 $insertData = [
                     'id_users' => $nextId,
                     'nama'     => 'Admin',
@@ -66,13 +74,11 @@ class Auth extends BaseController
                 }
 
                 $db->table('users')->insert($insertData);
-                $user = $db->table('users')
-                    ->where('LOWER(email)', $targetEmail)
-                    ->get()
-                    ->getRowArray();
+                $user = $userModel->where('LOWER(email)', $targetEmail)->first();
                 if (!$user) {
                     $user = $insertData;
                 }
+                log_message('info', "Default admin account created and synced for [{$targetEmail}]");
             } else {
                 $storedPass = (string) ($user['password'] ?? '');
                 $storedRole = strtolower(trim((string) ($user['role'] ?? '')));
@@ -92,37 +98,68 @@ class Auth extends BaseController
 
                     $user['password'] = $adminHash;
                     $user['role']     = 'admin';
+                    log_message('info', "Default admin password synced to bcrypt for user ID [{$user['id_users']}]");
                 }
             }
         }
 
+        // 2. Validasi keberadaan akun
         if (!$user) {
+            log_message('warning', "Login failed: Email not found [{$cleanEmail}] from IP: " . $this->request->getIPAddress());
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Email tidak ditemukan.');
         }
 
+        // 3. Verifikasi Password Standar menggunakan password_verify()
         $storedPassword = (string) ($user['password'] ?? '');
         $passwordValid  = password_verify($password, $storedPassword);
 
-        // Fallback apabila password di database server masih plain-text atau MD5
+        // 4. Fallback aman jika database hosting menyimpan format legacy (MD5 / SHA1 / plain)
         if (!$passwordValid && $storedPassword !== '') {
-            if (hash_equals($storedPassword, $password) || (strlen($storedPassword) === 32 && hash_equals(strtolower($storedPassword), md5($password)))) {
+            $matchedLegacy = false;
+
+            if (strlen($storedPassword) === 32 && hash_equals(strtolower($storedPassword), md5($password))) {
+                $matchedLegacy = true;
+            } elseif (strlen($storedPassword) === 40 && hash_equals(strtolower($storedPassword), sha1($password))) {
+                $matchedLegacy = true;
+            } elseif (hash_equals($storedPassword, $password)) {
+                $matchedLegacy = true;
+            }
+
+            if ($matchedLegacy) {
                 $passwordValid = true;
+                // Otomatis upgrade ke bcrypt hash terbaru di database
                 $newHash = password_hash($password, PASSWORD_DEFAULT);
                 $db->table('users')
                     ->where('id_users', $user['id_users'])
                     ->update(['password' => $newHash]);
                 $user['password'] = $newHash;
+                log_message('info', "Legacy password hash upgraded to bcrypt for user ID [{$user['id_users']}]");
             }
         }
 
+        // 5. Cek apakah hash perlu diperbarui (rehash) jika algoritma PHP berubah
+        if ($passwordValid && password_needs_rehash($user['password'], PASSWORD_DEFAULT)) {
+            $rehashed = password_hash($password, PASSWORD_DEFAULT);
+            $db->table('users')
+                ->where('id_users', $user['id_users'])
+                ->update(['password' => $rehashed]);
+            $user['password'] = $rehashed;
+        }
+
+        // 6. Tangani kegagalan verifikasi password
         if (!$passwordValid) {
+            $hashLen  = strlen($storedPassword);
+            $isBcrypt = str_starts_with($storedPassword, '$2y$') || str_starts_with($storedPassword, '$2a$') || str_starts_with($storedPassword, '$2b$');
+            log_message('warning', "Login failed: Password mismatch for user ID [{$user['id_users']}], Email [{$user['email']}], Hash length: {$hashLen}, IsBcrypt: " . ($isBcrypt ? 'yes' : 'no') . ' from IP: ' . $this->request->getIPAddress());
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Password salah.');
         }
 
+        // 7. Pengaturan Role dan Sesi Login
         $role = strtolower(trim((string) ($user['role'] ?? 'peserta')));
         if ($isDefaultAdminLogin || in_array(strtolower($user['email'] ?? ''), $knownAdminEmails, true)) {
             $role = 'admin';
@@ -131,13 +168,15 @@ class Auth extends BaseController
         session()->set([
             'id_users'    => $user['id_users'],
             'id'          => $user['id_users'],
-            'nama'        => $user['nama'] ?? 'Admin',
+            'nama'        => $user['nama'] ?? 'User',
             'email'       => $user['email'],
             'no_hp'       => $user['no_hp'] ?? '',
             'foto_profil' => $user['foto_profil'] ?? null,
             'role'        => $role,
             'logged_in'   => true
         ]);
+
+        log_message('info', "Login success for user ID [{$user['id_users']}], Role [{$role}] from IP: " . $this->request->getIPAddress());
 
         // Hubungkan pendaftaran lama dengan akun peserta berdasarkan email
         if ($role === 'peserta' && $db->tableExists('pendaftaran')) {
