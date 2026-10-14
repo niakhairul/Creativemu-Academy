@@ -410,65 +410,88 @@
         }
 
         .kelas-card:hover {
-            transform: translateY(-12px);
+            transform: translateY(-8px);
             border-color: rgba(122, 63, 242, 0.42);
-            box-shadow: 0 30px 70px rgba(54, 24, 108, 0.2);
+            box-shadow: 0 24px 55px -10px rgba(88, 28, 135, 0.22);
         }
 
         .kelas-card:hover::before { opacity: 1; }
         .kelas-card:hover::after { transform: rotate(22deg) translateX(390%); }
 
-        
-
-        .img-wrapper::after {
-            content: '';
-            position: absolute;
-            inset: auto 0 0;
-            height: 54%;
-            background: linear-gradient(180deg, transparent, rgba(32, 20, 63, 0.54));
-            transition: opacity 0.3s ease;
+        /* Card Top Gradient Accent */
+        .card-top-accent {
+            height: 5px;
+            width: 100%;
+            background: linear-gradient(90deg, #7c3aed 0%, #ec4899 50%, #06b6d4 100%);
+            border-radius: 16px 16px 0 0;
         }
 
-        
-
-        .kelas-card:hover 
-
-        .badge-kategori,
-        .badge-metode,
-        .badge-status-aktif,
-        .badge-status-nonaktif {
+        /* Colorful Badges */
+        .badge-kategori-pill {
             display: inline-flex;
             align-items: center;
-            width: max-content;
-            max-width: 100%;
-            border-radius: 999px;
-            font-size: 0.72rem;
+            background: linear-gradient(135deg, #ede9fe 0%, #fae8ff 100%);
+            color: #6d28d9;
+            font-size: 0.74rem;
             font-weight: 800;
-            line-height: 1;
-            white-space: nowrap;
+            padding: 6px 14px;
+            border-radius: 50rem;
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
         }
 
-        
-
-        .badge-metode {
-            padding: 8px 11px;
-            color: var(--ink);
-            background: rgba(255, 255, 255, 0.92);
-            box-shadow: 0 12px 28px rgba(32, 20, 63, 0.16);
+        .badge-metode-pill {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 50rem;
         }
 
-        .badge-status-aktif { padding: 7px 10px; color: #047857; background: #d9fbe8; }
-        .badge-status-nonaktif { padding: 7px 10px; color: #a21caf; background: #fae8ff; }
+        .badge-metode-online {
+            background: #e0f2fe;
+            color: #0284c7;
+            border: 1px solid #bae6fd;
+        }
+
+        .badge-metode-offline {
+            background: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+
+        .badge-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ecfdf5;
+            color: #047857;
+            font-size: 0.74rem;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 50rem;
+            border: 1px solid #a7f3d0;
+        }
+
+        .pulse-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.28);
+        }
 
         .card-body { position: relative; z-index: 2; }
 
         .judul-kelas {
             min-width: 0;
             margin-bottom: 0;
-            color: var(--ink);
-            font-size: 1.12rem;
+            color: #1e1b4b;
+            font-size: 1.15rem;
             font-weight: 800;
-            line-height: 1.36;
+            line-height: 1.4;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -476,83 +499,129 @@
             transition: color 0.25s ease;
         }
 
-        .kelas-card:hover .judul-kelas { color: var(--purple-primary); }
+        .kelas-card:hover .judul-kelas { color: #7c3aed; }
 
-        .deskripsi-kelas {
-            min-height: 3.1em;
-            margin: 12px 0 16px;
-            color: var(--muted);
-            font-size: 0.88rem;
-            line-height: 1.58;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+        /* Colorful Info Container */
+        .info-container-colorful {
+            background: linear-gradient(145deg, #fbfaff 0%, #f6f3ff 100%);
+            border: 1px solid rgba(123, 90, 246, 0.14);
+            border-radius: 18px;
+            padding: 15px 16px;
+            margin-top: auto;
+            margin-bottom: 1.25rem;
+            box-shadow: inset 0 1px 3px rgba(123, 90, 246, 0.04);
         }
 
-        .info-list {
-            display: grid;
-            gap: 10px;
-            margin-bottom: 16px;
-            color: var(--muted);
-            font-size: 0.84rem;
-            font-weight: 650;
-        }
-
-        .info-row,
-        .info-split {
-            min-width: 0;
+        .icon-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 11px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            flex-shrink: 0;
         }
 
-        .info-row strong {
-            min-width: 0;
-            color: var(--ink);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+        .icon-circle-purple {
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            color: #6d28d9;
         }
 
-        .info-icon {
-            flex: 0 0 auto;
-            display: inline-grid;
-            place-items: center;
-            width: 28px;
-            height: 28px;
-            border-radius: 10px;
-            color: var(--purple-primary);
-            background: var(--purple-soft);
+        .icon-circle-rose {
+            background: #ffe4e6;
+            color: #e11d48;
         }
 
-        
+        .icon-circle-amber {
+            background: #fef3c7;
+            color: #d97706;
+        }
 
-        
+        .icon-circle-cyan {
+            background: #cffafe;
+            color: #0891b2;
+        }
 
-        .price-row + 
+        .info-tag-label {
+            font-size: 0.68rem;
+            font-weight: 800;
+            color: #7c3aed;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1;
+            margin-bottom: 3px;
+        }
 
-        .price-row span { color: var(--muted); font-weight: 700; }
-        .price-row strong { color: var(--purple-strong); font-size: 0.9rem; white-space: nowrap; }
+        .info-name-text {
+            font-size: 0.94rem;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1.25;
+        }
 
-        .btn-outline-detail {
+        .info-sub-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .info-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(123, 90, 246, 0.15), transparent);
+            margin: 10px 0;
+        }
+
+        /* Price Container */
+        .price-container {
+            border-top: 1px dashed rgba(123, 90, 246, 0.2);
+            padding-top: 12px;
+        }
+
+        .price-title-label {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .price-highlight-text {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #5b21b6;
+            letter-spacing: -0.4px;
+        }
+
+        /* Action Button */
+        .btn-detail-action {
+            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+            color: #6d28d9;
+            border: 1.5px solid rgba(109, 40, 217, 0.35);
+            border-radius: 14px;
+            font-size: 0.94rem;
+            font-weight: 800;
+            padding: 10px 18px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            border: 1.5px solid rgba(122, 63, 242, 0.28);
-            color: var(--purple-primary);
-            background: #ffffff;
-            font-size: 0.86rem;
-            padding: 10px 12px;
+            transition: all 0.25s var(--ease);
+            text-decoration: none;
         }
 
-        .btn-outline-detail:hover {
+        .btn-detail-action:hover {
+            background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
             color: #ffffff;
-            border-color: var(--purple-primary);
-            background: var(--purple-primary);
-            box-shadow: 0 16px 30px rgba(122, 63, 242, 0.24);
+            border-color: transparent;
+            box-shadow: 0 10px 24px rgba(109, 40, 217, 0.34);
             transform: translateY(-2px);
+        }
+
+        .btn-detail-action i {
+            transition: transform 0.2s ease;
+        }
+
+        .btn-detail-action:hover i {
+            transform: translateX(3px);
         }
 
         .empty-state {
@@ -772,29 +841,82 @@
 
     <!-- NOTIFIKASI FLASH MESSAGE (SUKSES / ERROR) -->
     <?php if (session()->getFlashdata('success')): ?>
-        <div class="alert-modern success animate-fade-in">
-            <i class="bi bi-check-circle-fill me-2"></i> <?= session()->getFlashdata('success') ?>
+        <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm border-0 p-3 mb-4 d-flex align-items-center animate-fade-in" role="alert" style="background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%); border: 1.5px solid #86efac !important; box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.15);">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle me-3 flex-shrink-0 shadow-sm" style="width: 44px; height: 44px; background: #10b981; color: #ffffff; font-size: 1.4rem;">
+                <i class="bi bi-check2-circle"></i>
+            </div>
+            <div class="flex-grow-1 pe-3">
+                <div class="fw-bold mb-1" style="color: #065f46; font-size: 0.98rem;">Pendaftaran Berhasil Terkirim!</div>
+                <div class="small fw-medium" style="color: #047857; font-size: 0.88rem; line-height: 1.5;"><?= esc(session()->getFlashdata('success')) ?></div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     <?php endif; ?>
 
     <?php if (session()->getFlashdata('error')): ?>
-        <div class="alert-modern error animate-fade-in">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> <?= session()->getFlashdata('error') ?>
+        <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm border-0 p-3 mb-4 d-flex align-items-center animate-fade-in" role="alert" style="background: linear-gradient(135deg, #fef2f2 0%, #fff1f2 100%); border: 1.5px solid #fca5a5 !important; box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.15);">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle me-3 flex-shrink-0 shadow-sm" style="width: 44px; height: 44px; background: #ef4444; color: #ffffff; font-size: 1.4rem;">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div class="flex-grow-1 pe-3">
+                <div class="fw-bold mb-1" style="color: #991b1b; font-size: 0.98rem;">Pemberitahuan Pendaftaran:</div>
+                <div class="small fw-medium" style="color: #b91c1c; font-size: 0.88rem; line-height: 1.5;"><?= esc(session()->getFlashdata('error')) ?></div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     <?php endif; ?>
+
+    <?php
+        // Kumpulkan kategori unik untuk dropdown filter
+        $daftarKategori = [];
+        if (!empty($kelas) && is_array($kelas)) {
+            foreach ($kelas as $itemKelas) {
+                if (!empty($itemKelas['kategori'])) {
+                    $daftarKategori[$itemKelas['kategori']] = true;
+                }
+            }
+        }
+        $kategoriList = array_keys($daftarKategori);
+        sort($kategoriList);
+
+        $filterKeyword  = trim((string)($_GET['keyword'] ?? ''));
+        $filterKategori = trim((string)($_GET['kategori'] ?? ''));
+
+        // Terapkan filter jika keyword atau kategori dipilih
+        $kelasList = $kelas ?? [];
+        if ($filterKeyword !== '' || $filterKategori !== '') {
+            $kelasList = array_filter($kelasList, function($k) use ($filterKeyword, $filterKategori) {
+                $matchKey = true;
+                $matchKat = true;
+                if ($filterKeyword !== '') {
+                    $haystack = strtolower(($k['nama_kelas'] ?? '') . ' ' . ($k['nama_mentor'] ?? '') . ' ' . ($k['kategori'] ?? '') . ' ' . ($k['deskripsi'] ?? ''));
+                    $matchKey = (strpos($haystack, strtolower($filterKeyword)) !== false);
+                }
+                if ($filterKategori !== '') {
+                    $matchKat = (strtolower($k['kategori'] ?? '') === strtolower($filterKategori));
+                }
+                return $matchKey && $matchKat;
+            });
+        }
+    ?>
 
     <!-- Kotak Filter Pencarian -->
     <div class="filter-container">
         <form action="" method="get" class="filter-form">
             <div>
                 <div class="position-relative">
-                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3" style="color: #5b21b6;"></i>
-                    <input type="text" name="keyword" class="search-input ps-5" placeholder="Cari nama kelas atau materi..." value="<?= esc($_GET['keyword'] ?? '') ?>">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3" style="color: #7c3aed;"></i>
+                    <input type="text" name="keyword" class="search-input ps-5" placeholder="Cari nama kelas atau materi..." value="<?= esc($filterKeyword) ?>">
                 </div>
             </div>
             <div>
                 <select name="kategori" class="filter-select">
                     <option value="">Semua Kategori</option>
+                    <?php foreach ($kategoriList as $kat): ?>
+                        <option value="<?= esc($kat) ?>" <?= (strtolower($filterKategori) === strtolower($kat)) ? 'selected' : '' ?>>
+                            <?= esc($kat) ?>
+                        </option>
+                    <?php endforeach; ?>
                 </select>
             </div>
             <div class="filter-action d-flex gap-2">
@@ -811,103 +933,146 @@
 
     <!-- Daftar Kelas Grid -->
     <div class="kelas-grid mt-2">
-        <?php if (empty($kelas)) : ?>
+        <?php if (empty($kelasList)) : ?>
             <div class="kelas-grid-item text-center py-5" style="grid-column: 1 / -1;">
                 <div class="card border-0 shadow-sm p-5 rounded-4 bg-white mx-auto animate-fade-in" style="max-width: 500px;">
-                    <div class="p-4 rounded-circle d-inline-flex mx-auto mb-3" style="background-color: rgba(91,33,182,0.1); color: #5b21b6;">
-                        <i class="bi bi-inbox fs-1"></i>
+                    <div class="p-4 rounded-circle d-inline-flex mx-auto mb-3" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); color: #7c3aed;">
+                        <i class="bi bi-inbox-fill fs-1"></i>
                     </div>
-                    <h4 class="fw-bold text-dark mb-2">Belum Ada Kelas Tersedia</h4>
-                    <p class="text-muted mb-0 small">Saat ini belum ada data kelas pelatihan aktif yang dapat ditampilkan.</p>
+                    <h4 class="fw-bold text-dark mb-2">Tidak Ada Kelas yang Ditemukan</h4>
+                    <p class="text-muted mb-3 small">Coba ubah kata kunci atau pilih kategori lain untuk menemukan kelas pelatihan yang tersedia.</p>
+                    <a href="<?= base_url('pelatihan/daftar-kelas') ?>" class="btn btn-sm btn-outline-custom-auth mx-auto">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Reset Filter
+                    </a>
                 </div>
             </div>
         <?php else : ?>
-            <?php $delay = 0.1; foreach ($kelas as $k) : ?>
+            <?php $delay = 0.08; foreach ($kelasList as $k) : ?>
                 <div class="kelas-grid-item d-flex animate-fade-in" style="animation-delay: <?= $delay ?>s;">
-                    <div class="card kelas-card w-100 h-100 border-0 shadow-sm" style="border-radius: 16px; transition: all 0.3s ease;">
+                    <div class="card kelas-card w-100 h-100 border-0 shadow-sm" style="border-radius: 20px; transition: all 0.3s ease;">
+                        <!-- Top Accent Multi-Color Ribbon -->
+                        <div class="card-top-accent"></div>
+                        
                         <div class="card-body p-4 d-flex flex-column h-100">
                             
-                            <!-- Top Badges -->
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span style="background-color: #f4ebff; color: #6b21a8; padding: 6px 14px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <!-- Top Badges Row -->
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                                <span class="badge-kategori-pill">
+                                    <i class="bi bi-tag-fill me-1"></i>
                                     <?= esc($k['kategori'] ?? 'Umum') ?>
                                 </span>
-                                <div>
+
+                                <div class="d-flex align-items-center gap-1.5">
+                                    <?php 
+                                        $metode = !empty($k['metode_pembelajaran']) ? $k['metode_pembelajaran'] : ($k['tipe_kelas'] ?? '');
+                                        $isOnline = (stripos((string)$metode, 'online') !== false);
+                                    ?>
+                                    <?php if (!empty($metode) && stripos((string)$metode, 'privat') === false): ?>
+                                        <span class="badge-metode-pill <?= $isOnline ? 'badge-metode-online' : 'badge-metode-offline' ?>">
+                                            <i class="bi <?= $isOnline ? 'bi-camera-video-fill' : 'bi-building-fill' ?> me-1"></i>
+                                            <?= esc(ucwords($metode)) ?>
+                                        </span>
+                                    <?php endif; ?>
+
                                     <?php 
                                         $status = strtolower($k['status'] ?? 'aktif');
-                                        if (in_array($status, ['aktif', '1', 'active', 'approved'])) : 
+                                        $isAktif = in_array($status, ['aktif', '1', 'active', 'approved']);
                                     ?>
-                                        <span style="border-radius: 50px; padding: 6px 14px; font-size: 0.75rem; background-color: #f1f5f9; color: #64748b; font-weight: 600;">Aktif</span>
-                                    <?php else : ?>
-                                        <span style="border-radius: 50px; padding: 6px 14px; font-size: 0.75rem; background-color: #f1f5f9; color: #64748b; font-weight: 600;"><?= esc(ucwords($status)) ?></span>
-                                    <?php endif; ?>
+                                    <span class="badge-status-pill">
+                                        <span class="pulse-dot"></span>
+                                        <?= $isAktif ? 'Aktif' : esc(ucwords($status)) ?>
+                                    </span>
                                 </div>
                             </div>
                             
-                            <!-- Title -->
-                            <h3 class="judul-kelas mb-4" style="font-size: 1.25rem; font-weight: 700; color: #1e293b; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 3.5rem;">
+                            <!-- Class Title -->
+                            <h3 class="judul-kelas mb-3" style="min-height: 3.3rem;">
                                 <?= esc($k['nama_kelas']) ?>
                             </h3>
                             
-                            <!-- Info Box -->
-                            <div class="info-list mt-auto mb-4" style="background-color: #fafbfc; padding: 1.25rem; border-radius: 16px; border: 1px solid #e2e8f0;">
+                            <!-- Colorful Info Box -->
+                            <div class="info-container-colorful">
                                 <?php if (!empty($k['nama_mentor'])): ?>
-                                    <div class="d-flex align-items-center mb-3">
-                                        <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 38px; height: 38px; background-color: #e2e8f0; color: #475569; margin-right: 14px;">
-                                            <i class="bi bi-person-video"></i>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="icon-circle icon-circle-purple me-3">
+                                            <i class="bi bi-person-video3"></i>
                                         </div>
-                                        <div class="d-flex flex-column">
-                                            <span style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 2px;">Instruktur</span>
-                                            <strong style="font-size: 0.95rem; color: #334155; font-weight: 700;">
+                                        <div class="d-flex flex-column overflow-hidden">
+                                            <span class="info-tag-label">Instruktur</span>
+                                            <strong class="info-name-text text-truncate" title="<?= esc($k['nama_mentor']) ?>">
                                                 <?= esc($k['nama_mentor']) ?>
                                             </strong>
                                         </div>
                                     </div>
-                                    <div style="height: 1px; background-color: #e2e8f0; margin: 0 4px 1rem 4px;"></div>
+                                    <div class="info-divider"></div>
                                 <?php endif; ?>
 
                                 <?php if (!empty($k['lokasi_media'])): ?>
                                     <div class="d-flex align-items-center mb-2 px-1">
-                                        <i class="bi bi-geo-alt me-2" style="color: #64748b; font-size: 0.95rem;"></i>
-                                        <span style="font-size: 0.85rem; color: #475569; font-weight: 600;"><?= esc($k['lokasi_media']) ?></span>
+                                        <div class="icon-circle icon-circle-rose me-2.5" style="width: 28px; height: 28px; font-size: 0.82rem;">
+                                            <i class="bi bi-geo-alt-fill"></i>
+                                        </div>
+                                        <span class="info-sub-text text-truncate" title="<?= esc($k['lokasi_media']) ?>">
+                                            <?= esc($k['lokasi_media']) ?>
+                                        </span>
                                     </div>
-                                    <div style="height: 1px; background-color: #e2e8f0; margin: 0 4px 0.75rem 4px;"></div>
+                                    <div class="info-divider"></div>
                                 <?php endif; ?>
                                 
                                 <div class="d-flex justify-content-between align-items-center px-1">
                                     <?php if (!empty($k['jumlah_pertemuan'])): ?>
                                         <div class="d-flex align-items-center">
-                                            <i class="bi bi-clock me-2" style="color: #64748b; font-size: 0.95rem;"></i>
-                                            <span style="font-size: 0.85rem; color: #475569; font-weight: 500;"><?= esc($k['jumlah_pertemuan']) ?> Pertemuan</span>
+                                            <div class="icon-circle icon-circle-amber me-2" style="width: 28px; height: 28px; font-size: 0.82rem;">
+                                                <i class="bi bi-calendar2-check-fill"></i>
+                                            </div>
+                                            <span class="info-sub-text fw-bold"><?= esc($k['jumlah_pertemuan']) ?> Pertemuan</span>
                                         </div>
                                     <?php endif; ?>
+
                                     <?php if (isset($k['kapasitas']) && $k['kapasitas'] !== null && $k['kapasitas'] !== ''): ?>
                                         <div class="d-flex align-items-center ms-auto">
-                                            <i class="bi bi-people me-2" style="color: #64748b; font-size: 0.95rem;"></i>
-                                            <span style="font-size: 0.85rem; color: #475569; font-weight: 500;"><?= esc($k['kapasitas_tersedia'] ?? $k['kapasitas']) ?> Kuota</span>
+                                            <div class="icon-circle icon-circle-cyan me-2" style="width: 28px; height: 28px; font-size: 0.82rem;">
+                                                <i class="bi bi-people-fill"></i>
+                                            </div>
+                                            <span class="info-sub-text fw-bold"><?= esc($k['kapasitas_tersedia'] ?? $k['kapasitas']) ?> Kuota</span>
                                         </div>
                                     <?php endif; ?>
                                 </div>
                             </div>
 
-                            <!-- Price -->
-                            <?php if (isset($k['harga_reguler']) && $k['harga_reguler'] !== null && $k['harga_reguler'] !== ''): ?>
-                                <div class="d-flex align-items-center mb-4 gap-2">
-                                    <span style="font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Biaya Investasi</span>
-                                    <strong style="color: #5b21b6; font-size: 1.4rem; font-weight: 800; line-height: 1; margin-left: auto;">Rp <?= number_format((float)$k['harga_reguler'], 0, ',', '.') ?></strong>
+                            <!-- Price Section -->
+                            <?php 
+                                $hargaK = $k['harga_reguler'] ?? $k['harga'] ?? $k['harga_privat'] ?? null;
+                            ?>
+                            <?php if ($hargaK !== null && $hargaK !== ''): ?>
+                                <div class="price-container d-flex align-items-center mb-3.5 gap-2">
+                                    <div class="d-flex align-items-center gap-1.5">
+                                        <div class="icon-circle icon-circle-purple" style="width: 26px; height: 26px; font-size: 0.78rem;">
+                                            <i class="bi bi-cash-stack"></i>
+                                        </div>
+                                        <span class="price-title-label">Investasi</span>
+                                    </div>
+                                    <strong class="price-highlight-text ms-auto">
+                                        <?php if ((float)$hargaK > 0): ?>
+                                            Rp <?= number_format((float)$hargaK, 0, ',', '.') ?>
+                                        <?php else: ?>
+                                            <span class="text-success">Gratis</span>
+                                        <?php endif; ?>
+                                    </strong>
                                 </div>
                             <?php endif; ?>
 
-                            <!-- Button -->
+                            <!-- Button Action -->
                             <div class="mt-auto">
-                                <a href="<?= base_url('pelatihan/detail-kelas/' . $k['id_kelas']) ?>" class="btn w-100 py-2 fw-bold" style="background-color: #fff; color: #5b21b6; border: 1.5px solid #5b21b6; border-radius: 12px; font-size: 1rem; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='#5b21b6'; this.style.color='#fff';" onmouseout="this.style.backgroundColor='#fff'; this.style.color='#5b21b6';">
-                                    Lihat Detail Kelas
+                                <a href="<?= base_url('pelatihan/detail-kelas/' . $k['id_kelas']) ?>" class="btn-detail-action w-100">
+                                    <span>Lihat Detail Kelas</span>
+                                    <i class="bi bi-arrow-right-circle-fill ms-2 fs-5"></i>
                                 </a>
                             </div>
                         </div>
                     </div>
                 </div>
-            <?php $delay += 0.1; endforeach; ?>
+            <?php $delay += 0.08; endforeach; ?>
         <?php endif; ?>
     </div>
 </div>

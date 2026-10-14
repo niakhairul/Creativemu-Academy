@@ -674,19 +674,6 @@
 
 <?php
     $daftarKelas = (!empty($kelas) && is_array($kelas)) ? $kelas : [];
-    $counts = [
-        'all'          => count($daftarKelas),
-        'siap_diakses' => 0,
-        'disetujui'    => 0,
-        'menunggu'     => 0,
-        'ditolak'      => 0,
-    ];
-    foreach ($daftarKelas as $itemK) {
-        $ks = $itemK['kode_status'] ?? 'menunggu';
-        if (isset($counts[$ks])) {
-            $counts[$ks]++;
-        }
-    }
 ?>
 
 <div class="app-wrapper">
@@ -714,39 +701,6 @@
             </div>
 
             <?php if (!empty($daftarKelas)): ?>
-                <!-- Filter & Search Toolbar -->
-                <div class="filter-toolbar mb-4">
-                    <div class="row g-2 align-items-center justify-content-between">
-                        <div class="col-lg-8">
-                            <div class="status-tab-group" id="statusFilterTabs">
-                                <button type="button" class="status-tab-btn active" data-filter="all">
-                                    Semua <span class="status-tab-count"><?= $counts['all'] ?></span>
-                                </button>
-                                <button type="button" class="status-tab-btn" data-filter="siap_diakses">
-                                    <i class="bi bi-play-circle-fill text-success"></i> Siap Diakses <span class="status-tab-count"><?= $counts['siap_diakses'] ?></span>
-                                </button>
-                                <button type="button" class="status-tab-btn" data-filter="disetujui">
-                                    <i class="bi bi-check-circle-fill text-primary"></i> Disetujui <span class="status-tab-count"><?= $counts['disetujui'] ?></span>
-                                </button>
-                                <button type="button" class="status-tab-btn" data-filter="menunggu">
-                                    <i class="bi bi-hourglass-split text-warning"></i> Menunggu Persetujuan <span class="status-tab-count"><?= $counts['menunggu'] ?></span>
-                                </button>
-                                <?php if ($counts['ditolak'] > 0): ?>
-                                <button type="button" class="status-tab-btn" data-filter="ditolak">
-                                    <i class="bi bi-x-circle-fill text-danger"></i> Ditolak <span class="status-tab-count"><?= $counts['ditolak'] ?></span>
-                                </button>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                        <div class="col-lg-4">
-                            <div class="search-input-wrap">
-                                <i class="bi bi-search"></i>
-                                <input type="text" id="searchKelasInput" class="form-control" placeholder="Cari nama kelas, kategori, metode...">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Grid Card Kelas -->
                 <div class="row g-3" id="kelasCardsGrid">
                     <?php foreach ($daftarKelas as $k): ?>
@@ -783,9 +737,8 @@
                             }
 
                             $materiKhusus = !empty($k['custom_materi']) ? $k['custom_materi'] : (!empty($k['materi_privat']) ? $k['materi_privat'] : null);
-                            $searchKeywords = strtolower($namaKelas . ' ' . $kategoriKelas . ' ' . $jenisKelas . ' ' . $metodeBelajar . ' ' . $labelStatus . ' ' . ($materiKhusus ?? ''));
                         ?>
-                        <div class="col-12 col-md-6 col-xl-4 kelas-card-col" data-status="<?= esc($kodeStatus) ?>" data-keywords="<?= esc($searchKeywords) ?>">
+                        <div class="col-12 col-md-6 col-xl-4">
                             <div class="course-card">
                                 <div class="card-status-strip strip-<?= esc($kodeStatus) ?>"></div>
 
@@ -917,38 +870,18 @@
                                         </div>
                                     <?php endif; ?>
 
-                                    <!-- Action Buttons -->
-                                    <div class="mt-auto d-flex gap-2">
-                                        <?php if ($bisaDiakses): ?>
-                                            <a href="<?= base_url('pelatihan/kbm?id_kelas=' . $idKelas) ?>" class="btn-kbm flex-grow-1">
+                                    <!-- Action Button -->
+                                    <?php if ($bisaDiakses): ?>
+                                        <div class="mt-auto pt-2">
+                                            <a href="<?= base_url('pelatihan/kbm?id_kelas=' . $idKelas) ?>" class="btn-kbm w-100">
                                                 <i class="bi bi-mortarboard-fill"></i> Masuk Ruang KBM
                                             </a>
-                                            <?php if ($idPendaftaran > 0): ?>
-                                                <a href="<?= base_url('pelatihan/detailPendaftaran/' . $idPendaftaran) ?>" class="btn-detail-outline" title="Detail Pendaftaran">
-                                                    <i class="bi bi-file-earmark-text"></i> Detail
-                                                </a>
-                                            <?php endif; ?>
-                                        <?php else: ?>
-                                            <?php if ($idPendaftaran > 0): ?>
-                                                <a href="<?= base_url('pelatihan/detailPendaftaran/' . $idPendaftaran) ?>" class="btn-detail-outline w-100">
-                                                    <i class="bi bi-eye"></i> Lihat Detail & Status Pendaftaran
-                                                </a>
-                                            <?php endif; ?>
-                                        <?php endif; ?>
-                                    </div>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
                     <?php endforeach; ?>
-                </div>
-
-                <!-- Empty Filter Result Notice -->
-                <div id="emptyFilterNotice" class="empty-state-card text-center d-none mt-2">
-                    <div class="mb-2 text-muted">
-                        <i class="bi bi-funnel fs-2"></i>
-                    </div>
-                    <h6 class="fw-bold text-dark mb-1">Tidak Ada Kelas yang Sesuai Filter</h6>
-                    <p class="text-muted small mb-0">Coba ubah tab status atau kata kunci pencarian Anda.</p>
                 </div>
 
             <?php else: ?>
@@ -997,49 +930,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (toggleBtn) toggleBtn.addEventListener('click', openSidebar);
     if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
     if (backdrop) backdrop.addEventListener('click', closeSidebar);
-
-    // Filter Tab & Search Interaktif
-    const filterTabs = document.querySelectorAll('#statusFilterTabs .status-tab-btn');
-    const searchInput = document.getElementById('searchKelasInput');
-    const cardCols = document.querySelectorAll('.kelas-card-col');
-    const emptyNotice = document.getElementById('emptyFilterNotice');
-    let activeStatus = 'all';
-
-    function applyFilters() {
-        const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
-        let visibleCount = 0;
-
-        cardCols.forEach(function (col) {
-            const cardStatus = col.getAttribute('data-status') || '';
-            const keywords = col.getAttribute('data-keywords') || '';
-            const matchStatus = (activeStatus === 'all') || (cardStatus === activeStatus);
-            const matchSearch = (query === '') || keywords.includes(query);
-
-            if (matchStatus && matchSearch) {
-                col.classList.remove('d-none');
-                visibleCount++;
-            } else {
-                col.classList.add('d-none');
-            }
-        });
-
-        if (emptyNotice) {
-            emptyNotice.classList.toggle('d-none', visibleCount > 0);
-        }
-    }
-
-    filterTabs.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            filterTabs.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            activeStatus = btn.getAttribute('data-filter') || 'all';
-            applyFilters();
-        });
-    });
-
-    if (searchInput) {
-        searchInput.addEventListener('input', applyFilters);
-    }
 });
 </script>
 

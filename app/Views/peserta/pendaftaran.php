@@ -1059,7 +1059,7 @@
 <div class="row g-3 mb-3">
     <div class="col-sm-6">
         <label for="asal_instansi" class="form-label-custom">
-            <span>Asal Sekolah/Kampus/Instansi <span class="required-star">*</span></span>
+            <span>Asal Sekolah/Kampus/Instansi <span class="text-muted fw-normal" style="font-size: 0.75rem;">(Opsional)</span></span>
         </label>
         <input
             type="text"
@@ -1067,8 +1067,7 @@
             id="asal_instansi"
             name="asal_instansi"
             value="<?= esc($asalInstansiAktif) ?>"
-            required
-            placeholder="Contoh: Universitas Duta Bangsa"
+            placeholder="Universitas"
             <?= $isLoggedIn ? 'readonly style="background-color: #f8f6fc; cursor: not-allowed; font-weight: 700; color: #4d1d95;"' : '' ?>>
     </div>
 

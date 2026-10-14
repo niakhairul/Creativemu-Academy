@@ -1523,11 +1523,41 @@ class Pelatihan extends BaseController
         }
 
         // =========================================================
-        // 4. SIMPAN DATA PENDAFTARAN KE DATABASE CI4
+        // 4. CEK RELASI AKUN PESERTA & SIMPAN DATA PENDAFTARAN
         // =========================================================
+        // Jika user belum login, cek apakah akun dengan email ini sudah pernah terdaftar di users
+        if (!$userId && !empty($email)) {
+            $userFound = $db->table('users')
+                ->where('LOWER(email)', strtolower($email))
+                ->get()
+                ->getRowArray();
+            if ($userFound) {
+                $userId = (int) $userFound['id_users'];
+            } else {
+                // Jangan buat akun dummy di tabel users agar calon peserta dapat mendaftarkan
+                // akunnya sendiri secara mandiri melalui halaman Registrasi Akun.
+                $userId = null;
+            }
+        }
+
         $tanggalMulaiDb = (!$isPrivat && !empty($kelas['tanggal_mulai_kelas']) && $kelas['tanggal_mulai_kelas'] !== '-')
             ? $kelas['tanggal_mulai_kelas']
             : null;
+
+        // Fallback jika database belum mendukung NULL pada kolom tanggal_mulai_kelas
+        if ($tanggalMulaiDb === null) {
+            try {
+                $fieldData = $db->getFieldData('pendaftaran');
+                foreach ($fieldData as $fd) {
+                    if ($fd->name === 'tanggal_mulai_kelas' && empty($fd->nullable)) {
+                        $tanggalMulaiDb = date('Y-m-d');
+                        break;
+                    }
+                }
+            } catch (\Throwable $eF) {
+                // Abaikan
+            }
+        }
 
         $dataPendaftaran = [
             'nis'                 => null,
@@ -1599,15 +1629,10 @@ class Pelatihan extends BaseController
                     ? 'Permintaan pendaftaran Kelas Privat "' . $kelas['nama_kelas'] . '" berhasil dikirim dan berstatus Menunggu Persetujuan. Jadwal dan akses kelas akan dibuka setelah disetujui oleh Admin.'
                     : 'Pendaftaran kelas "' . $kelas['nama_kelas'] . '" berhasil dikirim! Silakan menunggu verifikasi dan persetujuan Admin.';
 
-                if ($userId) {
-                    return redirect()
-                        ->to(base_url('pelatihan/daftar-kelas-peserta'))
-                        ->with('success', $successMsg);
-                } else {
-                    return redirect()
-                        ->to(base_url('pelatihan/daftar-kelas'))
-                        ->with('success', $successMsg);
-                }
+                // Selalu kembali ke halaman Daftar Kelas dengan notifikasi sukses
+                return redirect()
+                    ->to(base_url('pelatihan/daftar-kelas'))
+                    ->with('success', $successMsg);
             } else {
                 $errors = $pendaftaranModel->errors();
                 return redirect()->back()
@@ -1638,11 +1663,15 @@ class Pelatihan extends BaseController
                 return redirect()->back()->with('error', 'Data pendaftaran tidak ditemukan.');
             }
 
-            $existingUser = $db->table('users')->where('email', $pendaftaran['email'])->get()->getRowArray();
+            $existingUser = $db->table('users')->where('LOWER(email)', strtolower($pendaftaran['email']))->get()->getRowArray();
             if ($existingUser) {
-                $userId = $existingUser['id_users'];
+                $userId = (int) $existingUser['id_users'];
             } else {
+                $lastUser = $db->table('users')->selectMax('id_users')->get()->getRowArray();
+                $nextId   = ((int) ($lastUser['id_users'] ?? 0)) + 1;
+
                 $db->table('users')->insert([
+                    'id_users'      => $nextId,
                     'nama'          => $pendaftaran['nama'],
                     'email'         => $pendaftaran['email'],
                     'no_hp'         => $pendaftaran['no_hp'],
@@ -1652,7 +1681,7 @@ class Pelatihan extends BaseController
                     'created_at'    => date('Y-m-d H:i:s'),
                     'updated_at'    => date('Y-m-d H:i:s'),
                 ]);
-                $userId = $db->insertID();
+                $userId = $nextId;
             }
 
             $nisBaru = $pendaftaran['nis'] ?: (new \App\Models\BukuIndukModel())->generateNis(date('ym', strtotime($pendaftaran['created_at'] ?? 'now')));

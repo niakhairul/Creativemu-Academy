@@ -140,7 +140,7 @@
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-semibold small">Asal Sekolah/Kampus/Instansi</label>
-                        <input type="text" name="asal_instansi" class="form-control" value="<?= esc($pendaftaran['asal_instansi'] ?? $user['asal_instansi'] ?? '') ?>" placeholder="Contoh: Universitas Duta Bangsa">
+                        <input type="text" name="asal_instansi" class="form-control" value="<?= esc($pendaftaran['asal_instansi'] ?? $user['asal_instansi'] ?? '') ?>" placeholder="Universitas">
                     </div>
                 </div>
 

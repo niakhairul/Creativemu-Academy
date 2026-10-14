@@ -42,6 +42,7 @@ class PendaftaranModel extends Model
         'persetujuan_syarat',
         'materi_privat',
         'custom_materi',
+        'sumber_informasi',
     ];
 
     // Dates

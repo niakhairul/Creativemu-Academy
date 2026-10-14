@@ -186,14 +186,37 @@ class Auth extends BaseController
 
         // Cek apakah email sudah terdaftar
         $cekEmail = $db->table('users')
-            ->where('email', $email)
+            ->where('LOWER(email)', strtolower($email))
             ->get()
             ->getRowArray();
 
         if ($cekEmail) {
+            // Jika akun ini hanya placeholder pendaftaran dengan password default '123456', perbarui akun & password resminya
+            $existingPass = (string) ($cekEmail['password'] ?? '');
+            if (password_verify('123456', $existingPass)) {
+                $db->table('users')
+                    ->where('id_users', $cekEmail['id_users'])
+                    ->update([
+                        'nama'          => trim($nama),
+                        'jenis_kelamin' => $jenisKelamin,
+                        'no_hp'         => $no_hp,
+                        'password'      => password_hash($password, PASSWORD_DEFAULT),
+                        'updated_at'    => date('Y-m-d H:i:s'),
+                    ]);
+
+                // Tautkan data pendaftaran kelas yang sebelumnya menggunakan email ini
+                $db->table('pendaftaran')
+                    ->where('LOWER(email)', strtolower($email))
+                    ->update(['id_users' => $cekEmail['id_users']]);
+
+                return redirect()
+                    ->to(base_url('pelatihan/login'))
+                    ->with('success', 'Registrasi berhasil! Silakan login dengan akun Anda.');
+            }
+
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Email sudah terdaftar, silakan gunakan email lain.');
+                ->with('error', 'Email sudah terdaftar, silakan gunakan email lain atau langsung login.');
         }
 
         // Data yang akan disimpan ke database
@@ -202,13 +225,21 @@ class Auth extends BaseController
             'nama'          => trim($nama),
             'jenis_kelamin' => $jenisKelamin,
             'no_hp'         => $no_hp,
-            'email'         => $email,
+            'email'         => strtolower(trim($email)),
             'password'      => password_hash($password, PASSWORD_DEFAULT),
-            'role'          => 'peserta'
+            'role'          => 'peserta',
+            'created_at'    => date('Y-m-d H:i:s'),
+            'updated_at'    => date('Y-m-d H:i:s'),
         ];
 
         // Proses insert ke tabel users
         $db->table('users')->insert($dataSimpan);
+
+        // Tautkan data pendaftaran kelas yang sebelumnya menggunakan email ini
+        $db->table('pendaftaran')
+            ->where('LOWER(email)', strtolower($email))
+            ->where('id_users IS NULL', null, false)
+            ->update(['id_users' => $nextId]);
 
         return redirect()
             ->to(base_url('pelatihan/login'))

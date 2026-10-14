@@ -1989,6 +1989,49 @@ $data = [
                     ->update(['nis' => $nisBaru]);
 
                 $dataUpdate['nis'] = $nisBaru;
+
+                // Pastikan akun peserta di tabel users sudah tersedia dan terhubung ke id_users
+                $userIdPendaftaran = $pendaftaran['id_users'] ?? null;
+                if (empty($userIdPendaftaran) && !empty($pendaftaran['email'])) {
+                    $userFound = $db->table('users')
+                        ->where('LOWER(email)', strtolower($pendaftaran['email']))
+                        ->get()
+                        ->getRowArray();
+                    if ($userFound) {
+                        $userIdPendaftaran = (int) $userFound['id_users'];
+                    } else {
+                        $lastUser = $db->table('users')->selectMax('id_users')->get()->getRowArray();
+                        $nextId   = ((int) ($lastUser['id_users'] ?? 0)) + 1;
+
+                        $insertUser = [
+                            'id_users'      => $nextId,
+                            'nama'          => $pendaftaran['nama'] ?? 'Peserta',
+                            'email'         => $pendaftaran['email'],
+                            'no_hp'         => $pendaftaran['no_hp'] ?? '',
+                            'jenis_kelamin' => $pendaftaran['jenis_kelamin'] ?? 'Laki-laki',
+                            'password'      => password_hash('123456', PASSWORD_DEFAULT),
+                            'role'          => 'peserta',
+                            'created_at'    => date('Y-m-d H:i:s'),
+                            'updated_at'    => date('Y-m-d H:i:s'),
+                        ];
+                        if ($db->fieldExists('asal_instansi', 'users') && !empty($pendaftaran['asal_instansi'])) {
+                            $insertUser['asal_instansi'] = $pendaftaran['asal_instansi'];
+                        }
+                        if ($db->fieldExists('semester', 'users') && !empty($pendaftaran['semester'])) {
+                            $insertUser['semester'] = $pendaftaran['semester'];
+                        }
+
+                        $db->table('users')->insert($insertUser);
+                        $userIdPendaftaran = $nextId;
+                    }
+
+                    $dataUpdate['id_users'] = $userIdPendaftaran;
+
+                    $db->table('pendaftaran')
+                        ->where('email', $pendaftaran['email'])
+                        ->where('id_users IS NULL', null, false)
+                        ->update(['id_users' => $userIdPendaftaran]);
+                }
             }
 
             $db->table('pendaftaran')
@@ -2121,6 +2164,51 @@ $data = [
             if ($isDisetujui && empty($nisBaru)) {
                 $nisBaru = $this->generateNisPendaftaran($db, $pendaftaranLama);
                 $dataUpdate['nis'] = $nisBaru;
+            }
+
+            // Pastikan akun peserta di tabel users sudah tersedia dan terhubung ke id_users
+            if ($isDisetujui) {
+                $userIdPendaftaran = $pendaftaranLama['id_users'] ?? null;
+                if (empty($userIdPendaftaran) && !empty($pendaftaranLama['email'])) {
+                    $userFound = $db->table('users')
+                        ->where('LOWER(email)', strtolower($pendaftaranLama['email']))
+                        ->get()
+                        ->getRowArray();
+                    if ($userFound) {
+                        $userIdPendaftaran = (int) $userFound['id_users'];
+                    } else {
+                        $lastUser = $db->table('users')->selectMax('id_users')->get()->getRowArray();
+                        $nextId   = ((int) ($lastUser['id_users'] ?? 0)) + 1;
+
+                        $insertUser = [
+                            'id_users'      => $nextId,
+                            'nama'          => $pendaftaranLama['nama'] ?? 'Peserta',
+                            'email'         => $pendaftaranLama['email'],
+                            'no_hp'         => $pendaftaranLama['no_hp'] ?? '',
+                            'jenis_kelamin' => $pendaftaranLama['jenis_kelamin'] ?? 'Laki-laki',
+                            'password'      => password_hash('123456', PASSWORD_DEFAULT),
+                            'role'          => 'peserta',
+                            'created_at'    => date('Y-m-d H:i:s'),
+                            'updated_at'    => date('Y-m-d H:i:s'),
+                        ];
+                        if ($db->fieldExists('asal_instansi', 'users') && !empty($pendaftaranLama['asal_instansi'])) {
+                            $insertUser['asal_instansi'] = $pendaftaranLama['asal_instansi'];
+                        }
+                        if ($db->fieldExists('semester', 'users') && !empty($pendaftaranLama['semester'])) {
+                            $insertUser['semester'] = $pendaftaranLama['semester'];
+                        }
+
+                        $db->table('users')->insert($insertUser);
+                        $userIdPendaftaran = $nextId;
+                    }
+
+                    $dataUpdate['id_users'] = $userIdPendaftaran;
+
+                    $db->table('pendaftaran')
+                        ->where('email', $pendaftaranLama['email'])
+                        ->where('id_users IS NULL', null, false)
+                        ->update(['id_users' => $userIdPendaftaran]);
+                }
             }
 
             $berhasilUpdate = $db->table('pendaftaran')
