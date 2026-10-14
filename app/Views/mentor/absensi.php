@@ -131,18 +131,20 @@
     </script>
 <?php endif; ?>
                             <!-- Tombol Aksi Mentor -->
-                            <div class="bg-light p-2 rounded-2 mb-3">
+                            <div class="bg-light p-2 rounded-2 mb-3 d-flex flex-column gap-2">
                                 <?php if (! $mentorSudahAbsen): ?>
                                     <form action="<?= base_url('mentor/kelas/' . $kelas['id_kelas'] . '/absensi/' . $item['id_jadwal']) ?>" method="post">
                                         <button class="btn btn-main btn-sm w-100"><i class="fa-solid fa-fingerprint me-1"></i> Klik untuk Absen Mentor</button>
                                     </form>
-                                <?php elseif ($sesiDibuka): ?>
+                                <?php endif; ?>
+
+                                <?php if ($sesiDibuka): ?>
                                     <form action="<?= base_url('mentor/kelas/' . $kelas['id_kelas'] . '/absensi/' . $item['id_jadwal'] . '/tutup') ?>" method="post">
                                         <button type="submit" class="btn btn-outline-danger btn-sm w-100"><i class="fa-solid fa-lock me-1"></i> Tutup Sesi Absen Peserta</button>
                                     </form>
                                 <?php else: ?>
                                     <form action="<?= base_url('mentor/kelas/' . $kelas['id_kelas'] . '/absensi/' . $item['id_jadwal'] . '/buka') ?>" method="post">
-                                        <button type="submit" class="btn btn-main btn-sm w-100"><i class="fa-solid fa-lock-open me-1"></i> Buka Sesi Absensi</button>
+                                        <button type="submit" class="btn btn-outline-primary btn-sm w-100"><i class="fa-solid fa-lock-open me-1"></i> Buka Sesi Absensi Peserta</button>
                                     </form>
                                 <?php endif; ?>
                             </div>

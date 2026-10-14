@@ -92,6 +92,17 @@ class Pelatihan extends BaseController
 
         $rows = $builder->orderBy('id_pendaftaran', 'DESC')->findAll();
         if (empty($rows)) {
+            $userEmail = session()->get('email');
+            if ($userEmail) {
+                $builderEmail = (new PendaftaranModel())->where('email', $userEmail);
+                if ($idKelas) {
+                    $builderEmail->where('id_kelas', $idKelas);
+                }
+                $rows = $builderEmail->orderBy('id_pendaftaran', 'DESC')->findAll();
+            }
+        }
+
+        if (empty($rows)) {
             return null;
         }
 
@@ -101,6 +112,14 @@ class Pelatihan extends BaseController
         foreach ($rows as $row) {
             $enriched = $this->syncAndEnrichPendaftaranRow($row, $laravelClassesMap, $apiService);
             if (!empty($enriched['bisa_diakses'])) {
+                return $enriched;
+            }
+
+            // Jika status pendaftaran disetujui / pembayaran valid, berikan akses absensi
+            $isApprovedCi = in_array(strtolower($row['status_pendaftaran'] ?? ''), ['disetujui', 'approved'], true) ||
+                           in_array(strtolower($row['status_pembayaran'] ?? ''), ['valid', 'lunas', 'paid'], true);
+            if ($isApprovedCi) {
+                $enriched['bisa_diakses'] = true;
                 return $enriched;
             }
         }

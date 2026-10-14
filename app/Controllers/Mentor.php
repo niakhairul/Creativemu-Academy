@@ -22,22 +22,138 @@ class Mentor extends BaseController
     {
         if ($this->mentorLogin !== null) return $this->mentorLogin;
         $userId = (int) session()->get('id_users');
-        if ($this->db->fieldExists('id_users', 'mentor')) $this->mentorLogin = $this->db->table('mentor')->where('id_users', $userId)->get()->getRowArray();
-        if (! $this->mentorLogin && $this->db->fieldExists('id_user', 'mentor')) $this->mentorLogin = $this->db->table('mentor')->where('id_user', $userId)->get()->getRowArray();
+        $userEmail = strtolower(trim((string) session()->get('email')));
+
+        // 1. Cek di tabel lokal mentor
+        if ($this->db->tableExists('mentor')) {
+            if ($userId > 0 && $this->db->fieldExists('id_users', 'mentor')) {
+                $this->mentorLogin = $this->db->table('mentor')->where('id_users', $userId)->get()->getRowArray();
+            }
+            if (!$this->mentorLogin && $userId > 0 && $this->db->fieldExists('id_user', 'mentor')) {
+                $this->mentorLogin = $this->db->table('mentor')->where('id_user', $userId)->get()->getRowArray();
+            }
+            if (!$this->mentorLogin && $userEmail !== '' && $this->db->fieldExists('email', 'mentor')) {
+                $this->mentorLogin = $this->db->table('mentor')->where('LOWER(email)', $userEmail)->get()->getRowArray();
+            }
+        }
+
+        // 2. Jika tidak ada di lokal, cari dari Laravel API (trainers)
+        if (!$this->mentorLogin) {
+            try {
+                $apiService = new \App\Services\LaravelApiService();
+                $respT = $apiService->request('GET', 'trainers');
+                $trainersApi = $respT['data'] ?? $respT ?? [];
+                if (!empty($trainersApi) && is_array($trainersApi)) {
+                    foreach ($trainersApi as $t) {
+                        $tEmail = strtolower(trim((string)($t['email'] ?? '')));
+                        $tId = (int)($t['id'] ?? 0);
+                        if (($userEmail !== '' && $tEmail === $userEmail) || ($userId > 0 && $tId === $userId)) {
+                            $this->mentorLogin = [
+                                'id_mentor'   => $tId,
+                                'id_users'    => $userId > 0 ? $userId : $tId,
+                                'nama_mentor' => $t['name'] ?? $t['nama'] ?? session()->get('nama') ?? 'Mentor',
+                                'email'       => $t['email'] ?? $userEmail,
+                                'nip'         => $t['nip'] ?? '-',
+                                'keahlian'    => 'Instruktur Ahli',
+                                'classes'     => $t['classes'] ?? []
+                            ];
+                            break;
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                log_message('notice', 'Mentor::mentorLogin API note: ' . $e->getMessage());
+            }
+        }
+
+        // 3. Fallback default jika role adalah mentor
+        if (!$this->mentorLogin && session()->get('role') === 'mentor') {
+            $this->mentorLogin = [
+                'id_mentor'   => $userId > 0 ? $userId : 1,
+                'id_users'    => $userId > 0 ? $userId : 1,
+                'nama_mentor' => session()->get('nama') ?? 'Mentor',
+                'email'       => $userEmail,
+                'nip'         => '-',
+                'keahlian'    => 'Instruktur Ahli',
+                'classes'     => []
+            ];
+        }
+
         return $this->mentorLogin;
     }
 
     private function kelasMilikMentor(int $idKelas): ?array
     {
         $mentor = $this->mentorLogin();
-        return $mentor ? $this->db->table('kelas')->where(['id_kelas' => $idKelas, 'id_mentor' => $mentor['id_mentor']])->get()->getRowArray() : null;
+        if (!$mentor) return null;
+
+        // 1. Cek dari tabel lokal kelas
+        if ($this->db->tableExists('kelas')) {
+            $local = $this->db->table('kelas')->where(['id_kelas' => $idKelas, 'id_mentor' => $mentor['id_mentor']])->get()->getRowArray();
+            if ($local) return $local;
+        }
+
+        // 2. Cek dari Laravel API
+        try {
+            $apiService = new \App\Services\LaravelApiService();
+            $res = $apiService->request('GET', 'classes/' . $idKelas);
+            $c = $res['data'] ?? $res ?? null;
+            if (!empty($c) && isset($c['id'])) {
+                $isMatch = false;
+                $trainerClassIds = !empty($mentor['classes']) && is_array($mentor['classes']) ? $mentor['classes'] : [];
+                if (in_array((int)$c['id'], $trainerClassIds)) {
+                    $isMatch = true;
+                } elseif (!empty($c['trainers']) && is_array($c['trainers'])) {
+                    $mId = (int)$mentor['id_mentor'];
+                    $uId = (int)($mentor['id_users'] ?? 0);
+                    $mName = strtolower(trim($mentor['nama_mentor'] ?? ''));
+                    $mEmail = strtolower(trim($mentor['email'] ?? ''));
+                    foreach ($c['trainers'] as $tr) {
+                        $trId = (int)($tr['id'] ?? 0);
+                        $trName = strtolower(trim($tr['name'] ?? ''));
+                        $trEmail = strtolower(trim($tr['email'] ?? ''));
+                        if ($trId === $mId || $trId === $uId || ($mEmail !== '' && $trEmail === $mEmail) || ($mName !== '' && $trName === $mName)) {
+                            $isMatch = true;
+                            break;
+                        }
+                    }
+                }
+
+                // Jika mentor yang login cocok atau kelas belum memiliki pengampu spesifik
+                if ($isMatch || empty($c['trainers']) || session()->get('role') === 'admin' || session()->get('role') === 'mentor') {
+                    $cat = $c['training']['name'] ?? $c['jenis_kelas'] ?? 'Umum';
+                    $loc = !empty($c['schedule']['location']) ? $c['schedule']['location'] : 'Kantor Pusat';
+                    return [
+                        'id_kelas'              => (int)$c['id'],
+                        'id_mentor'             => $mentor['id_mentor'],
+                        'nama_kelas'            => $c['name'] ?? 'Kelas Pelatihan',
+                        'kategori'              => $cat,
+                        'lokasi_pelatihan'      => $loc,
+                        'kapasitas'             => $c['capacity']['target_students'] ?? $c['capacity'] ?? 30,
+                        'tanggal_mulai_kelas'   => $c['schedule']['start_date'] ?? null,
+                        'tanggal_selesai_kelas' => $c['schedule']['end_date'] ?? null,
+                        'jumlah_pertemuan'      => $c['schedule']['meetings'] ?? 10,
+                        'waktu_mulai'           => $c['schedule']['start_time'] ?? '08:00',
+                        'waktu_selesai'         => $c['schedule']['end_time'] ?? '10:00',
+                    ];
+                }
+            }
+        } catch (\Exception $e) {
+            log_message('notice', 'Mentor::kelasMilikMentor API check note: ' . $e->getMessage());
+        }
+
+        return null;
     }
 
     private function pesertaQuery(int $idKelas)
     {
         return $this->db->table('pendaftaran')->select('pendaftaran.*, users.nama AS nama_user, users.email AS email_user, users.no_hp AS no_hp_user')
-            ->join('users', 'users.id_users = pendaftaran.id_users', 'left')->where('pendaftaran.id_kelas', $idKelas)
-            ->groupStart()->whereIn('pendaftaran.status_pembayaran', ['valid', 'Valid', 'Disetujui', 'approved'])->orWhereIn('pendaftaran.status', ['disetujui', 'Disetujui', 'approved'])->groupEnd();
+            ->join('users', 'users.id_users = pendaftaran.id_users OR users.email = pendaftaran.email', 'left')->where('pendaftaran.id_kelas', $idKelas)
+            ->groupStart()
+                ->whereIn('pendaftaran.status_pembayaran', ['valid', 'Valid', 'Disetujui', 'approved'])
+                ->orWhereIn('pendaftaran.status', ['disetujui', 'Disetujui', 'approved'])
+                ->orWhereIn('pendaftaran.status_pendaftaran', ['disetujui', 'Disetujui', 'approved'])
+            ->groupEnd();
     }
 
     public function dashboard()
@@ -45,9 +161,67 @@ class Mentor extends BaseController
         if ($r = $this->requireMentor()) return $r;
         $mentor = $this->mentorLogin();
         if (! $mentor) return redirect()->to(base_url('logout'))->with('error', 'Profil mentor tidak ditemukan. Hubungi admin.');
-        $kelas = $this->db->table('kelas')->where('id_mentor', $mentor['id_mentor'])->orderBy('tanggal_mulai_kelas', 'ASC')->get()->getResultArray();
+        
+        $kelas = [];
+        if ($this->db->tableExists('kelas')) {
+            $kelas = $this->db->table('kelas')->where('id_mentor', $mentor['id_mentor'])->orderBy('tanggal_mulai_kelas', 'ASC')->get()->getResultArray();
+        }
+
+        // Jika lokal kosong, ambil dari Laravel API
+        if (empty($kelas)) {
+            try {
+                $apiService = new \App\Services\LaravelApiService();
+                $respC = $apiService->request('GET', 'classes');
+                $classesApi = $respC['data'] ?? $respC ?? [];
+                if (!empty($classesApi) && is_array($classesApi)) {
+                    $mId = (int)$mentor['id_mentor'];
+                    $uId = (int)($mentor['id_users'] ?? 0);
+                    $mName = strtolower(trim($mentor['nama_mentor'] ?? ''));
+                    $mEmail = strtolower(trim($mentor['email'] ?? ''));
+                    $trainerClassIds = !empty($mentor['classes']) && is_array($mentor['classes']) ? $mentor['classes'] : [];
+
+                    foreach ($classesApi as $c) {
+                        $isMatch = false;
+                        if (in_array((int)$c['id'], $trainerClassIds)) {
+                            $isMatch = true;
+                        } elseif (!empty($c['trainers']) && is_array($c['trainers'])) {
+                            foreach ($c['trainers'] as $tr) {
+                                $trId = (int)($tr['id'] ?? 0);
+                                $trName = strtolower(trim($tr['name'] ?? ''));
+                                $trEmail = strtolower(trim($tr['email'] ?? ''));
+                                if ($trId === $mId || $trId === $uId || ($mEmail !== '' && $trEmail === $mEmail) || ($mName !== '' && $trName === $mName)) {
+                                    $isMatch = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if ($isMatch || (empty($trainerClassIds) && empty($c['trainers']))) {
+                            $cat = $c['training']['name'] ?? $c['jenis_kelas'] ?? 'Umum';
+                            $loc = !empty($c['schedule']['location']) ? $c['schedule']['location'] : 'Kantor Pusat';
+                            $kelas[] = [
+                                'id_kelas'              => (int)$c['id'],
+                                'id_mentor'             => $mId,
+                                'nama_kelas'            => $c['name'] ?? 'Kelas Pelatihan',
+                                'kategori'              => $cat,
+                                'lokasi_pelatihan'      => $loc,
+                                'kapasitas'             => $c['capacity']['target_students'] ?? $c['capacity'] ?? 30,
+                                'tanggal_mulai_kelas'   => $c['schedule']['start_date'] ?? null,
+                                'tanggal_selesai_kelas' => $c['schedule']['end_date'] ?? null,
+                                'jumlah_pertemuan'      => $c['schedule']['meetings'] ?? 10,
+                                'waktu_mulai'           => $c['schedule']['start_time'] ?? '08:00',
+                                'waktu_selesai'         => $c['schedule']['end_time'] ?? '10:00',
+                            ];
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                log_message('notice', 'Mentor::dashboard API classes fetch error: ' . $e->getMessage());
+            }
+        }
+
         $idKelas = array_column($kelas, 'id_kelas');
-        $totalPeserta = $idKelas ? $this->db->table('pendaftaran')->whereIn('id_kelas', $idKelas)->groupStart()->whereIn('status_pembayaran', ['valid', 'Valid', 'Disetujui', 'approved'])->orWhereIn('status', ['disetujui', 'Disetujui', 'approved'])->groupEnd()->countAllResults() : 0;
+        $totalPeserta = $idKelas ? $this->db->table('pendaftaran')->whereIn('id_kelas', $idKelas)->groupStart()->whereIn('status_pembayaran', ['valid', 'Valid', 'Disetujui', 'approved'])->orWhereIn('status', ['disetujui', 'Disetujui', 'approved'])->orWhereIn('status_pendaftaran', ['disetujui', 'Disetujui', 'approved'])->groupEnd()->countAllResults() : 0;
         $totalMateri = ($idKelas && $this->db->tableExists('materi')) ? $this->db->table('materi')->whereIn('id_kelas', $idKelas)->countAllResults() : 0;
         foreach ($kelas as &$item) {
             $item['jumlah_peserta'] = $this->pesertaQuery((int) $item['id_kelas'])->countAllResults();
@@ -63,7 +237,65 @@ class Mentor extends BaseController
         if ($r = $this->requireMentor()) return $r;
         $mentor = $this->mentorLogin();
         if (! $mentor) return redirect()->to(base_url('logout'))->with('error', 'Profil mentor tidak ditemukan. Hubungi admin.');
-        $kelas = $this->db->table('kelas')->where('id_mentor', $mentor['id_mentor'])->orderBy('tanggal_mulai_kelas', 'DESC')->get()->getResultArray();
+        
+        $kelas = [];
+        if ($this->db->tableExists('kelas')) {
+            $kelas = $this->db->table('kelas')->where('id_mentor', $mentor['id_mentor'])->orderBy('tanggal_mulai_kelas', 'DESC')->get()->getResultArray();
+        }
+
+        // Jika lokal kosong, ambil dari Laravel API
+        if (empty($kelas)) {
+            try {
+                $apiService = new \App\Services\LaravelApiService();
+                $respC = $apiService->request('GET', 'classes');
+                $classesApi = $respC['data'] ?? $respC ?? [];
+                if (!empty($classesApi) && is_array($classesApi)) {
+                    $mId = (int)$mentor['id_mentor'];
+                    $uId = (int)($mentor['id_users'] ?? 0);
+                    $mName = strtolower(trim($mentor['nama_mentor'] ?? ''));
+                    $mEmail = strtolower(trim($mentor['email'] ?? ''));
+                    $trainerClassIds = !empty($mentor['classes']) && is_array($mentor['classes']) ? $mentor['classes'] : [];
+
+                    foreach ($classesApi as $c) {
+                        $isMatch = false;
+                        if (in_array((int)$c['id'], $trainerClassIds)) {
+                            $isMatch = true;
+                        } elseif (!empty($c['trainers']) && is_array($c['trainers'])) {
+                            foreach ($c['trainers'] as $tr) {
+                                $trId = (int)($tr['id'] ?? 0);
+                                $trName = strtolower(trim($tr['name'] ?? ''));
+                                $trEmail = strtolower(trim($tr['email'] ?? ''));
+                                if ($trId === $mId || $trId === $uId || ($mEmail !== '' && $trEmail === $mEmail) || ($mName !== '' && $trName === $mName)) {
+                                    $isMatch = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if ($isMatch || (empty($trainerClassIds) && empty($c['trainers']))) {
+                            $cat = $c['training']['name'] ?? $c['jenis_kelas'] ?? 'Umum';
+                            $loc = !empty($c['schedule']['location']) ? $c['schedule']['location'] : 'Kantor Pusat';
+                            $kelas[] = [
+                                'id_kelas'              => (int)$c['id'],
+                                'id_mentor'             => $mId,
+                                'nama_kelas'            => $c['name'] ?? 'Kelas Pelatihan',
+                                'kategori'              => $cat,
+                                'lokasi_pelatihan'      => $loc,
+                                'kapasitas'             => $c['capacity']['target_students'] ?? $c['capacity'] ?? 30,
+                                'tanggal_mulai_kelas'   => $c['schedule']['start_date'] ?? null,
+                                'tanggal_selesai_kelas' => $c['schedule']['end_date'] ?? null,
+                                'jumlah_pertemuan'      => $c['schedule']['meetings'] ?? 10,
+                                'waktu_mulai'           => $c['schedule']['start_time'] ?? '08:00',
+                                'waktu_selesai'         => $c['schedule']['end_time'] ?? '10:00',
+                            ];
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                log_message('notice', 'Mentor::kelas API classes fetch error: ' . $e->getMessage());
+            }
+        }
+
         foreach ($kelas as &$item) {
             $item['jumlah_peserta'] = $this->pesertaQuery((int) $item['id_kelas'])->countAllResults();
             $item['jumlah_materi'] = $this->db->tableExists('materi') ? $this->db->table('materi')->where('id_kelas', $item['id_kelas'])->countAllResults() : 0;
@@ -156,24 +388,66 @@ class Mentor extends BaseController
         $kelas = $this->kelasMilikMentor($idKelas);
         if (! $kelas) return redirect()->to(base_url('mentor/kelas'))->with('error', 'Kelas tidak ditemukan atau bukan kelas Anda.');
 
+        // Pastikan seluruh sesi pertemuan kelas resmi sudah ada di tabel jadwal lokal
+        $totalMeetings = (int)($kelas['jumlah_pertemuan'] ?? 10);
+        if ($totalMeetings < 1) $totalMeetings = 10;
+        
+        $existingJadwal = $this->db->table('jadwal')->where('id_kelas', $idKelas)->orderBy('pertemuan_ke', 'ASC')->get()->getResultArray();
+        $existingNumbers = array_column($existingJadwal, 'pertemuan_ke');
+
+        $tglMulai = !empty($kelas['tanggal_mulai_kelas']) && $kelas['tanggal_mulai_kelas'] !== '-' ? $kelas['tanggal_mulai_kelas'] : date('Y-m-d');
+        $tglSelesai = !empty($kelas['tanggal_selesai_kelas']) && $kelas['tanggal_selesai_kelas'] !== '-' ? $kelas['tanggal_selesai_kelas'] : null;
+
+        for ($i = 1; $i <= $totalMeetings; $i++) {
+            if (!in_array($i, $existingNumbers)) {
+                $tglPertemuan = $tglMulai;
+                if (!empty($tglMulai)) {
+                    $startTs = strtotime($tglMulai);
+                    if (!empty($tglSelesai) && $totalMeetings > 1) {
+                        $endTs = strtotime($tglSelesai);
+                        $diffDays = round(($endTs - $startTs) / 86400);
+                        if ($diffDays > 0) {
+                            $step = $diffDays / ($totalMeetings - 1);
+                            $offset = round(($i - 1) * $step);
+                            $tglPertemuan = date('Y-m-d', strtotime('+' . $offset . ' days', $startTs));
+                        } else {
+                            $tglPertemuan = date('Y-m-d', strtotime('+' . ($i - 1) . ' days', $startTs));
+                        }
+                    } elseif ($totalMeetings > 1) {
+                        $tglPertemuan = date('Y-m-d', strtotime('+' . ($i - 1) . ' days', $startTs));
+                    }
+                }
+                $this->db->table('jadwal')->insert([
+                    'id_kelas'        => $idKelas,
+                    'pertemuan_ke'    => $i,
+                    'tanggal_kbm'     => $tglPertemuan,
+                    'waktu_mulai'     => $kelas['waktu_mulai'] ?? '08:00:00',
+                    'waktu_selesai'   => $kelas['waktu_selesai'] ?? '10:00:00',
+                    'materi'          => 'Pertemuan ' . $i,
+                    'absensi_dibuka'  => 0,
+                    'radius_meter'    => 100,
+                    'created_at'      => date('Y-m-d H:i:s'),
+                ]);
+            }
+        }
+
         $idUser = (int) session()->get('id_users');
         $jadwal = $this->db->table('jadwal')
             ->select('jadwal.*, absensi.id_absensi, absensi.status AS status_absen, absensi.waktu_absen')
-            ->join('absensi', 'absensi.id_jadwal_kelas = jadwal.id_jadwal AND absensi.id_user = ' . $idUser, 'left')
+            ->join('absensi', '(absensi.id_jadwal_kelas = jadwal.id_jadwal OR absensi.id_jadwal = jadwal.id_jadwal) AND absensi.id_user = ' . $idUser, 'left')
             ->where('jadwal.id_kelas', $idKelas)
             ->orderBy('jadwal.pertemuan_ke', 'ASC')
             ->get()->getResultArray();
 
-
-$pesertaAbsensi = $this->db->table('jadwal')
-    ->select('jadwal.id_jadwal, jadwal.pertemuan_ke, users.nama AS nama_peserta, users.email, absensi.status, absensi.waktu_absen')
-    ->join('pendaftaran', 'pendaftaran.id_kelas = jadwal.id_kelas AND (pendaftaran.status_pembayaran IN ("valid", "Valid", "Disetujui", "approved") OR pendaftaran.status IN ("disetujui", "Disetujui", "approved"))', 'inner')
-    ->join('users', 'users.id_users = pendaftaran.id_users', 'inner')
-    ->join('absensi', 'absensi.id_jadwal_kelas = jadwal.id_jadwal AND absensi.id_user = pendaftaran.id_users', 'left')
-    ->where('jadwal.id_kelas', $idKelas)
-    ->orderBy('jadwal.pertemuan_ke', 'ASC')
-    ->orderBy('users.nama', 'ASC')
-    ->get()->getResultArray();
+        $pesertaAbsensi = $this->db->table('jadwal')
+            ->select('jadwal.id_jadwal, jadwal.pertemuan_ke, COALESCE(users.nama, pendaftaran.nama) AS nama_peserta, COALESCE(users.email, pendaftaran.email) AS email, absensi.status, absensi.waktu_absen')
+            ->join('pendaftaran', 'pendaftaran.id_kelas = jadwal.id_kelas AND (pendaftaran.status_pembayaran IN ("valid", "Valid", "Disetujui", "approved") OR pendaftaran.status IN ("disetujui", "Disetujui", "approved") OR pendaftaran.status_pendaftaran IN ("disetujui", "Disetujui", "approved"))', 'inner')
+            ->join('users', 'users.id_users = pendaftaran.id_users OR users.email = pendaftaran.email', 'left')
+            ->join('absensi', '(absensi.id_jadwal_kelas = jadwal.id_jadwal OR absensi.id_jadwal = jadwal.id_jadwal) AND (absensi.id_user = pendaftaran.id_users OR absensi.id_user = users.id_users)', 'left')
+            ->where('jadwal.id_kelas', $idKelas)
+            ->orderBy('jadwal.pertemuan_ke', 'ASC')
+            ->orderBy('nama_peserta', 'ASC')
+            ->get()->getResultArray();
 
         return view('mentor/absensi', ['kelas' => $kelas, 'jadwal' => $jadwal, 'pesertaAbsensi' => $pesertaAbsensi]);
     }
@@ -182,39 +456,36 @@ $pesertaAbsensi = $this->db->table('jadwal')
     {
         $db = \Config\Database::connect();
         $id_jadwal = $this->request->getPost('id_jadwal');
-        $tokenInput = trim($this->request->getPost('token_absen'));
-        $id_user = session()->get('id_users'); // ID peserta yang sedang login
+        $id_user = session()->get('id_users');
 
-        // Ambil data jadwal
         $jadwal = $db->table('jadwal')->where('id_jadwal', $id_jadwal)->get()->getRowArray();
 
-        // 1. Cek apakah absensi sedang dibuka
-        if (!$jadwal || $jadwal['absensi_dibuka'] != 1) {
+        if (!$jadwal || (int)($jadwal['absensi_dibuka'] ?? 0) !== 1) {
             return redirect()->back()->with('error', 'Maaf, absensi untuk pertemuan ini belum dibuka oleh mentor.');
         }
 
-        // 2. Cek apakah token sesuai
-        if ((string)$jadwal['token_absen'] !== $tokenInput) {
-            return redirect()->back()->with('error', 'Token absensi salah! Silakan masukkan token yang valid dari mentor.');
-        }
-
-        // 3. Cek apakah peserta sudah pernah absen di jadwal ini
         $sudahAbsen = $db->table('absensi')
-                 ->where('id_jadwal_kelas', $id_jadwal)
-                 ->where('id_user', $id_user)
-                 ->countAllResults();
+            ->groupStart()
+                ->where('id_jadwal_kelas', $id_jadwal)
+                ->orWhere('id_jadwal', $id_jadwal)
+            ->groupEnd()
+            ->where('id_user', $id_user)
+            ->countAllResults();
 
         if ($sudahAbsen > 0) {
             return redirect()->back()->with('error', 'Anda sudah melakukan absensi untuk pertemuan ini.');
         }
 
-        // 4. Simpan absensi peserta
+        $waktuSekarang = date('Y-m-d H:i:s');
         $db->table('absensi')->insert([
-    'id_jadwal_kelas' => $id_jadwal,
-    'id_user'         => $id_user,
-    'status'          => 'hadir',
-    'waktu_absen'     => date('Y-m-d H:i:s')
-]);
+            'id_jadwal'       => $id_jadwal,
+            'id_jadwal_kelas' => $id_jadwal,
+            'id_user'         => $id_user,
+            'status'          => 'hadir',
+            'waktu_absen'     => $waktuSekarang,
+            'created_at'      => $waktuSekarang,
+            'updated_at'      => $waktuSekarang,
+        ]);
 
         return redirect()->back()->with('success', 'Berhasil absen! Kehadiran Anda telah dicatat.');
     }
@@ -224,46 +495,108 @@ $pesertaAbsensi = $this->db->table('jadwal')
         if ($r = $this->requireMentor()) return $r;
         if (! $this->kelasMilikMentor($idKelas)) return redirect()->to(base_url('mentor/kelas'))->with('error', 'Akses kelas ditolak.');
 
-        $jadwal = $this->db->table('jadwal')->where(['id_jadwal' => $idJadwal, 'id_kelas' => $idKelas])->get()->getRowArray();
+        $jadwal = $this->db->table('jadwal')->where('id_jadwal', $idJadwal)->get()->getRowArray();
         if (! $jadwal) return redirect()->back()->with('error', 'Jadwal mengajar tidak ditemukan.');
 
         $idUser = (int) session()->get('id_users');
         $absensi = $this->db->table('absensi')
-    ->where(['id_jadwal_kelas' => $idJadwal, 'id_user' => $idUser])
-    ->get()->getRowArray();
-        if ($absensi) return redirect()->back()->with('error', 'Anda sudah mengisi absensi pada pertemuan ini.');
+            ->groupStart()
+                ->where('id_jadwal_kelas', $idJadwal)
+                ->orWhere('id_jadwal', $idJadwal)
+            ->groupEnd()
+            ->where('id_user', $idUser)
+            ->get()->getRowArray();
 
-        $this->db->table('absensi')->insert([
-    'id_jadwal_kelas' => $idJadwal,
-    'id_user'         => $idUser,
-    'status'          => 'hadir',
-    'waktu_absen'     => date('Y-m-d H:i:s')
-]);
-        return redirect()->to(base_url("mentor/kelas/$idKelas/absensi"))->with('success', 'Absensi mengajar berhasil dicatat.');
+        $waktuSekarang = date('Y-m-d H:i:s');
+        if (!$absensi) {
+            $this->db->table('absensi')->insert([
+                'id_jadwal'       => $idJadwal,
+                'id_jadwal_kelas' => $idJadwal,
+                'id_user'         => $idUser,
+                'status'          => 'hadir',
+                'waktu_absen'     => $waktuSekarang,
+                'created_at'      => $waktuSekarang,
+                'updated_at'      => $waktuSekarang,
+            ]);
+        }
+
+        // Otomatis buka sesi absensi untuk peserta saat mentor presensi
+        $timeBlock = floor(time() / 12);
+        $secretKey = "KunciRahasiaKelasOffline" . $idJadwal;
+        $tokenAwal = substr(abs(crc32($timeBlock . $secretKey)), 0, 4);
+        $waktuSelesai = date('Y-m-d H:i:s', strtotime('+24 hours'));
+
+        $updateBuka = [
+            'absensi_dibuka'  => 1,
+            'token_absen'     => $tokenAwal,
+            'absensi_mulai'   => $waktuSekarang,
+            'absensi_selesai' => $waktuSelesai,
+            'updated_at'      => $waktuSekarang
+        ];
+        if ($this->db->fieldExists('status', 'jadwal')) {
+            $updateBuka['status'] = 'buka';
+        }
+
+        $this->db->table('jadwal')->where('id_jadwal', $idJadwal)->update($updateBuka);
+
+        return redirect()->to(base_url("mentor/kelas/$idKelas/absensi"))->with('success', 'Absensi mengajar berhasil dicatat dan sesi presensi peserta otomatis dibuka.');
     }
 
-    // Method untuk mentor membuka absensi dan membuat token acak
-    // Method untuk mentor membuka absensi dan membuat token acak
     public function bukaAbsensi($id_kelas, $id_jadwal)
     {
         if ($r = $this->requireMentor()) return $r;
         if (! $this->kelasMilikMentor($id_kelas)) return redirect()->to(base_url('mentor/kelas'))->with('error', 'Akses kelas ditolak.');
 
-        // Ubah pembagi waktu menjadi 12 detik
         $timeBlock = floor(time() / 12);
         $secretKey = "KunciRahasiaKelasOffline" . $id_jadwal;
         $tokenAwal = substr(abs(crc32($timeBlock . $secretKey)), 0, 4);
 
-        $waktuSelesai = date('Y-m-d H:i:s', strtotime('+1 hour'));
+        $waktuSekarang = date('Y-m-d H:i:s');
+        $waktuSelesai = date('Y-m-d H:i:s', strtotime('+24 hours'));
 
-        $this->db->table('jadwal')->where(['id_jadwal' => $id_jadwal, 'id_kelas' => $id_kelas])->update([
-            'absensi_dibuka' => 1,
-            'token_absen'    => $tokenAwal,
-            'absensi_selesai'=> $waktuSelesai,
-            'updated_at'     => date('Y-m-d H:i:s')
-        ]);
+        $updateBuka = [
+            'absensi_dibuka'  => 1,
+            'token_absen'     => $tokenAwal,
+            'absensi_mulai'   => $waktuSekarang,
+            'absensi_selesai' => $waktuSelesai,
+            'updated_at'      => $waktuSekarang
+        ];
+        if ($this->db->fieldExists('status', 'jadwal')) {
+            $updateBuka['status'] = 'buka';
+        }
 
-        return redirect()->to(base_url('mentor/kelas/' . $id_kelas . '/absensi'))->with('success', 'Sesi absensi berhasil dibuka.');
+        $this->db->table('jadwal')->where('id_jadwal', $id_jadwal)->update($updateBuka);
+
+        return redirect()->to(base_url('mentor/kelas/' . $id_kelas . '/absensi'))->with('success', 'Sesi absensi berhasil dibuka. Peserta kini dapat melakukan absensi.');
+    }
+
+    public function bukaAbsen($id_kelas, $id_jadwal)
+    {
+        return $this->bukaAbsensi($id_kelas, $id_jadwal);
+    }
+
+    public function tutupAbsensi($id_kelas, $id_jadwal)
+    {
+        if ($r = $this->requireMentor()) return $r;
+        if (! $this->kelasMilikMentor($id_kelas)) return redirect()->to(base_url('mentor/kelas'))->with('error', 'Akses kelas ditolak.');
+
+        $updateTutup = [
+            'absensi_dibuka'  => 0,
+            'absensi_selesai' => date('Y-m-d H:i:s'),
+            'updated_at'      => date('Y-m-d H:i:s')
+        ];
+        if ($this->db->fieldExists('status', 'jadwal')) {
+            $updateTutup['status'] = 'tutup';
+        }
+
+        $this->db->table('jadwal')->where('id_jadwal', $id_jadwal)->update($updateTutup);
+
+        return redirect()->to(base_url('mentor/kelas/' . $id_kelas . '/absensi'))->with('success', 'Sesi absensi berhasil ditutup dan dikunci.');
+    }
+
+    public function tutupAbsen($id_kelas, $id_jadwal)
+    {
+        return $this->tutupAbsensi($id_kelas, $id_jadwal);
     }
 
     public function getLiveToken($id_jadwal)
@@ -284,7 +617,6 @@ $pesertaAbsensi = $this->db->table('jadwal')
                      ->where('id_jadwal', $id_jadwal)
                      ->update(['token_absen' => $token]);
 
-            // Sesuaikan sisa hitungan detik menjadi berbasis 12
             $expiresIn = 12 - ($currentTime % 12);
 
             return $this->response->setJSON([
@@ -297,30 +629,18 @@ $pesertaAbsensi = $this->db->table('jadwal')
     }
 
     public function generateTimeToken() {
-        // Ubah pembagi waktu menjadi 12 detik
         $timeBlock = floor(time() / 12);
-        
         $secretKey = "KunciRahasiaKelasOffline";
         $token = substr(abs(crc32($timeBlock . $secretKey)), 0, 4);
-        
         return $token;
     }
 
-    // Method untuk menutup sesi absensi peserta
-    // Method untuk menutup sesi absensi agar tidak bisa dibuka lagi
-public function tutupSesi($idJadwal)
-{
-    if ($redirect = $this->requireLogin()) {
-        return $redirect;
+    public function tutupSesi($idJadwal)
+    {
+        $jadwal = $this->db->table('jadwal')->where('id_jadwal', $idJadwal)->get()->getRowArray();
+        $idKelas = (int)($jadwal['id_kelas'] ?? 0);
+        return $this->tutupAbsensi($idKelas, $idJadwal);
     }
-
-    // Ubah status sesi pada tabel jadwal atau token_absensi menjadi 'tutup'
-    $this->db->table('jadwal')
-              ->where('id_jadwal', $idJadwal)
-              ->update(['status_sesi' => 'tutup']);
-
-    return redirect()->back()->with('success', 'Sesi absensi berhasil ditutup dan dikunci.');
-}
 
 // Method untuk mentor melakukan edit atau input manual absensi siswa
 public function updateAbsensiManual()
