@@ -250,7 +250,7 @@ class LaravelApiService
                     }
                 }
 
-                // Kelola NIS agar unik per peserta yang disetujui
+                // Kelola NIS agar unik per peserta
                 $nis = !empty($reg['nis']) ? trim($reg['nis']) : ($existingPendaftaran['nis'] ?? null);
                 if (!empty($nis)) {
                     $builderCheck = $db->table('pendaftaran')->where('nis', $nis);
@@ -260,7 +260,7 @@ class LaravelApiService
                     if ($builderCheck->countAllResults() > 0) {
                         $nis = $bukuIndukModel->generateNis();
                     }
-                } elseif ($statusPendaftaran === 'Disetujui') {
+                } else {
                     $nis = $bukuIndukModel->generateNis();
                 }
 
@@ -335,4 +335,310 @@ class LaravelApiService
             'participants' => $syncedParticipants,
         ];
     }
+
+    /**
+     * Sinkronisasi nilai ujian peserta dari API Laravel ke database lokal CI4 (tabel nilai_ujian).
+     * Laravel menjadi sumber utama nilai ujian. Admin di CI4 menentukan status kelulusan.
+     *
+     * @param bool $force Jika true, abaikan throttle 30 detik
+     * @return array Ringkasan proses sinkronisasi
+     */
+    public function syncGradesFromLaravel(bool $force = false): array
+    {
+        $cacheKey = 'laravel_grades_last_synced';
+        if (!$force) {
+            $lastSynced = cache($cacheKey);
+            if ($lastSynced !== null && (time() - (int)$lastSynced) < 30) {
+                return ['status' => 'skipped', 'message' => 'Synced recently within 30s'];
+            }
+        }
+
+        $classesRes = $this->request('GET', 'classes');
+        $classes = $classesRes['data'] ?? $classesRes ?? [];
+        if (empty($classes) || !is_array($classes)) {
+            return ['status' => 'error', 'message' => 'Empty classes response from Laravel API'];
+        }
+
+        $db = \Config\Database::connect();
+        $syncedScores = 0;
+
+        foreach ($classes as $c) {
+            $classId = (int) ($c['id'] ?? 0);
+            if ($classId <= 0) {
+                continue;
+            }
+
+            // Ambil detail kelas untuk membaca registrants
+            $detailRes = $this->request('GET', 'classes/' . $classId);
+            $cDetail = $detailRes['data'] ?? $detailRes ?? [];
+            $registrants = $cDetail['registrants'] ?? [];
+
+            if (empty($registrants) || !is_array($registrants)) {
+                continue;
+            }
+
+            foreach ($registrants as $reg) {
+                $meta = $reg['metadata'] ?? [];
+
+                // Cek kemungkinan field nilai ujian yang dikirim dari Laravel
+                $rawScore = $reg['score']
+                    ?? $reg['grade']
+                    ?? $reg['exam_score']
+                    ?? $reg['nilai']
+                    ?? $meta['score']
+                    ?? $meta['grade']
+                    ?? $meta['exam_score']
+                    ?? $meta['nilai']
+                    ?? $meta['nilai_ujian']
+                    ?? null;
+
+                if ($rawScore === null || $rawScore === '') {
+                    continue;
+                }
+
+                $numericScore = (float) $rawScore;
+
+                // Cari user ID peserta berdasarkan metadata, email, atau nama
+                $userId = null;
+                if (!empty($meta['id_users'])) {
+                    $uRow = $db->table('users')->where('id_users', (int)$meta['id_users'])->get()->getRowArray();
+                    if ($uRow) {
+                        $userId = (int) $uRow['id_users'];
+                    }
+                }
+                if (!$userId && !empty($reg['email'])) {
+                    $uRow = $db->table('users')->where('email', trim($reg['email']))->get()->getRowArray();
+                    if ($uRow) {
+                        $userId = (int) $uRow['id_users'];
+                    }
+                }
+                if (!$userId && !empty($reg['name'])) {
+                    $uRow = $db->table('users')->where('nama', trim($reg['name']))->get()->getRowArray();
+                    if ($uRow) {
+                        $userId = (int) $uRow['id_users'];
+                    }
+                }
+
+                if (!$userId) {
+                    continue;
+                }
+
+                // Cek apakah data nilai_ujian untuk peserta dan kelas ini sudah ada
+                $existingNilai = $db->table('nilai_ujian')
+                    ->where('id_users', $userId)
+                    ->where('id_kelas', $classId)
+                    ->get()
+                    ->getRowArray();
+
+                if ($existingNilai) {
+                    // Update nilai dari Laravel tanpa mengubah status kelulusan yang sudah ditentukan Admin
+                    $updatePayload = [
+                        'nilai'      => $numericScore,
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ];
+                    if ($existingNilai['nilai_awal'] === null) {
+                        $updatePayload['nilai_awal'] = $numericScore;
+                    }
+                    $db->table('nilai_ujian')
+                        ->where('id_nilai_ujian', $existingNilai['id_nilai_ujian'])
+                        ->update($updatePayload);
+                } else {
+                    // Buat baris nilai_ujian baru dengan status default 'menunggu' (menunggu konfirmasi admin)
+                    $maxNilai = $db->table('nilai_ujian')->selectMax('id_nilai_ujian')->get()->getRowArray();
+                    $nextNilaiId = ((int) ($maxNilai['id_nilai_ujian'] ?? 0)) + 1;
+
+                    $insertPayload = [
+                        'id_nilai_ujian'   => $nextNilaiId,
+                        'id_ujian'         => 1,
+                        'id_users'         => $userId,
+                        'id_kelas'         => $classId,
+                        'nilai'            => $numericScore,
+                        'nilai_awal'       => $numericScore,
+                        'status_kelulusan' => 'menunggu',
+                        'created_at'       => date('Y-m-d H:i:s'),
+                        'updated_at'       => date('Y-m-d H:i:s'),
+                    ];
+                    $db->table('nilai_ujian')->insert($insertPayload);
+                }
+
+                $syncedScores++;
+            }
+        }
+
+        try {
+            cache()->save($cacheKey, time(), 30);
+        } catch (\Throwable $e) {
+            // Abaikan jika cache tidak aktif
+        }
+
+        return [
+            'status'        => 'success',
+            'synced_scores' => $syncedScores,
+        ];
+    }
+
+    /**
+     * Mengambil informasi file nilai dari API Laravel untuk kelas dan siswa tertentu.
+     * Endpoint: GET /api/classes/{class_id}/grade-files?student_id={student_id}
+     *
+     * @param int $classId
+     * @param string $studentId
+     * @return array
+     */
+    public function getGradeFiles(int $classId, string $studentId): array
+    {
+        if ($classId <= 0 || trim($studentId) === '') {
+            return [
+                'status'      => 'error',
+                'status_code' => 400,
+                'file'        => null,
+                'message'     => 'Parameter class_id dan student_id wajib diisi.',
+            ];
+        }
+
+        $options = [
+            'timeout'         => 5,
+            'connect_timeout' => 3,
+            'headers'         => [
+                'X-API-KEY'    => $this->apiKey,
+                'Accept'       => 'application/json',
+                'Content-Type' => 'application/json',
+            ],
+            'query'           => [
+                'student_id' => $studentId,
+            ],
+            'http_errors'     => false,
+        ];
+
+        try {
+            $response = $this->client->request('GET', "classes/{$classId}/grade-files", $options);
+            $statusCode = $response->getStatusCode();
+            $body = $response->getBody();
+            $decoded = json_decode($body, true);
+
+            if ($statusCode === 200 && is_array($decoded) && !empty($decoded['success'])) {
+                $fileData = $decoded['data']['file'] ?? null;
+                return [
+                    'status'      => 'success',
+                    'status_code' => 200,
+                    'data'        => $decoded['data'] ?? [],
+                    'file'        => $fileData,
+                    'message'     => $decoded['message'] ?? 'Berhasil memuat berkas nilai.',
+                ];
+            }
+
+            if ($statusCode === 403) {
+                return [
+                    'status'      => 'forbidden',
+                    'status_code' => 403,
+                    'file'        => null,
+                    'message'     => $decoded['message'] ?? 'Akses ditolak: Siswa belum terverifikasi pada kelas ini di server pusat.',
+                ];
+            }
+
+            if ($statusCode === 404) {
+                return [
+                    'status'      => 'not_found',
+                    'status_code' => 404,
+                    'file'        => null,
+                    'message'     => $decoded['message'] ?? 'Berkas nilai tidak ditemukan di server pusat.',
+                ];
+            }
+
+            return [
+                'status'      => 'error',
+                'status_code' => $statusCode,
+                'file'        => null,
+                'message'     => $decoded['message'] ?? ("Respons server Laravel: HTTP " . $statusCode),
+            ];
+        } catch (\Throwable $e) {
+            log_message('warning', "LaravelApiService::getGradeFiles [class={$classId}, student={$studentId}] error: " . $e->getMessage());
+            return [
+                'status'      => 'error',
+                'status_code' => 0,
+                'file'        => null,
+                'message'     => 'Koneksi ke server pusat timeout atau gagal: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Mengunduh berkas fisik nilai dari API Laravel untuk kelas, file, dan siswa tertentu.
+     * Endpoint: GET /api/classes/{class_id}/grade-files/{grade_file_id}/download?student_id={student_id}
+     *
+     * @param int $classId
+     * @param int|string $gradeFileId
+     * @param string $studentId
+     * @return array
+     */
+    public function downloadGradeFile(int $classId, $gradeFileId, string $studentId): array
+    {
+        if ($classId <= 0 || trim((string)$gradeFileId) === '' || trim($studentId) === '') {
+            return [
+                'success'     => false,
+                'status_code' => 400,
+                'message'     => 'Parameter class_id, grade_file_id, dan student_id wajib diisi.',
+            ];
+        }
+
+        $options = [
+            'timeout'         => 30, // 30 detik untuk download file binary
+            'connect_timeout' => 5,
+            'headers'         => [
+                'X-API-KEY' => $this->apiKey,
+                'Accept'    => '*/*',
+            ],
+            'query'           => [
+                'student_id' => $studentId,
+            ],
+            'http_errors'     => false,
+        ];
+
+        try {
+            $endpoint = "classes/{$classId}/grade-files/{$gradeFileId}/download";
+            $response = $this->client->request('GET', $endpoint, $options);
+            $statusCode = $response->getStatusCode();
+            $body = $response->getBody();
+
+            if ($statusCode === 200) {
+                // Cek apakah konten berupa JSON error (misal success: false)
+                $decoded = json_decode($body, true);
+                if (is_array($decoded) && isset($decoded['success']) && !$decoded['success']) {
+                    return [
+                        'success'     => false,
+                        'status_code' => 400,
+                        'message'     => $decoded['message'] ?? 'Gagal mengunduh file nilai.',
+                    ];
+                }
+
+                $contentType = $response->getHeaderLine('Content-Type') ?: 'application/octet-stream';
+                $disposition = $response->getHeaderLine('Content-Disposition');
+
+                return [
+                    'success'      => true,
+                    'status_code'  => 200,
+                    'body'         => $body,
+                    'content_type' => $contentType,
+                    'disposition'  => $disposition,
+                ];
+            }
+
+            $decoded = json_decode($body, true);
+            $msg = $decoded['message'] ?? ("Gagal mengunduh berkas dari server pusat (HTTP " . $statusCode . ").");
+
+            return [
+                'success'     => false,
+                'status_code' => $statusCode,
+                'message'     => $msg,
+            ];
+        } catch (\Throwable $e) {
+            log_message('warning', "LaravelApiService::downloadGradeFile [class={$classId}, file={$gradeFileId}, student={$studentId}] error: " . $e->getMessage());
+            return [
+                'success'     => false,
+                'status_code' => 0,
+                'message'     => 'Koneksi unduh berkas ke server pusat terputus: ' . $e->getMessage(),
+            ];
+        }
+    }
 }
+

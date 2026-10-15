@@ -83,6 +83,8 @@ $routes->post('pelatihan/ujian/simpan-jawaban', 'Pelatihan::simpanJawabanUjian')
 $routes->get('pelatihan/ujian/mulai', 'Pelatihan::kerjakanUjian');
 $routes->post('pelatihan/ujian/kumpulkan', 'Pelatihan::submitUjian');
 $routes->get('pelatihan/ujian/hasil', 'Pelatihan::hasilUjian');
+$routes->get('pelatihan/ujian/unduh-file-nilai/(:num)', 'Pelatihan::unduhFileNilai/$1');
+$routes->get('pelatihan/ujian/unduh-file-nilai/(:num)/(:num)', 'Pelatihan::unduhFileNilai/$1/$2');
 $routes->get('pelatihan/ikut-remidi', 'Pelatihan::ikutRemidi');
 
 // ===== MENU ANGKET & SERTIFIKAT PESERTA =====
@@ -130,6 +132,7 @@ $routes->group('admin', ['filter' => 'auth'], function($routes) {
     
     // Perbaikan Rute Manajemen KBM
     $routes->get('manajemen-kbm', 'Admin::manajemenKbm');
+    $routes->get('manajemen-kbm/unduh-file-nilai/(:num)', 'Admin::unduhFileNilai/$1');
     $routes->match(['get', 'post'], 'manajemen-kbm/update-status/(:num)', 'Admin::updateStatusKelulusanPeserta/$1');
     $routes->post('manajemen-kbm/update-status/(:num)', 'Admin::updateStatusKelulusanPeserta/$1');
     

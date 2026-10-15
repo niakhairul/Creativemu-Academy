@@ -713,9 +713,34 @@
                                             <p class="text-muted mb-2" style="font-size: 12px; line-height: 1.4;">
                                                 Selamat! Nilai ujian Anda telah keluar dan dinyatakan <strong class="text-dark">LULUS</strong>. Segera isi formulir angket evaluasi untuk membuka akses sertifikat.
                                             </p>
-                                            <a href="<?= base_url('pelatihan/kelas?id_kelas=' . ($pendaftaran['id_kelas'] ?? '')) ?>" class="btn btn-sm text-dark fw-bold px-3 py-1 rounded-pill shadow-sm" style="font-size: 11px; background-color: var(--color-orange); border: none; color: white !important;">
-                                                <i class="fas fa-clipboard-list me-1"></i> Isi Angket Sekarang
-                                            </a>
+                                            <div class="d-flex gap-2 flex-wrap">
+                                                <a href="<?= base_url('pelatihan/angket?id_kelas=' . ($pendaftaran['id_kelas'] ?? '')) ?>" class="btn btn-sm text-white fw-bold px-3 py-1 rounded-pill shadow-sm" style="font-size: 11px; background-color: var(--color-orange); border: none;">
+                                                    <i class="fas fa-clipboard-list me-1"></i> Isi Angket Sekarang
+                                                </a>
+                                                <a href="<?= base_url('pelatihan/kelas?id_kelas=' . ($pendaftaran['id_kelas'] ?? '') . '&tab=ujian#ujian') ?>" class="btn btn-sm btn-outline-dark fw-bold px-3 py-1 rounded-pill" style="font-size: 11px;">
+                                                    <i class="fas fa-award me-1"></i> Lihat Nilai Ujian
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php elseif (!empty($is_remidi) && $is_remidi === true): ?>
+                                <div class="p-3 rounded-3 border-0 position-relative overflow-hidden shadow-sm" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 4px solid #d97706 !important;">
+                                    <div class="d-flex align-items-start gap-2.5">
+                                        <div class="fs-5 lh-1 mt-0.5" style="color: #d97706;"><i class="fas fa-exclamation-triangle"></i></div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="fw-bold text-dark mb-1" style="font-size: 13px;">Ujian Perlu Remidi</h6>
+                                            <p class="text-muted mb-2" style="font-size: 12px; line-height: 1.4;">
+                                                Hasil ujian Anda telah diverifikasi oleh admin dengan status <strong class="text-warning-emphasis">REMIDI</strong>. Silakan periksa detail perolehan nilai ujian Anda pada menu ujian.
+                                            </p>
+                                            <div class="d-flex gap-2 flex-wrap">
+                                                <a href="<?= base_url('pelatihan/kelas?id_kelas=' . ($pendaftaran['id_kelas'] ?? '') . '&tab=ujian#ujian') ?>" class="btn btn-sm text-white fw-bold px-3 py-1 rounded-pill shadow-sm" style="font-size: 11px; background-color: #d97706; border: none;">
+                                                    <i class="fas fa-award me-1"></i> Lihat Nilai Ujian
+                                                </a>
+                                                <a href="<?= base_url('pelatihan/kelas?id_kelas=' . ($pendaftaran['id_kelas'] ?? '')) ?>" class="btn btn-sm btn-outline-secondary fw-bold px-3 py-1 rounded-pill" style="font-size: 11px;">
+                                                    <i class="fas fa-book-open me-1"></i> Ruang Kelas
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -726,11 +751,16 @@
                                         <div class="flex-grow-1">
                                             <h6 class="fw-bold text-dark mb-1" style="font-size: 13px;">Informasi Nilai Ujian</h6>
                                             <p class="text-muted mb-2" style="font-size: 12px; line-height: 1.4;">
-                                                Nilai ujian Anda sudah keluar. Silakan periksa hasil lengkap pada menu kelas untuk melihat detail pencapaian Anda.
+                                                Nilai ujian Anda sudah keluar. Silakan periksa hasil lengkap pada menu ujian atau ruang kelas untuk melihat detail pencapaian Anda.
                                             </p>
-                                            <a href="<?= base_url('pelatihan/kelas?id_kelas=' . ($pendaftaran['id_kelas'] ?? '')) ?>" class="btn btn-sm text-white fw-bold px-3 py-1 rounded-pill shadow-sm" style="font-size: 11px; background-color: var(--color-cyan); border: none;">
-                                                <i class="fas fa-book-open me-1"></i> Cek Nilai di Kelas
-                                            </a>
+                                            <div class="d-flex gap-2 flex-wrap">
+                                                <a href="<?= base_url('pelatihan/kelas?id_kelas=' . ($pendaftaran['id_kelas'] ?? '') . '&tab=ujian#ujian') ?>" class="btn btn-sm text-white fw-bold px-3 py-1 rounded-pill shadow-sm" style="font-size: 11px; background-color: var(--color-cyan); border: none;">
+                                                    <i class="fas fa-award me-1"></i> Lihat Nilai Ujian
+                                                </a>
+                                                <a href="<?= base_url('pelatihan/kelas?id_kelas=' . ($pendaftaran['id_kelas'] ?? '')) ?>" class="btn btn-sm btn-outline-secondary fw-bold px-3 py-1 rounded-pill" style="font-size: 11px;">
+                                                    <i class="fas fa-book-open me-1"></i> Ruang Kelas
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

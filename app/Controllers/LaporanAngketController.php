@@ -184,7 +184,16 @@ class LaporanAngketController extends BaseController
 
         $mentorRow = null;
         if ($id > 0) {
-            $mentorRow = $this->db->table('mentor')->where('id_mentor', $id)->get()->getRowArray();
+            $allMentors = $this->laporanAngketModel->getFilterMentors();
+            foreach ($allMentors as $am) {
+                if ((int)$am['id_mentor'] === $id) {
+                    $mentorRow = $am;
+                    break;
+                }
+            }
+            if (!$mentorRow) {
+                $mentorRow = $this->db->table('mentor')->where('id_mentor', $id)->get()->getRowArray();
+            }
         }
 
         $comments = $this->laporanAngketModel->getDetailKomentar($id > 0 ? $id : null, $filters);

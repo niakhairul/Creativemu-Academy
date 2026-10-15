@@ -638,6 +638,12 @@
                     $podiumClasses = ['rank-gold', 'rank-silver', 'rank-bronze'];
                     $topThree = array_slice($rankingList, 0, 3);
                     $idx = 0;
+                    if (empty($topThree)):
+                ?>
+                <div class="col-12 text-center py-4 text-muted" style="font-size: 0.85rem;">
+                    <i class="fas fa-info-circle me-1 text-primary"></i> Belum ada instruktur dengan sesi mengajar aktif pada periode ini.
+                </div>
+                <?php else:
                     foreach ($topThree as $rm):
                         $pClass = $podiumClasses[$idx] ?? '';
                 ?>
@@ -661,12 +667,16 @@
                             </div>
                             <div class="d-flex justify-content-between py-0.5">
                                 <span class="text-muted">Nilai Angket:</span>
-                                <span class="fw-semibold text-warning"><i class="fas fa-star"></i> <?= number_format($rm['nilai_angket'], 2); ?></span>
+                                <?php if ($rm['nilai_angket'] > 0): ?>
+                                    <span class="fw-semibold text-warning"><i class="fas fa-star"></i> <?= number_format($rm['nilai_angket'], 2); ?></span>
+                                <?php else: ?>
+                                    <span class="text-muted fst-italic" style="font-size: 0.72rem;">Belum Ada Penilaian</span>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
                 </div>
-                <?php $idx++; endforeach; ?>
+                <?php $idx++; endforeach; endif; ?>
             </div>
         </div>
 
@@ -898,9 +908,13 @@
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 fw-bold">
-                                        <i class="fas fa-star me-1 text-warning"></i><?= number_format($m['nilai_angket'], 2); ?>
-                                    </span>
+                                    <?php if ($m['nilai_angket'] > 0): ?>
+                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 fw-bold">
+                                            <i class="fas fa-star me-1 text-warning"></i><?= number_format($m['nilai_angket'], 2); ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="badge bg-light text-muted border px-2 py-1" style="font-size: 0.72rem;">Belum Ada Penilaian</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="text-center">
                                     <span class="badge <?= $m['badge_class']; ?> px-2 py-1" style="font-size: 0.72rem;"><?= $m['predikat']; ?></span>
@@ -1079,7 +1093,9 @@
                             <div class="col-6 col-md-3">
                                 <div class="p-2 border rounded-3 bg-light text-center">
                                     <small class="text-muted d-block" style="font-size: 0.7rem;">Skor Angket</small>
-                                    <h6 class="fw-bold m-0 text-warning" style="font-size: 0.95rem;"><i class="fas fa-star" style="font-size: 0.7rem;"></i> ${data.nilai_angket}</h6>
+                                    <h6 class="fw-bold m-0 ${parseFloat(data.nilai_angket) > 0 ? 'text-warning' : 'text-muted'}" style="font-size: 0.95rem;">
+                                        ${parseFloat(data.nilai_angket) > 0 ? `<i class="fas fa-star" style="font-size: 0.7rem;"></i> ${parseFloat(data.nilai_angket).toFixed(2)}` : '<span style="font-size: 0.75rem;">Belum Ada</span>'}
+                                    </h6>
                                 </div>
                             </div>
                         </div>

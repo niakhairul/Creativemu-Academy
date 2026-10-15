@@ -254,7 +254,7 @@
                         <td class="text-center"><?= $m['persen_keaktifan']; ?>%</td>
                         <td class="text-center"><strong><?= $m['persen_kehadiran']; ?>%</strong></td>
                         <td class="text-center"><?= $m['persen_keterlambatan']; ?>%</td>
-                        <td class="text-center"><?= number_format($m['nilai_angket'], 2); ?></td>
+                        <td class="text-center"><?= $m['nilai_angket'] > 0 ? number_format($m['nilai_angket'], 2) : '<span style="font-size:8pt;color:#666;">Belum Ada Penilaian</span>'; ?></td>
                         <td class="text-center fw-bold text-primary"><?= number_format($m['skor_performa'], 1); ?>%</td>
                         <td class="text-center"><strong><?= $m['predikat']; ?></strong></td>
                     </tr>

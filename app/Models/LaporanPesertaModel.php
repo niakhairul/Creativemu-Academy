@@ -143,8 +143,13 @@ class LaporanPesertaModel extends Model
                 pendaftaran.id_pendaftaran,
                 pendaftaran.id_kelas,
                 pendaftaran.id_users,
-                COALESCE(NULLIF(users.nama, ''), pendaftaran.nama) AS nama_peserta,
-                COALESCE(NULLIF(pendaftaran.nis, ''), users.id_users, '-') AS resolved_nis,
+                pendaftaran.nis,
+                COALESCE(NULLIF(pendaftaran.nama, ''), NULLIF(users.nama, ''), 'Peserta') AS nama,
+                COALESCE(NULLIF(pendaftaran.nama, ''), NULLIF(users.nama, ''), 'Peserta') AS nama_peserta,
+                COALESCE(
+                    NULLIF(pendaftaran.nis, ''),
+                    CONCAT(DATE_FORMAT(COALESCE(pendaftaran.created_at, NOW()), '%y%m'), LPAD(pendaftaran.id_pendaftaran, 4, '0'))
+                ) AS resolved_nis,
                 COALESCE(NULLIF(pendaftaran.jenis_kelamin, ''), users.jenis_kelamin, 'Laki-laki') AS resolved_gender,
                 COALESCE(NULLIF(users.email, ''), pendaftaran.email) AS resolved_email,
                 COALESCE(NULLIF(users.no_hp, ''), pendaftaran.no_hp) AS resolved_no_hp,
@@ -163,7 +168,7 @@ class LaporanPesertaModel extends Model
                     ELSE 'Dalam Proses'
                 END AS status_kelulusan,
                 nu.nilai_tertinggi
-            ")
+            ", false)
             ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
             ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
             ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
@@ -561,6 +566,16 @@ class LaporanPesertaModel extends Model
             $builder->limit(10, ($page - 1) * 10);
         }
         
-        return $builder->get()->getResultArray();
+        $rows = $builder->get()->getResultArray();
+        foreach ($rows as &$r) {
+            $r['nama_peserta'] = !empty($r['nama_peserta']) ? $r['nama_peserta'] : (!empty($r['nama']) ? $r['nama'] : 'Peserta');
+            $r['nama'] = $r['nama_peserta'];
+            $r['nis'] = !empty($r['resolved_nis']) ? $r['resolved_nis'] : ($r['nis'] ?? '-');
+            $r['jenis_kelamin'] = !empty($r['resolved_gender']) ? $r['resolved_gender'] : ($r['jenis_kelamin'] ?? 'Laki-laki');
+            $r['email'] = !empty($r['resolved_email']) ? $r['resolved_email'] : ($r['email'] ?? '-');
+            $r['no_hp'] = !empty($r['resolved_no_hp']) ? $r['resolved_no_hp'] : ($r['no_hp'] ?? '-');
+        }
+        unset($r);
+        return $rows;
     }
 }

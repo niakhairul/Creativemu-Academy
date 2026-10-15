@@ -107,6 +107,7 @@ class LaporanPesertaController extends BaseController
 
         $apiService = new \App\Services\LaravelApiService();
         $apiService->syncParticipantsFromLaravel();
+        $this->ensureParticipantsHaveNis();
 
         $filters = $this->parseFilters();
         $mentor = $this->getMentorData();
@@ -161,6 +162,7 @@ class LaporanPesertaController extends BaseController
 
         $apiService = new \App\Services\LaravelApiService();
         $apiService->syncParticipantsFromLaravel();
+        $this->ensureParticipantsHaveNis();
 
         $filters    = $this->parseFilters();
         $stats      = $this->laporanModel->getRingkasanStats($filters);
@@ -258,6 +260,8 @@ class LaporanPesertaController extends BaseController
             return $redirect;
         }
 
+        $this->ensureParticipantsHaveNis();
+
         $filters    = $this->parseFilters();
         $stats      = $this->laporanModel->getRingkasanStats($filters);
         $rekapKelas = $this->laporanModel->getRekapPerKelas($filters);
@@ -285,5 +289,50 @@ class LaporanPesertaController extends BaseController
         ];
 
         return view('admin/laporan/cetak_laporan', $data);
+    }
+
+    /**
+     * Memastikan setiap peserta di tabel pendaftaran memiliki nomor NIS yang valid dan unik
+     */
+    private function ensureParticipantsHaveNis(): void
+    {
+        $emptyNisRows = $this->db->table('pendaftaran')
+            ->where('nis IS NULL')
+            ->orWhere('nis', '')
+            ->get()->getResultArray();
+
+        if (empty($emptyNisRows)) return;
+
+        $bukuInduk = new \App\Models\BukuIndukModel();
+        foreach ($emptyNisRows as $row) {
+            $nisFound = null;
+            if (!empty($row['id_users'])) {
+                $other = $this->db->table('pendaftaran')
+                    ->select('nis')
+                    ->where('id_users', $row['id_users'])
+                    ->where('nis IS NOT NULL')
+                    ->where('nis !=', '')
+                    ->get()->getRowArray();
+                if ($other && !empty($other['nis'])) {
+                    $nisFound = $other['nis'];
+                }
+            }
+            if (!$nisFound && !empty($row['email'])) {
+                $other = $this->db->table('pendaftaran')
+                    ->select('nis')
+                    ->where('email', $row['email'])
+                    ->where('nis IS NOT NULL')
+                    ->where('nis !=', '')
+                    ->get()->getRowArray();
+                if ($other && !empty($other['nis'])) {
+                    $nisFound = $other['nis'];
+                }
+            }
+            if (!$nisFound) {
+                $ym = !empty($row['created_at']) ? date('ym', strtotime($row['created_at'])) : date('ym');
+                $nisFound = $bukuInduk->generateNis($ym);
+            }
+            $this->db->table('pendaftaran')->where('id_pendaftaran', $row['id_pendaftaran'])->update(['nis' => $nisFound]);
+        }
     }
 }

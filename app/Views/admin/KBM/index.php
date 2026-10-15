@@ -630,6 +630,13 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                                 <i class="fas fa-users"></i>
                                                 <?= esc($row['kelas'] ?? '-'); ?>
                                             </span>
+                                            <div class="mt-1">
+                                                <a href="<?= base_url('admin/manajemen-kbm/unduh-file-nilai/' . $row['id_nilai_ujian']); ?>"
+                                                   class="badge bg-light text-primary border text-decoration-none"
+                                                   title="Unduh berkas nilai dari instruktur (Laravel)">
+                                                    <i class="fas fa-file-arrow-down me-1"></i> File Nilai
+                                                </a>
+                                            </div>
                                         </td>
 
                                         <!-- NILAI -->
@@ -638,10 +645,12 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                                 type="number"
                                                 form="form-update-<?= $row['id_nilai_ujian']; ?>"
                                                 name="nilai"
-                                                value="<?= esc($row['nilai'] ?? 0); ?>"
+                                                value="<?= esc((float)($row['nilai'] ?? 0)); ?>"
                                                 class="form-control score-input text-center"
                                                 min="0"
-                                                max="100">
+                                                max="100"
+                                                step="0.01"
+                                                title="Nilai ujian peserta">
                                         </td>
 
                                         <td class="text-center">

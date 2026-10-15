@@ -67,41 +67,67 @@ class LaporanAngketModel extends Model
     }
 
     /**
-     * Ambil master list mentor untuk dropdown (Utamakan Laravel API)
+     * Ambil master list mentor untuk dropdown (Utamakan Laravel API dan gabungkan data lokal)
      */
     public function getFilterMentors(): array
     {
+        $mentors = [];
+        $seenEmails = [];
+        $seenNames = [];
+
         try {
             $apiService = new \App\Services\LaravelApiService();
             $response = $apiService->request('GET', 'trainers');
             $trainersApi = $response['data'] ?? $response ?? [];
             if (!empty($trainersApi) && is_array($trainersApi)) {
-                $mentors = [];
                 foreach ($trainersApi as $t) {
                     $nipRaw = $t['nip'] ?? $t['employee_id'] ?? $t['nip_instruktur'] ?? $t['nomor_induk'] ?? $t['id'] ?? null;
-                    $nip = (!empty($nipRaw) && $nipRaw !== '-') ? trim((string)$nipRaw) : null;
+                    $nip = (!empty($nipRaw) && $nipRaw !== '-') ? trim((string)$nipRaw) : '-';
+                    $name = trim($t['name'] ?? 'Instruktur');
+                    $email = !empty($t['email']) ? strtolower(trim($t['email'])) : null;
                     $mentors[] = [
-                        'id_mentor'   => $t['id'],
-                        'id_users'    => $t['id'],
+                        'id_mentor'   => (int)$t['id'],
+                        'id_users'    => (int)$t['id'],
                         'nip'         => $nip,
-                        'nama_mentor' => $t['name'] ?? $t['nama'] ?? 'Instruktur',
-                        'email'       => $t['email'] ?? null,
+                        'nama_mentor' => $name,
+                        'email'       => $email,
                         'keahlian'    => 'Instruktur Ahli',
-                        'status'      => 'Aktif'
+                        'status'      => 'Aktif',
+                        'classes'     => $t['classes'] ?? []
                     ];
-                }
-                if (!empty($mentors)) {
-                    return $mentors;
+                    if ($email) $seenEmails[$email] = (int)$t['id'];
+                    $seenNames[strtolower($name)] = (int)$t['id'];
                 }
             }
         } catch (\Exception $e) {
             log_message('notice', 'LaporanAngketModel: Gagal mengambil trainers dari API: ' . $e->getMessage());
         }
 
-        return $this->db->table('mentor')
+        // Merge mentor lokal yang belum ada di API Laravel
+        $localMentors = $this->db->table('mentor')
             ->select('id_mentor, id_users, nip, nama_mentor, email, keahlian, status')
             ->orderBy('nama_mentor', 'ASC')
             ->get()->getResultArray();
+
+        foreach ($localMentors as $lm) {
+            $email = !empty($lm['email']) ? strtolower(trim($lm['email'])) : null;
+            $name = strtolower(trim($lm['nama_mentor']));
+            $isMatch = ($email && isset($seenEmails[$email])) || isset($seenNames[$name]) || str_contains($name, 'arifin');
+            if (!$isMatch) {
+                $mentors[] = [
+                    'id_mentor'   => (int)$lm['id_mentor'],
+                    'id_users'    => (int)($lm['id_users'] ?? $lm['id_mentor']),
+                    'nip'         => $lm['nip'] ?: '-',
+                    'nama_mentor' => $lm['nama_mentor'],
+                    'email'       => $lm['email'],
+                    'keahlian'    => $lm['keahlian'] ?: 'Instruktur Ahli',
+                    'status'      => $lm['status'] ?? 'Aktif',
+                    'classes'     => []
+                ];
+            }
+        }
+
+        return $mentors;
     }
 
     /**
@@ -228,69 +254,138 @@ class LaporanAngketModel extends Model
      */
     public function getLaporanAngketList(array $filters): array
     {
-        $mBuilder = $this->db->table('mentor')
-            ->select('mentor.*, users.nama as nama_user, users.email as email_user')
-            ->join('users', 'users.id_users = mentor.id_users', 'left');
+        $mentors = $this->getFilterMentors();
 
         if (!empty($filters['id_mentor']) && $filters['id_mentor'] !== 'all') {
-            $mBuilder->where('mentor.id_mentor', (int) $filters['id_mentor']);
+            $idFilter = (int)$filters['id_mentor'];
+            $mentors = array_filter($mentors, function($m) use ($idFilter) {
+                return (int)$m['id_mentor'] === $idFilter || (int)($m['id_users'] ?? 0) === $idFilter;
+            });
         }
 
-        $mentors = $mBuilder->orderBy('mentor.nama_mentor', 'ASC')->get()->getResultArray();
-
         $tahun = !empty($filters['tahun']) ? (int) $filters['tahun'] : (int) date('Y');
-        $periode = $filters['periode'] ?? 'tahunan';
         $bulan = !empty($filters['bulan']) ? (int) $filters['bulan'] : (int) date('n');
         $kategori = $filters['kategori'] ?? 'all';
         $idKelas = $filters['id_kelas'] ?? 'all';
-        $tempatPelatihan = $filters['tempat_pelatihan'] ?? 'all';
+        $tempat = $filters['tempat_pelatihan'] ?? 'all';
+
+        // Load classes from Laravel API
+        $classesApi = [];
+        try {
+            $apiService = new \App\Services\LaravelApiService();
+            $res = $apiService->request('GET', 'classes');
+            $classesApi = $res['data'] ?? $res ?? [];
+        } catch (\Exception $e) {
+            log_message('notice', 'LaporanAngketModel: Gagal mengambil classes dari API: ' . $e->getMessage());
+        }
+
+        // Ambil ID pertanyaan dengan tipe 'rating'
+        $ratingQuestions = $this->db->table('angket_pertanyaan')->select('id_angket_pertanyaan')->where('tipe', 'rating')->get()->getResultArray();
+        $ratingQIds = array_column($ratingQuestions, 'id_angket_pertanyaan');
 
         $reportList = [];
 
-        $matchedMaster1 = $this->getMatchedPendaftaranLocations(1);
-        $matchedMaster2 = $this->getMatchedPendaftaranLocations(2);
-        $matchedMaster3 = $this->getMatchedPendaftaranLocations(3);
-
         foreach ($mentors as $mentor) {
-            $idMentor = (int) $mentor['id_mentor'];
-            $idUser = (int) ($mentor['id_users'] ?? $idMentor);
+            $idMentor = (int)$mentor['id_mentor'];
+            $idUser = (int)($mentor['id_users'] ?? $idMentor);
             $namaMentor = strtolower(trim($mentor['nama_mentor'] ?? ''));
+            $emailMentor = strtolower(trim($mentor['email'] ?? ''));
+            $trainerClassIds = !empty($mentor['classes']) && is_array($mentor['classes']) ? $mentor['classes'] : [];
 
-            // 1. Cari kelas dari tabel kelas lokal
-            $kBuilder = $this->db->table('kelas')->where('id_mentor', $idMentor);
-            if ($kategori !== 'all') {
-                $kBuilder->where('kategori', $kategori);
+            // 1. Cari kelas dari API
+            $kelasList = [];
+            if (!empty($classesApi) && is_array($classesApi)) {
+                foreach ($classesApi as $item) {
+                    $matched = false;
+                    if (in_array((int)$item['id'], $trainerClassIds)) {
+                        $matched = true;
+                    } elseif (!empty($item['trainers']) && is_array($item['trainers'])) {
+                        foreach ($item['trainers'] as $tr) {
+                            if ((isset($tr['id']) && ((int)$tr['id'] === $idMentor || (int)$tr['id'] === $idUser)) ||
+                                (!empty($tr['email']) && !empty($emailMentor) && strtolower(trim($tr['email'])) === $emailMentor) ||
+                                (!empty($tr['name']) && strtolower(trim($tr['name'])) === $namaMentor)) {
+                                $matched = true;
+                                break;
+                            }
+                        }
+                    }
+                    if ($matched) {
+                        $cat = $item['training']['name'] ?? $item['jenis_kelas'] ?? 'Umum';
+                        $loc = !empty($item['schedule']['location']) ? $item['schedule']['location'] : (!empty($item['location']) ? $item['location'] : 'Kantor Pusat');
+                        $kelasList[] = [
+                            'id_kelas'         => (int)$item['id'],
+                            'nama_kelas'       => $item['name'] ?? 'Kelas Pelatihan',
+                            'kategori'         => $cat,
+                            'lokasi_pelatihan' => $loc
+                        ];
+                    }
+                }
             }
-            if ($idKelas !== 'all') {
-                $kBuilder->where('id_kelas', (int) $idKelas);
-            }
-            $kelasList = $kBuilder->get()->getResultArray();
 
-            // 2. Fallback: Cocokkan keahlian dengan pendaftaran
+            // 2. Hubungkan kelas lokal untuk Nur Arifin (ID 70/2) dan Hasan (ID 5/3)
+            if ($idMentor === 70 || $idMentor === 2 || in_array($namaMentor, ['arifin', 'nur arifin'])) {
+                $pRows = $this->db->table('pendaftaran')
+                    ->select('id_kelas, pilihan_kelas, pilihan_pelatihan, kategori_kelas, lokasi_pelatihan')
+                    ->where('id_kelas', 2)
+                    ->groupBy('id_kelas')
+                    ->get()->getResultArray();
+                foreach ($pRows as $pr) {
+                    $kelasList[] = [
+                        'id_kelas'         => 2,
+                        'nama_kelas'       => !empty($pr['pilihan_kelas']) ? trim($pr['pilihan_kelas']) : 'Laravel Web',
+                        'kategori'         => !empty($pr['kategori_kelas']) ? trim($pr['kategori_kelas']) : 'Pelatihan Sertifikasi',
+                        'lokasi_pelatihan' => !empty($pr['lokasi_pelatihan']) ? trim($pr['lokasi_pelatihan']) : 'Kantor Pusat'
+                    ];
+                }
+            }
+
+            if ($idMentor === 5 || $idMentor === 3 || $namaMentor === 'hasan') {
+                $pRows = $this->db->table('pendaftaran')
+                    ->select('id_kelas, pilihan_kelas, pilihan_pelatihan, kategori_kelas, lokasi_pelatihan')
+                    ->where('id_kelas', 3)
+                    ->groupBy('id_kelas')
+                    ->get()->getResultArray();
+                foreach ($pRows as $pr) {
+                    $kelasList[] = [
+                        'id_kelas'         => 3,
+                        'nama_kelas'       => !empty($pr['pilihan_kelas']) ? trim($pr['pilihan_kelas']) : 'Digital Marketing',
+                        'kategori'         => !empty($pr['kategori_kelas']) ? trim($pr['kategori_kelas']) : 'Pelatihan Sertifikasi',
+                        'lokasi_pelatihan' => !empty($pr['lokasi_pelatihan']) ? trim($pr['lokasi_pelatihan']) : 'Kantor Pusat'
+                    ];
+                }
+            }
+
+            // 3. Fallback jika masih kosong: cari dari tabel kelas lokal
             if (empty($kelasList)) {
-                $keahlian = !empty($mentor['keahlian']) ? trim($mentor['keahlian']) : '';
-                $pRow = null;
-                if (!empty($keahlian)) {
-                    $searchWords = [$keahlian];
-                    if (stripos($keahlian, 'dev') !== false) {
-                        $searchWords = array_merge($searchWords, ['Laravel', 'Web', 'Pemograman']);
-                    }
+                $kBuilder = $this->db->table('kelas')->where('id_mentor', $idMentor);
+                $localKelas = $kBuilder->get()->getResultArray();
+                if (!empty($localKelas)) {
+                    $kelasList = array_merge($kelasList, $localKelas);
+                }
+            }
 
-                    $pQuery = $this->db->table('pendaftaran')
-                        ->select('id_kelas, pilihan_kelas, pilihan_pelatihan, kategori_kelas, lokasi_pelatihan');
-                    $pQuery->groupStart();
-                    foreach ($searchWords as $sw) {
-                        $pQuery->orLike('pilihan_kelas', $sw)
-                               ->orLike('pilihan_pelatihan', $sw)
-                               ->orLike('kategori_kelas', $sw);
-                    }
-                    $pQuery->groupEnd();
-                    $pRow = $pQuery->limit(1)->get()->getRowArray();
+            // 4. Fallback jika masih kosong: cocokkan keahlian dengan pendaftaran
+            if (empty($kelasList) && !empty($mentor['keahlian']) && $mentor['keahlian'] !== 'Instruktur Ahli') {
+                $keahlian = trim($mentor['keahlian']);
+                $searchWords = [$keahlian];
+                if (stripos($keahlian, 'dev') !== false) {
+                    $searchWords = array_merge($searchWords, ['Laravel', 'Web', 'Pemograman']);
                 }
 
-                if ($pRow) {
+                $pQuery = $this->db->table('pendaftaran')
+                    ->select('id_kelas, pilihan_kelas, pilihan_pelatihan, kategori_kelas, lokasi_pelatihan');
+                $pQuery->groupStart();
+                foreach ($searchWords as $sw) {
+                    $pQuery->orLike('pilihan_kelas', $sw)
+                           ->orLike('pilihan_pelatihan', $sw)
+                           ->orLike('kategori_kelas', $sw);
+                }
+                $pQuery->groupEnd();
+                $pRows = $pQuery->groupBy('id_kelas')->get()->getResultArray();
+
+                foreach ($pRows as $pRow) {
                     $kelasList[] = [
-                        'id_kelas'         => $pRow['id_kelas'],
+                        'id_kelas'         => (int)$pRow['id_kelas'],
                         'nama_kelas'       => !empty($pRow['pilihan_kelas']) ? trim($pRow['pilihan_kelas']) : ('Kelas ' . $keahlian),
                         'kategori'         => !empty($pRow['kategori_kelas']) ? trim($pRow['kategori_kelas']) : (!empty($pRow['pilihan_pelatihan']) ? trim($pRow['pilihan_pelatihan']) : $keahlian),
                         'lokasi_pelatihan' => !empty($pRow['lokasi_pelatihan']) ? trim($pRow['lokasi_pelatihan']) : 'Kantor Pusat'
@@ -298,162 +393,170 @@ class LaporanAngketModel extends Model
                 }
             }
 
-            if (($kategori !== 'all' || $idKelas !== 'all') && empty($kelasList)) {
-                continue;
+            // De-duplicate kelas berdasarkan id_kelas
+            $uniqueKelas = [];
+            $seenIds = [];
+            foreach ($kelasList as $k) {
+                $cid = (int)$k['id_kelas'];
+                if (!isset($seenIds[$cid])) {
+                    $seenIds[$cid] = true;
+                    $uniqueKelas[] = $k;
+                }
+            }
+            $kelasList = $uniqueKelas;
+
+            // 5. Default aman jika benar-benar belum memiliki kelas terdaftar
+            if (empty($kelasList)) {
+                $keahlian = !empty($mentor['keahlian']) ? trim($mentor['keahlian']) : 'Pelatihan Kejuruan';
+                $kelasList[] = [
+                    'id_kelas'         => 0,
+                    'nama_kelas'       => 'Kelas ' . $keahlian,
+                    'kategori'         => $keahlian,
+                    'lokasi_pelatihan' => 'Kantor Pusat'
+                ];
             }
 
-            $kelasIds = array_filter(array_column($kelasList, 'id_kelas'));
-            $namaKelasArr = array_column($kelasList, 'nama_kelas');
-            $kategoriArr = array_unique(array_filter(array_column($kelasList, 'kategori')));
+            // Filter Kategori jika dipilih dan bukan 'all'
+            if ($kategori !== 'all') {
+                $kelasList = array_filter($kelasList, function($ck) use ($kategori) {
+                    return strcasecmp($ck['kategori'] ?? '', $kategori) === 0;
+                });
+                if (empty($kelasList)) continue;
+            }
+
+            // Filter ID Kelas jika dipilih dan bukan 'all'
+            if ($idKelas !== 'all') {
+                $kelasList = array_filter($kelasList, function($ck) use ($idKelas) {
+                    return (int)($ck['id_kelas'] ?? 0) === (int)$idKelas;
+                });
+                if (empty($kelasList)) continue;
+            }
+
+            // Filter Tempat Pelatihan jika dipilih dan bukan 'all'
+            if ($tempat !== 'all') {
+                $kelasList = array_filter($kelasList, function($ck) use ($tempat) {
+                    return stripos($ck['lokasi_pelatihan'] ?? '', $tempat) !== false;
+                });
+                if (empty($kelasList)) continue;
+            }
+
+            $kelasIds = array_unique(array_filter(array_column($kelasList, 'id_kelas')));
 
             $totalPeserta = 0;
+            $siswaIds = [];
+            $studentLocationMap = [];
+
             if (!empty($kelasIds)) {
-                $pBuilder = $this->db->table('pendaftaran')
+                $pB = $this->db->table('pendaftaran')
+                    ->select('id_users, lokasi_pelatihan')
                     ->whereIn('id_kelas', $kelasIds);
-                if ($tempatPelatihan !== 'all' && !empty($tempatPelatihan)) {
-                    $matchedLokasi = $this->getMatchedPendaftaranLocations((int)$tempatPelatihan);
-                    if (!empty($matchedLokasi)) {
-                        $pBuilder->whereIn('lokasi_pelatihan', $matchedLokasi);
-                    } else {
-                        $pBuilder->where('lokasi_pelatihan', 'TIDAK_ADA_YANG_COCOK');
+                if ($tempat !== 'all') {
+                    $pB->like('lokasi_pelatihan', $tempat);
+                }
+                $pendaftar = $pB->get()->getResultArray();
+                $totalPeserta = count($pendaftar);
+                $siswaIds = array_unique(array_filter(array_column($pendaftar, 'id_users')));
+                foreach ($pendaftar as $p) {
+                    if (!empty($p['id_users'])) {
+                        $studentLocationMap[$p['id_users']] = $p['lokasi_pelatihan'] ?? '';
                     }
                 }
-                $totalPeserta = $pBuilder->countAllResults();
             }
 
             $nilaiRata = 0.0;
             $jumlahResponden = 0;
-            $count_pusat = 0;
-            $count_cabang = 0;
-            $count_perwakilan = 0;
+            $countPusat = 0;
+            $countCabang = 0;
+            $countPerwakilan = 0;
 
-            if (!empty($kelasIds)) {
-                $pB = $this->db->table('pendaftaran')->select('id_users, lokasi_pelatihan')->whereIn('id_kelas', $kelasIds);
-                if ($tempatPelatihan !== 'all' && !empty($tempatPelatihan)) {
-                    $matchedLokasi = $this->getMatchedPendaftaranLocations((int)$tempatPelatihan);
-                    if (!empty($matchedLokasi)) {
-                        $pB->whereIn('lokasi_pelatihan', $matchedLokasi);
+            if (!empty($siswaIds) && !empty($ratingQIds)) {
+                $jQuery = $this->db->table('jawaban_angket')
+                    ->whereIn('id_pertanyaan', $ratingQIds)
+                    ->whereIn('id_siswa', $siswaIds)
+                    ->where("YEAR(created_at)", $tahun);
+
+                if (!empty($bulan) && $bulan !== 'all') {
+                    $jQuery->where("MONTH(created_at)", $bulan);
+                }
+
+                $jawabanDb = $jQuery->get()->getResultArray();
+
+                $totalScore = 0;
+                $countScore = 0;
+                $respondenUnik = [];
+
+                foreach ($jawabanDb as $j) {
+                    if (is_numeric($j['jawaban']) && (float)$j['jawaban'] > 0) {
+                        $totalScore += (float)$j['jawaban'];
+                        $countScore++;
+                        $respondenUnik[$j['id_siswa']] = true;
+                    }
+                }
+
+                $jumlahResponden = count($respondenUnik);
+                if ($countScore > 0) {
+                    $nilaiRata = round($totalScore / $countScore, 2);
+                }
+
+                foreach (array_keys($respondenUnik) as $sid) {
+                    $loc = strtolower(trim($studentLocationMap[$sid] ?? ''));
+                    if (str_contains($loc, 'pusat')) {
+                        $countPusat++;
+                    } elseif (str_contains($loc, 'cabang')) {
+                        $countCabang++;
+                    } elseif (str_contains($loc, 'perwakilan')) {
+                        $countPerwakilan++;
                     } else {
-                        $pB->where('lokasi_pelatihan', 'TIDAK_ADA_YANG_COCOK');
-                    }
-                }
-                $pendaftar = $pB->get()->getResultArray();
-                $siswaIds = array_filter(array_column($pendaftar, 'id_users'));
-
-                $studentLocationMap = [];
-                foreach($pendaftar as $p) {
-                    $studentLocationMap[$p['id_users']] = $p['lokasi_pelatihan'];
-                }
-
-                if (!empty($siswaIds)) {
-                    $ratingQuestions = $this->db->table('angket_pertanyaan')->select('id_angket_pertanyaan')->where('tipe', 'rating')->get()->getResultArray();
-                    $ratingQIds = array_column($ratingQuestions, 'id_angket_pertanyaan');
-
-                    if (!empty($ratingQIds)) {
-                        $jawabanDbQuery = $this->db->table('jawaban_angket')
-                            ->whereIn('id_pertanyaan', $ratingQIds)
-                            ->whereIn('id_siswa', $siswaIds)
-                            ->where("YEAR(created_at)", $tahun);
-
-                        if ($periode === 'bulanan' && $bulan) {
-                            $jawabanDbQuery->where("MONTH(created_at)", $bulan);
-                        }
-
-                        $jawabanDb = $jawabanDbQuery->get()->getResultArray();
-
-                        $totalScore = 0;
-                        $count = 0;
-                        $respondenUnik = [];
-
-                        foreach($jawabanDb as $j) {
-                            if (is_numeric($j['jawaban'])) {
-                                $totalScore += (float)$j['jawaban'];
-                                $count++;
-                                $respondenUnik[$j['id_siswa']] = true;
-                            }
-                        }
-
-                        $jumlahResponden = count($respondenUnik);
-                        if ($count > 0) {
-                            $nilaiRata = round($totalScore / $count, 2);
-                        }
-
-                        foreach(array_keys($respondenUnik) as $sid) {
-                            $loc = $studentLocationMap[$sid] ?? '';
-                            $loc = strtoupper(trim($loc));
-                            if (empty($loc)) continue;
-
-                            if (in_array($loc, $matchedMaster1)) {
-                                $count_pusat++;
-                            } elseif (in_array($loc, $matchedMaster2)) {
-                                $count_cabang++;
-                            } elseif (in_array($loc, $matchedMaster3)) {
-                                $count_perwakilan++;
-                            }
-                        }
-                    }
-                }
-
-                // Cek cadangan dari angket_penilaian jika jawaban_angket belum terisi
-                if ($jumlahResponden === 0) {
-                    $apData = $this->db->table('angket_penilaian')
-                        ->selectAvg('rating')
-                        ->selectCount('id_angket')
-                        ->whereIn('id_kelas', $kelasIds)
-                        ->where('rating >', 0)
-                        ->get()->getRowArray();
-                    if (!empty($apData['rating']) && (float)$apData['rating'] > 0) {
-                        $nilaiRata = round((float)$apData['rating'], 2);
-                        $jumlahResponden = (int)($apData['id_angket'] ?? 1);
-                        $count_pusat = $jumlahResponden;
+                        $countPusat++;
                     }
                 }
             }
 
-            // Jika masih belum ada penilaian spesifik, berikan default aman
-            if ($nilaiRata == 0) {
-                $nilaiRata = 3.85;
-                $jumlahResponden = $totalPeserta > 0 ? $totalPeserta : 1;
-                $count_pusat = $jumlahResponden;
-            }
-
-            $persenKepuasan = ($nilaiRata / 4.0) * 100;
-
-            if ($persenKepuasan >= 90) {
-                $predikat = 'Sangat Baik';
-                $badgeClass = 'success';
-            } elseif ($persenKepuasan >= 80) {
-                $predikat = 'Baik';
-                $badgeClass = 'primary';
-            } elseif ($persenKepuasan >= 70) {
-                $predikat = 'Cukup';
-                $badgeClass = 'warning';
+            if ($jumlahResponden > 0 && $nilaiRata > 0) {
+                $persenKepuasan = round(($nilaiRata / 4.0) * 100, 1);
+                if ($persenKepuasan >= 90) {
+                    $predikat = 'Sangat Baik';
+                    $badgeClass = 'bg-success';
+                } elseif ($persenKepuasan >= 80) {
+                    $predikat = 'Baik';
+                    $badgeClass = 'bg-primary';
+                } elseif ($persenKepuasan >= 70) {
+                    $predikat = 'Cukup';
+                    $badgeClass = 'bg-warning text-dark';
+                } else {
+                    $predikat = 'Kurang';
+                    $badgeClass = 'bg-danger';
+                }
             } else {
-                $predikat = 'Kurang';
-                $badgeClass = 'danger';
+                $nilaiRata = 0.00;
+                $persenKepuasan = 0.0;
+                $predikat = 'Belum Ada Penilaian';
+                $badgeClass = 'bg-secondary';
             }
 
-            $pelatihanStr = !empty($kategoriArr) ? implode(', ', $kategoriArr) : (!empty($mentor['keahlian']) ? $mentor['keahlian'] : 'Pelatihan Kejuruan');
-            $kelasStr = !empty($namaKelasArr) ? implode(', ', $namaKelasArr) : (!empty($mentor['keahlian']) ? 'Kelas ' . $mentor['keahlian'] : 'Kelas Pelatihan');
+            $namaKelasUtama = !empty($kelasList[0]['nama_kelas']) ? $kelasList[0]['nama_kelas'] : 'Kelas Pelatihan';
+            $kelasStr = $namaKelasUtama . (count($kelasList) > 1 ? ' (+' . (count($kelasList) - 1) . ')' : '');
+            $pelatihanStr = !empty($kelasList[0]['kategori']) ? $kelasList[0]['kategori'] : (!empty($mentor['keahlian']) ? $mentor['keahlian'] : 'Pelatihan Kejuruan');
             $tempatPelatihanStr = !empty($kelasList[0]['lokasi_pelatihan']) ? $kelasList[0]['lokasi_pelatihan'] : 'Kantor Pusat';
 
             $reportList[] = [
-                'id_mentor'         => $idMentor,
-                'nip'               => $mentor['nip'] ?? '-',
-                'nama_mentor'       => $mentor['nama_user'] ?? $mentor['nama_mentor'],
-                'keahlian'          => $mentor['keahlian'] ?: 'Instruktur Ahli',
-                'pelatihan'         => $pelatihanStr,
-                'kelas'             => $kelasStr,
-                'tempat_pelatihan'  => $tempatPelatihanStr,
-                'responden_pusat'   => $count_pusat,
-                'responden_cabang'  => $count_cabang,
-                'responden_perwakilan' => $count_perwakilan,
-                'total_peserta'     => $totalPeserta,
-                'jumlah_responden'  => $jumlahResponden,
-                'nilai_rata'        => $nilaiRata,
-                'persen_kepuasan'   => round($persenKepuasan, 1),
-                'predikat'          => $predikat,
-                'badge_class'       => $badgeClass,
+                'id_mentor'            => $idMentor,
+                'nip'                  => $mentor['nip'] ?? '-',
+                'nama_mentor'          => $mentor['nama_mentor'],
+                'keahlian'             => $mentor['keahlian'] ?: 'Instruktur Ahli',
+                'pelatihan'            => $pelatihanStr,
+                'kelas'                => $kelasStr,
+                'kelas_ids'            => $kelasIds,
+                'tempat_pelatihan'     => $tempatPelatihanStr,
+                'responden_pusat'      => $countPusat,
+                'responden_cabang'     => $countCabang,
+                'responden_perwakilan' => $countPerwakilan,
+                'total_peserta'        => $totalPeserta,
+                'jumlah_responden'     => $jumlahResponden,
+                'nilai_rata'           => $nilaiRata,
+                'persen_kepuasan'      => $persenKepuasan,
+                'predikat'             => $predikat,
+                'badge_class'          => $badgeClass,
             ];
         }
 
@@ -477,15 +580,20 @@ class LaporanAngketModel extends Model
             ];
         }
 
+        $evaluated = array_filter($list, function($m) {
+            return ($m['jumlah_responden'] ?? 0) > 0 && ($m['nilai_rata'] ?? 0) > 0;
+        });
+        $countEval = count($evaluated);
         $totalResponden = array_sum(array_column($list, 'jumlah_responden'));
-        $avgNilai       = array_sum(array_column($list, 'nilai_rata')) / $totalMentor;
-        $avgKepuasan    = array_sum(array_column($list, 'persen_kepuasan')) / $totalMentor;
+
+        $avgNilai = $countEval > 0 ? round(array_sum(array_column($evaluated, 'nilai_rata')) / $countEval, 2) : 0.0;
+        $avgKepuasan = $countEval > 0 ? round(array_sum(array_column($evaluated, 'persen_kepuasan')) / $countEval, 1) : 0.0;
 
         return [
-            'total_mentor_dinilai' => $totalMentor,
+            'total_mentor_dinilai' => $countEval,
             'total_responden'      => $totalResponden,
-            'avg_nilai_angket'     => round($avgNilai, 2),
-            'persen_kepuasan'      => round($avgKepuasan, 1),
+            'avg_nilai_angket'     => $avgNilai,
+            'persen_kepuasan'      => $avgKepuasan,
         ];
     }
 
@@ -503,53 +611,46 @@ class LaporanAngketModel extends Model
 
         if (!empty($pertanyaanDB)) {
             $siswaFilter = [];
+            $hasFilter = false;
+
             if (!empty($filters['id_mentor']) && $filters['id_mentor'] !== 'all') {
-                $kelasMentor = $this->db->table('kelas')->select('id_kelas')->where('id_mentor', (int)$filters['id_mentor'])->get()->getResultArray();
-                $kelasIds = array_column($kelasMentor, 'id_kelas');
-                if (!empty($kelasIds)) {
-                    $pBuilder = $this->db->table('pendaftaran')->select('id_users')->whereIn('id_kelas', $kelasIds);
-                    if (!empty($filters['tempat_pelatihan']) && $filters['tempat_pelatihan'] !== 'all') {
-                        $matchedLokasi = $this->getMatchedPendaftaranLocations((int)$filters['tempat_pelatihan']);
-                        if (!empty($matchedLokasi)) {
-                            $pBuilder->whereIn('lokasi_pelatihan', $matchedLokasi);
-                        } else {
-                            $pBuilder->where('lokasi_pelatihan', 'TIDAK_ADA_YANG_COCOK');
+                $hasFilter = true;
+                $mentorList = $this->getLaporanAngketList(['id_mentor' => (int)$filters['id_mentor']]);
+                if (!empty($mentorList)) {
+                    $kIds = $mentorList[0]['kelas_ids'] ?? [];
+                    if (!empty($kIds)) {
+                        $pBuilder = $this->db->table('pendaftaran')->select('id_users')->whereIn('id_kelas', $kIds);
+                        if (!empty($filters['tempat_pelatihan']) && $filters['tempat_pelatihan'] !== 'all') {
+                            $pBuilder->like('lokasi_pelatihan', $filters['tempat_pelatihan']);
                         }
+                        $siswaM = $pBuilder->get()->getResultArray();
+                        $siswaFilter = array_unique(array_filter(array_column($siswaM, 'id_users')));
                     }
-                    $siswaM = $pBuilder->get()->getResultArray();
-                    $siswaFilter = array_filter(array_column($siswaM, 'id_users'));
                 }
-            } else {
-                if (!empty($filters['tempat_pelatihan']) && $filters['tempat_pelatihan'] !== 'all') {
-                    $pBuilder = $this->db->table('pendaftaran')->select('id_users');
-                    $matchedLokasi = $this->getMatchedPendaftaranLocations((int)$filters['tempat_pelatihan']);
-                    if (!empty($matchedLokasi)) {
-                        $pBuilder->whereIn('lokasi_pelatihan', $matchedLokasi);
-                    } else {
-                        $pBuilder->where('lokasi_pelatihan', 'TIDAK_ADA_YANG_COCOK');
-                    }
-                    $siswaM = $pBuilder->get()->getResultArray();
-                    $siswaFilter = array_filter(array_column($siswaM, 'id_users'));
-                }
+            } elseif (!empty($filters['tempat_pelatihan']) && $filters['tempat_pelatihan'] !== 'all') {
+                $hasFilter = true;
+                $pBuilder = $this->db->table('pendaftaran')->select('id_users')->like('lokasi_pelatihan', $filters['tempat_pelatihan']);
+                $siswaM = $pBuilder->get()->getResultArray();
+                $siswaFilter = array_unique(array_filter(array_column($siswaM, 'id_users')));
             }
 
             foreach ($pertanyaanDB as $p) {
                 $label = (strlen($p['pertanyaan']) > 65) ? substr($p['pertanyaan'], 0, 62) . '...' : $p['pertanyaan'];
 
                 $jB = $this->db->table('jawaban_angket')->where('id_pertanyaan', $p['id_angket_pertanyaan']);
-                if (!empty($siswaFilter)) {
-                    $jB->whereIn('id_siswa', $siswaFilter);
-                } elseif ((!empty($filters['id_mentor']) && $filters['id_mentor'] !== 'all') || (!empty($filters['tempat_pelatihan']) && $filters['tempat_pelatihan'] !== 'all')) {
-                    $jB->where('id_siswa', 0); // Pastikan tidak ada data yang diambil jika difilter
+                if ($hasFilter) {
+                    if (!empty($siswaFilter)) {
+                        $jB->whereIn('id_siswa', $siswaFilter);
+                    } else {
+                        $jB->where('id_siswa', -1); // Tidak ada siswa yang cocok
+                    }
                 }
 
-                // Tambahkan filter tahun untuk indikator
                 $tahun = !empty($filters['tahun']) ? (int)$filters['tahun'] : (int)date('Y');
                 $jB->where("YEAR(created_at)", $tahun);
 
-                $periode = $filters['periode'] ?? 'tahunan';
                 $bulan = !empty($filters['bulan']) ? (int)$filters['bulan'] : (int)date('n');
-                if ($periode === 'bulanan' && $bulan) {
+                if (!empty($bulan) && $bulan !== 'all') {
                     $jB->where("MONTH(created_at)", $bulan);
                 }
 
@@ -557,9 +658,9 @@ class LaporanAngketModel extends Model
 
                 $totalS = 0;
                 $countS = 0;
-                foreach($jawabanRaw as $jr) {
+                foreach ($jawabanRaw as $jr) {
                     if ($p['tipe'] === 'rating') {
-                        if (is_numeric($jr['jawaban'])) {
+                        if (is_numeric($jr['jawaban']) && (float)$jr['jawaban'] > 0) {
                             $totalS += (float)$jr['jawaban'];
                             $countS++;
                         }
@@ -570,7 +671,7 @@ class LaporanAngketModel extends Model
                     }
                 }
 
-                $score = ($countS > 0 && $p['tipe'] === 'rating') ? ($totalS / $countS) : 0;
+                $score = ($countS > 0 && $p['tipe'] === 'rating') ? round($totalS / $countS, 2) : 0;
 
                 $indikator[] = [
                     'id'         => $p['id_angket_pertanyaan'],
@@ -650,18 +751,18 @@ class LaporanAngketModel extends Model
         $kurang = 0;
 
         foreach ($list as $m) {
-            if ($m['persen_kepuasan'] >= 90) {
-                $sangatPuas++;
-            } elseif ($m['persen_kepuasan'] >= 80) {
-                $puas++;
-            } elseif ($m['persen_kepuasan'] >= 70) {
-                $cukup++;
-            } else {
-                $kurang++;
+            if (($m['jumlah_responden'] ?? 0) > 0 && ($m['nilai_rata'] ?? 0) > 0) {
+                if ($m['persen_kepuasan'] >= 90) {
+                    $sangatPuas++;
+                } elseif ($m['persen_kepuasan'] >= 80) {
+                    $puas++;
+                } elseif ($m['persen_kepuasan'] >= 70) {
+                    $cukup++;
+                } else {
+                    $kurang++;
+                }
             }
         }
-
-        // Removed fake donut data
 
         return [
             'chart_indikator' => [
@@ -685,6 +786,12 @@ class LaporanAngketModel extends Model
     public function getRankingMentor(array $filters): array
     {
         $list = $this->getLaporanAngketList($filters);
+
+        // Hanya sertakan instruktur yang telah memiliki evaluasi riil
+        $list = array_values(array_filter($list, function ($m) {
+            return ($m['jumlah_responden'] ?? 0) > 0 && ($m['nilai_rata'] ?? 0) > 0;
+        }));
+
         usort($list, function ($a, $b) {
             if ($b['nilai_rata'] == $a['nilai_rata']) {
                 return $b['jumlah_responden'] <=> $a['jumlah_responden'];
@@ -702,12 +809,10 @@ class LaporanAngketModel extends Model
         $comments = [];
 
         $builder = $this->db->table('jawaban_angket')
-            ->select('jawaban_angket.jawaban as ulasan, jawaban_angket.created_at, users.nama as nama_peserta, kelas.nama_kelas, mentor.nama_mentor, kelas.id_mentor')
+            ->select('jawaban_angket.jawaban as ulasan, jawaban_angket.created_at, jawaban_angket.id_siswa, pendaftaran.pilihan_kelas, pendaftaran.lokasi_pelatihan, users.nama as nama_peserta')
             ->join('angket_pertanyaan', 'angket_pertanyaan.id_angket_pertanyaan = jawaban_angket.id_pertanyaan', 'inner')
             ->join('users', 'users.id_users = jawaban_angket.id_siswa', 'left')
             ->join('pendaftaran', 'pendaftaran.id_users = jawaban_angket.id_siswa', 'left')
-            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
             ->where('angket_pertanyaan.tipe', 'essay')
             ->where('jawaban_angket.jawaban IS NOT NULL')
             ->where("TRIM(jawaban_angket.jawaban) != ''")
@@ -720,14 +825,21 @@ class LaporanAngketModel extends Model
         $tahun = !empty($filters['tahun']) ? (int)$filters['tahun'] : (int)date('Y');
         $builder->where("YEAR(jawaban_angket.created_at)", $tahun);
 
-        $periode = $filters['periode'] ?? 'tahunan';
         $bulan = !empty($filters['bulan']) ? (int)$filters['bulan'] : (int)date('n');
-        if ($periode === 'bulanan' && $bulan) {
+        if (!empty($bulan) && $bulan !== 'all') {
             $builder->where("MONTH(jawaban_angket.created_at)", $bulan);
         }
 
         if ($idMentor !== null && $idMentor > 0) {
-            $builder->where('kelas.id_mentor', $idMentor);
+            $mentorList = $this->getLaporanAngketList(['id_mentor' => $idMentor]);
+            if (!empty($mentorList)) {
+                $kIds = $mentorList[0]['kelas_ids'] ?? [];
+                if (!empty($kIds)) {
+                    $builder->whereIn('pendaftaran.id_kelas', $kIds);
+                } else {
+                    $builder->where('pendaftaran.id_kelas', -1);
+                }
+            }
         }
 
         $rows = $builder->orderBy('jawaban_angket.created_at', 'DESC')->get()->getResultArray();
@@ -735,8 +847,8 @@ class LaporanAngketModel extends Model
         foreach ($rows as $r) {
             $comments[] = [
                 'nama_peserta' => $r['nama_peserta'] ?: 'Peserta Pelatihan',
-                'nama_mentor'  => $r['nama_mentor'] ?: 'Instruktur',
-                'nama_kelas'   => $r['nama_kelas'] ?: 'Kelas Pelatihan',
+                'nama_mentor'  => 'Instruktur',
+                'nama_kelas'   => $r['pilihan_kelas'] ?: 'Kelas Pelatihan',
                 'rating'       => 0,
                 'ulasan'       => $r['ulasan'],
                 'tanggal'      => !empty($r['created_at']) ? date('d M Y', strtotime($r['created_at'])) : date('d M Y'),

@@ -303,46 +303,90 @@ class Pelatihan extends BaseController
         $statusUjianKeluar = false;
         $isLulus = false;
 
-        if ($pendaftaran && !empty($pendaftaran['id_kelas']) && !empty($pendaftaran['bisa_diakses'])) {
-            $semuaUjian = $db->table('ujian')
-                ->where('id_kelas', $pendaftaran['id_kelas'])
+        $effectiveUserId = (int) ($userId ?? ($userData['id_users'] ?? session()->get('id_users') ?? session()->get('id_user') ?? session()->get('id') ?? 0));
+
+        if ($pendaftaran && !empty($pendaftaran['id_kelas']) && $effectiveUserId > 0) {
+            $idKelasAktif = (int) $pendaftaran['id_kelas'];
+
+            // 1. Ambil rekaman nilai ujian untuk user dan kelas ini
+            $cekNilaiList = $db->table('nilai_ujian')
+                ->where('id_users', $effectiveUserId)
+                ->where('id_kelas', $idKelasAktif)
+                ->orderBy('id_nilai_ujian', 'DESC')
                 ->get()
                 ->getResultArray();
 
-            if (!empty($semuaUjian)) {
+            // 2. Jika tidak ada rekaman dengan id_kelas spesifik, cek berdasarkan tabel ujian
+            if (empty($cekNilaiList)) {
+                $semuaUjian = $db->table('ujian')
+                    ->where('id_kelas', $idKelasAktif)
+                    ->get()
+                    ->getResultArray();
+
+                if (!empty($semuaUjian)) {
+                    foreach ($semuaUjian as $u) {
+                        $nRow = $db->table('nilai_ujian')
+                            ->where('id_users', $effectiveUserId)
+                            ->where('id_ujian', $u['id_ujian'])
+                            ->get()
+                            ->getRowArray();
+                        if ($nRow) {
+                            $cekNilaiList[] = $nRow;
+                        }
+                    }
+                }
+            }
+
+            if (!empty($cekNilaiList)) {
                 $lulusSemua = true;
                 $adaNilai = false;
-                foreach ($semuaUjian as $u) {
-                    $cekNilai = $db->table('nilai_ujian')
-                        ->where('id_users', $userId)
-                        ->where('id_ujian', $u['id_ujian'])
-                        ->get()
-                        ->getRowArray();
 
-                    if ($cekNilai) {
+                foreach ($cekNilaiList as $cekNilai) {
+                    $statusKelulusanDb = strtolower(trim((string)($cekNilai['status_kelulusan'] ?? '')));
+                    $nilaiAkhir = $cekNilai['nilai_remidi'] ?? $cekNilai['nilai_awal'] ?? $cekNilai['nilai'] ?? null;
+
+                    // Nilai dianggap keluar jika status sudah ditentukan admin (bukan 'menunggu') atau ada nilai numerik > 0
+                    if (($statusKelulusanDb !== 'menunggu' && $statusKelulusanDb !== '') || ($nilaiAkhir !== null && (float)$nilaiAkhir > 0)) {
                         $adaNilai = true;
-                        $nilaiAkhir = $cekNilai['nilai_remidi'] ?? $cekNilai['nilai_awal'] ?? $cekNilai['nilai'] ?? 0;
-                        if ((float)$nilaiAkhir < 70 || strtolower($cekNilai['status_kelulusan'] ?? '') !== 'lulus') {
-                            $lulusSemua = false;
-                        }
+                    }
+
+                    if ($statusKelulusanDb === 'lulus' || ((float)$nilaiAkhir >= 70 && !in_array($statusKelulusanDb, ['tidak lulus', 'remidi', 'menunggu'], true))) {
+                        // lulus untuk item ini
                     } else {
                         $lulusSemua = false;
                     }
                 }
 
+                $isRemidi = false;
+                foreach ($cekNilaiList as $cekNilai) {
+                    $statusKelulusanDb = strtolower(trim((string)($cekNilai['status_kelulusan'] ?? '')));
+                    if ($statusKelulusanDb === 'remidi') {
+                        $isRemidi = true;
+                        break;
+                    }
+                }
+
                 if ($adaNilai) {
                     $statusUjianKeluar = true;
-                    $isLulus = $lulusSemua;
+                    $isLulus = $lulusSemua && !$isRemidi;
 
-                    if ($lulusSemua) {
+                    if ($isLulus) {
                         $sudahAngket = $db->table('angket_penilaian')
-                            ->where('id_peserta', $userId)
-                            ->where('id_kelas', $pendaftaran['id_kelas'])
+                            ->where('id_peserta', $effectiveUserId)
+                            ->where('id_kelas', $idKelasAktif)
                             ->get()
                             ->getRow();
-                        
+
                         if (!$sudahAngket) {
-                            $notifikasiAngket = true;
+                            $sudahJawabanAngket = $db->table('jawaban_angket ja')
+                                ->join('angket_pertanyaan ap', 'ap.id_angket_pertanyaan = ja.id_pertanyaan', 'inner')
+                                ->where('ja.id_siswa', $effectiveUserId)
+                                ->where('(ap.id_kelas IS NULL OR ap.id_kelas = ' . (int)$idKelasAktif . ')', null, false)
+                                ->countAllResults();
+
+                            if ($sudahJawabanAngket === 0) {
+                                $notifikasiAngket = true;
+                            }
                         }
                     }
                 }
@@ -358,6 +402,7 @@ class Pelatihan extends BaseController
             'semua_kelas_peserta' => $semuaPendaftaran,   
             'statusUjianKeluar'   => $statusUjianKeluar,
             'is_lulus'            => $isLulus,
+            'is_remidi'           => $isRemidi ?? false,
             'notifikasiAngket'    => $notifikasiAngket, 
         ];
 
@@ -916,8 +961,9 @@ class Pelatihan extends BaseController
      * Mengambil seluruh sesi pertemuan dan riwayat kehadiran peserta resmi dari Laravel & sinkronisasi lokal
      * Menghasilkan status absensi: Belum Dibuka (0), Absensi Dibuka (1), atau Sudah Absen
      */
-    protected function getSessionsAndAttendanceForClass(int $idKelas, int $userId, ?array $kelas = null): array
+    protected function getSessionsAndAttendanceForClass(int $idKelas, int $userId, $kelas = null): array
     {
+        $kelas = is_array($kelas) ? $kelas : null;
         $db = \Config\Database::connect();
         $apiService = new \App\Services\LaravelApiService();
         $jadwal = [];
@@ -2132,52 +2178,68 @@ class Pelatihan extends BaseController
         }
 
         $idKelas = (int) $pendaftaran['id_kelas'];
-        $kelas = $laravelClassesMap[$idKelas] ?? [
-            'id_kelas'            => $idKelas,
-            'nama_kelas'          => $pendaftaran['nama_kelas'] ?? 'Kelas Pelatihan',
-            'nama_mentor'         => $pendaftaran['nama_mentor'] ?? null,
-            'thumbnail'           => null,
-            'foto'                => null,
-            'kategori'            => $pendaftaran['kategori_kelas'] ?? null,
-            'status'              => 'active',
-            'deskripsi'           => null,
-            'ringkasan'           => null,
-            'jumlah_pertemuan'    => $pendaftaran['jumlah_pertemuan'] ?? null,
-            'kapasitas'           => null,
-            'kapasitas_tersedia'  => null,
-            'harga_reguler'       => null,
-            'harga_privat'        => null,
-            'tanggal_mulai_kelas' => $pendaftaran['tanggal_mulai_kelas'] ?? null,
-            'jenis_kelas'         => $pendaftaran['jenis_kelas'] ?? null,
-            'tipe_kelas'          => $pendaftaran['metode_pembelajaran'] ?? null,
-            'lokasi_media'        => $pendaftaran['lokasi_pelatihan'] ?? null,
-            'metode_pembelajaran' => $pendaftaran['metode_pembelajaran'] ?? null,
-        ];
+        $kelas = (!empty($laravelClassesMap[$idKelas]) && is_array($laravelClassesMap[$idKelas]))
+            ? $laravelClassesMap[$idKelas]
+            : [
+                'id_kelas'            => $idKelas,
+                'nama_kelas'          => $pendaftaran['nama_kelas'] ?? 'Kelas Pelatihan',
+                'nama_mentor'         => $pendaftaran['nama_mentor'] ?? null,
+                'thumbnail'           => null,
+                'foto'                => null,
+                'kategori'            => $pendaftaran['kategori_kelas'] ?? null,
+                'status'              => 'active',
+                'deskripsi'           => null,
+                'ringkasan'           => null,
+                'jumlah_pertemuan'    => $pendaftaran['jumlah_pertemuan'] ?? null,
+                'kapasitas'           => null,
+                'kapasitas_tersedia'  => null,
+                'harga_reguler'       => null,
+                'harga_privat'        => null,
+                'tanggal_mulai_kelas' => $pendaftaran['tanggal_mulai_kelas'] ?? null,
+                'jenis_kelas'         => $pendaftaran['jenis_kelas'] ?? null,
+                'tipe_kelas'          => $pendaftaran['metode_pembelajaran'] ?? null,
+                'lokasi_media'        => $pendaftaran['lokasi_pelatihan'] ?? null,
+                'metode_pembelajaran' => $pendaftaran['metode_pembelajaran'] ?? null,
+            ];
 
         // 3. Ambil data seluruh sesi dan absensi resmi dari Laravel & sinkronisasi peserta
         $jadwal = $this->getSessionsAndAttendanceForClass((int)$idKelas, (int)$userId, $kelas);
 
-    // Ambil data ujian & nilai peserta
-    $ujian = [];
-    $semua_ujian_lulus = false;
-    $ada_nilai_keluar = false;
-    $nilai_ujian = '-'; 
+        // Ambil data ujian & nilai peserta
+        $ujian = [];
+        $semua_ujian_lulus = false;
+        $ada_nilai_keluar = false;
+        $nilai_ujian = '-'; 
 
-    if ($kelas) {
-        $ujian = $db->table('ujian')
-            ->where('id_kelas', $kelas['id_kelas'])
-            ->orderBy('id_ujian', 'ASC')
-            ->get()
-            ->getResultArray();
+        if ($kelas) {
+            $ujian = $db->table('ujian')
+                ->where('id_kelas', $kelas['id_kelas'])
+                ->orderBy('id_ujian', 'ASC')
+                ->get()
+                ->getResultArray();
 
-        if (!empty($ujian)) {
+            if (empty($ujian)) {
+                $ujian = [
+                    [
+                        'id_ujian'    => 1,
+                        'id_kelas'    => $kelas['id_kelas'],
+                        'judul_ujian' => 'Ujian Akhir ' . ($kelas['nama_kelas'] ?? 'Pelatihan'),
+                        'keterangan'  => 'Ujian akhir untuk mengukur pemahaman materi pelatihan.',
+                        'deadline'    => null,
+                    ]
+                ];
+            }
+
             $lulusSemua = true;
             $sudahAdaNilai = false;
 
             foreach ($ujian as &$itemUjian) {
                 $hasilUjian = $db->table('nilai_ujian')
-                    ->where('id_users', $this->userId())
-                    ->where('id_ujian', $itemUjian['id_ujian'])
+                    ->where('id_users', (int)$this->userId())
+                    ->groupStart()
+                        ->where('id_ujian', $itemUjian['id_ujian'])
+                        ->orWhere('id_kelas', $kelas['id_kelas'])
+                    ->groupEnd()
                     ->orderBy('id_nilai_ujian', 'DESC')
                     ->get()
                     ->getRowArray();
@@ -2185,27 +2247,50 @@ class Pelatihan extends BaseController
                 $itemUjian['nilai_record'] = $hasilUjian;
 
                 // Cek apakah nilai sudah diinput/diverifikasi oleh admin
-                if ($hasilUjian && (
+                $hasScoreRecord = $hasilUjian && (
                     (isset($hasilUjian['nilai_awal']) && $hasilUjian['nilai_awal'] !== null) || 
                     (isset($hasilUjian['nilai_remidi']) && $hasilUjian['nilai_remidi'] !== null) ||
-                    (isset($hasilUjian['nilai']) && $hasilUjian['nilai'] !== null)
-                )) {
-                    $sudahAdaNilai = true;
-                    $nilaiTerbaru = isset($hasilUjian['nilai_remidi']) && $hasilUjian['nilai_remidi'] !== null 
+                    (isset($hasilUjian['nilai']) && $hasilUjian['nilai'] !== null) ||
+                    (!empty($hasilUjian['status_kelulusan']) && strtolower(trim((string)$hasilUjian['status_kelulusan'])) !== 'menunggu')
+                );
+
+                if ($hasScoreRecord) {
+                    $statusKelulusanDb = strtolower(trim((string)($hasilUjian['status_kelulusan'] ?? '')));
+                    $nilaiAwal = isset($hasilUjian['nilai_awal']) && $hasilUjian['nilai_awal'] !== null 
+                        ? (float)$hasilUjian['nilai_awal'] 
+                        : (isset($hasilUjian['nilai']) && $hasilUjian['nilai'] !== null ? (float)$hasilUjian['nilai'] : null);
+                    $nilaiRemidi = isset($hasilUjian['nilai_remidi']) && $hasilUjian['nilai_remidi'] !== null 
                         ? (float)$hasilUjian['nilai_remidi'] 
-                        : (float)($hasilUjian['nilai_awal'] ?? $hasilUjian['nilai'] ?? 0);
+                        : null;
+                    $nilaiTerbaru = ($nilaiRemidi !== null) 
+                        ? $nilaiRemidi 
+                        : ($nilaiAwal !== null ? $nilaiAwal : 0);
 
+                    if ($statusKelulusanDb !== 'menunggu' || (float)$nilaiTerbaru > 0) {
+                        $sudahAdaNilai = true;
+                    }
+
+                    $itemUjian['nilai_awal'] = $nilaiAwal;
+                    $itemUjian['nilai_remidi'] = $nilaiRemidi;
                     $itemUjian['nilai_terbaru'] = $nilaiTerbaru;
-                    // Status hanya akan menjadi 'lulus' atau 'belum' jika admin sudah menginput nilai
-                    $itemUjian['status_kelulusan'] = $hasilUjian['status_kelulusan'] ?? ($nilaiTerbaru >= 70 ? 'lulus' : 'belum');
+                    $itemUjian['status_kelulusan'] = !empty($statusKelulusanDb) ? $statusKelulusanDb : ($nilaiTerbaru >= 70 ? 'lulus' : 'belum');
+                    $itemUjian['status_remidi'] = strtolower(trim((string)($hasilUjian['status_remidi'] ?? '')));
+                    $itemUjian['id_nilai_ujian'] = $hasilUjian['id_nilai_ujian'] ?? null;
 
-                    if (strtolower($itemUjian['status_kelulusan']) !== 'lulus') {
+                    if (strtolower($itemUjian['status_kelulusan']) === 'lulus') {
+                        $itemUjian['is_lulus'] = true;
+                    } else {
+                        $itemUjian['is_lulus'] = false;
                         $lulusSemua = false;
                     }
                 } else {
-                    // Jika belum dinilai admin, kosongkan / set null
+                    $itemUjian['nilai_awal'] = null;
+                    $itemUjian['nilai_remidi'] = null;
                     $itemUjian['nilai_terbaru'] = null;
                     $itemUjian['status_kelulusan'] = 'menunggu';
+                    $itemUjian['status_remidi'] = 'belum';
+                    $itemUjian['id_nilai_ujian'] = null;
+                    $itemUjian['is_lulus'] = false;
                     $lulusSemua = false;
                 }
             }
@@ -2229,60 +2314,73 @@ class Pelatihan extends BaseController
             $ada_nilai_keluar = $sudahAdaNilai;
             $semua_ujian_lulus = $lulusSemua && $sudahAdaNilai;
         }
-    }
 
-    // ==========================================
-    // Cek Pengisian Angket
-    // ==========================================
-    $sudah_isi_angket = false;
-    if ($kelas) {
-        $sudah_isi_angket = (bool) $db->table('angket_penilaian')
-            ->where('id_peserta', $this->userId())
-            ->where('id_kelas', $kelas['id_kelas'])
-            ->get()
-            ->getRow();
-    }
+        // ==========================================
+        // Cek Pengisian Angket
+        // ==========================================
+        $sudah_isi_angket = false;
+        if ($kelas) {
+            $sudah_isi_angket = (bool) $db->table('angket_penilaian')
+                ->where('id_peserta', (int)$this->userId())
+                ->where('id_kelas', $kelas['id_kelas'])
+                ->get()
+                ->getRow();
 
-    // Syarat Angket Muncul & Bisa Diisi: 
-    // 1. Nilai ujian sudah keluar ($ada_nilai_keluar)
-    // 2. Keterangan Lulus Semua ($semua_ujian_lulus)
-    $bisa_isi_angket = ($ada_nilai_keluar && $semua_ujian_lulus);
-
-    $sertifikatTerbit = null;
-
-if ($kelas) {
-    $sertifikatTerbit = (new SertifikatModel())
-        ->where('id_user', $this->userId())
-        ->where('id_kelas', $kelas['id_kelas'])
-        ->first();
-}
-
-// Letakkan kode ini di dalam method kelas() untuk mengecek data
-//$id_user = session()->get('id_user') ?? session()->get('id');
-//$cek_data = $db->table('nilai_ujian')->where('id_user', $id_user)->get()->getResultArray();
-//dd($cek_data);
-
-    $status_kelulusan = '';
-    $status_remidi = '';
-    $id_nilai_ujian = null;
-    
-    if (!empty($ujian)) {
-        foreach ($ujian as $itemUjian) {
-            if (!empty($itemUjian['nilai_record'])) {
-                $status_kelulusan = strtolower($itemUjian['nilai_record']['status_kelulusan'] ?? '');
-                $status_remidi = strtolower($itemUjian['nilai_record']['status_remidi'] ?? '');
-                $id_nilai_ujian = $itemUjian['nilai_record']['id_nilai_ujian'] ?? null;
-                break;
+            if (!$sudah_isi_angket) {
+                $sudahIsiCheck = $db->table('jawaban_angket ja')
+                    ->join('angket_pertanyaan ap', 'ap.id_angket_pertanyaan = ja.id_pertanyaan', 'inner')
+                    ->where('ja.id_siswa', (int)$this->userId())
+                    ->where('(ap.id_kelas IS NULL OR ap.id_kelas = ' . (int)$kelas['id_kelas'] . ')', null, false)
+                    ->countAllResults();
+                $sudah_isi_angket = ($sudahIsiCheck > 0);
             }
         }
-    }
-    
-    // Override syarat angket based on status_kelulusan if admin explicitly set it to lulus
-    if ($status_kelulusan === 'lulus') {
-        $bisa_isi_angket = true;
-    } elseif ($status_kelulusan === 'remidi' || $status_kelulusan === 'tidak lulus') {
+
+        $sertifikatTerbit = null;
+
+        if ($kelas) {
+            $sertifikatTerbit = (new SertifikatModel())
+                ->where('id_user', (int)$this->userId())
+                ->where('id_kelas', $kelas['id_kelas'])
+                ->first();
+        }
+
+        $status_kelulusan = '';
+        $status_remidi = '';
+        $id_nilai_ujian = null;
+        
+        if (!empty($ujian)) {
+            foreach ($ujian as $itemUjian) {
+                if (!empty($itemUjian['nilai_record'])) {
+                    $status_kelulusan = strtolower(trim((string)($itemUjian['nilai_record']['status_kelulusan'] ?? '')));
+                    $status_remidi = strtolower(trim((string)($itemUjian['nilai_record']['status_remidi'] ?? '')));
+                    $id_nilai_ujian = $itemUjian['nilai_record']['id_nilai_ujian'] ?? null;
+                    break;
+                }
+            }
+        }
+
+        if ($status_kelulusan === '' && $kelas) {
+            $directNilai = $db->table('nilai_ujian')
+                ->where('id_users', (int)$this->userId())
+                ->where('id_kelas', (int)$kelas['id_kelas'])
+                ->orderBy('id_nilai_ujian', 'DESC')
+                ->get()
+                ->getRowArray();
+            if ($directNilai) {
+                $status_kelulusan = strtolower(trim((string)($directNilai['status_kelulusan'] ?? '')));
+                $status_remidi = strtolower(trim((string)($directNilai['status_remidi'] ?? '')));
+                $id_nilai_ujian = $directNilai['id_nilai_ujian'] ?? null;
+            }
+        }
+        
+        // Syarat Angket Muncul & Bisa Diisi:
+        // HANYA TERBUKA jika peserta dinyatakan LULUS oleh Admin.
+        // Jika nilai berstatus remidi, tidak lulus, atau masih menunggu, angket TIDAK TERBUKA.
         $bisa_isi_angket = false;
-    }
+        if ($status_kelulusan === 'lulus' || ($semua_ujian_lulus && !in_array($status_kelulusan, ['remidi', 'tidak lulus', 'menunggu'], true))) {
+            $bisa_isi_angket = true;
+        }
 
     return view('peserta/kelas', [
     'kelas'               => $kelas,
@@ -2356,12 +2454,28 @@ if ($kelas) {
 
     public function ikutRemidi()
 {
-    $id_nilai_ujian = $this->request->getGet('id');
+    $id_nilai_ujian = $this->request->getGet('id') ?: $this->request->getGet('id_nilai_ujian');
+    $db = \Config\Database::connect();
+
+    if (!$id_nilai_ujian) {
+        $id_ujian = $this->request->getGet('id_ujian');
+        if ($id_ujian) {
+            $row = $db->table('nilai_ujian')
+                ->where('id_users', (int)$this->userId())
+                ->where('id_ujian', (int)$id_ujian)
+                ->orderBy('id_nilai_ujian', 'DESC')
+                ->get()
+                ->getRowArray();
+            if ($row) {
+                $id_nilai_ujian = $row['id_nilai_ujian'];
+            }
+        }
+    }
     
     if ($id_nilai_ujian) {
-        $db = \Config\Database::connect();
         $db->table('nilai_ujian')->where('id_nilai_ujian', $id_nilai_ujian)->update([
-            'status_remidi' => 'bersedia'
+            'status_remidi' => 'bersedia',
+            'updated_at'    => date('Y-m-d H:i:s'),
         ]);
         session()->setFlashdata('success', 'Berhasil mengkonfirmasi bersedia mengikuti remidi!');
     } else {
@@ -3122,38 +3236,96 @@ if ($kelas) {
 
             $item['nilai_record'] = $nilaiRow;
 
-            if ($nilaiRow) {
-                $nilaiAwal    = isset($nilaiRow['nilai_awal']) ? (float) $nilaiRow['nilai_awal'] : (float) $nilaiRow['nilai'];
-                $nilaiRemidi  = isset($nilaiRow['nilai_remidi']) && $nilaiRow['nilai_remidi'] !== null ? (float) $nilaiRow['nilai_remidi'] : null;
-                $nilaiTerbaru = ($nilaiRemidi !== null) ? $nilaiRemidi : $nilaiAwal;
+            $hasScoreInDb = $nilaiRow && (
+                (isset($nilaiRow['nilai']) && $nilaiRow['nilai'] !== null) ||
+                (isset($nilaiRow['nilai_awal']) && $nilaiRow['nilai_awal'] !== null) ||
+                (isset($nilaiRow['nilai_remidi']) && $nilaiRow['nilai_remidi'] !== null) ||
+                (!empty($nilaiRow['status_kelulusan']) && strtolower(trim((string)$nilaiRow['status_kelulusan'])) !== 'menunggu')
+            );
 
-                // Sinkronkan status kelulusan berdasarkan database / nilai terbaru (>= 70 Lulus, < 70 Remidi)
-                $dbStatusKelulusan = strtolower($nilaiRow['status_kelulusan'] ?? '');
+            if ($hasScoreInDb) {
+                $nilaiAwal    = (isset($nilaiRow['nilai_awal']) && $nilaiRow['nilai_awal'] !== null) 
+                    ? (float) $nilaiRow['nilai_awal'] 
+                    : ((isset($nilaiRow['nilai']) && $nilaiRow['nilai'] !== null) ? (float) $nilaiRow['nilai'] : null);
+                $nilaiRemidi  = (isset($nilaiRow['nilai_remidi']) && $nilaiRow['nilai_remidi'] !== null) ? (float) $nilaiRow['nilai_remidi'] : null;
+                $nilaiTerbaru = ($nilaiRemidi !== null) ? $nilaiRemidi : ($nilaiAwal !== null ? $nilaiAwal : 0.0);
+
+                $dbStatusKelulusan = strtolower(trim((string)($nilaiRow['status_kelulusan'] ?? 'menunggu')));
+                $dbStatusRemidi    = strtolower(trim((string)($nilaiRow['status_remidi'] ?? 'belum')));
                 
-                $item['sudah_ujian']    = true;
-                $item['nilai_awal']     = $nilaiAwal;
-                $item['nilai_remidi']   = $nilaiRemidi;
-                $item['nilai_terbaru']  = $nilaiTerbaru;
-                
-                // Jika di admin diubah jadi remidi atau nilai < 70
-                $item['is_lulus']       = ($dbStatusKelulusan === 'lulus' || ($dbStatusKelulusan === '' && $nilaiTerbaru >= 70));
-                $item['status_teks']    = $item['is_lulus'] ? 'LULUS' : 'REMIDI / BELUM LULUS';
-                $item['bisa_remidi']    = !$item['is_lulus'];
+                $item['has_score']     = true;
+                $item['sudah_ujian']   = true;
+                $item['nilai_awal']    = $nilaiAwal;
+                $item['nilai_remidi']  = $nilaiRemidi;
+                $item['nilai_terbaru'] = $nilaiTerbaru;
+                $item['status_admin']  = $dbStatusKelulusan;
+                $item['status_remidi'] = $dbStatusRemidi;
+
+                $skorTampil = ($nilaiTerbaru !== null) ? (int)$nilaiTerbaru : 0;
+
+                if ($dbStatusKelulusan === 'lulus') {
+                    $item['is_lulus']          = true;
+                    $item['status_teks']       = 'LULUS';
+                    $item['status_badge']      = 'success';
+                    $item['keterangan_status'] = "Selamat! Anda dinyatakan Lulus oleh Admin dengan perolehan nilai {$skorTampil}%.";
+                    $item['bisa_remidi']       = false;
+                } elseif ($dbStatusKelulusan === 'tidak lulus') {
+                    $item['is_lulus']          = false;
+                    $item['status_teks']       = 'TIDAK LULUS';
+                    $item['status_badge']      = 'danger';
+                    $item['keterangan_status'] = "Anda dinyatakan Tidak Lulus oleh Admin (Nilai: {$skorTampil}%).";
+                    $item['bisa_remidi']       = false;
+                } elseif ($dbStatusKelulusan === 'remidi') {
+                    $item['is_lulus']          = false;
+                    $item['status_teks']       = 'REMIDI';
+                    $item['status_badge']      = 'warning';
+                    if ($nilaiRemidi !== null) {
+                        $item['keterangan_status'] = "Nilai ujian awal: " . (int)$nilaiAwal . "% dan Nilai remidi: " . (int)$nilaiRemidi . "%. Status remidi: Anda perlu perbaikan nilai sesuai evaluasi admin.";
+                    } else {
+                        $item['keterangan_status'] = "Nilai ujian Anda saat ini ({$skorTampil}%) belum memenuhi standar kelulusan minimum (70%). Anda memerlukan remidi sesuai keputusan Admin.";
+                    }
+                    $item['bisa_remidi']       = false;
+                } else {
+                    // Status 'menunggu' atau belum ditentukan oleh admin
+                    $item['is_lulus']          = false;
+                    $item['status_teks']       = 'MENUNGGU KONFIRMASI ADMIN';
+                    $item['status_badge']      = 'secondary';
+                    $item['keterangan_status'] = 'Hasil ujian masih menunggu konfirmasi admin.';
+                    $item['bisa_remidi']       = false;
+                }
             } else {
-                $item['sudah_ujian']    = false;
-                $item['nilai_awal']     = null;
-                $item['nilai_remidi']   = null;
-                $item['nilai_terbaru']  = null;
-                $item['is_lulus']       = false;
-                $item['status_teks']    = 'Belum Dikerjakan';
-                $item['bisa_remidi']    = false;
+                $item['has_score']         = false;
+                $item['sudah_ujian']       = false;
+                $item['nilai_awal']        = null;
+                $item['nilai_remidi']      = null;
+                $item['nilai_terbaru']     = null;
+                $item['status_admin']      = 'menunggu';
+                $item['status_remidi']     = 'belum';
+                $item['is_lulus']          = false;
+                $item['status_teks']       = 'MENUNGGU KONFIRMASI ADMIN';
+                $item['status_badge']      = 'secondary';
+                $item['keterangan_status'] = 'Hasil masih menunggu penilaian instruktur dan konfirmasi admin.';
+                $item['bisa_remidi']       = false;
             }
         }
 
+        // Mengambil informasi file nilai dari API Laravel
+        $studentIdentifier = !empty($kelas['student_id'])
+            ? (string) $kelas['student_id']
+            : (!empty($kelas['nis']) && $kelas['nis'] !== '-'
+                ? (string) $kelas['nis']
+                : (!empty($kelas['id_pendaftaran'])
+                    ? 'REG-' . $kelas['id_pendaftaran']
+                    : (string) ($kelas['id_users'] ?? session()->get('id_users') ?? '')));
+
+        $apiService = new \App\Services\LaravelApiService();
+        $gradeFileResult = $apiService->getGradeFiles((int)($kelas['id_kelas'] ?? 0), $studentIdentifier);
+
         return view('peserta/ujian', [
-            'title' => 'Ujian Peserta',
-            'kelas' => $kelas,
-            'ujian' => $ujian,
+            'title'             => 'Ujian Peserta',
+            'kelas'             => $kelas,
+            'ujian'             => $ujian,
+            'grade_file_result' => $gradeFileResult,
         ]);
     }
 
@@ -3327,78 +3499,8 @@ public function simpanJawabanUjian()
             return $redirect;
         }
 
-        $kelas = $this->approvedEnrollment();
-        if (!$kelas) {
-            return redirect()->to(base_url('pelatihan/kelas'))->with('error', 'Kelas Anda belum disetujui.');
-        }
-
-        $isRemidi = (int) ($this->request->getGet('remidi') ?? 0);
-        $idUjian  = (int) ($this->request->getGet('id_ujian') ?? 0);
-
-        // Cari info ujian jika ada di database
-        $db = \Config\Database::connect();
-        $ujianInfo = null;
-        if ($idUjian > 0) {
-            $ujianInfo = $db->table('ujian')->where('id_ujian', $idUjian)->where('id_kelas', $kelas['id_kelas'])->get()->getRowArray();
-        }
-        if (!$ujianInfo) {
-            $ujianInfo = $db->table('ujian')->where('id_kelas', $kelas['id_kelas'])->orderBy('id_ujian', 'ASC')->get()->getRowArray();
-        }
-
-        $judulUjian = $ujianInfo['judul_ujian'] ?? ('Ujian Akhir ' . ($kelas['nama_kelas'] ?? 'Pelatihan'));
-        $targetIdUjian = $ujianInfo['id_ujian'] ?? 1;
-
-        // Soal ujian profesional pilihan ganda
-        $soal = [
-            [
-                'id' => 1,
-                'pertanyaan' => 'Apa tujuan utama pelaksanaan pelatihan kompetensi di CreativeMU Academy?',
-                'pilihan_a' => 'Meningkatkan pemahaman praktis dan penguasaan keterampilan industri peserta',
-                'pilihan_b' => 'Hanya sekadar memenuhi kehadiran tanpa evaluasi kemampuan',
-                'pilihan_c' => 'Mengurangi interaksi langsung dengan mentor profesional',
-                'pilihan_d' => 'Menghindari ujian akhir kelulusan',
-            ],
-            [
-                'id' => 2,
-                'pertanyaan' => 'Platform utama apakah yang disediakan CreativeMU Academy untuk memantau KBM, materi, dan evaluasi?',
-                'pilihan_a' => 'Learning Management System (LMS) & Dashboard Peserta',
-                'pilihan_b' => 'Aplikasi kalkulator komputer',
-                'pilihan_c' => 'Notepad lokal tanpa jaringan internet',
-                'pilihan_d' => 'File Explorer sistem operasi',
-            ],
-            [
-                'id' => 3,
-                'pertanyaan' => 'Mengapa sistem absensi kehadiran kelas offline dilengkapi dengan verifikasi titik koordinat GPS?',
-                'pilihan_a' => 'Memastikan integritas kehadiran peserta benar-benar berada di tempat pelatihan',
-                'pilihan_b' => 'Mempersulit peserta dalam mengikuti sesi pembelajaran',
-                'pilihan_c' => 'Menggantikan materi pengajaran yang disampaikan mentor',
-                'pilihan_d' => 'Menghapus data pendaftaran peserta secara otomatis',
-            ],
-            [
-                'id' => 4,
-                'pertanyaan' => 'Jika peserta memperoleh nilai ujian di bawah batas kelulusan minimal (kurang dari 70%), mekanisme apa yang disediakan?',
-                'pilihan_a' => 'Peserta wajib mengikuti program remidi untuk perbaikan nilai tanpa menghapus nilai awal',
-                'pilihan_b' => 'Peserta langsung dinyatakan gugur permanen',
-                'pilihan_c' => 'Sistem menghapus akun peserta yang bersangkutan',
-                'pilihan_d' => 'Tidak diberikan kesempatan evaluasi lanjutan',
-            ],
-            [
-                'id' => 5,
-                'pertanyaan' => 'Apa indikator keberhasilan utama setelah menyelesaikan seluruh kurikulum dan evaluasi di CreativeMU Academy?',
-                'pilihan_a' => 'Mendapatkan nilai kelulusan kompetensi serta sertifikat resmi pelatihan',
-                'pilihan_b' => 'Hanya menghadiri sesi tanpa mengumpulkan tugas dan ujian',
-                'pilihan_c' => 'Menolak mengisi angket kepuasan mentor',
-                'pilihan_d' => 'Tidak menyelesaikan evaluasi akhir',
-            ],
-        ];
-
-        return view('peserta/kerjakan_ujian', [
-            'kelas'      => $kelas,
-            'judulUjian' => $judulUjian,
-            'idUjian'    => $targetIdUjian,
-            'soal'       => $soal,
-            'isRemidi'   => $isRemidi,
-        ]);
+        return redirect()->to(base_url('pelatihan/ujian'))
+            ->with('info', 'Nilai ujian dinilai langsung oleh Instruktur. Anda hanya dapat melihat nilai akhir dan status kelulusan.');
     }
 
     public function submitUjian()
@@ -3407,104 +3509,69 @@ public function simpanJawabanUjian()
             return $redirect;
         }
 
-        $kelas = $this->approvedEnrollment();
+        return redirect()->to(base_url('pelatihan/ujian'))
+            ->with('info', 'Nilai ujian dan status kelulusan ditentukan langsung oleh Instruktur dan Admin.');
+    }
+
+    public function unduhFileNilai($idKelas, $gradeFileId = null)
+    {
+        if ($redirect = $this->requireLogin()) {
+            return $redirect;
+        }
+
+        $kelas = $this->approvedEnrollment((int)$idKelas);
         if (!$kelas) {
-            return redirect()->to(base_url('pelatihan/kelas'))->with('error', 'Kelas Anda belum disetujui.');
+            return redirect()->to(base_url('pelatihan/ujian'))
+                ->with('error', 'Anda tidak memiliki akses ke kelas ini.');
         }
 
-        $jawaban  = $this->request->getPost('jawaban');
-        $idUjian  = (int) ($this->request->getPost('id_ujian') ?? 1);
-        $isRemidi = (int) ($this->request->getPost('is_remidi') ?? 0);
+        $studentIdentifier = !empty($kelas['student_id'])
+            ? (string) $kelas['student_id']
+            : (!empty($kelas['nis']) && $kelas['nis'] !== '-'
+                ? (string) $kelas['nis']
+                : (!empty($kelas['id_pendaftaran'])
+                    ? 'REG-' . $kelas['id_pendaftaran']
+                    : (string) ($kelas['id_users'] ?? session()->get('id_users') ?? '')));
 
-        // Kunci jawaban: 1=>A, 2=>A, 3=>A, 4=>A, 5=>A
-        $kunci = [1 => 'A', 2 => 'A', 3 => 'A', 4 => 'A', 5 => 'A'];
-        $benar = 0;
+        $apiService = new \App\Services\LaravelApiService();
 
-        if (is_array($jawaban)) {
-            foreach ($kunci as $nomor => $jawabanBenar) {
-                if (isset($jawaban[$nomor]) && strtoupper(trim($jawaban[$nomor])) === $jawabanBenar) {
-                    $benar++;
-                }
+        if (empty($gradeFileId)) {
+            $fileInfo = $apiService->getGradeFiles((int)$idKelas, $studentIdentifier);
+            if ($fileInfo['status_code'] === 403) {
+                return redirect()->to(base_url('pelatihan/ujian'))
+                    ->with('error', 'Akses berkas nilai belum dibuka oleh server pusat (Status 403: Akun siswa belum terverifikasi di server Laravel).');
             }
-        }
-
-        $jumlahSoal  = count($kunci);
-        $nilaiPersen = round(($benar / $jumlahSoal) * 100);
-
-        $db            = \Config\Database::connect();
-        $waktuSekarang = date('Y-m-d H:i:s');
-        $userId        = $this->userId();
-
-        // Cari riwayat nilai sebelumnya
-        $existing = $db->table('nilai_ujian')
-            ->where('id_users', $userId)
-            ->groupStart()
-                ->where('id_ujian', $idUjian)
-                ->orWhere('id_kelas', $kelas['id_kelas'])
-            ->groupEnd()
-            ->orderBy('id_nilai_ujian', 'DESC')
-            ->get()
-            ->getRowArray();
-
-        // Logika Remidi vs Ujian Pertama
-        if ($isRemidi && $existing) {
-            // REMIDI: Simpan nilai remidi secara terpisah tanpa menimpa nilai awal
-            $nilaiAwal     = isset($existing['nilai_awal']) ? (float) $existing['nilai_awal'] : (float) $existing['nilai'];
-            $statusLulus   = ($nilaiPersen >= 70) ? 'lulus' : 'belum_lulus';
-            $statusRemidi  = ($nilaiPersen >= 70) ? 'selesai' : 'wajib';
-
-            $updateData = [
-                'nilai_remidi'     => $nilaiPersen,
-                'status_kelulusan' => $statusLulus,
-                'status_remidi'    => $statusRemidi,
-                'is_remidi'        => 1,
-                'updated_at'       => $waktuSekarang,
-            ];
-
-            $db->table('nilai_ujian')
-                ->where('id_nilai_ujian', $existing['id_nilai_ujian'])
-                ->update($updateData);
-
-            $pesan = ($nilaiPersen >= 70)
-                ? 'Selamat! Nilai remidi Anda ' . $nilaiPersen . '% dan dinyatakan LULUS.'
-                : 'Nilai remidi Anda ' . $nilaiPersen . '%. Masih belum mencapai batas kelulusan (70%).';
-
+            if (empty($fileInfo['file']) || empty($fileInfo['file']['id'])) {
+                return redirect()->to(base_url('pelatihan/ujian'))
+                    ->with('error', $fileInfo['message'] ?? 'Berkas nilai belum tersedia atau belum disetujui admin di server pusat.');
+            }
+            $gradeFileId = $fileInfo['file']['id'];
+            $fileName = $fileInfo['file']['file_name'] ?? ('file-nilai-kelas-' . $idKelas . '.pdf');
         } else {
-            // UJIAN PERTAMA: Nilai disimpan pada kolom nilai dan nilai_awal
-            $statusLulus  = ($nilaiPersen >= 70) ? 'lulus' : 'belum_lulus';
-            $statusRemidi = ($nilaiPersen >= 70) ? 'tidak_perlu' : 'wajib';
-
-            $data = [
-                'id_users'         => $userId,
-                'id_kelas'         => $kelas['id_kelas'],
-                'id_ujian'         => $idUjian,
-                'benar'            => $benar,
-                'jumlah_soal'      => $jumlahSoal,
-                'nilai'            => $nilaiPersen,
-                'nilai_awal'       => $nilaiPersen,
-                'nilai_remidi'     => null,
-                'status_kelulusan' => $statusLulus,
-                'status_remidi'    => $statusRemidi,
-                'is_remidi'        => 0,
-                'catatan'          => 'Ujian Utama',
-                'created_at'       => $waktuSekarang,
-                'updated_at'       => $waktuSekarang,
-            ];
-
-            if ($existing) {
-                $db->table('nilai_ujian')
-                    ->where('id_nilai_ujian', $existing['id_nilai_ujian'])
-                    ->update($data);
-            } else {
-                $db->table('nilai_ujian')->insert($data);
-            }
-
-            $pesan = ($nilaiPersen >= 70)
-                ? 'Selamat! Anda memperoleh nilai ' . $nilaiPersen . '% dan dinyatakan LULUS.'
-                : 'Anda memperoleh nilai ' . $nilaiPersen . '%. Nilai Anda di bawah 70% dan WAJIB mengikuti remidi.';
+            $fileName = 'file-nilai-kelas-' . $idKelas . '-id' . $gradeFileId . '.pdf';
         }
 
-        return redirect()->to(base_url('pelatihan/ujian/hasil'))->with('success', $pesan);
+        $downloadResult = $apiService->downloadGradeFile((int)$idKelas, $gradeFileId, $studentIdentifier);
+
+        if (!$downloadResult['success']) {
+            if ($downloadResult['status_code'] === 403) {
+                return redirect()->to(base_url('pelatihan/ujian'))
+                    ->with('error', 'Akses unduh ditolak oleh server pusat (Status 403: Siswa belum terdaftar/terverifikasi).');
+            }
+            if ($downloadResult['status_code'] === 404) {
+                return redirect()->to(base_url('pelatihan/ujian'))
+                    ->with('error', 'Berkas nilai tidak ditemukan atau belum disetujui admin di server pusat.');
+            }
+            return redirect()->to(base_url('pelatihan/ujian'))
+                ->with('error', $downloadResult['message'] ?? 'Gagal mengunduh berkas nilai.');
+        }
+
+        $safeName = preg_replace('/[^A-Za-z0-9._-]/', '_', $fileName);
+
+        return $this->response
+            ->setHeader('Content-Type', $downloadResult['content_type'])
+            ->setHeader('Content-Disposition', 'attachment; filename="' . $safeName . '"')
+            ->setBody($downloadResult['body']);
     }
 
     public function hasilUjian()
@@ -3554,6 +3621,72 @@ public function simpanJawabanUjian()
         ]);
     }
 
+    /**
+     * Memeriksa apakah peserta telah dinyatakan LULUS pada kelas tertentu.
+     * Mengembalikan status kelulusan dan apakah peserta berhak mengakses angket/sertifikat.
+     */
+    protected function getPesertaKelulusanStatus(int $idPeserta, int $idKelas): array
+    {
+        $db = \Config\Database::connect();
+        $nilaiList = $db->table('nilai_ujian')
+            ->where('id_users', $idPeserta)
+            ->where('id_kelas', $idKelas)
+            ->orderBy('id_nilai_ujian', 'DESC')
+            ->get()
+            ->getResultArray();
+
+        if (empty($nilaiList)) {
+            $semuaUjian = $db->table('ujian')
+                ->where('id_kelas', $idKelas)
+                ->get()
+                ->getResultArray();
+
+            if (!empty($semuaUjian)) {
+                foreach ($semuaUjian as $u) {
+                    $nRow = $db->table('nilai_ujian')
+                        ->where('id_users', $idPeserta)
+                        ->where('id_ujian', $u['id_ujian'])
+                        ->orderBy('id_nilai_ujian', 'DESC')
+                        ->get()
+                        ->getRowArray();
+                    if ($nRow) {
+                        $nilaiList[] = $nRow;
+                    }
+                }
+            }
+        }
+
+        $isLulus = false;
+        $isRemidi = false;
+        $adaNilai = false;
+        $statusUtama = 'menunggu';
+
+        if (!empty($nilaiList)) {
+            $lulusSemua = true;
+            foreach ($nilaiList as $nl) {
+                $st = strtolower(trim((string)($nl['status_kelulusan'] ?? '')));
+                if ($st === 'remidi') {
+                    $isRemidi = true;
+                    $lulusSemua = false;
+                } elseif ($st !== 'lulus') {
+                    $lulusSemua = false;
+                }
+                if ($st !== '' && $st !== 'menunggu') {
+                    $adaNilai = true;
+                }
+            }
+            $isLulus = $lulusSemua && $adaNilai;
+            $statusUtama = strtolower(trim((string)($nilaiList[0]['status_kelulusan'] ?? 'menunggu')));
+        }
+
+        return [
+            'is_lulus'    => $isLulus,
+            'is_remidi'   => $isRemidi,
+            'ada_nilai'   => $adaNilai,
+            'status'      => $statusUtama,
+        ];
+    }
+
     public function angket()
 {
     if ($redirect = $this->requireLogin()) {
@@ -3572,8 +3705,14 @@ public function simpanJawabanUjian()
             ->groupStart()
                 ->where('pendaftaran.status', 'Disetujui')
                 ->orWhere('pendaftaran.status_pembayaran', 'valid')
+                ->orWhere('pendaftaran.status_pendaftaran', 'Disetujui')
+                ->orWhere('pendaftaran.status', 'Aktif')
             ->groupEnd()
             ->first();
+
+        if (!$pendaftaran) {
+            $pendaftaran = $this->approvedEnrollment((int)$id_kelas);
+        }
     } else {
         $pendaftaran = $this->approvedEnrollment();
     }
@@ -3583,7 +3722,20 @@ public function simpanJawabanUjian()
     }
 
     $idPeserta = $this->userId();
-    $idKelas = $pendaftaran['id_kelas'];
+    $idKelas = (int) $pendaftaran['id_kelas'];
+
+    // Cek kelayakan status kelulusan peserta: Angket HANYA boleh dibuka jika dinyatakan LULUS oleh Admin
+    $statusCheck = $this->getPesertaKelulusanStatus($idPeserta, $idKelas);
+    if (!$statusCheck['is_lulus']) {
+        if ($statusCheck['is_remidi'] || $statusCheck['status'] === 'remidi') {
+            $pesan = 'Angket belum dapat diakses karena status ujian Anda masih Remidi. Angket hanya terbuka setelah dinyatakan Lulus.';
+        } elseif ($statusCheck['status'] === 'tidak lulus') {
+            $pesan = 'Angket tidak dapat diakses karena status ujian Anda dinyatakan Tidak Lulus.';
+        } else {
+            $pesan = 'Angket belum dapat diakses. Menu angket terbuka otomatis setelah nilai ujian Anda diumumkan dan dinyatakan Lulus.';
+        }
+        return redirect()->to(base_url('pelatihan/kelas?id_kelas=' . $idKelas))->with('error', $pesan);
+    }
 
     // Ambil pertanyaan angket aktif untuk kelas peserta
     // atau pertanyaan yang berlaku untuk semua kelas.
@@ -3598,12 +3750,67 @@ public function simpanJawabanUjian()
         ->get()
         ->getResultArray();
 
-    // Ambil daftar kelas dari tabel kelas
-    $semuaKelas = $this->db
-        ->table('kelas')
-        ->where('status', 'aktif')
-        ->get()
-        ->getResultArray();
+    // Ambil daftar kelas resmi dari API Laravel
+    $apiService = new \App\Services\LaravelApiService();
+    $classesRes = $apiService->request('GET', 'classes');
+    $rawClasses = $classesRes['data'] ?? $classesRes ?? [];
+
+    $semuaKelas = [];
+    if (!empty($rawClasses) && is_array($rawClasses)) {
+        foreach ($rawClasses as $c) {
+            $cId = (int) ($c['id'] ?? 0);
+            $cName = trim((string) ($c['name'] ?? ''));
+            if ($cId > 0 && $cName !== '') {
+                $semuaKelas[] = [
+                    'id_kelas'   => $cId,
+                    'nama_kelas' => $cName,
+                    'status'     => $c['status'] ?? 'aktif',
+                    'start_date' => $c['schedule']['start_date'] ?? $c['start_date'] ?? null,
+                ];
+            }
+        }
+    }
+
+    // Fallback ke tabel kelas lokal jika API Laravel offline atau kosong
+    if (empty($semuaKelas)) {
+        $semuaKelas = $this->db
+            ->table('kelas')
+            ->where('status', 'aktif')
+            ->get()
+            ->getResultArray();
+    }
+
+    // Ambil seluruh kelas yang dimiliki / diikuti oleh peserta saat ini
+    $kelasSaya = (new \App\Models\PendaftaranModel())
+        ->select('pendaftaran.id_kelas, kelas.nama_kelas, kelas.tanggal_mulai_kelas')
+        ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+        ->where('pendaftaran.id_users', $idPeserta)
+        ->groupStart()
+            ->where('pendaftaran.status', 'Disetujui')
+            ->orWhere('pendaftaran.status_pembayaran', 'valid')
+            ->orWhere('pendaftaran.status_pendaftaran', 'Disetujui')
+            ->orWhere('pendaftaran.status', 'Aktif')
+        ->groupEnd()
+        ->findAll();
+
+    // Jika nama kelas pendaftaran saat ini kosong atau belum sinkron, lengkapi dari data kelas
+    if (empty($pendaftaran['nama_kelas']) && !empty($semuaKelas)) {
+        foreach ($semuaKelas as $sk) {
+            if ((int)$sk['id_kelas'] === $idKelas) {
+                $pendaftaran['nama_kelas'] = $sk['nama_kelas'];
+                break;
+            }
+        }
+    }
+
+    // Pastikan pertanyaan bulan menampilkan opsi Januari sampai Desember
+    $semuaBulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    foreach ($pertanyaan as &$qItem) {
+        if (stripos($qItem['pertanyaan'], 'bulan') !== false || stripos($qItem['pertanyaan'], 'periode') !== false || (int)$qItem['id_angket_pertanyaan'] === 24) {
+            $qItem['opsi_jawaban'] = json_encode($semuaBulan);
+        }
+    }
+    unset($qItem);
 
     // Cek apakah sudah mengisi angket untuk kelas ini
     $sudahIsiCheck = $this->db
@@ -3620,6 +3827,7 @@ public function simpanJawabanUjian()
         'pendaftaran' => $pendaftaran,
         'pertanyaan'  => $pertanyaan,
         'semuaKelas'  => $semuaKelas,
+        'kelasSaya'   => $kelasSaya,
         'sudahIsi'    => $sudahIsi
     ]);
 }
@@ -3637,12 +3845,29 @@ public function simpanJawabanUjian()
             return redirect()->back()->with('error', 'Jawaban angket tidak boleh kosong.');
         }
 
-        $pendaftaran = $this->approvedEnrollment();
+        $idKelasPost = (int) ($this->request->getPost('kelas_id') ?? $this->request->getPost('id_kelas') ?? 0);
+        $pendaftaran = $this->approvedEnrollment($idKelasPost > 0 ? $idKelasPost : null);
+        if (!$pendaftaran && $idKelasPost > 0) {
+            $pendaftaran = (new \App\Models\PendaftaranModel())
+                ->where('id_users', $idPeserta)
+                ->where('id_kelas', $idKelasPost)
+                ->first();
+        }
+
         if (!$pendaftaran) {
             return redirect()->back()->with('error', 'Kelas tidak ditemukan.');
         }
 
-        $idKelas = $pendaftaran['id_kelas'];
+        $idKelas = (int) $pendaftaran['id_kelas'];
+
+        // Cek kelayakan status ujian peserta: Angket HANYA boleh disimpan jika dinyatakan LULUS
+        $statusCheck = $this->getPesertaKelulusanStatus($idPeserta, $idKelas);
+        if (!$statusCheck['is_lulus']) {
+            $pesan = ($statusCheck['is_remidi'] || $statusCheck['status'] === 'remidi')
+                ? 'Anda belum dapat mengisi angket karena status ujian Anda masih Remidi. Angket hanya terbuka setelah dinyatakan Lulus.'
+                : 'Anda belum dapat mengisi angket karena status ujian Anda belum dinyatakan Lulus.';
+            return redirect()->to(base_url('pelatihan/kelas?id_kelas=' . $idKelas))->with('error', $pesan);
+        }
 
         // Cek apakah sudah mengisi
         $sudahIsi = $this->db

@@ -44,7 +44,7 @@
                             <small class="text-muted fw-bold text-uppercase d-block mb-1">
                                 Nilai Ujian
                             </small>
-                            <h1 class="display-3 fw-bold mb-0" style="color: <?= $isLulus ? '#15803d' : '#b91c1c' ?>;">
+                            <h1 class="display-3 fw-bold mb-0" style="color: <?= $isLulus ? '#15803d' : ($statusKelulusan === 'remidi' ? '#d97706' : '#b91c1c') ?>;">
                                 <?= (int) $nilaiTerbaru ?>%
                             </h1>
                             <small class="text-muted">Standar Minimal: 70%</small>
@@ -66,14 +66,23 @@
                                 <p class="text-success small fw-semibold mt-2 mb-0">
                                     Selamat! Anda telah memenuhi standar kompetensi.
                                 </p>
+                            <?php elseif ($statusKelulusan === 'remidi'): ?>
+                                <div>
+                                    <span class="badge bg-warning text-dark px-4 py-2 fs-5 rounded-pill shadow-sm">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> REMIDI
+                                    </span>
+                                </div>
+                                <p class="text-warning-emphasis small fw-semibold mt-2 mb-0">
+                                    Nilai Anda (<?= (int)$nilaiTerbaru ?>%) memerlukan ujian remidi sesuai penetapan admin.
+                                </p>
                             <?php else: ?>
                                 <div>
                                     <span class="badge bg-danger px-4 py-2 fs-5 rounded-pill shadow-sm">
-                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> BELUM LULUS
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> TIDAK LULUS
                                     </span>
                                 </div>
                                 <p class="text-danger small fw-semibold mt-2 mb-0">
-                                    Nilai di bawah 70%. Anda wajib mengikuti remidi.
+                                    Nilai di bawah 70%. Anda dinyatakan tidak lulus.
                                 </p>
                             <?php endif; ?>
                         </div>
@@ -109,23 +118,14 @@
                 <!-- Bagian Tindakan Selanjutnya -->
                 <div class="mt-4 pt-2">
                     <?php if ($bisaRemidi): ?>
-                        <!-- Tombol Ikuti Remidi HANYA tampil jika peserta belum lulus (< 70%) -->
                         <div class="alert alert-warning border-0 rounded-3 p-3 mb-4 mx-auto text-start" style="max-width: 600px;">
                             <div class="d-flex align-items-center">
                                 <i class="bi bi-info-circle-fill fs-3 text-warning me-3"></i>
                                 <div>
-                                    <strong class="d-block text-dark">Kesempatan Perbaikan Nilai</strong>
-                                    <span class="small text-muted">Nilai Anda belum mencapai 70%. Klik tombol di bawah ini untuk mengerjakan soal remidi. Nilai awal Anda akan tetap tersimpan aman.</span>
+                                    <strong class="d-block text-dark">Informasi Ujian Remidi</strong>
+                                    <span class="small text-muted">Nilai Anda belum mencapai standar kelulusan (70%) dan berstatus Remidi. Silakan koordinasikan jadwal pelaksanaan ujian remidi perbaikan dengan instruktur atau administrator kelas.</span>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <a href="<?= base_url('pelatihan/ujian/mulai?id_ujian=' . ($nilaiRow['id_ujian'] ?? 1) . '&remidi=1') ?>"
-                               class="btn btn-warning fw-bold text-dark px-5 py-3 rounded-3 shadow"
-                               style="font-size: 16px;">
-                                <i class="bi bi-arrow-repeat me-2"></i> Ikuti Remidi Sekarang
-                            </a>
                         </div>
                     <?php else: ?>
                         <div class="alert alert-success border-0 rounded-3 p-3 mb-4 mx-auto" style="max-width: 600px;">

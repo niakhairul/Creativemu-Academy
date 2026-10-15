@@ -798,17 +798,20 @@
                                 elseif (str_contains($katLower, 'affiliate') || str_contains($katLower, 'marketing')) $pKatBadge = 'bg-success-subtle text-success-emphasis border-success-subtle';
                                 elseif (str_contains($katLower, 'program') || str_contains($katLower, 'web') || str_contains($katLower, 'flutter')) $pKatBadge = 'bg-purple-subtle text-purple border-purple-subtle';
                             ?>
+                            <?php
+                                $namaPeserta = !empty($p['nama_peserta']) ? $p['nama_peserta'] : (!empty($p['nama']) ? $p['nama'] : 'Peserta');
+                            ?>
                             <tr class="detail-row" 
                                 data-status="<?= strtolower($p['status_kelulusan'] ?? 'dalam proses'); ?>"
-                                data-search="<?= strtolower(esc(($p['nama_peserta'] ?? '') . ' ' . ($p['resolved_nis'] ?? '') . ' ' . $namaKelas . ' ' . $katPeserta . ' ' . $tempatPelatihan)); ?>">
+                                data-search="<?= strtolower(esc($namaPeserta . ' ' . ($p['resolved_nis'] ?? '') . ' ' . $namaKelas . ' ' . $katPeserta . ' ' . $tempatPelatihan)); ?>">
                                 <td class="text-center fw-bold row-no text-muted"><?= $no++; ?></td>
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="rounded-circle bg-purple-subtle text-purple d-flex align-items-center justify-content-center me-2 fw-bold flex-shrink-0" style="width: 32px; height: 32px; font-size: 0.75rem; border: 1px solid rgba(121, 75, 196, 0.2);">
-                                            <?= strtoupper(substr(trim($p['nama_peserta'] ?? 'P'), 0, 1)); ?>
+                                            <?= strtoupper(substr(trim($namaPeserta), 0, 1)); ?>
                                         </div>
                                         <div>
-                                            <div class="fw-bold text-dark" style="font-size: 0.82rem;"><?= esc($p['nama_peserta'] ?? '-'); ?></div>
+                                            <div class="fw-bold text-dark" style="font-size: 0.82rem;"><?= esc($namaPeserta); ?></div>
                                             <small class="text-muted" style="font-size: 0.7rem;"><i class="far fa-envelope me-1"></i><?= esc($p['resolved_email'] ?? '-'); ?></small>
                                         </div>
                                     </div>

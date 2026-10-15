@@ -420,7 +420,12 @@
                 </div>
             </div>
 
-            <?php $activeTab = session()->getFlashdata('active_tab') ?? 'materi'; ?>
+            <?php 
+            $requestedTab = service('request')->getGet('tab');
+            $activeTab = in_array($requestedTab, ['materi', 'absensi', 'ujian', 'angket', 'sertifikat'], true) 
+                ? $requestedTab 
+                : (session()->getFlashdata('active_tab') ?? 'materi'); 
+            ?>
             <!-- NAV TABS -->
             <ul class="nav nav-tabs mb-3" id="kelasTab" role="tablist">
                 <li class="nav-item" role="presentation">
@@ -434,17 +439,17 @@
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="ujian-tab" data-bs-toggle="tab" data-bs-target="#ujian" type="button" role="tab">
+                    <button class="nav-link <?= $activeTab === 'ujian' ? 'active' : '' ?>" id="ujian-tab" data-bs-toggle="tab" data-bs-target="#ujian" type="button" role="tab">
                         <i class="fa-solid fa-award me-1.5" style="color: var(--color-orange);"></i> Ujian & Nilai
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="angket-tab" data-bs-toggle="tab" data-bs-target="#angket" type="button" role="tab">
+                    <button class="nav-link <?= $activeTab === 'angket' ? 'active' : '' ?>" id="angket-tab" data-bs-toggle="tab" data-bs-target="#angket" type="button" role="tab">
                         <i class="fa-solid fa-clipboard-check me-1.5" style="color: var(--color-purple);"></i> Angket Evaluasi
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="sertifikat-tab" data-bs-toggle="tab" data-bs-target="#sertifikat" type="button" role="tab">
+                    <button class="nav-link <?= $activeTab === 'sertifikat' ? 'active' : '' ?>" id="sertifikat-tab" data-bs-toggle="tab" data-bs-target="#sertifikat" type="button" role="tab">
                         <i class="fa-solid fa-certificate me-1.5" style="color: var(--color-cyan);"></i> Sertifikat
                     </button>
                 </li>
@@ -593,7 +598,7 @@
                 </div>
 
                 <!-- ================= TAB 3 : UJIAN ================= -->
-<div class="tab-pane fade" id="ujian" role="tabpanel">
+<div class="tab-pane fade <?= $activeTab === 'ujian' ? 'show active' : '' ?>" id="ujian" role="tabpanel">
     <div class="card shadow-sm hover-card">
         <div class="card-body p-3.5 p-lg-4">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
@@ -625,9 +630,20 @@
                                     </div>
                                     <div class="col-lg-2 text-center mb-3 mb-lg-0 border-start border-end">
                                         <span class="text-uppercase text-muted fw-bold d-block mb-1" style="font-size: 10px; letter-spacing: 0.5px;">Skor Anda</span>
-                                        <span class="fs-4 fw-bold" style="color: var(--color-purple);">
-                                            <?= (isset($u['nilai_terbaru']) && $u['nilai_terbaru'] !== null) ? esc($u['nilai_terbaru']) : '-' ?>
+                                        <?php 
+                                            $uStatus = strtolower(trim((string)($u['status_kelulusan'] ?? '')));
+                                            $uColor = 'var(--color-purple)';
+                                            if ($uStatus === 'lulus') $uColor = '#15803d';
+                                            elseif ($uStatus === 'remidi') $uColor = '#d97706';
+                                            elseif ($uStatus === 'tidak lulus') $uColor = '#dc2626';
+                                            $uSkor = (isset($u['nilai_terbaru']) && $u['nilai_terbaru'] !== null) ? esc($u['nilai_terbaru']) . '%' : '-';
+                                        ?>
+                                        <span class="fs-4 fw-bold" style="color: <?= $uColor ?>;">
+                                            <?= $uSkor ?>
                                         </span>
+                                        <?php if ($uStatus === 'remidi' && !empty($u['nilai_awal']) && (float)$u['nilai_awal'] != (float)$u['nilai_terbaru']): ?>
+                                            <small class="d-block text-muted" style="font-size: 10px;">Awal: <?= (int)$u['nilai_awal'] ?>%</small>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="col-lg-3 text-center mb-3 mb-lg-0">
                                         <span class="text-uppercase text-muted fw-bold d-block mb-1" style="font-size: 10px; letter-spacing: 0.5px;">Status Kelulusan</span>
@@ -636,13 +652,18 @@
                                             <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-1.5 rounded-pill fw-bold" style="font-size: 11px;">
                                                 <i class="fas fa-clock me-1"></i> MENUNGGU PENILAIAN ADMIN
                                             </span>
-                                        <?php elseif (!empty($u['is_lulus']) || (float)$u['nilai_terbaru'] >= 70): ?>
+                                        <?php elseif (!empty($u['is_lulus']) || $uStatus === 'lulus' || (empty($uStatus) && (float)$u['nilai_terbaru'] >= 70)): ?>
                                             <span class="badge bg-success bg-opacity-10 text-success px-3 py-1.5 rounded-pill fw-bold" style="font-size: 11px;">
                                                 <i class="fas fa-check-circle me-1"></i> LULUS / KOMPETEN
                                             </span>
+                                        <?php elseif ($uStatus === 'remidi'): ?>
+                                            <span class="badge px-3 py-1.5 rounded-pill fw-bold border border-warning" style="font-size: 11px; background-color: #fef3c7; color: #92400e;">
+                                                <i class="fas fa-exclamation-triangle me-1 text-warning"></i> REMIDI (Skor: <?= (int)$u['nilai_terbaru'] ?>%)
+                                            </span>
+                                            <small class="d-block text-muted mt-0.5" style="font-size: 10px;">Perlu Ujian Perbaikan</small>
                                         <?php else: ?>
                                             <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-1.5 rounded-pill fw-bold" style="font-size: 11px;">
-                                                <i class="fas fa-times-circle me-1"></i> REMIDI / BELUM LULUS
+                                                <i class="fas fa-times-circle me-1"></i> TIDAK LULUS
                                             </span>
                                         <?php endif; ?>
                                     </div>
@@ -651,16 +672,18 @@
                                             <button class="btn btn-sm w-100 rounded-pill fw-semibold text-muted bg-light border shadow-sm py-1.5" style="font-size: 12px;" disabled>
                                                 <i class="bi bi-hourglass-split me-1"></i> Belum Dinilai
                                             </button>
-                                        <?php elseif (!empty($u['is_lulus']) || (float)$u['nilai_terbaru'] >= 70): ?>
+                                        <?php elseif (!empty($u['is_lulus']) || $uStatus === 'lulus'): ?>
                                             <span class="text-success small fw-bold d-inline-flex align-items-center gap-1" style="font-size: 12px;">
                                                 <i class="fas fa-check-circle"></i> Selesai
                                             </span>
+                                        <?php elseif ($uStatus === 'remidi'): ?>
+                                            <span class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning border-opacity-25 px-2.5 py-1.5 rounded-pill small fw-semibold" style="font-size: 11px; background-color: #fef3c7; color: #92400e;">
+                                                <i class="fas fa-clock me-1 text-warning"></i> Perlu Remidi
+                                            </span>
                                         <?php else: ?>
-                                            <a href="<?= base_url('pelatihan/ikut-remidi?id_ujian=' . $u['id_ujian']); ?>"
-                                               class="btn btn-sm w-100 rounded-pill fw-bold text-white shadow-sm py-1.5" style="font-size: 12px; background: var(--color-orange); border: none;"
-                                               onclick="return confirm('Apakah Anda yakin ingin mengambil ujian remidi?');">
-                                                <i class="fas fa-redo me-1"></i> Ikut Remidi
-                                            </a>
+                                            <span class="text-danger small fw-semibold d-inline-flex align-items-center gap-1" style="font-size: 12px;">
+                                                <i class="fas fa-times-circle"></i> Selesai
+                                            </span>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -672,27 +695,25 @@
                 <!-- Fallback jika struktur tabel ujian tunggal -->
                 <?php 
                     $skorNilai = (isset($nilai_ujian) && $nilai_ujian !== '-') ? $nilai_ujian : '-';
-                    $isLulus = is_numeric($skorNilai) && ((float)$skorNilai >= 70);
+                    $isLulus = (isset($status_kelulusan) && $status_kelulusan === 'lulus') || (empty($status_kelulusan) && is_numeric($skorNilai) && ((float)$skorNilai >= 70));
+                    $isRemidi = (isset($status_kelulusan) && $status_kelulusan === 'remidi');
+                    $isMenunggu = (isset($status_kelulusan) && $status_kelulusan === 'menunggu') || ($skorNilai === '-' && empty($status_kelulusan));
+                    $skorColor = $isLulus ? '#15803d' : ($isRemidi ? '#d97706' : ($isMenunggu ? 'var(--color-purple)' : '#dc2626'));
                 ?>
                 <div class="row g-3 align-items-center">
                     <div class="col-lg-5">
                         <div class="p-4 rounded-4 text-center position-relative overflow-hidden shadow-sm border border-purple border-opacity-25 bg-white">
                             <span class="text-uppercase text-muted fw-bold d-block mb-1" style="font-size: 11px; letter-spacing: 1px;">Skor Akhir Ujian</span>
-                            <div class="display-4 fw-bold mb-2" style="color: var(--color-purple); font-weight: 800;">
-                                <?= esc($skorNilai); ?>
+                            <div class="display-4 fw-bold mb-2" style="color: <?= $skorColor ?>; font-weight: 800;">
+                                <?= esc($skorNilai); ?><?= is_numeric($skorNilai) ? '%' : '' ?>
                             </div>
                             <div class="d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill bg-light text-muted small border shadow-sm" style="font-size: 12px;">
-                                <i class="bi bi-shield-check" style="color: var(--color-orange);"></i> Standar Minimum: <strong class="text-dark">70</strong>
+                                <i class="bi bi-shield-check" style="color: var(--color-orange);"></i> Standar Minimum: <strong class="text-dark">70%</strong>
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-7">
                         <div class="p-4 rounded-4 h-100 d-flex flex-column justify-content-center bg-white border border-purple border-opacity-25 shadow-sm">
-                            <?php 
-                                $isLulus = (isset($status_kelulusan) && $status_kelulusan === 'lulus') || (empty($status_kelulusan) && is_numeric($skorNilai) && ((float)$skorNilai >= 70));
-                                $isRemidi = (isset($status_kelulusan) && $status_kelulusan === 'remidi');
-                                $isMenunggu = (isset($status_kelulusan) && $status_kelulusan === 'menunggu') || ($skorNilai === '-' && empty($status_kelulusan));
-                            ?>
                             <?php if ($isMenunggu): ?>
                                 <div class="d-flex align-items-start gap-3">
                                     <div class="rounded-3 p-3 bg-secondary bg-opacity-10 text-secondary fs-4"><i class="bi bi-clock-history"></i></div>
@@ -708,7 +729,7 @@
                                     <div>
                                         <span class="badge bg-success bg-opacity-15 text-success mb-1 px-2.5 py-1 rounded-pill fw-bold" style="font-size: 10px;"><i class="fas fa-check-circle me-1"></i> STATUS: KOMPETEN / LULUS</span>
                                         <h5 class="fw-bold text-dark mb-1" style="font-size: 14px;">Selamat, Anda Dinyatakan Lulus!</h5>
-                                        <p class="text-muted mb-0" style="font-size: 12px;">Nilai Anda telah divalidasi admin. Silakan lanjutkan ke menu <strong>Angket Evaluasi</strong>.</p>
+                                        <p class="text-muted mb-0" style="font-size: 12px;">Nilai Anda (<?= esc($skorNilai) ?>%) telah divalidasi admin. Silakan lanjutkan ke menu <strong>Angket Evaluasi</strong>.</p>
                                     </div>
                                 </div>
                             <?php elseif ($isRemidi): ?>
@@ -717,12 +738,17 @@
                                     <div>
                                         <span class="badge bg-warning bg-opacity-15 text-warning mb-1 px-2.5 py-1 rounded-pill fw-bold" style="font-size: 10px;"><i class="fas fa-exclamation-triangle me-1"></i> STATUS: REMIDI</span>
                                         <h5 class="fw-bold text-dark mb-1" style="font-size: 14px;">Ujian Perlu Diremidi</h5>
-                                        <p class="text-muted mb-2" style="font-size: 12px;">Admin telah memutuskan Anda perlu mengikuti remidi. Silakan konfirmasi kesediaan Anda.</p>
-                                        <?php if(isset($status_remidi) && $status_remidi === 'bersedia'): ?>
-                                            <div class="alert alert-success py-1 px-2 mb-0" style="font-size: 11px;"><i class="fas fa-check-circle me-1"></i> Anda telah mengkonfirmasi kesediaan mengikuti remidi.</div>
-                                        <?php else: ?>
-                                            <a href="<?= base_url('pelatihan/ikut-remidi?id=' . ($id_nilai_ujian ?? '')) ?>" class="btn btn-warning btn-sm text-dark fw-bold rounded-pill" style="font-size: 11px;">Bersedia Remidi</a>
-                                        <?php endif; ?>
+                                        <div class="alert alert-warning py-1.5 px-2.5 mb-2 rounded-3 border border-warning border-opacity-50" style="background-color: #fffbeb;">
+                                            <div class="fw-bold text-dark" style="font-size: 12px;">
+                                                <i class="fas fa-info-circle text-warning me-1"></i> Nilai Ujian Anda Saat Ini: <span class="fs-6 fw-bold" style="color: #d97706;"><?= esc($skorNilai); ?>%</span>
+                                            </div>
+                                            <div class="text-muted" style="font-size: 11px;">
+                                                Nilai belum mencapai standar kelulusan minimum (70%). Admin menentukan Anda perlu mengikuti ujian remidi.
+                                            </div>
+                                        </div>
+                                        <div class="text-muted small mt-1" style="font-size: 11px;">
+                                            <i class="fas fa-info-circle me-1 text-warning"></i> Silakan koordinasikan jadwal pelaksanaan ujian remidi perbaikan dengan instruktur atau admin kelas.
+                                        </div>
                                     </div>
                                 </div>
                             <?php else: ?>
@@ -744,7 +770,7 @@
 </div>
 
                 <!-- ================= TAB 4 : ANGKET EVALUASI ================= -->
-                <div class="tab-pane fade" id="angket" role="tabpanel">
+                <div class="tab-pane fade <?= $activeTab === 'angket' ? 'show active' : '' ?>" id="angket" role="tabpanel">
                     <div class="card shadow-sm hover-card">
                         <div class="card-body p-3.5">
                             <?php if (!empty($bisa_isi_angket) && $bisa_isi_angket): ?>
@@ -770,7 +796,13 @@
                                 <div class="alert alert-light border border-purple border-opacity-15 shadow-sm rounded-4 mb-0 py-4 text-center">
                                     <i class="fas fa-info-circle fs-3 mb-2 d-block" style="color: var(--color-orange);"></i>
                                     <h6 class="fw-bold text-dark" style="font-size: 14px;">Angket Belum Dapat Diakses</h6>
-                                    <p class="text-muted small mb-0" style="font-size: 13px;">Menu angket akan terbuka otomatis apabila nilai ujian Anda telah keluar dan dinyatakan <strong>Lulus</strong>.</p>
+                                    <?php if (!empty($status_kelulusan) && $status_kelulusan === 'remidi'): ?>
+                                        <p class="text-muted small mb-0" style="font-size: 13px;">Status ujian Anda saat ini adalah <strong>Remidi</strong>. Angket evaluasi hanya dapat diakses setelah Anda menyelesaikan remidi dan dinyatakan <strong>Lulus</strong> oleh Admin.</p>
+                                    <?php elseif (!empty($status_kelulusan) && $status_kelulusan === 'tidak lulus'): ?>
+                                        <p class="text-muted small mb-0" style="font-size: 13px;">Status ujian Anda dinyatakan <strong>Tidak Lulus</strong>. Angket evaluasi hanya dapat diakses oleh peserta yang telah dinyatakan Lulus.</p>
+                                    <?php else: ?>
+                                        <p class="text-muted small mb-0" style="font-size: 13px;">Menu angket akan terbuka otomatis apabila nilai ujian Anda telah keluar dan dinyatakan <strong>Lulus</strong>.</p>
+                                    <?php endif; ?>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -778,7 +810,7 @@
                 </div>
 
                 <!-- ================= TAB 5 : SERTIFIKAT ================= -->
-                <div class="tab-pane fade" id="sertifikat" role="tabpanel">
+                <div class="tab-pane fade <?= $activeTab === 'sertifikat' ? 'show active' : '' ?>" id="sertifikat" role="tabpanel">
                     <div class="card shadow-sm hover-card">
                         <div class="card-body p-3.5">
                             <h5 class="fw-bold mb-2 text-dark" style="color: var(--color-purple); font-size: 15px;">Sertifikat Kelulusan Pelatihan</h5>
@@ -911,8 +943,17 @@ document.addEventListener("DOMContentLoaded", function() {
                     btnAbsen.innerText = "GPS Tidak Didukung";
                 }
             });
+    // Auto-activate tab from URL query (?tab=...) or hash (#...)
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    const hashParam = window.location.hash ? window.location.hash.replace('#', '') : null;
+    const activeTarget = tabParam || hashParam;
+    if (activeTarget) {
+        const tabTrigger = document.querySelector('button[data-bs-target="#' + activeTarget + '"]');
+        if (tabTrigger) {
+            bootstrap.Tab.getOrCreateInstance(tabTrigger).show();
         }
-    });
+    }
 
     // Toggle Sidebar Mobile
     const toggleBtn = document.getElementById('sidebarToggle');

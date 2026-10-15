@@ -473,33 +473,102 @@ if (!empty($pertanyaan)) {
 
                                 <?php if ($tipe === 'pilihan'): ?>
                                     <?php
-                                    // Check marker kelas database
-                                    if (!empty($opsi) && $opsi[0] === '__KELAS_DATABASE__') {
-                                        echo '<select name="jawaban['.$idPertanyaan.']" class="form-select" required>';
-                                        echo '<option value="">-- Pilih Kelas --</option>';
-                                        if (!empty($semuaKelas)) {
-                                            foreach ($semuaKelas as $kls) {
-                                                echo '<option value="'.esc($kls['nama_kelas']).'">'.esc($kls['nama_kelas']).'</option>';
+                                    $isKelasDropdown = (!empty($opsi) && $opsi[0] === '__KELAS_DATABASE__') 
+                                        || (stripos($q['pertanyaan'], 'kelas') !== false && stripos($q['pertanyaan'], 'pelatihan') !== false);
+                                    
+                                    $isBulanDropdown = (stripos($q['pertanyaan'], 'bulan') !== false || stripos($q['pertanyaan'], 'periode') !== false || (int)$idPertanyaan === 24);
+
+                                    if ($isKelasDropdown):
+                                        $currentKelasNama = trim((string)($pendaftaran['nama_kelas'] ?? ''));
+                                        $currentKelasId = (string)($pendaftaran['id_kelas'] ?? '');
+                                    ?>
+                                        <select name="jawaban[<?= $idPertanyaan ?>]" class="form-select border-purple border-opacity-25" required>
+                                            <option value="">-- Pilih Kelas Pelatihan --</option>
+                                            <?php 
+                                            // Tampilkan pilihan kelas yang kita punya (milik peserta) secara otomatis
+                                            $kelasDitampilkan = [];
+                                            if (!empty($kelasSaya)): 
+                                            ?>
+                                                <optgroup label="Kelas Saya (Terdaftar)">
+                                                    <?php foreach ($kelasSaya as $ks): 
+                                                        $ksNama = trim((string)($ks['nama_kelas'] ?? ''));
+                                                        $ksId = (string)($ks['id_kelas'] ?? '');
+                                                        if ($ksNama === '' || isset($kelasDitampilkan[$ksNama])) continue;
+                                                        $kelasDitampilkan[$ksNama] = true;
+                                                        $isSelected = ($currentKelasNama !== '' && (strcasecmp($currentKelasNama, $ksNama) === 0 || $currentKelasId === $ksId));
+                                                    ?>
+                                                        <option value="<?= esc($ksNama) ?>" <?= $isSelected ? 'selected' : '' ?>>
+                                                            <?= esc($ksNama) ?> (Kelas Anda)
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </optgroup>
+                                            <?php endif; ?>
+
+                                            <?php if (!empty($semuaKelas)): ?>
+                                                <optgroup label="Daftar Kelas Pelatihan (Laravel API)">
+                                                    <?php foreach ($semuaKelas as $kls): 
+                                                        $klsNama = trim((string)($kls['nama_kelas'] ?? ''));
+                                                        $klsId = (string)($kls['id_kelas'] ?? '');
+                                                        if ($klsNama === '' || isset($kelasDitampilkan[$klsNama])) continue;
+                                                        $kelasDitampilkan[$klsNama] = true;
+                                                        $isSelected = ($currentKelasNama !== '' && (strcasecmp($currentKelasNama, $klsNama) === 0 || $currentKelasId === $klsId));
+                                                    ?>
+                                                        <option value="<?= esc($klsNama) ?>" <?= $isSelected ? 'selected' : '' ?>>
+                                                            <?= esc($klsNama) ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </optgroup>
+                                            <?php endif; ?>
+
+                                            <?php if ($currentKelasNama !== '' && !isset($kelasDitampilkan[$currentKelasNama])): ?>
+                                                <option value="<?= esc($currentKelasNama) ?>" selected><?= esc($currentKelasNama) ?></option>
+                                            <?php endif; ?>
+                                        </select>
+
+                                    <?php elseif ($isBulanDropdown): 
+                                        $daftarBulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                                        $bulanIndoMap = [
+                                            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                                            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                                            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+                                        ];
+                                        $defaultBulan = $bulanIndoMap[(int)date('n')];
+                                        if (!empty($pendaftaran['tanggal_mulai_kelas']) && $pendaftaran['tanggal_mulai_kelas'] !== '-') {
+                                            $ts = strtotime($pendaftaran['tanggal_mulai_kelas']);
+                                            if ($ts) {
+                                                $blnKlsNum = (int)date('n', $ts);
+                                                if (isset($bulanIndoMap[$blnKlsNum])) {
+                                                    $defaultBulan = $bulanIndoMap[$blnKlsNum];
+                                                }
                                             }
                                         }
-                                        echo '</select>';
-                                    } else {
-                                        foreach ($opsi as $op):
+                                    ?>
+                                        <select name="jawaban[<?= $idPertanyaan ?>]" class="form-select border-purple border-opacity-25" required>
+                                            <option value="">-- Pilih Bulan Pelatihan (Januari - Desember) --</option>
+                                            <?php foreach ($daftarBulan as $bln): 
+                                                $isBlnSelected = ($bln === $defaultBulan);
+                                            ?>
+                                                <option value="<?= esc($bln) ?>" <?= $isBlnSelected ? 'selected' : '' ?>>
+                                                    <?= esc($bln) ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+
+                                    <?php else: ?>
+                                        <?php foreach ($opsi as $op):
                                             $isStatusInput = (strpos(strtolower($q['pertanyaan']), 'status') !== false || strpos(strtolower($q['pertanyaan']), 'kesibukan') !== false);
-                                    ?>
-                                        <div class="form-check mb-2">
-                                            <input class="form-check-input <?= $isStatusInput ? 'status-kesibukan' : '' ?>"
-                                                   type="radio"
-                                                   name="jawaban[<?= $idPertanyaan ?>]"
-                                                   value="<?= esc($op) ?>"
-                                                   <?= $isMahasiswaCheck ? '' : 'required' ?>
-                                                   style="cursor: pointer;">
-                                            <label class="form-check-label text-muted" style="cursor: pointer; font-size: 14px;"><?= esc($op) ?></label>
-                                        </div>
-                                    <?php
-                                        endforeach;
-                                    }
-                                    ?>
+                                        ?>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input <?= $isStatusInput ? 'status-kesibukan' : '' ?>"
+                                                       type="radio"
+                                                       name="jawaban[<?= $idPertanyaan ?>]"
+                                                       value="<?= esc($op) ?>"
+                                                       <?= $isMahasiswaCheck ? '' : 'required' ?>
+                                                       style="cursor: pointer;">
+                                                <label class="form-check-label text-muted" style="cursor: pointer; font-size: 14px;"><?= esc($op) ?></label>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
 
                                 <?php elseif ($tipe === 'rating'): ?>
                                     <div class="d-flex flex-wrap gap-3">

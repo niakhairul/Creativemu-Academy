@@ -289,7 +289,7 @@
                     <tr>
                         <td class="text-center"><?= $no++; ?></td>
                         <td><?= esc($p['resolved_nis']); ?></td>
-                        <td><strong><?= esc($p['nama_peserta']); ?></strong></td>
+                        <td><strong><?= esc($p['nama_peserta'] ?? $p['nama'] ?? '-'); ?></strong></td>
                         <td><?= esc($p['resolved_gender']); ?></td>
                         <td><?= esc(!empty($p['nama_kelas']) && $p['nama_kelas'] !== '-' ? $p['nama_kelas'] : 'Kelas Pelatihan'); ?></td>
                         <td><?= esc(!empty($p['kategori']) && $p['kategori'] !== '-' ? $p['kategori'] : 'Pelatihan Kejuruan'); ?></td>

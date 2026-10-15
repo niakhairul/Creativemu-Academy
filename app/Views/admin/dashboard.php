@@ -309,65 +309,149 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
         </div>
 
         <!-- === DIAGRAM & MONITORING SECTION === -->
+        <?php
+            $sumAngket = array_sum($angket_data ?? [0]);
+            $spCount = $angket_data[0] ?? 0;
+            $pCount  = $angket_data[1] ?? 0;
+            $cCount  = $angket_data[2] ?? 0;
+            $kCount  = $angket_data[3] ?? 0;
+            $puasTotal = $spCount + $pCount;
+            $pctPuas = $sumAngket > 0 ? round(($puasTotal / $sumAngket) * 100) : 0;
+            $spPct   = $sumAngket > 0 ? round(($spCount / $sumAngket) * 100, 1) : 0;
+            $pPct    = $sumAngket > 0 ? round(($pCount / $sumAngket) * 100, 1) : 0;
+            $cPct    = $sumAngket > 0 ? round(($cCount / $sumAngket) * 100, 1) : 0;
+            $kPct    = $sumAngket > 0 ? round(($kCount / $sumAngket) * 100, 1) : 0;
+        ?>
         <div class="row g-3 mb-3">
             <div class="col-lg-5">
-                <div class="chart-box h-100">
-                    <div class="chart-title mb-2">
-                        <i class="fas fa-chart-column text-primary"></i> Monitoring Angket Kepuasan
+                <div class="chart-box h-100 d-flex flex-column p-3">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <div class="chart-title mb-0" style="font-size: 0.88rem;">
+                            <i class="fas fa-chart-pie text-primary"></i> Monitoring Angket Kepuasan
+                        </div>
+                        <span class="badge bg-light text-primary border" style="font-size: 0.7rem;">
+                            <i class="fas fa-check-circle text-success me-1"></i><?= ($total_responden_angket ?? $sumAngket) ?> Jawaban
+                        </span>
                     </div>
-                    <canvas id="angketChart" height="130"></canvas>
+                    <p class="text-muted small mb-2" style="font-size: 0.72rem;">Distribusi kepuasan peserta terhadap pelatihan & instruktur</p>
+                    
+                    <!-- Diagram Donat Angket Kepuasan -->
+                    <div class="position-relative my-auto" style="height: 145px;">
+                        <canvas id="angketChart"></canvas>
+                        <div class="position-absolute top-50 start-50 translate-middle text-center" style="pointer-events: none;">
+                            <span class="d-block fw-bold text-dark" style="font-size: 1.25rem; line-height: 1;"><?= $pctPuas ?>%</span>
+                            <small class="text-muted fw-semibold" style="font-size: 0.62rem; letter-spacing: 0.5px;">PUAS</small>
+                        </div>
+                    </div>
+
+                    <!-- Ringkasan Angket -->
+                    <div class="row g-1 pt-2 mt-2 border-top text-center" style="font-size: 0.72rem;">
+                        <div class="col-3">
+                            <div class="p-1 rounded bg-light border border-light">
+                                <span class="d-block fw-bold text-success" style="font-size: 0.8rem;"><?= $spCount ?></span>
+                                <small class="text-muted text-truncate d-block" style="font-size: 0.65rem;" title="Sangat Puas (<?= $spPct ?>%)">
+                                    <i class="fas fa-circle text-success me-1" style="font-size: 6px;"></i>S. Puas
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="p-1 rounded bg-light border border-light">
+                                <span class="d-block fw-bold text-purple" style="font-size: 0.8rem; color: #794bc4;"><?= $pCount ?></span>
+                                <small class="text-muted text-truncate d-block" style="font-size: 0.65rem;" title="Puas (<?= $pPct ?>%)">
+                                    <i class="fas fa-circle me-1" style="font-size: 6px; color: #794bc4;"></i>Puas
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="p-1 rounded bg-light border border-light">
+                                <span class="d-block fw-bold text-warning" style="font-size: 0.8rem;"><?= $cCount ?></span>
+                                <small class="text-muted text-truncate d-block" style="font-size: 0.65rem;" title="Cukup (<?= $cPct ?>%)">
+                                    <i class="fas fa-circle text-warning me-1" style="font-size: 6px;"></i>Cukup
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="p-1 rounded bg-light border border-light">
+                                <span class="d-block fw-bold text-danger" style="font-size: 0.8rem;"><?= $kCount ?></span>
+                                <small class="text-muted text-truncate d-block" style="font-size: 0.65rem;" title="Kurang (<?= $kPct ?>%)">
+                                    <i class="fas fa-circle text-danger me-1" style="font-size: 6px;"></i>Kurang
+                                </small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="col-lg-7">
                 <div class="chart-box h-100 d-flex flex-column p-3">
                     <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                        <div class="chart-title mb-0">
-                            <i class="fas fa-clipboard-user text-primary"></i> Monitoring Kehadiran Mentor
+                        <div class="chart-title mb-0" style="font-size: 0.88rem;">
+                            <i class="fas fa-clipboard-user text-primary"></i> Monitoring Kehadiran Instruktur
                         </div>
-                        <span class="badge bg-light text-primary border" style="font-size: 0.72rem;">
-                            <i class="fas fa-database me-1"></i> API Laravel
-                        </span>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="badge bg-light text-primary border" style="font-size: 0.7rem;">
+                                <i class="fas fa-database me-1"></i> API Laravel
+                            </span>
+                            <a href="<?= base_url('admin/laporan-mentor'); ?>" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 0.68rem;">
+                                Laporan <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
                     </div>
 
-                    <div class="table-responsive flex-grow-1">
-                        <table class="table table-hover table-custom align-middle mb-0" style="font-size: 0.82rem;">
-                            <thead class="table-light">
-                                <tr>
-                                    <th style="width: 45px;">No</th>
-                                    <th>Nama Mentor</th>
-                                    <th>Tanggal</th>
-                                    <th>Status Kehadiran</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (!empty($absensi_mentor_list) && is_array($absensi_mentor_list)): ?>
-                                    <?php $noAbs = 1; foreach ($absensi_mentor_list as $absen): ?>
+                    <!-- Diagram Kehadiran Instruktur (DI ATAS) -->
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <small class="text-muted fw-semibold" style="font-size: 0.68rem;">TREN SESI HADIR PER TANGGAL</small>
+                            <small class="text-success fw-bold" style="font-size: 0.68rem;">Total: <?= count($absensi_mentor_list ?? []); ?> Sesi Hadir</small>
+                        </div>
+                        <div style="height: 105px; position: relative;">
+                            <canvas id="absensiChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Riwayat Kehadiran Instruktur (DITARUH DIBAWAH DIAGRAM) -->
+                    <div class="mt-auto pt-2 border-top">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <small class="text-muted fw-semibold" style="font-size: 0.68rem;">RIWAYAT KEHADIRAN TERAKHIR</small>
+                            <small class="text-muted" style="font-size: 0.68rem;">5 Sesi Terbaru</small>
+                        </div>
+                        <div class="table-responsive" style="max-height: 110px; overflow-y: auto;">
+                            <table class="table table-hover table-custom align-middle mb-0" style="font-size: 0.76rem;">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th style="width: 32px;">No</th>
+                                        <th>Nama Instruktur</th>
+                                        <th>Tanggal Sesi</th>
+                                        <th class="text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($absensi_mentor_list) && is_array($absensi_mentor_list)): ?>
+                                        <?php $noAbs = 1; foreach (array_slice($absensi_mentor_list, 0, 5) as $absen): ?>
+                                            <tr>
+                                                <td class="fw-semibold text-muted py-1"><?= $noAbs++; ?></td>
+                                                <td class="fw-bold text-dark py-1 text-truncate" style="max-width: 140px;">
+                                                    <i class="fas fa-chalkboard-user me-1 text-purple" style="color: var(--primary-purple);"></i>
+                                                    <?= esc($absen['nama_mentor']); ?>
+                                                </td>
+                                                <td class="py-1" style="white-space: nowrap;"><?= esc($absen['tanggal'] ?? '-'); ?></td>
+                                                <td class="text-center py-1">
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-1.5 py-0.5" style="font-size: 0.68rem;">
+                                                        <i class="fas fa-check-circle me-1"></i><?= esc($absen['status_kehadiran']); ?>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
                                         <tr>
-                                            <td class="fw-semibold text-muted"><?= $noAbs++; ?></td>
-                                            <td class="fw-bold text-dark"><?= esc($absen['nama_mentor']); ?></td>
-                                            <td><?= esc($absen['tanggal'] ?? '-'); ?></td>
-                                            <td>
-                                                <span class="badge bg-success" style="font-size: 0.72rem;"><?= esc($absen['status_kehadiran']); ?></span>
+                                            <td colspan="4" class="text-center py-2">
+                                                <span class="fw-bold text-dark small mb-0 d-block" style="font-size: 0.75rem;">Data absensi belum tersedia</span>
+                                                <p class="text-muted small mb-0" style="font-size: 0.68rem;">Belum ada sesi KBM dengan kehadiran instruktur.</p>
                                             </td>
                                         </tr>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <tr>
-                                        <td colspan="4" class="text-center py-4">
-                                            <div class="d-flex flex-column align-items-center justify-content-center">
-                                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2" style="width: 42px; height: 42px;">
-                                                    <i class="fas fa-calendar-xmark text-muted fs-5"></i>
-                                                </div>
-                                                <span class="fw-bold text-dark small mb-1">Data absensi belum tersedia</span>
-                                                <p class="text-muted small mb-0" style="font-size: 0.75rem; max-width: 360px;">
-                                                    <?= esc($keterangan_absensi ?? 'Endpoint monitoring kehadiran mentor belum disediakan pada API Laravel.'); ?>
-                                                </p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -484,34 +568,51 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
             dateEl.innerText = today.toLocaleDateString('id-ID', options);
         }
 
-        // Chart Angket
+        // Chart Angket Kepuasan (Donut Chart yang mudah dipahami & jelas)
         const angketCanvas = document.getElementById('angketChart');
         if (angketCanvas) {
             const ctxAngket = angketCanvas.getContext('2d');
             new Chart(ctxAngket, {
-                type: 'bar',
+                type: 'doughnut',
                 data: {
                     labels: ['Sangat Puas', 'Puas', 'Cukup', 'Kurang'],
                     datasets: [{
-                        label: 'Jumlah Responden',
                         data: <?= json_encode($angket_data ?? [0, 0, 0, 0]) ?>,
-                        backgroundColor: '#e9ecef',
-                        borderRadius: 6,
-                        barThickness: 28
+                        backgroundColor: [
+                            '#10b981',
+                            '#794bc4',
+                            '#f59e0b',
+                            '#ef4444'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 5
                     }]
                 },
                 options: {
                     responsive: true,
-                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
-                    scales: {
-                        y: { beginAtZero: true, max: 10, grid: { color: '#f0edf6' } },
-                        x: { grid: { display: false } }
-                    }
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            enabled: true,
+                            callbacks: {
+                                label: function(context) {
+                                    const dataset = context.dataset.data;
+                                    const total = dataset.reduce((a, b) => Number(a) + Number(b), 0);
+                                    const val = Number(context.parsed);
+                                    const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                    return ' ' + context.label + ': ' + val + ' Responden (' + pct + '%)';
+                                }
+                            }
+                        }
+                    },
+                    cutout: '72%'
                 }
             });
         }
 
-        // Chart Absensi (Hanya jika data dan canvas tersedia)
+        // Chart Absensi Instruktur
         const absensiCanvas = document.getElementById('absensiChart');
         if (absensiCanvas) {
             const ctxAbsensi = absensiCanvas.getContext('2d');
@@ -520,22 +621,44 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                 data: {
                     labels: <?= json_encode($absensi_labels ?? []) ?>,
                     datasets: [{
-                        label: 'Absensi Instruktur',
+                        label: 'Sesi Hadir',
                         data: <?= json_encode($absensi_data ?? []) ?>,
                         borderColor: '#794bc4',
-                        backgroundColor: 'rgba(121, 75, 196, 0.08)',
+                        backgroundColor: 'rgba(121, 75, 196, 0.12)',
                         fill: true,
-                        tension: 0.3,
+                        tension: 0.35,
                         borderWidth: 2,
-                        pointRadius: 3
+                        pointBackgroundColor: '#794bc4',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 1.5,
+                        pointRadius: 3,
+                        pointHoverRadius: 5
                     }]
                 },
                 options: {
                     responsive: true,
-                    plugins: { legend: { position: 'bottom', labels: { font: { family: 'Poppins', size: 11 } } }, tooltip: { enabled: false } },
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            enabled: true,
+                            callbacks: {
+                                label: function(context) {
+                                    return ' Hadir: ' + context.parsed.y + ' Sesi KBM';
+                                }
+                            }
+                        }
+                    },
                     scales: {
-                        y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f0edf6' } },
-                        x: { grid: { display: false } }
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0, stepSize: 1, maxTicksLimit: 4, font: { size: 10 } },
+                            grid: { color: '#f0edf6' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 9.5 } }
+                        }
                     }
                 }
             });

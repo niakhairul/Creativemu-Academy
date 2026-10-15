@@ -294,8 +294,8 @@
                           <td class="text-center"><?= $m['responden_cabang'] ?: '-'; ?></td>
                           <td class="text-center"><?= $m['responden_perwakilan'] ?: '-'; ?></td>
                         <td class="text-center"><?= number_format($m['jumlah_responden']); ?> Orang</td>
-                        <td class="text-center fw-bold text-primary"><?= number_format($m['nilai_rata'], 2); ?> / 4.00</td>
-                        <td class="text-center fw-bold text-success"><?= number_format($m['persen_kepuasan'], 1); ?>%</td>
+                        <td class="text-center fw-bold text-primary"><?= ($m['jumlah_responden'] > 0 && $m['nilai_rata'] > 0) ? (number_format($m['nilai_rata'], 2) . ' / 4.00') : '-'; ?></td>
+                        <td class="text-center fw-bold text-success"><?= ($m['jumlah_responden'] > 0 && $m['nilai_rata'] > 0) ? (number_format($m['persen_kepuasan'], 1) . '%') : '-'; ?></td>
                         <td class="text-center"><strong><?= esc($m['predikat']); ?></strong></td>
                     </tr>
                     <?php endforeach; ?>

@@ -962,17 +962,25 @@
                                     </span>
                                 </td>
                                 <td class="text-center">
+                                    <?php if (($m['jumlah_responden'] ?? 0) > 0 && ($m['nilai_rata'] ?? 0) > 0): ?>
                                     <div class="d-inline-flex align-items-center gap-1">
                                         <i class="fas fa-star text-warning"></i>
                                         <span class="fw-bold text-dark"><?= number_format($m['nilai_rata'], 2); ?></span>
                                         <small class="text-muted">/4.0</small>
                                     </div>
+                                    <?php else: ?>
+                                    <span class="text-muted small">-</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="text-center">
+                                    <?php if (($m['jumlah_responden'] ?? 0) > 0 && ($m['nilai_rata'] ?? 0) > 0): ?>
                                     <span class="fw-bold text-success"><?= number_format($m['persen_kepuasan'], 1); ?>%</span>
                                     <div class="progress progress-custom mt-1" style="height: 6px;">
                                         <div class="progress-bar progress-bar-custom" style="width: <?= $m['persen_kepuasan']; ?>%;"></div>
                                     </div>
+                                    <?php else: ?>
+                                    <span class="text-muted small">-</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="text-center">
                                     <span class="badge <?= $m['badge_class']; ?> px-2.5 py-1 rounded-pill" style="font-size: 0.72rem;">
