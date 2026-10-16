@@ -26,42 +26,103 @@ class LaravelApiService
     }
 
     /**
-     * Fungsi utama untuk melakukan request ke API Laravel
+     * Melakukan HTTP request ke API Laravel dan mengembalikan detail status HTTP beserta body response.
+     * Digunakan agar pemanggil dapat membaca status HTTP (200, 201, 401, 422, 500) dan menangani error secara tepat.
+     *
+     * @param string $method GET, POST, PUT, DELETE, PATCH
+     * @param string $endpoint Rute API (misal: 'private-class-requests', 'classes')
+     * @param array $data Data JSON atau Query Params
+     * @return array [
+     *     'status'      => int (HTTP status code, atau 0 jika network/exception),
+     *     'success'     => bool (true jika HTTP status 2xx),
+     *     'data'        => mixed (konten dari $decoded['data'] atau $decoded),
+     *     'body'        => array (seluruh $decoded),
+     *     'error_type'  => string ('none', 'unauthenticated', 'validation', 'server', 'client', 'network'),
+     *     'message'     => string
+     * ]
      */
-    public function request($method, $endpoint, $data = [])
+    public function requestWithResponse(string $method, string $endpoint, array $data = []): array
     {
-        // Menyiapkan Header wajib dan batasan timeout agar tidak hang/loading lama
+        $method = strtoupper(trim($method));
+        $endpoint = ltrim(trim($endpoint), '/');
+
+        // Menyiapkan Header wajib dan batasan timeout agar tidak hang
         $options = [
-            'timeout'         => 3, // Maksimal 3 detik agar page tidak hang jika server luar lambat
-            'connect_timeout' => 2, // Maksimal 2 detik untuk koneksi
+            'timeout'         => 5, // Batas waktu maksimal 5 detik
+            'connect_timeout' => 3, // Maksimal 3 detik untuk koneksi
             'headers'         => [
                 'X-API-KEY'    => $this->apiKey,
                 'Accept'       => 'application/json',
                 'Content-Type' => 'application/json',
             ],
-            'http_errors'     => false // Mencegah error bawaan CI4 agar response 404/422/500 dari Laravel tetap bisa dibaca
+            'http_errors'     => false, // Mencegah lemparan exception pada 4xx/5xx agar response body tetap dapat diurai
         ];
 
-        // Jika ada data yang mau dikirim (biasanya untuk POST)
-        if ($method === 'POST' || $method === 'PUT') {
+        if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
             $options['json'] = $data;
-        } 
-        // Jika ada parameter query (biasanya untuk GET)
-        else if ($method === 'GET' && !empty($data)) {
+        } elseif ($method === 'GET' && !empty($data)) {
             $options['query'] = $data;
         }
 
         try {
-            // Mengeksekusi request ke endpoint (misalnya: /classes)
             $response = $this->client->request($method, $endpoint, $options);
-            
-            // Mengubah hasil JSON dari Laravel menjadi Array PHP
-            $decoded = json_decode($response->getBody(), true);
-            return is_array($decoded) ? $decoded : [];
+            $statusCode = (int) $response->getStatusCode();
+            $rawBody = (string) $response->getBody();
+            $decoded = json_decode($rawBody, true);
+            if (!is_array($decoded)) {
+                $decoded = [];
+            }
+
+            $isSuccess = ($statusCode >= 200 && $statusCode < 300);
+            $errorType = 'none';
+
+            if (!$isSuccess) {
+                if ($statusCode === 401 || $statusCode === 403) {
+                    $errorType = 'unauthenticated';
+                } elseif ($statusCode === 422) {
+                    $errorType = 'validation';
+                } elseif ($statusCode >= 500) {
+                    $errorType = 'server';
+                } else {
+                    $errorType = 'client';
+                }
+
+                // Logging aman: Jangan pernah mencatat API Key atau kredensial rahasia di log
+                $errMsg = $decoded['message'] ?? ('HTTP status ' . $statusCode);
+                log_message('warning', "LaravelApiService [{$method} {$endpoint}] returned HTTP {$statusCode}: {$errMsg}");
+            }
+
+            $message = $decoded['message'] ?? ($isSuccess ? 'Success' : ('HTTP ' . $statusCode));
+
+            return [
+                'status'     => $statusCode,
+                'success'    => $isSuccess,
+                'data'       => $decoded['data'] ?? $decoded,
+                'body'       => $decoded,
+                'error_type' => $errorType,
+                'message'    => $message,
+            ];
         } catch (\Throwable $e) {
-            log_message('warning', "LaravelApiService request [{$method} {$endpoint}] failed: " . $e->getMessage());
-            return [];
+            // Logging aman tanpa mengekspos API key
+            log_message('warning', "LaravelApiService request [{$method} {$endpoint}] network exception: " . $e->getMessage());
+            return [
+                'status'     => 0,
+                'success'    => false,
+                'data'       => null,
+                'body'       => [],
+                'error_type' => 'network',
+                'message'    => 'Koneksi ke Laravel API gagal: ' . $e->getMessage(),
+            ];
         }
+    }
+
+    /**
+     * Fungsi utama untuk melakukan request ke API Laravel (Kompatibel penuh dengan pemanggil lama)
+     */
+    public function request($method, $endpoint, $data = [])
+    {
+        $res = $this->requestWithResponse($method, $endpoint, $data);
+        return !empty($res['body']) ? $res['body'] : [];
     }
 
     /**

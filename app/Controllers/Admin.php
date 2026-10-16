@@ -2070,6 +2070,7 @@ $data = [
                             'nama_kelas'   => $singleData['name'] ?? '',
                             'kategori'     => $singleData['training']['name'] ?? 'Pelatihan',
                             'training_id'  => $singleData['training_id'] ?? ($singleData['training']['id'] ?? null),
+                            'region_id'    => $singleData['region_id'] ?? ($singleData['training']['region_id'] ?? null),
                             'jenis_kelas'  => in_array($rawJenis, ['private', 'privat'], true) ? 'Privat' : 'Reguler',
                             'status'       => strtolower($singleData['status'] ?? 'active'),
                             'harga_privat' => (float) ($singleData['pricing']['price'] ?? $singleData['price'] ?? 0),
@@ -2285,6 +2286,28 @@ $data = [
 
             $idKelas = (int) ($pendaftaranLama['id_kelas'] ?? 0);
             $kelasInfo = $laravelClassesMap[$idKelas] ?? null;
+            if ($idKelas > 0 && !$kelasInfo) {
+                try {
+                    $resSingle = $apiService->request('GET', 'classes/' . $idKelas);
+                    $singleData = $resSingle['data'] ?? $resSingle ?? null;
+                    if (!empty($singleData) && is_array($singleData)) {
+                        $rawJenis = strtolower(trim((string) ($singleData['training']['jenis_kelas'] ?? $singleData['jenis_kelas'] ?? $singleData['type'] ?? '')));
+                        $kelasInfo = [
+                            'id_kelas'     => $singleData['id'] ?? $idKelas,
+                            'kode_kelas'   => $singleData['code'] ?? '',
+                            'nama_kelas'   => $singleData['name'] ?? '',
+                            'kategori'     => $singleData['training']['name'] ?? 'Pelatihan',
+                            'training_id'  => $singleData['training_id'] ?? ($singleData['training']['id'] ?? null),
+                            'region_id'    => $singleData['region_id'] ?? ($singleData['training']['region_id'] ?? null),
+                            'jenis_kelas'  => in_array($rawJenis, ['private', 'privat'], true) ? 'Privat' : 'Reguler',
+                            'status'       => strtolower($singleData['status'] ?? 'active'),
+                            'harga_privat' => (float) ($singleData['pricing']['price'] ?? $singleData['price'] ?? 0),
+                        ];
+                    }
+                } catch (\Exception $eSingle) {
+                    // ignore
+                }
+            }
             $isPrivat = strtolower(trim((string) ($pendaftaranLama['jenis_kelas'] ?? ($kelasInfo['jenis_kelas'] ?? 'Reguler')))) === 'privat';
             $laravelClassStatus = strtolower(trim((string) ($kelasInfo['status'] ?? '')));
 

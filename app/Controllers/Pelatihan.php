@@ -555,7 +555,8 @@ class Pelatihan extends BaseController
             'thumbnail'             => $foto,
             'foto'                  => $foto,
             'kategori'              => $kategori,
-            'training_id'           => $k['training']['id'] ?? null,
+            'training_id'           => $k['training']['id'] ?? ($k['training_id'] ?? null),
+            'region_id'             => $k['region_id'] ?? ($k['training']['region_id'] ?? null),
             'status'                => $k['status'] ?? null,
             'deskripsi'             => $deskripsi,
             'ringkasan'             => $ringkasan,
@@ -604,6 +605,10 @@ class Pelatihan extends BaseController
     /**
      * Menyinkronkan data pendaftaran peserta (Reguler / Privat) ke API Laravel secara idempotent
      * menggunakan external_registration_id = REG-{id_pendaftaran} tanpa membuat data ganda.
+     * Mengikuti instruksi integrasi kelas Private ke Laravel:
+     * - Membaca data.id / clas_id / class_id sebagai ID kelas baru
+     * - Tidak mengirim registrant ke ID kelas template jika pembuatan kelas privat gagal
+     * - Memastikan X-API-KEY dan header JSON dikirim via LaravelApiService::requestWithResponse
      */
     public function syncRegistrationToLaravel(array $pendaftaran, ?array $kelas = null, ?\App\Services\LaravelApiService $apiService = null): array
     {
@@ -615,8 +620,8 @@ class Pelatihan extends BaseController
         }
 
         $extId = 'REG-' . $idPendaftaran;
-        $jenisKelas = trim((string) ($pendaftaran['jenis_kelas'] ?? 'Reguler'));
-        $isPrivat = (strtolower($jenisKelas) === 'privat');
+        $jenisKelas = trim((string) ($pendaftaran['jenis_kelas'] ?? ($kelas['jenis_kelas'] ?? 'Reguler')));
+        $isPrivat = in_array(strtolower($jenisKelas), ['privat', 'private'], true);
 
         $ciStatus = strtolower(trim((string) ($pendaftaran['status_pendaftaran'] ?? 'menunggu')));
         $ciPay    = strtolower(trim((string) ($pendaftaran['status_pembayaran'] ?? 'pending')));
@@ -636,36 +641,65 @@ class Pelatihan extends BaseController
         }
 
         // 1. Jika Kelas Privat baru dan id_kelas masih merujuk pada kelas template reguler (belum dibuatkan kelas privat di Laravel)
-        $alreadyPrivateInLaravel = strtolower((string) ($kelas['jenis_kelas'] ?? '')) === 'privat';
+        $alreadyPrivateInLaravel = in_array(strtolower(trim((string)($kelas['jenis_kelas'] ?? ($kelas['tipe_kelas'] ?? '')))), ['privat', 'private'], true)
+            || (isset($kelas['type']) && strtolower(trim((string)$kelas['type'])) === 'private')
+            || (isset($kelas['training']['jenis_kelas']) && in_array(strtolower(trim((string)$kelas['training']['jenis_kelas'])), ['privat', 'private'], true));
 
         if ($isPrivat && !$alreadyPrivateInLaravel && $regStatus !== 'rejected') {
-            try {
-                $trainingName = !empty($pendaftaran['custom_materi'])
-                    ? $pendaftaran['custom_materi']
-                    : (!empty($pendaftaran['materi_privat'])
-                        ? $pendaftaran['materi_privat']
-                        : ($kelas['kategori'] ?? $pendaftaran['pilihan_pelatihan'] ?? $pendaftaran['kategori_kelas'] ?? 'Kelas Privat'));
+            $customMateri = trim((string) ($pendaftaran['custom_materi'] ?? ''));
+            $materiPrivat = trim((string) ($pendaftaran['materi_privat'] ?? ''));
+            $trainingName = $customMateri !== ''
+                ? $customMateri
+                : ($materiPrivat !== ''
+                    ? $materiPrivat
+                    : ($kelas['kategori'] ?? $pendaftaran['kategori_kelas'] ?? $pendaftaran['pilihan_pelatihan'] ?? 'Kelas Privat'));
 
-                $resPriv = $apiService->request('POST', 'private-class-requests', [
-                    'external_registration_id' => $extId,
-                    'training_id'              => $kelas['training_id'] ?? null,
-                    'training_name'            => $trainingName,
-                    'name'                     => $pendaftaran['nama'] ?? '',
-                    'email'                    => $pendaftaran['email'] ?? null,
-                    'phone'                    => $pendaftaran['no_hp'] ?? null,
-                    'price'                    => (float) ($kelas['harga_privat'] ?? $kelas['harga_reguler'] ?? 0),
-                ]);
+            $studentId = !empty($pendaftaran['nis']) ? trim((string)$pendaftaran['nis']) : null;
+            $price = (float) ($kelas['harga_privat'] ?? $kelas['harga_reguler'] ?? 0);
+            $trainingId = !empty($kelas['training_id']) ? (int)$kelas['training_id'] : null;
+            $regionId = !empty($kelas['region_id']) ? (int)$kelas['region_id'] : null;
 
-                $newClasId = $resPriv['data']['id'] ?? $resPriv['data']['clas_id'] ?? $resPriv['id'] ?? null;
-                if (!empty($newClasId) && (int)$newClasId > 0 && (int)$newClasId !== $idKelas) {
-                    $idKelas = (int)$newClasId;
-                    $pendaftaran['id_kelas'] = $idKelas;
-                    \Config\Database::connect()->table('pendaftaran')
-                        ->where('id_pendaftaran', $idPendaftaran)
-                        ->update(['id_kelas' => $idKelas]);
+            $privPayload = [
+                'external_registration_id' => $extId,
+                'training_id'              => $trainingId,
+                'training_name'            => $trainingName,
+                'student_id'               => $studentId,
+                'name'                     => trim((string)($pendaftaran['nama'] ?? '')),
+                'email'                    => !empty($pendaftaran['email']) ? trim((string)$pendaftaran['email']) : null,
+                'phone'                    => !empty($pendaftaran['no_hp']) ? trim((string)$pendaftaran['no_hp']) : null,
+                'price'                    => $price,
+                'region_id'                => $regionId,
+            ];
+
+            $resPriv = $apiService->requestWithResponse('POST', 'private-class-requests', $privPayload);
+
+            // Periksa ID kelas dari data.id, atau fallback data.clas_id, lalu data.class_id
+            $rawClasId = null;
+            if (!empty($resPriv['body']) && is_array($resPriv['body'])) {
+                $bodyData = $resPriv['body']['data'] ?? $resPriv['body'];
+                if (is_array($bodyData)) {
+                    $rawClasId = $bodyData['id'] ?? $bodyData['clas_id'] ?? $bodyData['class_id'] ?? null;
                 }
-            } catch (\Exception $ePriv) {
-                log_message('info', 'Endpoint private-class-requests info: ' . $ePriv->getMessage());
+            }
+
+            $newClasId = (is_numeric($rawClasId) && (int)$rawClasId > 0) ? (int)$rawClasId : null;
+
+            if ($newClasId !== null) {
+                $idKelas = $newClasId;
+                $pendaftaran['id_kelas'] = $idKelas;
+                $pendaftaran['sync_status'] = 'synced';
+                \Config\Database::connect()->table('pendaftaran')
+                    ->where('id_pendaftaran', $idPendaftaran)
+                    ->update(['id_kelas' => $idKelas]);
+            } else {
+                // Sesuai poin 8 Instruksi Kantor:
+                // Jika endpoint private-class-requests gagal, jangan melanjutkan seolah-olah sinkronisasi berhasil
+                // dan JANGAN mengirim registrant ke ID kelas template.
+                // Catat log error yang aman, pertahankan pendaftaran lokal, set status gagal, dan hentikan proses sync registrant.
+                $errMsg = $resPriv['message'] ?? 'Response tidak menyertakan class ID yang valid';
+                log_message('warning', "Pendaftaran [{$extId}]: Request pembuatan kelas privat ke Laravel belum berhasil (HTTP {$resPriv['status']}: {$errMsg}). Registrant tidak dikirim ke kelas template.");
+                $pendaftaran['sync_status'] = 'failed';
+                return $pendaftaran;
             }
         }
 
@@ -690,32 +724,38 @@ class Pelatihan extends BaseController
         }
 
         // 2. Sinkronkan ke endpoint registrants kelas di Laravel (Idempotent berdasarkan external_registration_id)
-        try {
-            $apiService->request('POST', 'classes/' . $idKelas . '/registrants', [
-                'external_registration_id' => $extId,
-                'nis'                      => !empty($pendaftaran['nis']) ? $pendaftaran['nis'] : null,
-                'name'                     => $pendaftaran['nama'] ?? '',
-                'email'                    => $pendaftaran['email'] ?? null,
-                'phone'                    => $pendaftaran['no_hp'] ?? null,
-                'status'                   => $regStatus,
-                'payment_status'           => $payStatus,
-                'registered_at'            => $pendaftaran['created_at'] ?? date('Y-m-d H:i:s'),
-                'metadata'                 => [
-                    'id_pendaftaran'      => $idPendaftaran,
-                    'id_users'            => $pendaftaran['id_users'] ?? null,
-                    'jenis_kelas'         => $isPrivat ? 'Privat' : 'Reguler',
-                    'kategori_kelas'      => $pendaftaran['kategori_kelas'] ?? ($kelas['kategori'] ?? null),
-                    'materi_privat'       => $pendaftaran['materi_privat'] ?? null,
-                    'custom_materi'       => $pendaftaran['custom_materi'] ?? null,
-                    'metode_pembelajaran' => $pendaftaran['metode_pembelajaran'] ?? null,
-                    'lokasi_pelatihan'    => $pendaftaran['lokasi_pelatihan'] ?? null,
-                    'metode_pembayaran'   => $pendaftaran['metode_pembayaran'] ?? null,
-                    'status_pembayaran'   => $pendaftaran['status_pembayaran'] ?? 'pending',
-                    'status_pendaftaran'  => $pendaftaran['status_pendaftaran'] ?? 'Menunggu',
-                ],
-            ]);
-        } catch (\Exception $eReg) {
-            log_message('warning', 'Gagal sinkronisasi registrant ke Laravel: ' . $eReg->getMessage());
+        $studentId = !empty($pendaftaran['nis']) ? trim((string)$pendaftaran['nis']) : null;
+        $regPayload = [
+            'external_registration_id' => $extId,
+            'student_id'               => $studentId,
+            'nis'                      => $studentId,
+            'name'                     => trim((string)($pendaftaran['nama'] ?? '')),
+            'email'                    => !empty($pendaftaran['email']) ? trim((string)$pendaftaran['email']) : null,
+            'phone'                    => !empty($pendaftaran['no_hp']) ? trim((string)$pendaftaran['no_hp']) : null,
+            'status'                   => $regStatus,
+            'payment_status'           => $payStatus,
+            'registered_at'            => $pendaftaran['created_at'] ?? date('Y-m-d H:i:s'),
+            'metadata'                 => [
+                'id_pendaftaran'      => $idPendaftaran,
+                'id_users'            => $pendaftaran['id_users'] ?? null,
+                'jenis_kelas'         => $isPrivat ? 'Privat' : 'Reguler',
+                'kategori_kelas'      => $pendaftaran['kategori_kelas'] ?? ($kelas['kategori'] ?? null),
+                'materi_privat'       => $pendaftaran['materi_privat'] ?? null,
+                'custom_materi'       => $pendaftaran['custom_materi'] ?? null,
+                'metode_pembelajaran' => $pendaftaran['metode_pembelajaran'] ?? null,
+                'lokasi_pelatihan'    => $pendaftaran['lokasi_pelatihan'] ?? null,
+                'metode_pembayaran'   => $pendaftaran['metode_pembayaran'] ?? null,
+                'status_pembayaran'   => $pendaftaran['status_pembayaran'] ?? 'pending',
+                'status_pendaftaran'  => $pendaftaran['status_pendaftaran'] ?? 'Menunggu',
+            ],
+        ];
+
+        $resReg = $apiService->requestWithResponse('POST', 'classes/' . $idKelas . '/registrants', $regPayload);
+        if ($resReg['success']) {
+            $pendaftaran['sync_status'] = 'synced';
+        } else {
+            log_message('warning', "Pendaftaran [{$extId}]: Sinkronisasi registrant ke kelas {$idKelas} belum berhasil (HTTP {$resReg['status']}): {$resReg['message']}");
+            $pendaftaran['sync_status'] = 'failed';
         }
 
         return $pendaftaran;
