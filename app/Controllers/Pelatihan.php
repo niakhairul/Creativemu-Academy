@@ -114,14 +114,6 @@ class Pelatihan extends BaseController
             if (!empty($enriched['bisa_diakses'])) {
                 return $enriched;
             }
-
-            // Jika status pendaftaran disetujui / pembayaran valid, berikan akses absensi
-            $isApprovedCi = in_array(strtolower($row['status_pendaftaran'] ?? ''), ['disetujui', 'approved'], true) ||
-                           in_array(strtolower($row['status_pembayaran'] ?? ''), ['valid', 'lunas', 'paid'], true);
-            if ($isApprovedCi) {
-                $enriched['bisa_diakses'] = true;
-                return $enriched;
-            }
         }
 
         return null;
@@ -677,10 +669,24 @@ class Pelatihan extends BaseController
             }
         }
 
-        // Untuk Kelas Privat yang di Laravel masih berstatus pending, jaga agar status registrant tetap pending sampai disetujui di Laravel
-        $laravelClassSt = strtolower(trim((string) ($kelas['status'] ?? 'pending')));
-        if ($isPrivat && $laravelClassSt === 'pending' && $regStatus === 'approved') {
-            $regStatus = 'pending';
+        // Untuk Kelas Privat: Admin CI4 hanya memvalidasi pembayaran (paid).
+        // Pembuatan dan persetujuan kelas privat dikelola oleh Admin Laravel, sehingga status registrant tetap 'pending' sampai disetujui di Laravel.
+        if ($isPrivat && $regStatus !== 'rejected') {
+            $laravelRegSt = '';
+            if (!empty($kelas['registrants']) && is_array($kelas['registrants'])) {
+                foreach ($kelas['registrants'] as $r) {
+                    if (($r['external_registration_id'] ?? '') === $extId) {
+                        $laravelRegSt = strtolower(trim((string)($r['status'] ?? '')));
+                        break;
+                    }
+                }
+            }
+            $isApprovedByLaravel = in_array($laravelRegSt, ['approved', 'active', 'confirmed', 'disetujui'], true)
+                || (strtolower((string)($kelas['jenis_kelas'] ?? '')) === 'privat' && in_array(strtolower(trim((string)($kelas['status'] ?? ''))), ['approved', 'active', 'ongoing'], true) && $laravelRegSt !== 'pending');
+
+            if (!$isApprovedByLaravel) {
+                $regStatus = 'pending';
+            }
         }
 
         // 2. Sinkronkan ke endpoint registrants kelas di Laravel (Idempotent berdasarkan external_registration_id)
@@ -704,6 +710,7 @@ class Pelatihan extends BaseController
                     'metode_pembelajaran' => $pendaftaran['metode_pembelajaran'] ?? null,
                     'lokasi_pelatihan'    => $pendaftaran['lokasi_pelatihan'] ?? null,
                     'metode_pembayaran'   => $pendaftaran['metode_pembayaran'] ?? null,
+                    'status_pembayaran'   => $pendaftaran['status_pembayaran'] ?? 'pending',
                     'status_pendaftaran'  => $pendaftaran['status_pendaftaran'] ?? 'Menunggu',
                 ],
             ]);
@@ -751,7 +758,7 @@ class Pelatihan extends BaseController
 
         $cData = ($idKelas > 0 && isset($laravelClassesMap[$idKelas]) && is_array($laravelClassesMap[$idKelas])) ? $laravelClassesMap[$idKelas] : null;
 
-        // Cari data registrant untuk pendaftaran ini di dalam kelas Laravel
+        // Cari data registrant untuk pendaftaran ini di dalam kelas Laravel saat ini
         $laravelReg = null;
         if ($cData && !empty($cData['registrants']) && is_array($cData['registrants'])) {
             foreach ($cData['registrants'] as $regItem) {
@@ -769,6 +776,44 @@ class Pelatihan extends BaseController
                     }
                 }
             }
+        }
+
+        // JIKA TIDAK DITEMUKAN DI KELAS SAAT INI:
+        // Cek apakah Admin Laravel telah membuat kelas baru atau menempatkan peserta ke kelas privat lain di Laravel
+        if (!$laravelReg && !empty($laravelClassesMap)) {
+            foreach ($laravelClassesMap as $cId => &$otherCData) {
+                if ((int)$cId === $idKelas) {
+                    continue;
+                }
+                // Jika kelas lain belum memuat daftar registrants, muat detailnya dari Laravel API
+                if (empty($otherCData['detail_loaded'])) {
+                    try {
+                        $resOther = $apiService->request('GET', 'classes/' . $cId);
+                        $singleOther = $resOther['data'] ?? $resOther ?? null;
+                        if (!empty($singleOther) && is_array($singleOther) && isset($singleOther['id'])) {
+                            $otherCData = $this->formatKelasFromApi($singleOther);
+                        }
+                    } catch (\Exception $eO) {
+                        // ignore
+                    }
+                }
+
+                if (!empty($otherCData['registrants']) && is_array($otherCData['registrants'])) {
+                    foreach ($otherCData['registrants'] as $rItem) {
+                        if (($rItem['external_registration_id'] ?? '') === $extId) {
+                            $laravelReg = $rItem;
+                            $idKelas = (int)$cId;
+                            $row['id_kelas'] = $idKelas;
+                            $cData = $otherCData;
+                            if ($idPendaftaran > 0) {
+                                $db->table('pendaftaran')->where('id_pendaftaran', $idPendaftaran)->update(['id_kelas' => $idKelas]);
+                            }
+                            break 2;
+                        }
+                    }
+                }
+            }
+            unset($otherCData);
         }
 
         $jenisKelas = trim((string) ($row['jenis_kelas'] ?? ($cData['jenis_kelas'] ?? 'Reguler')));
@@ -826,17 +871,26 @@ class Pelatihan extends BaseController
         if (!$isRejected) {
             if ($isPrivat) {
                 // Untuk Kelas Privat:
-                // Kelas privat baru dianggap disetujui apabila sistem Laravel telah menyetujui kelas privat tersebut
-                // (status kelas menjadi active/approved/ongoing ATAU registrant di Laravel berstatus approved/active ATAU memiliki student_id)
-                $approvedByLaravelClass = in_array($laravelClassStatus, ['approved', 'active', 'ongoing', 'berjalan', 'done', 'completed', 'disetujui'], true);
-                $approvedByLaravelReg   = in_array($laravelRegStatus, ['approved', 'active', 'disetujui'], true)
+                // 1. Admin CI4 memvalidasi pembayaran (status_pembayaran === 'valid')
+                // 2. Admin Laravel menyetujui pembuatan kelas privat (status registrant di Laravel === 'approved' / 'active' / 'confirmed' / 'disetujui')
+                // Keduanya HARUS terpenuhi agar kelas privat menjadi Disetujui.
+                $hasValidPayment = in_array($ciPayStatus, ['valid', 'lunas'], true)
+                    || in_array($laravelPayStatus, ['paid', 'valid', 'lunas'], true);
+
+                $approvedByLaravelReg = in_array($laravelRegStatus, ['approved', 'active', 'confirmed', 'disetujui'], true)
                     || !empty($laravelReg['student_id']);
 
-                if ($approvedByLaravelClass || $approvedByLaravelReg) {
+                $isDedicatedApprovedClass = strtolower(trim((string)($cData['jenis_kelas'] ?? ''))) === 'privat'
+                    && in_array($laravelClassStatus, ['approved', 'active', 'ongoing', 'berjalan', 'completed', 'disetujui'], true)
+                    && $laravelRegStatus !== 'pending';
+
+                $approvedByLaravel = ($approvedByLaravelReg || $isDedicatedApprovedClass);
+
+                if ($hasValidPayment && $approvedByLaravel) {
                     $isApproved = true;
                 } else {
                     $isApproved = false;
-                    // Jika di CI4 sempat tertulis Disetujui padahal Laravel belum menyetujui pembuatan kelas privat, kembalikan ke Menunggu
+                    // Jaga agar status pendaftaran di CI4 tetap 'Menunggu' jika Laravel belum menyetujui kelas privat
                     if ($ciStatusPendaftaran !== 'menunggu' && $idPendaftaran > 0) {
                         $db->table('pendaftaran')->where('id_pendaftaran', $idPendaftaran)->update([
                             'status_pendaftaran' => 'Menunggu',
@@ -1773,8 +1827,17 @@ class Pelatihan extends BaseController
                 }
             }
 
-            // Jika Kelas Privat dan di Laravel status kelasnya masih pending, pembayaran divalidasi namun status kelas tetap Menunggu Persetujuan pembuatan kelas di Laravel
-            $statusPendaftaranBaru = ($isPrivat && $laravelClassStatus === 'pending') ? 'Menunggu' : 'Disetujui';
+            // Jika Kelas Privat dan di Laravel belum disetujui, pembayaran divalidasi namun status pendaftaran tetap Menunggu
+            $isApprovedInLaravel = false;
+            if ($isPrivat && !empty($kelasData['registrants']) && is_array($kelasData['registrants'])) {
+                foreach ($kelasData['registrants'] as $r) {
+                    if (($r['external_registration_id'] ?? '') === 'REG-' . $id_pendaftaran) {
+                        $isApprovedInLaravel = in_array(strtolower(trim((string)($r['status'] ?? ''))), ['approved', 'active', 'confirmed', 'disetujui'], true);
+                        break;
+                    }
+                }
+            }
+            $statusPendaftaranBaru = ($isPrivat && !$isApprovedInLaravel) ? 'Menunggu' : 'Disetujui';
 
             $updateData = [
                 'id_users'           => $userId,
@@ -1998,8 +2061,9 @@ class Pelatihan extends BaseController
         }
         unset($row);
 
-        $data['kelas']   = $kelasSaya;
-        $data['summary'] = $summary;
+        $data['kelas']       = $kelasSaya;
+        $data['daftarKelas'] = $kelasSaya;
+        $data['summary']     = $summary;
 
         return view('peserta/daftar_kelas_peserta', $data);
     }

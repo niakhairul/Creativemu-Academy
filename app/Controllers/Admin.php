@@ -2083,11 +2083,20 @@ $data = [
             $isPrivat = strtolower(trim((string) ($pendaftaran['jenis_kelas'] ?? ($kelasInfo['jenis_kelas'] ?? 'Reguler')))) === 'privat';
             $laravelClassStatus = strtolower(trim((string) ($kelasInfo['status'] ?? '')));
 
-            // Jika Kelas Privat belum disetujui di Laravel (masih pending atau baru akan diajukan), status kelas harus tetap Menunggu Persetujuan Laravel
+            // Jika Kelas Privat belum disetujui di Laravel, status pendaftaran tetap Menunggu Persetujuan Admin Laravel
             $waitingLaravelPrivateApproval = false;
             if ($aksi === 'setuju' && $isPrivat) {
-                $alreadyPrivateInLaravel = strtolower((string) ($kelasInfo['jenis_kelas'] ?? '')) === 'privat';
-                if (!$alreadyPrivateInLaravel || $laravelClassStatus === 'pending' || $laravelClassStatus === '') {
+                $laravelRegSt = '';
+                if (!empty($kelasInfo['registrants']) && is_array($kelasInfo['registrants'])) {
+                    foreach ($kelasInfo['registrants'] as $r) {
+                        if (($r['external_registration_id'] ?? '') === 'REG-' . $id_pendaftaran) {
+                            $laravelRegSt = strtolower(trim((string)($r['status'] ?? '')));
+                            break;
+                        }
+                    }
+                }
+                $isApprovedInLaravel = in_array($laravelRegSt, ['approved', 'active', 'confirmed', 'disetujui'], true);
+                if (!$isApprovedInLaravel) {
                     $waitingLaravelPrivateApproval = true;
                 }
             }
@@ -2281,8 +2290,17 @@ $data = [
 
             $waitingLaravelPrivateApproval = false;
             if ($isDisetujui && $isPrivat) {
-                $alreadyPrivateInLaravel = strtolower((string) ($kelasInfo['jenis_kelas'] ?? '')) === 'privat';
-                if (!$alreadyPrivateInLaravel || $laravelClassStatus === 'pending' || $laravelClassStatus === '') {
+                $laravelRegSt = '';
+                if (!empty($kelasInfo['registrants']) && is_array($kelasInfo['registrants'])) {
+                    foreach ($kelasInfo['registrants'] as $r) {
+                        if (($r['external_registration_id'] ?? '') === 'REG-' . $id_pendaftaran) {
+                            $laravelRegSt = strtolower(trim((string)($r['status'] ?? '')));
+                            break;
+                        }
+                    }
+                }
+                $isApprovedInLaravel = in_array($laravelRegSt, ['approved', 'active', 'confirmed', 'disetujui'], true);
+                if (!$isApprovedInLaravel) {
                     $waitingLaravelPrivateApproval = true;
                 }
             }
