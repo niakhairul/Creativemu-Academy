@@ -979,6 +979,16 @@ class Pelatihan extends BaseController
             $row['keterangan_status']   = !empty($row['alasan_penolakan'])
                 ? ('Alasan penolakan: ' . $row['alasan_penolakan'])
                 : 'Pendaftaran atau pengajuan kelas tidak disetujui oleh Admin.';
+        } elseif ($isPrivat && $hasValidPayment && !$approvedByLaravel) {
+            // KHUSUS KELAS PRIVAT: Pembayaran telah sah dan materi telah di-ACC oleh Admin CI4,
+            // namun kelas privat & jadwalnya sedang disiapkan oleh Admin Laravel di SIM CMU
+            $row['kode_status']         = 'sedang_disiapkan';
+            $row['label_status']        = 'Kelas Sedang Disiapkan';
+            $row['bisa_diakses']        = false;
+            $row['jadwal_tersedia']     = false;
+            $row['tanggal_mulai_kelas'] = null;
+            $row['jadwal_kelas']        = null;
+            $row['keterangan_status']   = 'Pembayaran sah dan materi yang diajukan telah disetujui Admin. Kelas privat dan jadwal belajar Anda saat ini sedang disiapkan oleh tim instruktur.';
         } elseif (!$isApproved) {
             $row['kode_status']         = 'menunggu';
             $row['label_status']        = 'Menunggu Persetujuan';
@@ -2232,6 +2242,8 @@ class Pelatihan extends BaseController
             $kodeStatus = $pendaftaran['kode_status'] ?? 'menunggu';
             if ($kodeStatus === 'ditolak') {
                 $errMsg = 'Akses ditolak: Pendaftaran Anda pada kelas "' . ($pendaftaran['nama_kelas'] ?? 'ini') . '" tidak disetujui.';
+            } elseif ($kodeStatus === 'sedang_disiapkan') {
+                $errMsg = 'Pembayaran sah dan materi telah disetujui Admin. Kelas privat "' . ($pendaftaran['nama_kelas'] ?? 'ini') . '" saat ini sedang disiapkan oleh tim instruktur di SIM CMU. Ruang belajar KBM akan otomatis terbuka setelah kelas siap.';
             } elseif ($kodeStatus === 'disetujui') {
                 $errMsg = 'Pendaftaran kelas "' . ($pendaftaran['nama_kelas'] ?? 'ini') . '" sudah disetujui, namun jadwal kelas belum tersedia. Ruang belajar akan dibuka setelah jadwal diterbitkan.';
             } else {

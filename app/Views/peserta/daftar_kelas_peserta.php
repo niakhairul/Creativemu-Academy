@@ -317,6 +317,7 @@
         }
         .strip-siap_diakses { background: linear-gradient(90deg, #10b981, #059669); }
         .strip-disetujui { background: linear-gradient(90deg, #0ea5e9, #2563eb); }
+        .strip-sedang_disiapkan { background: linear-gradient(90deg, #8b5cf6, #6366f1); }
         .strip-menunggu { background: linear-gradient(90deg, #f59e0b, #d97706); }
         .strip-ditolak { background: linear-gradient(90deg, #ef4444, #dc2626); }
 
@@ -346,6 +347,11 @@
             background: #eff6ff;
             color: #1d4ed8;
             border: 1px solid #bfdbfe;
+        }
+        .status-pill-sedang_disiapkan {
+            background: #f5f3ff;
+            color: #6d28d9;
+            border: 1px solid #ddd6fe;
         }
         .status-pill-menunggu {
             background: #fffbeb;
@@ -721,6 +727,8 @@
                             $statusIcon = 'bi-hourglass-split';
                             if ($kodeStatus === 'siap_diakses') {
                                 $statusIcon = 'bi-play-circle-fill';
+                            } elseif ($kodeStatus === 'sedang_disiapkan') {
+                                $statusIcon = 'bi-gear-wide-connected';
                             } elseif ($kodeStatus === 'disetujui') {
                                 $statusIcon = 'bi-check-circle-fill';
                             } elseif ($kodeStatus === 'ditolak') {
@@ -799,6 +807,8 @@
                                                 <span class="info-label">Instruktur</span>
                                                 <?php if (in_array($kodeStatus, ['siap_diakses', 'disetujui'], true)): ?>
                                                     <span class="info-val"><?= esc(!empty($k['nama_mentor']) && $k['nama_mentor'] !== '-' ? $k['nama_mentor'] : 'Sedang Dijadwalkan') ?></span>
+                                                <?php elseif ($kodeStatus === 'sedang_disiapkan'): ?>
+                                                    <span class="info-val fw-semibold" style="font-size: 11.5px; color: #6d28d9;"><i class="bi bi-person-gear me-1"></i>Sedang Ditentukan</span>
                                                 <?php elseif ($kodeStatus === 'menunggu'): ?>
                                                     <span class="info-val text-muted fw-normal fst-italic" style="font-size: 11.5px;">Menunggu persetujuan</span>
                                                 <?php else: ?>
@@ -820,6 +830,10 @@
                                                         <?php if (!empty($k['waktu_mulai']) && $k['waktu_mulai'] !== '-'): ?>
                                                             <span class="text-muted fw-semibold ms-1">(<?= esc(substr($k['waktu_mulai'], 0, 5)) ?> WIB)</span>
                                                         <?php endif; ?>
+                                                    </span>
+                                                <?php elseif ($kodeStatus === 'sedang_disiapkan'): ?>
+                                                    <span class="info-val fw-semibold" style="font-size: 11.5px; color: #6d28d9;">
+                                                        <i class="bi bi-clock-history me-1"></i>Sedang disiapkan oleh tim instruktur
                                                     </span>
                                                 <?php elseif ($kodeStatus === 'disetujui'): ?>
                                                     <span class="info-val text-primary fw-semibold" style="font-size: 11.5px;">
@@ -843,7 +857,14 @@
                                     </div>
 
                                     <!-- Notice sesuai kondisi status -->
-                                    <?php if ($kodeStatus === 'menunggu'): ?>
+                                    <?php if ($kodeStatus === 'sedang_disiapkan'): ?>
+                                        <div class="status-notice-box" style="background: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; border-radius: 10px; padding: 10px 12px; font-size: 11.5px; display: flex; gap: 8px;">
+                                            <i class="bi bi-gear-wide-connected mt-0.5" style="color: #6d28d9;"></i>
+                                            <div>
+                                                Pembayaran sah & pengajuan materi telah disetujui Admin. Kelas privat dan jadwal belajar saat ini <strong>sedang disiapkan</strong> oleh tim instruktur di SIM CMU.
+                                            </div>
+                                        </div>
+                                    <?php elseif ($kodeStatus === 'menunggu'): ?>
                                         <div class="status-notice-box notice-menunggu">
                                             <i class="bi bi-info-circle-fill mt-0.5"></i>
                                             <div>

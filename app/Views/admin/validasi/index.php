@@ -10,6 +10,9 @@ if (!function_exists('validasi_status_badge')) {
         if ($kodeStatus === 'siap_diakses' || $kodeStatus === 'disetujui') {
             return ['Disetujui', 'success'];
         }
+        if ($kodeStatus === 'sedang_disiapkan') {
+            return ['Kelas Sedang Disiapkan', 'info'];
+        }
         if ($kodeStatus === 'ditolak') {
             return ['Ditolak', 'danger'];
         }
@@ -425,10 +428,10 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                 </td>
                                 <td>
                                     <span class="badge bg-<?= $statusClass; ?> badge-status"><?= esc($statusLabel); ?></span>
-                                    <?php if ($laravelPendingPriv): ?>
+                                    <?php if ($isPrivatRow && $payValidated && !$isApproved): ?>
                                         <div class="mt-1">
-                                            <span class="badge rounded-pill" style="background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;font-size:0.65rem;">
-                                                <i class="fas fa-rotate me-1"></i>Menunggu ACC Laravel
+                                            <span class="badge rounded-pill" style="background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe;font-size:0.65rem;">
+                                                <i class="fas fa-cog fa-spin me-1"></i>Pembayaran Sah & Materi di-ACC
                                             </span>
                                         </div>
                                     <?php endif; ?>
@@ -436,8 +439,8 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                 <td>
                                     <div class="actions">
                                         <button class="btn btn-soft btn-sm" data-bs-toggle="modal" data-bs-target="#<?= $modalId; ?>"><i class="fas fa-eye me-1"></i>Detail</button>
-                                        <?php if (!$isApproved && !($laravelPendingPriv && $payValidated)): ?>
-                                            <a class="btn btn-success btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('Setujui pendaftaran ini dan sinkronkan ke sistem Laravel?')"><i class="fas fa-check me-1"></i><?= $isPrivatRow ? 'Validasi & Sinkron' : 'Setujui'; ?></a>
+                                        <?php if (!$isApproved && !($isPrivatRow && $payValidated)): ?>
+                                            <a class="btn btn-success btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('<?= $isPrivatRow ? 'Terima pembayaran sah dan ACC materi yang diajukan? Data akan dikirim ke Laravel untuk pembuatan kelas privat.' : 'Setujui pendaftaran ini dan sinkronkan ke sistem Laravel?'; ?>')"><i class="fas fa-check me-1"></i><?= $isPrivatRow ? 'Terima & ACC Materi' : 'Setujui'; ?></a>
                                         <?php endif; ?>
                                         <?php if (!$isRejected): ?>
                                             <a class="btn btn-danger btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" onclick="return confirm('Tolak pendaftaran ini? NIS tidak akan dibuat.')"><i class="fas fa-xmark me-1"></i>Tolak</a>
@@ -481,7 +484,7 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                         <div class="card-row"><span>Tanggal Daftar</span><span><?= esc(validasi_tanggal($row['created_at'] ?? null)); ?></span></div>
                         <div class="actions mt-3">
                             <button class="btn btn-soft btn-sm" data-bs-toggle="modal" data-bs-target="#<?= $modalId; ?>">Detail</button>
-                            <?php if (!$isApproved && !($laravelPendingPriv && $payValidated)): ?><a class="btn btn-success btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('Setujui pendaftaran ini dan sinkronkan ke sistem Laravel?')"><?= $isPrivatRow ? 'Validasi & Sinkron' : 'Setujui'; ?></a><?php endif; ?>
+                            <?php if (!$isApproved && !($isPrivatRow && $payValidated)): ?><a class="btn btn-success btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('<?= $isPrivatRow ? 'Terima pembayaran sah dan ACC materi yang diajukan? Data akan dikirim ke Laravel untuk pembuatan kelas privat.' : 'Setujui pendaftaran ini?'; ?>')"><?= $isPrivatRow ? 'Terima & ACC Materi' : 'Setujui'; ?></a><?php endif; ?>
                             <?php if (!$isRejected): ?><a class="btn btn-danger btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" onclick="return confirm('Tolak pendaftaran ini?')">Tolak</a><?php endif; ?>
                         </div>
                     </article>
@@ -621,13 +624,13 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                     <div class="detail-value d-flex flex-wrap align-items-center gap-2 mt-1">
                                         <span class="badge bg-<?= $statusClass; ?> badge-status"><?= esc($statusLabel); ?></span>
                                         <?php if ($isPrivatRow): ?>
-                                            <?php if ($laravelPendingPriv): ?>
-                                                <span class="badge rounded-pill px-3 py-1" style="background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;font-size:0.74rem;">
-                                                    <i class="fas fa-rotate me-1"></i>Tersinkron ke Laravel (ID #<?= (int)($row['id_kelas'] ?? 0) ?>) — Menunggu Persetujuan Pembuatan Kelas Privat di Laravel
+                                            <?php if ($payValidated && !$isApproved): ?>
+                                                <span class="badge rounded-pill px-3 py-1" style="background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe;font-size:0.74rem;">
+                                                    <i class="fas fa-cog fa-spin me-1"></i>Pembayaran Sah & Materi di-ACC — Menunggu Pembuatan Kelas Privat di Laravel
                                                 </span>
                                             <?php elseif ($statusLabel === 'Disetujui'): ?>
                                                 <span class="badge rounded-pill px-3 py-1" style="background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;font-size:0.74rem;">
-                                                    <i class="fas fa-check-double me-1"></i>Disetujui oleh Sistem Laravel
+                                                    <i class="fas fa-check-double me-1"></i>Kelas Privat Telah Dibuat & Disetujui Laravel
                                                 </span>
                                             <?php endif; ?>
                                         <?php endif; ?>
@@ -638,8 +641,8 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                     </div>
                     <div class="modal-footer py-3 px-4 bg-light">
                         <button class="btn btn-soft btn-sm" data-bs-dismiss="modal">Tutup</button>
-                        <?php if ($statusLabel !== 'Disetujui' && !($laravelPendingPriv && $payValidated)): ?>
-                            <a class="btn btn-success btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('Setujui pendaftaran ini dan sinkronkan ke sistem Laravel?')"><?= $isPrivatRow ? 'Validasi Pembayaran & Sinkron ke Laravel' : 'Setujui'; ?></a>
+                        <?php if ($statusLabel !== 'Disetujui' && !($isPrivatRow && $payValidated)): ?>
+                            <a class="btn btn-success btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/setuju'); ?>" onclick="return confirm('<?= $isPrivatRow ? 'Terima pembayaran sah dan ACC materi yang diajukan? Data akan dikirim ke Laravel untuk pembuatan kelas privat.' : 'Setujui pendaftaran ini?'; ?>')"><?= $isPrivatRow ? 'Terima Pembayaran & ACC Materi' : 'Setujui'; ?></a>
                         <?php endif; ?>
                         <?php if ($statusLabel !== 'Ditolak'): ?>
                             <a class="btn btn-danger btn-sm" href="<?= base_url('admin/validasi/update/' . $row['id_pendaftaran'] . '/tolak'); ?>" onclick="return confirm('Tolak pendaftaran ini?')">Tolak</a>

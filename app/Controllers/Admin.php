@@ -2237,7 +2237,7 @@ $data = [
         }
 
         if ($aksi === 'setuju' && !empty($waitingLaravelPrivateApproval)) {
-            $pesan = 'Pembayaran divalidasi (NIS: ' . $nisBaru . ') & permintaan Kelas Privat telah disinkronkan ke sistem Laravel. Status kelas menunggu persetujuan pembuatan kelas privat di Laravel.';
+            $pesan = 'Pembayaran sah & materi yang diajukan telah di-ACC (NIS: ' . $nisBaru . '). Permintaan Kelas Privat telah disinkronkan ke Laravel dan status kelas saat ini sedang disiapkan.';
         } else {
             $pesan = $aksi === 'setuju'
                 ? 'Pendaftaran berhasil disetujui dan disinkronkan ke Laravel. NIS: ' . $nisBaru
@@ -2428,7 +2428,7 @@ $data = [
         }
 
         if ($isDisetujui && !empty($waitingLaravelPrivateApproval)) {
-            $pesan = 'Pembayaran divalidasi (NIS: ' . ($nisBaru ?? '-') . ') & permintaan Kelas Privat telah disinkronkan ke Laravel. Status kelas menunggu persetujuan di Laravel.';
+            $pesan = 'Pembayaran sah & materi yang diajukan telah di-ACC (NIS: ' . ($nisBaru ?? '-') . '). Permintaan Kelas Privat telah disinkronkan ke Laravel dan status kelas saat ini sedang disiapkan.';
         } else {
             $pesan = $isDitolak ? 'Pendaftaran berhasil ditolak.' : 'Pendaftaran berhasil disetujui.';
             if ($isDisetujui && !empty($nisBaru)) {

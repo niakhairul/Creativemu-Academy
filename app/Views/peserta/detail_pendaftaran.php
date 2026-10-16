@@ -44,6 +44,8 @@
                     $bannerStyle = 'background: #fffbeb; border: 1.5px solid #fde68a; color: #92400e;';
                     if ($kodeStatus === 'siap_diakses') {
                         $bannerStyle = 'background: #ecfdf5; border: 1.5px solid #a7f3d0; color: #065f46;';
+                    } elseif ($kodeStatus === 'sedang_disiapkan') {
+                        $bannerStyle = 'background: #f5f3ff; border: 1.5px solid #ddd6fe; color: #5b21b6;';
                     } elseif ($kodeStatus === 'disetujui') {
                         $bannerStyle = 'background: #eff6ff; border: 1.5px solid #bfdbfe; color: #1e40af;';
                     } elseif ($kodeStatus === 'ditolak') {
@@ -132,6 +134,8 @@
                         <td>: 
                             <?php if ($bisaDiakses && !empty($detail['tanggal_mulai_kelas'])): ?>
                                 <strong class="text-success"><?= esc(date('d M Y', strtotime($detail['tanggal_mulai_kelas']))) ?></strong>
+                            <?php elseif ($kodeStatus === 'sedang_disiapkan'): ?>
+                                <span class="fw-semibold" style="color: #6d28d9;"><i class="bi bi-gear-wide-connected me-1"></i>Kelas sedang disiapkan oleh tim instruktur</span>
                             <?php elseif ($kodeStatus === 'disetujui'): ?>
                                 <span class="text-primary fw-semibold">Menunggu penetapan jadwal kelas</span>
                             <?php elseif ($kodeStatus === 'ditolak'): ?>

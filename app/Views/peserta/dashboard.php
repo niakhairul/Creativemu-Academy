@@ -563,6 +563,9 @@
                                             if ($kodeStatusItem === 'siap_diakses' || $kodeStatusItem === 'disetujui') {
                                                 $statusClass = 'status-approved';
                                                 $statusIcon = ($kodeStatusItem === 'siap_diakses') ? 'bi-play-circle-fill' : 'bi-check-circle-fill';
+                                            } elseif ($kodeStatusItem === 'sedang_disiapkan') {
+                                                $statusClass = 'status-pending text-purple';
+                                                $statusIcon = 'bi-gear-wide-connected';
                                             } elseif ($kodeStatusItem === 'ditolak') {
                                                 $statusClass = 'status-rejected';
                                                 $statusIcon = 'bi-x-circle-fill';
@@ -586,6 +589,8 @@
                                                         </div>
                                                         <?php if (!empty($jadwalItem)): ?>
                                                             <span class="text-muted" style="font-size: 11px;"><i class="bi bi-calendar-event me-1"></i> Mulai: <?= esc($jadwalItem) ?></span>
+                                                        <?php elseif ($kodeStatusItem === 'sedang_disiapkan'): ?>
+                                                            <span class="fw-semibold" style="font-size: 11px; color: #6d28d9;"><i class="bi bi-gear-wide-connected me-1"></i> Kelas sedang disiapkan instruktur</span>
                                                         <?php elseif ($kodeStatusItem === 'menunggu'): ?>
                                                             <span class="text-muted" style="font-size: 11px;"><i class="bi bi-hourglass-split me-1"></i> Jadwal ditampilkan setelah disetujui</span>
                                                         <?php elseif ($kodeStatusItem === 'disetujui'): ?>
@@ -675,6 +680,12 @@
                                             <?php endif; ?>
                                         </div>
                                     <?php endforeach; ?>
+                                </div>
+                            <?php elseif (!empty($pendaftaran) && ($pendaftaran['kode_status'] ?? '') === 'sedang_disiapkan'): ?>
+                                <div class="text-center py-4 px-3" style="background: #faf5ff; border-radius: 12px; border: 1px dashed #d8b4fe;">
+                                    <div class="mb-2" style="color: #7c3aed;"><i class="bi bi-gear-wide-connected fs-2"></i></div>
+                                    <h6 class="fw-bold text-dark mb-1" style="font-size: 13.5px;">Kelas Sedang Disiapkan</h6>
+                                    <p class="text-muted small mb-0" style="font-size: 12.5px;">Pembayaran sah dan materi yang diajukan telah disetujui. Kelas privat dan jadwal belajar saat ini sedang disiapkan oleh tim instruktur di SIM CMU.</p>
                                 </div>
                             <?php elseif (!empty($pendaftaran) && ($pendaftaran['kode_status'] ?? '') === 'menunggu'): ?>
                                 <div class="text-center py-4 px-3">
