@@ -47,7 +47,7 @@ class Pelatihan extends BaseController
 
     $pendaftaranModel->insert($dataSimpan);
 
-    return redirect()->to(base_url('pelatihan/daftar-kelas'))->with('success', 'Pendaftaran berhasil! Silakan menunggu validasi admin.');
+    return redirect()->to(base_url('pelatihan/daftar-kelas-peserta'))->with('success', 'Pendaftaran berhasil! Silakan menunggu validasi admin.');
 }
 
     public function sukses()
@@ -1802,9 +1802,9 @@ class Pelatihan extends BaseController
                     ? 'Permintaan pendaftaran Kelas Privat "' . $kelas['nama_kelas'] . '" berhasil dikirim dan berstatus Menunggu Persetujuan. Jadwal dan akses kelas akan dibuka setelah disetujui oleh Admin.'
                     : 'Pendaftaran kelas "' . $kelas['nama_kelas'] . '" berhasil dikirim! Silakan menunggu verifikasi dan persetujuan Admin.';
 
-                // Selalu kembali ke halaman Daftar Kelas dengan notifikasi sukses
+                // Kembali ke halaman Daftar Kelas Saya dengan notifikasi sukses
                 return redirect()
-                    ->to(base_url('pelatihan/daftar-kelas'))
+                    ->to(base_url('pelatihan/daftar-kelas-peserta'))
                     ->with('success', $successMsg);
             } else {
                 $errors = $pendaftaranModel->errors();

@@ -168,11 +168,19 @@
             color: white;
             padding: 22px 26px;
             position: relative;
-            overflow: hidden;
             box-shadow: 0 10px 28px rgba(91, 63, 214, 0.22);
+            overflow: visible; /* Diizinkan visible agar dropdown menu tidak terpotong */
         }
 
-        .header-banner::before {
+        .header-banner .banner-decor-circle {
+            position: absolute;
+            inset: 0;
+            border-radius: 18px;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .header-banner .banner-decor-circle::before {
             content: '';
             position: absolute;
             width: 240px;
@@ -189,7 +197,7 @@
             color: var(--purple-deep);
             font-weight: 700;
             font-size: 13px;
-            padding: 10px 20px;
+            padding: 10px 22px;
             border-radius: 50rem;
             box-shadow: 0 6px 16px rgba(20, 10, 60, 0.16);
             text-decoration: none;
@@ -198,13 +206,219 @@
             gap: 8px;
             transition: all 0.25s ease;
             border: none;
+            cursor: pointer;
         }
 
-        .btn-tambah-kelas:hover {
+        .btn-tambah-kelas:hover, .btn-tambah-kelas:focus {
             background: var(--purple-soft);
             color: var(--purple-deep);
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(20, 10, 60, 0.22);
+        }
+
+        .btn-tambah-kelas.dropdown-toggle::after {
+            margin-left: 6px;
+            vertical-align: middle;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-tambah-kelas.dropdown-toggle[aria-expanded="true"]::after {
+            transform: rotate(180deg);
+        }
+
+        /* Dropdown Menu Pilihan Kelas */
+        .dropdown-pilih-kelas {
+            min-width: 320px;
+            max-width: 360px;
+            border-radius: 20px !important;
+            padding: 10px !important;
+            border: 1px solid rgba(123, 90, 246, 0.16) !important;
+            box-shadow: 0 18px 45px rgba(91, 63, 214, 0.22) !important;
+            background: rgba(255, 255, 255, 0.98) !important;
+            backdrop-filter: blur(14px);
+            margin-top: 10px !important;
+            z-index: 1060;
+            animation: fadeInDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dropdown-item-kelas {
+            padding: 10px 12px !important;
+            border-radius: 14px !important;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            white-space: normal !important;
+        }
+
+        .dropdown-item-kelas:hover {
+            background: #f7f4ff !important;
+            transform: translateY(-1px);
+        }
+
+        .dropdown-item-kelas.item-privat:hover {
+            background: #fdf4fc !important;
+        }
+
+        .dropdown-icon-box {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 20px;
+            transition: transform 0.2s ease;
+        }
+
+        .dropdown-item-kelas:hover .dropdown-icon-box {
+            transform: scale(1.08);
+        }
+
+        .icon-box-reguler {
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            color: #6d28d9;
+        }
+
+        .icon-box-privat {
+            background: linear-gradient(135deg, #fae8ff, #f5d0fe);
+            color: #c026d3;
+        }
+
+        /* Modal Pilihan Kelas */
+        .modal-pilih-kelas .modal-content {
+            border: none;
+            border-radius: 26px;
+            overflow: hidden;
+            box-shadow: 0 25px 70px rgba(91, 63, 214, 0.28);
+        }
+
+        .modal-pilih-header {
+            background: linear-gradient(135deg, #5b3fd6 0%, #7b5af6 48%, #df6be0 100%);
+            padding: 22px 28px;
+            color: white;
+            position: relative;
+        }
+
+        .modal-pilih-body {
+            background: linear-gradient(180deg, #fbfaff 0%, #ffffff 100%);
+            padding: 26px;
+        }
+
+        .choice-card {
+            background: #ffffff;
+            border: 2px solid #ede8f7;
+            border-radius: 20px;
+            padding: 24px 20px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+
+        .choice-card:hover {
+            transform: translateY(-4px);
+            border-color: #7b5af6;
+            box-shadow: 0 14px 34px rgba(123, 90, 246, 0.16);
+        }
+
+        .choice-card.choice-privat {
+            border-color: #fae8ff;
+        }
+
+        .choice-card.choice-privat:hover {
+            border-color: #df6be0;
+            box-shadow: 0 14px 34px rgba(223, 107, 224, 0.18);
+        }
+
+        .choice-icon-circle {
+            width: 58px;
+            height: 58px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+            font-size: 26px;
+        }
+
+        .choice-icon-reguler {
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            color: #6d28d9;
+        }
+
+        .choice-icon-privat {
+            background: linear-gradient(135deg, #fae8ff, #f5d0fe);
+            color: #c026d3;
+        }
+
+        .choice-pill-reguler {
+            background: #ede9fe;
+            color: #6d28d9;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 50rem;
+        }
+
+        .choice-pill-privat {
+            background: #fae8ff;
+            color: #c026d3;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 50rem;
+        }
+
+        .choice-features {
+            list-style: none;
+            padding: 0;
+            margin: 14px 0 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 12.5px;
+            color: #475569;
+        }
+
+        .choice-features li {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .btn-choice-reguler {
+            background: linear-gradient(135deg, #5b3fd6, #7b5af6);
+            color: #ffffff !important;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-choice-reguler:hover {
+            background: linear-gradient(135deg, #4c2fc9, #6d48eb);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(91, 63, 214, 0.28);
+        }
+
+        .btn-choice-privat {
+            background: linear-gradient(135deg, #7b5af6, #df6be0);
+            color: #ffffff !important;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-choice-privat:hover {
+            background: linear-gradient(135deg, #6d48eb, #d553d6);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(223, 107, 224, 0.28);
         }
 
         /* Summary & Filter Bar */
@@ -686,9 +900,37 @@
     <div class="main-content">
         <div class="container-fluid px-0">
             
+            <!-- Flash Message Alert Notification -->
+            <?php if (session()->getFlashdata('success')): ?>
+                <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm border-0 mb-3 d-flex align-items-center" role="alert" style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 1.5px solid #a7f3d0 !important; color: #065f46; padding: 14px 18px;">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle me-3 flex-shrink-0" style="width: 38px; height: 38px; background: #10b981; color: #fff; font-size: 18px;">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <strong class="d-block mb-0.5" style="font-size: 14px;">Pendaftaran Berhasil Dikirim!</strong>
+                        <span style="font-size: 13px; line-height: 1.45;"><?= esc(session()->getFlashdata('success')) ?></span>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+
+            <?php if (session()->getFlashdata('error')): ?>
+                <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm border-0 mb-3 d-flex align-items-center" role="alert" style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 1.5px solid #fecaca !important; color: #991b1b; padding: 14px 18px;">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle me-3 flex-shrink-0" style="width: 38px; height: 38px; background: #ef4444; color: #fff; font-size: 18px;">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <strong class="d-block mb-0.5" style="font-size: 14px;">Perhatian</strong>
+                        <span style="font-size: 13px; line-height: 1.45;"><?= esc(session()->getFlashdata('error')) ?></span>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+
             <!-- Hero Header Banner -->
             <div class="header-banner mb-3">
-                <div class="row align-items-center g-3">
+                <div class="banner-decor-circle"></div>
+                <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
                     <div class="col-lg-8">
                         <span class="badge bg-white bg-opacity-25 text-white px-3 py-1 rounded-pill mb-2 fw-semibold" style="font-size: 11px;">
                             <i class="bi bi-journals me-1"></i> Portal Kelas Pelatihan Peserta
@@ -699,9 +941,58 @@
                         </p>
                     </div>
                     <div class="col-lg-4 text-lg-end">
-                        <a href="<?= base_url('pelatihan/pendaftaran') ?>" class="btn-tambah-kelas">
-                            <i class="bi bi-plus-circle-fill" style="color: var(--color-purple);"></i> Daftar Kelas Baru
-                        </a>
+                        <div class="dropdown d-inline-block">
+                            <button type="button" class="btn-tambah-kelas dropdown-toggle" id="dropdownDaftarKelas" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-plus-circle-fill" style="color: var(--color-purple);"></i>
+                                <span>Daftar Kelas</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end dropdown-pilih-kelas" aria-labelledby="dropdownDaftarKelas">
+                                <li>
+                                    <div class="px-3 pt-2 pb-1">
+                                        <span class="text-uppercase fw-bold text-muted" style="font-size: 11px; letter-spacing: 0.5px;">Pilih Jenis Pelatihan</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item dropdown-item-kelas" href="<?= base_url('pelatihan/pendaftaran?jenis=Reguler') ?>">
+                                        <div class="dropdown-icon-box icon-box-reguler">
+                                            <i class="bi bi-people-fill"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                                <span>1. Kelas Reguler</span>
+                                                <span class="choice-pill-reguler">Form Reguler</span>
+                                            </div>
+                                            <small class="text-muted d-block mt-0.5" style="font-size: 12px; line-height: 1.4;">
+                                                Formulir pendaftaran kelas grup, kurikulum terstruktur & biaya hemat.
+                                            </small>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider my-1 opacity-25"></li>
+                                <li>
+                                    <a class="dropdown-item dropdown-item-kelas item-privat" href="<?= base_url('pelatihan/pendaftaran?jenis=Privat') ?>">
+                                        <div class="dropdown-icon-box icon-box-privat">
+                                            <i class="bi bi-person-fill-lock"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                                <span>2. Kelas Privat</span>
+                                                <span class="choice-pill-privat">Form Privat</span>
+                                            </div>
+                                            <small class="text-muted d-block mt-0.5" style="font-size: 12px; line-height: 1.4;">
+                                                Formulir bimbingan 1-on-1, request materi kustom & jadwal fleksibel.
+                                            </small>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider my-1 opacity-25"></li>
+                                <li>
+                                    <a class="dropdown-item text-center py-2 rounded-3 small fw-bold text-decoration-none" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#modalPilihJenisKelas" style="color: var(--color-purple); font-size: 12px;">
+                                        <i class="bi bi-grid-fill me-1"></i> Buka Panduan & Detail Lengkap
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -916,12 +1207,164 @@
                     <p class="text-muted mb-3 mx-auto" style="max-width: 400px; font-size: 13px;">
                         Anda belum terdaftar di kelas pelatihan reguler maupun privat. Silakan daftar kelas terlebih dahulu untuk mulai belajar.
                     </p>
-                    <a href="<?= base_url('pelatihan/pendaftaran') ?>" class="btn-kbm px-4 py-2.5 rounded-pill d-inline-flex align-items-center shadow-sm" style="font-size: 13px;">
+                    <button type="button" class="btn-kbm px-4 py-2.5 rounded-pill d-inline-flex align-items-center shadow-sm" data-bs-toggle="modal" data-bs-target="#modalPilihJenisKelas" style="font-size: 13px; border: none; cursor: pointer;">
                         <i class="bi bi-plus-circle-fill me-1"></i> Daftar Kelas Sekarang
-                    </a>
+                    </button>
                 </div>
             <?php endif; ?>
 
+        </div>
+    </div>
+</div>
+
+<!-- MODAL POPUP PILIH JENIS KELAS (REGULER / PRIVAT) -->
+<div class="modal fade modal-pilih-kelas" id="modalPilihJenisKelas" tabindex="-1" aria-labelledby="modalPilihJenisKelasLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-pilih-header">
+                <div class="d-flex align-items-start justify-content-between">
+                    <div>
+                        <span class="badge bg-white bg-opacity-25 text-white px-3 py-1 rounded-pill mb-2 fw-semibold" style="font-size: 11px;">
+                            <i class="bi bi-compass me-1"></i> Jalur Pendaftaran Pelatihan
+                        </span>
+                        <h4 class="modal-title fw-bold text-white mb-1" id="modalPilihJenisKelasLabel" style="font-size: 20px;">
+                            <i class="bi bi-grid-fill me-2"></i> Pilih Jenis Kelas Pelatihan
+                        </h4>
+                        <p class="mb-0 text-white text-opacity-85" style="font-size: 13px;">
+                            Pilih jalur belajar yang paling sesuai dengan target dan kenyamanan Anda di Creativemu Academy.
+                        </p>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-pilih-body">
+                <div class="row g-3">
+                    <!-- Pilihan 1: Kelas Reguler -->
+                    <div class="col-md-6">
+                        <div class="choice-card choice-reguler">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="choice-pill-reguler">
+                                    <i class="bi bi-people-fill me-1"></i> Kelas Reguler
+                                </span>
+                                <span class="badge bg-light text-muted border" style="font-size: 10.5px;">Pilihan 1</span>
+                            </div>
+
+                            <div class="choice-icon-circle choice-icon-reguler">
+                                <i class="bi bi-mortarboard-fill"></i>
+                            </div>
+
+                            <h5 class="fw-bold mb-1" style="color: #1e1b4b; font-size: 18px;">Kelas Reguler</h5>
+                            <span class="text-muted fw-semibold" style="font-size: 12px;">Belajar Kelompok & Terjadwal</span>
+
+                            <hr style="margin: 12px 0; opacity: 0.12; border-color: #6d28d9;">
+
+                            <p class="text-muted mb-3" style="font-size: 12.5px; line-height: 1.55;">
+                                Pelatihan berkelompok interaktif dengan kurikulum terstandarisasi, jadwal terstruktur, dan biaya hemat bersama rekan belajar.
+                            </p>
+
+                            <ul class="choice-features">
+                                <li>
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    <span>Belajar interaktif bersama rekan sekelas</span>
+                                </li>
+                                <li>
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    <span>Kurikulum materi terstandarisasi industri</span>
+                                </li>
+                                <li>
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    <span>Jadwal pertemuan resmi & terstruktur</span>
+                                </li>
+                                <li>
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    <span>Biaya pelatihan hemat & bersertifikat resmi</span>
+                                </li>
+                            </ul>
+
+                            <div class="mt-auto pt-2">
+                                <a href="<?= base_url('pelatihan/pendaftaran?jenis=Reguler') ?>" class="btn btn-choice-reguler w-100 py-2.5 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center">
+                                    <span>Formulir Pendaftaran Reguler</span>
+                                    <i class="bi bi-arrow-right-circle-fill ms-2 fs-5"></i>
+                                </a>
+                                <div class="text-center mt-2">
+                                    <a href="<?= base_url('pelatihan/daftar-kelas') ?>" class="small text-decoration-none fw-semibold" style="color: #6d28d9; font-size: 11.5px;">
+                                        <i class="bi bi-collection-play me-1"></i> Atau lihat katalog silabus reguler &rarr;
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pilihan 2: Kelas Privat -->
+                    <div class="col-md-6">
+                        <div class="choice-card choice-privat">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="choice-pill-privat">
+                                    <i class="bi bi-star-fill me-1"></i> 1-on-1 Eksklusif
+                                </span>
+                                <span class="badge bg-light text-muted border" style="font-size: 10.5px;">Pilihan 2</span>
+                            </div>
+
+                            <div class="choice-icon-circle choice-icon-privat">
+                                <i class="bi bi-person-fill-lock"></i>
+                            </div>
+
+                            <h5 class="fw-bold mb-1" style="color: #1e1b4b; font-size: 18px;">Kelas Privat</h5>
+                            <span class="text-muted fw-semibold" style="font-size: 12px;">Bimbingan Personal & Materi Kustom</span>
+
+                            <hr style="margin: 12px 0; opacity: 0.12; border-color: #c026d3;">
+
+                            <p class="text-muted mb-3" style="font-size: 12.5px; line-height: 1.55;">
+                                Bimbingan intensif 1-on-1 bersama instruktur khusus, bebas request materi kustom sesuai kebutuhan Anda, dan jadwal fleksibel.
+                            </p>
+
+                            <ul class="choice-features">
+                                <li>
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    <span>Bimbingan intensif 1-on-1 bersama mentor</span>
+                                </li>
+                                <li>
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    <span>Bebas request materi kustom & materi privat</span>
+                                </li>
+                                <li>
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    <span>Jadwal & waktu belajar fleksibel</span>
+                                </li>
+                                <li>
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    <span>Evaluasi personal & portofolio terarah</span>
+                                </li>
+                            </ul>
+
+                            <div class="mt-auto pt-2">
+                                <a href="<?= base_url('pelatihan/pendaftaran?jenis=Privat') ?>" class="btn btn-choice-privat w-100 py-2.5 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center">
+                                    <span>Formulir Pendaftaran Privat</span>
+                                    <i class="bi bi-arrow-right-circle-fill ms-2 fs-5"></i>
+                                </a>
+                                <div class="text-center mt-2">
+                                    <a href="<?= base_url('pelatihan/kelas-privat') ?>" class="small text-decoration-none fw-semibold" style="color: #c026d3; font-size: 11.5px;">
+                                        <i class="bi bi-info-circle me-1"></i> Atau baca info lengkap kelas privat &rarr;
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer bg-light py-2 px-4 d-flex justify-content-between align-items-center">
+                <span class="small text-muted" style="font-size: 11.5px;">
+                    <i class="bi bi-shield-check text-primary me-1"></i> Pembayaran dan persetujuan kelas terintegrasi aman di Creativemu Academy.
+                </span>
+                <button type="button" class="btn btn-sm btn-outline-secondary px-3 rounded-pill fw-semibold" data-bs-dismiss="modal" style="font-size: 12px;">
+                    Tutup
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -959,18 +1402,15 @@ document.addEventListener('DOMContentLoaded', function () {
 <?php if (session()->getFlashdata('success')): ?>
 <script>
     Swal.fire({
-        toast: true,
-        position: 'top',
         icon: 'success',
-        title: 'Berhasil!',
+        title: 'Pendaftaran Berhasil!',
         text: '<?= addslashes(session()->getFlashdata('success')) ?>',
-        showConfirmButton: false,
-        timer: 3800,
-        timerProgressBar: true,
+        confirmButtonColor: '#7b5af6',
+        confirmButtonText: '<i class="bi bi-check-lg me-1"></i> OK, Mengerti',
         background: '#fff',
         color: '#1e293b',
         customClass: {
-            popup: 'rounded-4 shadow-sm border'
+            popup: 'rounded-4 shadow-lg border-0'
         }
     });
 </script>
@@ -979,18 +1419,15 @@ document.addEventListener('DOMContentLoaded', function () {
 <?php if (session()->getFlashdata('error')): ?>
 <script>
     Swal.fire({
-        toast: true,
-        position: 'top',
         icon: 'error',
         title: 'Perhatian',
         text: '<?= addslashes(session()->getFlashdata('error')) ?>',
-        showConfirmButton: false,
-        timer: 3800,
-        timerProgressBar: true,
+        confirmButtonColor: '#ef4444',
+        confirmButtonText: 'Tutup',
         background: '#fff',
         color: '#1e293b',
         customClass: {
-            popup: 'rounded-4 shadow-sm border'
+            popup: 'rounded-4 shadow-lg border-0'
         }
     });
 </script>
