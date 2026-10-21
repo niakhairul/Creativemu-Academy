@@ -2106,12 +2106,8 @@ $data = [
 
             $dataUpdate = [
                 'status_pembayaran'  => $aksi === 'setuju' ? 'valid' : 'rejected',
-                'status_pendaftaran' => $aksi === 'setuju'
-                    ? ($waitingLaravelPrivateApproval ? 'Menunggu' : 'Disetujui')
-                    : 'Ditolak',
-                'status'             => $aksi === 'setuju'
-                    ? ($waitingLaravelPrivateApproval ? 'Pending' : 'Disetujui')
-                    : 'Ditolak',
+                'status_pendaftaran' => $aksi === 'setuju' ? 'Disetujui' : 'Ditolak',
+                'status'             => $aksi === 'setuju' ? 'Disetujui' : 'Ditolak',
             ];
 
             // Jika disetujui, gunakan satu NIS yang sama untuk peserta dengan email yang sama
@@ -2185,6 +2181,29 @@ $data = [
             $db->table('pendaftaran')
                 ->where('id_pendaftaran', $id_pendaftaran)
                 ->update($dataUpdate);
+
+            // Jika disetujui, sinkronkan juga record pendaftaran duplikat milik peserta ini untuk kelas yang sama yang masih pending
+            if ($aksi === 'setuju') {
+                $syncOther = [
+                    'status_pembayaran'  => 'valid',
+                    'status_pendaftaran' => 'Disetujui',
+                    'status'             => 'Disetujui',
+                ];
+                if (!empty($nisBaru)) {
+                    $syncOther['nis'] = $nisBaru;
+                }
+                if (!empty($userIdPendaftaran)) {
+                    $syncOther['id_users'] = $userIdPendaftaran;
+                }
+                $db->table('pendaftaran')
+                    ->where('id_kelas', $idKelas)
+                    ->where('id_pendaftaran !=', $id_pendaftaran)
+                    ->groupStart()
+                        ->where('email', $pendaftaran['email'])
+                        ->orWhere('id_users', $userIdPendaftaran ?? ($pendaftaran['id_users'] ?? 0))
+                    ->groupEnd()
+                    ->update($syncOther);
+            }
 
             if ($db->transStatus() === false) {
                 $db->transRollback();
@@ -2330,8 +2349,8 @@ $data = [
 
             $dataUpdate = [
                 'status_pembayaran'  => $isDisetujui ? 'valid' : ($isDitolak ? 'rejected' : 'pending'),
-                'status_pendaftaran' => $isDisetujui ? ($waitingLaravelPrivateApproval ? 'Menunggu' : 'Disetujui') : ($isDitolak ? 'Ditolak' : 'Menunggu'),
-                'status'             => $isDisetujui ? ($waitingLaravelPrivateApproval ? 'Pending' : 'Disetujui') : ($isDitolak ? 'Ditolak' : 'Pending'),
+                'status_pendaftaran' => $isDisetujui ? 'Disetujui' : ($isDitolak ? 'Ditolak' : 'Menunggu'),
+                'status'             => $isDisetujui ? 'Disetujui' : ($isDitolak ? 'Ditolak' : 'Pending'),
                 'alasan_penolakan'   => $isDitolak ? $alasan : null,
             ];
 
@@ -2393,6 +2412,29 @@ $data = [
             $berhasilUpdate = $db->table('pendaftaran')
                 ->where('id_pendaftaran', $id_pendaftaran)
                 ->update($dataUpdate);
+
+            // Jika disetujui, sinkronkan juga record pendaftaran duplikat milik peserta ini untuk kelas yang sama yang masih pending
+            if ($isDisetujui) {
+                $syncOther = [
+                    'status_pembayaran'  => 'valid',
+                    'status_pendaftaran' => 'Disetujui',
+                    'status'             => 'Disetujui',
+                ];
+                if (!empty($nisBaru)) {
+                    $syncOther['nis'] = $nisBaru;
+                }
+                if (!empty($userIdPendaftaran)) {
+                    $syncOther['id_users'] = $userIdPendaftaran;
+                }
+                $db->table('pendaftaran')
+                    ->where('id_kelas', $idKelas)
+                    ->where('id_pendaftaran !=', $id_pendaftaran)
+                    ->groupStart()
+                        ->where('email', $pendaftaranLama['email'])
+                        ->orWhere('id_users', $userIdPendaftaran ?? ($pendaftaranLama['id_users'] ?? 0))
+                    ->groupEnd()
+                    ->update($syncOther);
+            }
 
             if (!$berhasilUpdate || $db->transStatus() === false) {
                 $db->transRollback();

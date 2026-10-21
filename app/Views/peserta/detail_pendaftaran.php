@@ -63,7 +63,16 @@
                     </div>
                     <div class="text-md-end">
                         <small class="d-block opacity-75 fw-semibold mb-1">Status Pembayaran:</small>
-                        <span class="badge bg-dark bg-opacity-75 px-3 py-2 rounded-pill"><?= esc(strtoupper($detail['status_pembayaran'] ?? 'PENDING')) ?></span>
+                        <?php 
+                            $rawPaySt = strtolower(trim((string)($detail['status_pembayaran'] ?? 'pending')));
+                            if (in_array($rawPaySt, ['valid', 'disetujui', 'lunas', 'paid'], true)): 
+                        ?>
+                            <span class="badge bg-success px-3 py-2 rounded-pill shadow-sm"><i class="bi bi-check-circle-fill me-1"></i> SUDAH DISETUJUI</span>
+                        <?php elseif (in_array($rawPaySt, ['rejected', 'ditolak', 'failed'], true)): ?>
+                            <span class="badge bg-danger px-3 py-2 rounded-pill shadow-sm"><i class="bi bi-x-circle-fill me-1"></i> DITOLAK</span>
+                        <?php else: ?>
+                            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow-sm"><i class="bi bi-clock-fill me-1"></i> PENDING</span>
+                        <?php endif; ?>
                     </div>
                 </div>
 
