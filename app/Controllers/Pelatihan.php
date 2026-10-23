@@ -789,7 +789,9 @@ class Pelatihan extends BaseController
     }
 
     /**
-     * Memperkaya baris pendaftaran dengan data kelas & jadwal asli dari Laravel,    public function syncAndEnrichPendaftaranRow(array $row, array &$laravelClassesMap, ?\App\Services\LaravelApiService $apiService = null): array
+     * Memperkaya baris pendaftaran dengan data kelas & jadwal asli dari Laravel.
+     */
+    public function syncAndEnrichPendaftaranRow(array $row, array &$laravelClassesMap, ?\App\Services\LaravelApiService $apiService = null): array
     {
         $apiService = $apiService ?? new \App\Services\LaravelApiService();
         $db = \Config\Database::connect();
@@ -2380,35 +2382,9 @@ class Pelatihan extends BaseController
      */
     public function kelasPrivat()
     {
-        $apiService = new \App\Services\LaravelApiService();
-        $data['kelas'] = [];
-        $data['is_privat_page'] = true;
-        
-        try {
-            // Coba ambil kelas dengan filter type/jenis_kelas=Private atau endpoint classes
-            $response = $apiService->request('GET', 'classes', ['type' => 'Private']);
-            $kelasApi = $response['data'] ?? $response ?? [];
-
-            // Jika kosong, coba ambil seluruh classes lalu filter tipe privat / atau ambil trainings privat
-            if (empty($kelasApi) || !is_array($kelasApi)) {
-                $response = $apiService->request('GET', 'classes');
-                $kelasApi = $response['data'] ?? $response ?? [];
-            }
-
-            if (!empty($kelasApi) && is_array($kelasApi)) {
-                foreach ($kelasApi as $k) {
-                    $row = $this->formatKelasFromApi($k);
-                    $row['jenis_kelas'] = 'Privat';
-                    $data['kelas'][] = $row;
-                }
-            }
-        } catch (\Exception $e) {
-            log_message('error', 'Gagal mengambil data kelas privat dari API Laravel: ' . $e->getMessage());
-            $data['kelas'] = [];
-            $data['api_error'] = true;
-        }
-
-        return view('peserta/kelas_privat', $data);
+        // Kelas privat tidak memiliki daftar kelas jadi di awal.
+        // Siswa langsung diarahkan ke form pendaftaran untuk memilih materi pelatihan privat.
+        return redirect()->to(base_url('pelatihan/pendaftaran?jenis=Privat'));
     }
 
     /**

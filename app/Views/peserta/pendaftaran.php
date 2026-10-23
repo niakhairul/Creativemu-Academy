@@ -797,6 +797,7 @@
         $isDefaultPrivat = isset($defaultJenisKelas) && strtolower($defaultJenisKelas) === 'privat';
     ?>
 
+    <?php if (!$isDefaultPrivat): ?>
     <!-- RINGKASAN KELAS TERPILIH (Wide Banner Horizontal) -->
     <div class="class-summary-card">
         <div class="row g-3 align-items-center">
@@ -846,6 +847,8 @@
             </div>
         </div>
     </div>
+
+    <?php endif; ?>
 
     <!-- FORM UTAMA -->
     <form action="<?= base_url('pelatihan/simpan-pendaftaran') ?>" method="post" enctype="multipart/form-data" id="formPendaftaran">
@@ -1173,9 +1176,6 @@
                                         <span>Permintaan Materi Khusus / Catatan Tambahan (Opsional)</span>
                                     </label>
                                     <textarea class="form-control" id="custom_materi" name="custom_materi" rows="3" placeholder="Tuliskan materi spesifik atau topik tambahan yang ingin Anda pelajari secara khusus..." style="font-size: 0.82rem; border-color: var(--purple-border); border-radius: var(--radius-sm);"></textarea>
-                                    <div class="form-text text-muted mt-2 p-2 rounded-2" style="font-size: 0.72rem; background: #ffffff; border: 1px dashed var(--purple-border);">
-                                        <i class="bi bi-hourglass-split me-1 text-warning"></i><strong>Alur Kelas Privat:</strong> Anda mendaftar dengan memilih materi pelatihan. Pendaftaran akan masuk ke Admin CI4 untuk divalidasi. Setelah pembayaran disetujui, data akan dikirim ke Admin Laravel untuk dibuatkan kelas privat.
-                                    </div>
                                 </div>
                             </div>
                         </div>
