@@ -1426,7 +1426,8 @@ class Pelatihan extends BaseController
     public function pendaftaran($id_kelas = null)
     {
         $db = \Config\Database::connect();
-        $userId = method_exists($this, 'userId') ? $this->userId() : session()->get('id_users');
+        $sessionRole = session()->get('role');
+        $userId = ($sessionRole === 'admin') ? null : (method_exists($this, 'userId') ? $this->userId() : session()->get('id_users'));
         $jenisParam = trim((string) $this->request->getGet('jenis'));
         $isModePrivat = (strtolower($jenisParam) === 'privat');
 
@@ -1707,7 +1708,8 @@ class Pelatihan extends BaseController
             ];
 
             // Cek duplikasi pendaftaran privat untuk user ini
-            $userId = method_exists($this, 'userId') ? $this->userId() : session()->get('id_users');
+            $sessionRole = session()->get('role');
+            $userId = ($sessionRole === 'admin') ? null : (method_exists($this, 'userId') ? $this->userId() : session()->get('id_users'));
             if ($userId) {
                 $dupPriv = $db->table('pendaftaran')
                     ->where('id_users', $userId)
@@ -1729,7 +1731,8 @@ class Pelatihan extends BaseController
                     ->with('error', 'Silakan pilih kelas pelatihan terlebih dahulu.');
             }
 
-            $userId = method_exists($this, 'userId') ? $this->userId() : session()->get('id_users');
+            $sessionRole = session()->get('role');
+            $userId = ($sessionRole === 'admin') ? null : (method_exists($this, 'userId') ? $this->userId() : session()->get('id_users'));
             if ($userId) {
                 $dupBuilder = $db->table('pendaftaran')
                     ->where('id_users', $userId)

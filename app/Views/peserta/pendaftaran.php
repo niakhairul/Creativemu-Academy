@@ -920,7 +920,7 @@
                         <div>
                             <h5 class="section-title">Data Pribadi Calon Peserta</h5>
                             <p class="section-subtitle">
-                                <?php if (!empty($user['is_logged_in'])): ?>
+                                <?php if (!empty($user['is_logged_in']) && (session()->get('role') !== 'admin')): ?>
                                     <span class="badge" style="background: var(--purple-subtle); color: var(--purple-primary); font-size: 0.76rem;">
                                         <i class="bi bi-check-circle-fill me-1"></i> Data Terisi Otomatis dari Profil Akun Anda
                                     </span>
@@ -932,7 +932,7 @@
                     </div>
 
                     <?php 
-                        $isLoggedIn = !empty($user['is_logged_in']);
+                        $isLoggedIn = !empty($user['is_logged_in']) && (session()->get('role') !== 'admin');
                         $statusAktif = strtolower($user['pilihan_status'] ?? $user['status'] ?? '');
                         $pendidikanAktif = strtolower($user['pendidikan_terakhir'] ?? '');
                         $genderAktif = strtolower($user['jenis_kelamin'] ?? '');
