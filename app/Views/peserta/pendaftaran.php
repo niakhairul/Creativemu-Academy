@@ -1140,44 +1140,29 @@
                                     <i class="bi bi-book-half text-purple"></i>
                                 </span>
                                 <select class="form-select border-start-0" id="select_materi_privat" name="materi_privat" required onchange="handleSelectMateriPrivat(this)" style="border-radius: 0 var(--radius-md) var(--radius-md) 0; font-weight: 600;">
-                                    <option value="" disabled selected>-- Pilih Materi Pelatihan yang Diinginkan --</option>
+                                    <?php $oldMateri = old('materi_privat'); ?>
+                                    <option value="" disabled <?= empty($oldMateri) ? 'selected' : '' ?>>-- Pilih Materi Pelatihan yang Diinginkan --</option>
                                     <?php if (!empty($materiPrivatList)): ?>
                                         <?php foreach ($materiPrivatList as $mItem): ?>
-                                            <option value="<?= esc($mItem['nama_materi']) ?>">
+                                            <option value="<?= esc($mItem['nama_materi']) ?>" <?= ($oldMateri === $mItem['nama_materi']) ? 'selected' : '' ?>>
                                                 <?= esc($mItem['nama_materi']) ?>
                                             </option>
                                         <?php endforeach; ?>
                                     <?php endif; ?>
+                                    <option value="Custom Materi" <?= ($oldMateri === 'Custom Materi' || !empty(old('custom_materi'))) ? 'selected' : '' ?> style="font-weight: 600; color: var(--purple-primary, #6366f1);">
+                                        ✨ Custom Materi (Tuliskan Materi Sendiri)
+                                    </option>
                                 </select>
                             </div>
-                            <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">
-                                <i class="bi bi-info-circle me-1"></i>Pilih materi yang ingin Anda pelajari secara privat. Kelas privat akan dibuatkan oleh Admin setelah pendaftaran Anda diverifikasi dan disetujui.
-                            </small>
-                        </div>
-
-                        <!-- Permintaan Materi Khusus (Khusus Kelas Privat) -->
-                        <div class="mb-3" id="sectionMateriPrivat">
-                            <div class="p-3 rounded-3" style="background: var(--purple-card-bg); border: 1.5px solid var(--purple-border); box-shadow: 0 4px 15px rgba(122, 63, 242, 0.05);">
-                                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom" style="border-color: rgba(122, 63, 242, 0.12) !important;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="selection-icon me-2" style="width: 34px; height: 34px; font-size: 0.95rem; background: var(--purple-subtle); color: var(--purple-primary); border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;">
-                                            <i class="bi bi-journal-text"></i>
-                                        </div>
-                                        <div>
-                                            <span class="fw-bold d-block" style="font-size: 0.88rem; color: #1e1b4b;">Kustomisasi Materi Tambahan</span>
-                                            <small class="text-muted" style="font-size: 0.72rem;">Ajukan topik atau kebutuhan materi tambahan yang ingin dipelajari secara 1-on-1</small>
-                                        </div>
-                                    </div>
-                                    <span class="badge bg-purple-subtle text-purple" style="font-size: 0.72rem; padding: 5px 10px;">Kelas Privat</span>
-                                </div>
-
-                                <div class="mb-1">
-                                    <label for="custom_materi" class="form-label-custom mb-1" style="font-size: 0.82rem;">
-                                        <span>Permintaan Materi Khusus / Catatan Tambahan (Opsional)</span>
-                                    </label>
-                                    <textarea class="form-control" id="custom_materi" name="custom_materi" rows="3" placeholder="Tuliskan materi spesifik atau topik tambahan yang ingin Anda pelajari secara khusus..." style="font-size: 0.82rem; border-color: var(--purple-border); border-radius: var(--radius-sm);"></textarea>
-                                </div>
+                            
+                            <!-- Input teks jika memilih Custom Materi -->
+                            <div id="wrapCustomMateri" class="mt-2" style="<?= ($oldMateri === 'Custom Materi' || !empty(old('custom_materi'))) ? 'display: block;' : 'display: none;' ?>">
+                                <input type="text" class="form-control" id="custom_materi" name="custom_materi" value="<?= esc(old('custom_materi')) ?>" placeholder="Ketik nama / topik materi privat khusus yang Anda inginkan..." style="border-color: var(--purple-border); border-radius: var(--radius-md); font-size: 0.84rem;">
                             </div>
+
+                            <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">
+                                <i class="bi bi-info-circle me-1"></i>Pilih materi yang ingin Anda pelajari secara privat, atau pilih <strong>Custom Materi</strong> di paling bawah.
+                            </small>
                         </div>
                     <?php else: ?>
                         <!-- Mode Reguler: Pilih Kelas Pelatihan yang Dibuka -->
@@ -1434,14 +1419,29 @@
 function handleSelectMateriPrivat(selectEl) {
     if (!selectEl) return;
     const materiName = selectEl.value;
-    if (!materiName) return;
-
+    const wrapCustom = document.getElementById('wrapCustomMateri');
+    const customInput = document.getElementById('custom_materi');
     const hiddenPelatihan = document.getElementById('hidden_pilihan_pelatihan');
-    if (hiddenPelatihan) hiddenPelatihan.value = materiName;
     const hiddenPilihanKelas = document.getElementById('hidden_pilihan_kelas');
-    if (hiddenPilihanKelas) hiddenPilihanKelas.value = materiName;
     const titleEl = document.getElementById('titleSummaryNamaKelas');
-    if (titleEl) titleEl.textContent = materiName;
+
+    if (materiName === 'Custom Materi') {
+        if (wrapCustom) wrapCustom.style.display = 'block';
+        if (customInput) customInput.focus();
+        const valCustom = customInput ? customInput.value.trim() : '';
+        const displayVal = valCustom || 'Custom Materi Privat';
+        if (hiddenPelatihan) hiddenPelatihan.value = displayVal;
+        if (hiddenPilihanKelas) hiddenPilihanKelas.value = displayVal;
+        if (titleEl) titleEl.textContent = displayVal;
+    } else {
+        if (wrapCustom) wrapCustom.style.display = 'none';
+        if (customInput) customInput.value = '';
+        if (materiName) {
+            if (hiddenPelatihan) hiddenPelatihan.value = materiName;
+            if (hiddenPilihanKelas) hiddenPilihanKelas.value = materiName;
+            if (titleEl) titleEl.textContent = materiName;
+        }
+    }
 }
 
 function handleSelectKelas(selectEl) {
@@ -1504,12 +1504,7 @@ function handleSelectKelas(selectEl) {
 }
 
 function updateBiayaTampil() {
-    const elPrivat = document.getElementById('kelas_privat');
-    const isPrivat = elPrivat ? (elPrivat.checked || elPrivat.value === 'Privat') : false;
-    const sectionMateriPrivat = document.getElementById('sectionMateriPrivat');
-    if (sectionMateriPrivat) {
-        sectionMateriPrivat.style.display = isPrivat ? 'block' : 'none';
-    }
+    // Dipanggil saat jenis kelas berubah
 }
 
 /**
@@ -1770,6 +1765,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 persetujuan.focus();
                 return false;
             }
+
+
         });
     }
 
@@ -1788,11 +1785,32 @@ document.addEventListener("DOMContentLoaded", function() {
         radio.addEventListener('change', updateBiayaTampil);
     });
 
+    const customMateriEl = document.getElementById('custom_materi');
+    if (customMateriEl) {
+        customMateriEl.addEventListener('input', function() {
+            const selectMateri = document.getElementById('select_materi_privat');
+            if (selectMateri && selectMateri.value === 'Custom Materi') {
+                const val = this.value.trim() || 'Custom Materi Privat';
+                const hiddenPelatihan = document.getElementById('hidden_pilihan_pelatihan');
+                const hiddenPilihanKelas = document.getElementById('hidden_pilihan_kelas');
+                const titleEl = document.getElementById('titleSummaryNamaKelas');
+                if (hiddenPelatihan) hiddenPelatihan.value = val;
+                if (hiddenPilihanKelas) hiddenPilihanKelas.value = val;
+                if (titleEl) titleEl.textContent = val;
+            }
+        });
+    }
+
     // Jalankan inisialisasi awal saat load
     updateBiayaTampil();
     updateMateriPills();
     togglePembayaran();
     toggleLokasiPelatihan();
+
+    const selectMateriInit = document.getElementById('select_materi_privat');
+    if (selectMateriInit && selectMateriInit.value) {
+        handleSelectMateriPrivat(selectMateriInit);
+    }
 });
 </script>
 <!-- Modal Perbesar Dokumen -->

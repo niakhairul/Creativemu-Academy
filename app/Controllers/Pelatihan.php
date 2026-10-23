@@ -692,11 +692,14 @@ class Pelatihan extends BaseController
             // Kirim request materi privat ke Laravel (POST /api/private-class-requests)
             $customMateri = trim((string) ($pendaftaran['custom_materi'] ?? ''));
             $materiPrivat = trim((string) ($pendaftaran['materi_privat'] ?? ''));
-            $trainingName = $materiPrivat !== ''
-                ? $materiPrivat
-                : ($customMateri !== ''
-                    ? $customMateri
-                    : ($pendaftaran['pilihan_pelatihan'] ?? $kelas['nama_kelas'] ?? 'Materi Privat'));
+            $isCustom = in_array(strtolower($materiPrivat), ['custom materi', 'custom', 'lainnya'], true);
+            $trainingName = ($isCustom && $customMateri !== '')
+                ? $customMateri
+                : ($materiPrivat !== ''
+                    ? $materiPrivat
+                    : ($customMateri !== ''
+                        ? $customMateri
+                        : ($pendaftaran['pilihan_pelatihan'] ?? $kelas['nama_kelas'] ?? 'Materi Privat')));
 
             $studentId = !empty($pendaftaran['nis']) ? trim((string)$pendaftaran['nis']) : null;
             $price = (float) ($pendaftaran['harga_privat'] ?? $kelas['harga_privat'] ?? 1500000);
@@ -1683,11 +1686,16 @@ class Pelatihan extends BaseController
             // Siswa HANYA memilih materi pelatihan privat, bukan memilih kelas.
             // id_kelas bernilai null dan kelas privat belum dibuat di Laravel.
             $idKelas = null;
-            $namaMateriFinal = $materiPrivatStr ?: ($customMateri ?: trim((string)$this->request->getPost('pilihan_pelatihan')));
-            if (empty($namaMateriFinal)) {
+            if (empty($materiPrivatStr)) {
                 return redirect()->back()
                     ->withInput()
                     ->with('error', 'Silakan pilih materi pelatihan privat yang ingin Anda ikuti.');
+            }
+
+            if ($materiPrivatStr === 'Custom Materi' || strtolower($materiPrivatStr) === 'custom materi') {
+                $namaMateriFinal = ($customMateri !== '') ? $customMateri : 'Custom Materi';
+            } else {
+                $namaMateriFinal = $materiPrivatStr;
             }
             $kelas = [
                 'id_kelas'            => null,
