@@ -852,7 +852,7 @@
         <?= csrf_field() ?>
         
         <!-- Hidden Fields Sistem -->
-        <input type="hidden" name="id_kelas" id="hidden_id_kelas" value="<?= $kelas['id_kelas'] ?? $kelas['id'] ?? ''; ?>">
+        <input type="hidden" name="id_kelas" id="hidden_id_kelas" value="<?= $isDefaultPrivat ? '' : ($kelas['id_kelas'] ?? $kelas['id'] ?? ''); ?>">
         <input type="hidden" name="pilihan_pelatihan" id="hidden_pilihan_pelatihan" value="<?= esc($kelas['nama_kelas'] ?? $kelas['nama'] ?? 'Pelatihan Umum') ?>">
         <input type="hidden" name="pilihan_kelas" id="hidden_pilihan_kelas" value="<?= esc($kelas['nama_kelas'] ?? $kelas['nama'] ?? 'Kelas Umum') ?>">
         <input type="hidden" name="tanggal_mulai_kelas" id="hidden_tanggal_mulai_kelas" value="<?= esc($kelas['tanggal_mulai_kelas'] ?? $kelas['awal_pelatihan'] ?? '') ?>">
@@ -1117,57 +1117,40 @@
                         </div>
                     </div>
 
-                    <!-- 8. PILIH KELAS PELATIHAN DARI DATABASE / API LARAVEL -->
+                    <!-- 8. PILIHAN KELAS (REGULER) ATAU MATERI PELATIHAN (PRIVAT) -->
                     <?php 
                         $isDefaultPrivat = isset($defaultJenisKelas) && strtolower($defaultJenisKelas) === 'privat';
                     ?>
-                    <div class="mb-3">
-                        <label for="select_kelas" class="form-label-custom mb-2">
-                            <span>Pilih Kelas Pelatihan <span class="required-star">*</span></span>
-                            <span class="badge bg-purple-subtle text-purple ms-2" style="font-size: 0.72rem;">Daftar Kelas Dibuka</span>
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0 text-muted" style="border-color: var(--purple-border); border-radius: var(--radius-md) 0 0 var(--radius-md);">
-                                <i class="bi bi-journal-bookmark-fill text-primary"></i>
-                            </span>
-                            <select class="form-select border-start-0" id="select_kelas" name="id_kelas" required onchange="handleSelectKelas(this)" style="border-radius: 0 var(--radius-md) var(--radius-md) 0; font-weight: 600;">
-                                <?php if (!empty($kelasList)): ?>
-                                    <?php foreach ($kelasList as $kOpt): ?>
-                                        <option value="<?= esc($kOpt['id_kelas']) ?>"
-                                            <?= ($kOpt['id_kelas'] == $kelas['id_kelas']) ? 'selected' : '' ?>
-                                            data-nama="<?= esc($kOpt['nama_kelas']) ?>"
-                                            data-kategori="<?= esc($kOpt['kategori'] ?? 'Pelatihan') ?>"
-                                            data-tipe="<?= esc(strtolower($kOpt['tipe_kelas'] ?? 'offline')) ?>"
-                                            data-reguler="<?= (float)($kOpt['harga_reguler'] ?? 0) ?>"
-                                            data-privat="<?= (float)($kOpt['harga_privat'] ?? 0) ?>"
-                                            data-mentor="<?= esc($kOpt['nama_mentor'] ?? 'Mentor Creativemu') ?>"
-                                            data-tanggal="<?= esc($kOpt['tanggal_mulai_kelas'] ?? '-') ?>"
-                                            data-pertemuan="<?= esc($kOpt['jumlah_pertemuan'] ?? '6') ?>"
-                                            data-kuota="<?= esc($kOpt['kapasitas_tersedia'] ?? $kOpt['kapasitas'] ?? '0') ?>">
-                                            <?php if ($isDefaultPrivat): ?>
-                                                <?= esc($kOpt['nama_kelas']) ?>
-                                            <?php else: ?>
-                                                <?= esc($kOpt['nama_kelas']) ?> | Sisa kuota: <?= esc($kOpt['kapasitas_tersedia'] ?? $kOpt['kapasitas'] ?? '0') ?> kursi
-                                            <?php endif; ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <option value="<?= esc($kelas['id_kelas']) ?>" selected>
-                                        <?php if ($isDefaultPrivat): ?>
-                                            <?= esc($kelas['nama_kelas']) ?>
-                                        <?php else: ?>
-                                            <?= esc($kelas['nama_kelas']) ?> | Sisa kuota: <?= esc($kelas['kapasitas_tersedia'] ?? $kelas['kapasitas'] ?? '0') ?> kursi
-                                        <?php endif; ?>
-                                    </option>
-                                <?php endif; ?>
-                            </select>
-                        </div>
-                        <small class="text-muted d-block mt-1" style="font-size: 0.72rem;"><i class="bi bi-info-circle me-1"></i>Menampilkan kelas aktif yang tersedia untuk didaftarkan.</small>
-                    </div>
-
                     <?php if ($isDefaultPrivat): ?>
-                        <!-- Mode Privat: Jenis kelas otomatis terkunci Privat -->
+                        <!-- Mode Privat: Jenis kelas otomatis terkunci Privat & HANYA MEMILIH MATERI PELATIHAN (Bukan Pilih Kelas) -->
                         <input type="hidden" name="jenis_kelas" id="kelas_privat" value="Privat">
+                        <input type="hidden" name="id_kelas" id="hidden_id_kelas" value="">
+
+                        <!-- Pilihan Materi Pelatihan Privat -->
+                        <div class="mb-3">
+                            <label for="select_materi_privat" class="form-label-custom mb-2">
+                                <span>Pilih Materi / Bidang Pelatihan Privat <span class="required-star">*</span></span>
+                                <span class="badge bg-purple-subtle text-purple ms-2" style="font-size: 0.72rem;">Kelas 1-on-1</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted" style="border-color: var(--purple-border); border-radius: var(--radius-md) 0 0 var(--radius-md);">
+                                    <i class="bi bi-book-half text-purple"></i>
+                                </span>
+                                <select class="form-select border-start-0" id="select_materi_privat" name="materi_privat" required onchange="handleSelectMateriPrivat(this)" style="border-radius: 0 var(--radius-md) var(--radius-md) 0; font-weight: 600;">
+                                    <option value="" disabled selected>-- Pilih Materi Pelatihan yang Diinginkan --</option>
+                                    <?php if (!empty($materiPrivatList)): ?>
+                                        <?php foreach ($materiPrivatList as $mItem): ?>
+                                            <option value="<?= esc($mItem['nama_materi']) ?>">
+                                                <?= esc($mItem['nama_materi']) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+                            <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">
+                                <i class="bi bi-info-circle me-1"></i>Pilih materi yang ingin Anda pelajari secara privat. Kelas privat akan dibuatkan oleh Admin setelah pendaftaran Anda diverifikasi dan disetujui.
+                            </small>
+                        </div>
 
                         <!-- Permintaan Materi Khusus (Khusus Kelas Privat) -->
                         <div class="mb-3" id="sectionMateriPrivat">
@@ -1178,58 +1161,63 @@
                                             <i class="bi bi-journal-text"></i>
                                         </div>
                                         <div>
-                                            <span class="fw-bold d-block" style="color: var(--purple-title); font-size: 0.92rem;">Pengajuan Kelas Privat & Materi Khusus</span>
+                                            <span class="fw-bold d-block" style="font-size: 0.88rem; color: #1e1b4b;">Kustomisasi Materi Tambahan</span>
                                             <small class="text-muted" style="font-size: 0.72rem;">Ajukan topik atau kebutuhan materi tambahan yang ingin dipelajari secara 1-on-1</small>
                                         </div>
                                     </div>
                                     <span class="badge bg-purple-subtle text-purple" style="font-size: 0.72rem; padding: 5px 10px;">Kelas Privat</span>
                                 </div>
 
-                                <?php if (!empty($materiPrivatList)): ?>
-                                    <div class="mb-3">
-                                        <label class="form-label-custom mb-1" style="font-size: 0.82rem;">
-                                            <span>Topik Materi Privat Tersedia (Opsional)</span>
-                                        </label>
-                                        <div class="dropdown">
-                                            <button class="btn w-100 text-start d-flex align-items-center justify-content-between bg-white" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="border: 1.5px solid var(--purple-border); border-radius: var(--radius-sm); padding: 9px 12px; font-size: 0.82rem;">
-                                                <span id="labelDropdownMateri"><i class="bi bi-check2-square me-2 text-purple"></i>Pilih satu atau beberapa materi pelatihan...</span>
-                                                <i class="bi bi-chevron-down text-muted small"></i>
-                                            </button>
-                                            <div class="dropdown-menu w-100 p-2 shadow-sm" style="max-height: 220px; overflow-y: auto; border: 1.5px solid var(--purple-border); border-radius: var(--radius-sm);">
-                                                <?php foreach ($materiPrivatList as $idxM => $mItem): ?>
-                                                    <?php $mName = $mItem['nama_materi'] ?? ''; if ($mName === '') continue; ?>
-                                                    <div class="form-check py-1 px-3 rounded-2">
-                                                        <input class="form-check-input materi-checkbox" type="checkbox" name="materi_privat[]" value="<?= esc($mName) ?>" id="materi_priv_<?= $idxM ?>" onchange="updateMateriPills()">
-                                                        <label class="form-check-label small fw-medium d-block" for="materi_priv_<?= $idxM ?>" style="cursor: pointer;">
-                                                            <?= esc($mName) ?>
-                                                        </label>
-                                                    </div>
-                                                <?php endforeach; ?>
-                                            </div>
-                                        </div>
-                                        <div id="materiSelectedContainer" class="mt-2" style="display: none;">
-                                            <small class="text-muted d-block mb-1" style="font-size: 0.72rem;"><span id="materiSelectedCount">0</span> topik dipilih:</small>
-                                            <div id="materiPillList" class="d-flex flex-wrap gap-1"></div>
-                                        </div>
-                                    </div>
-                                <?php endif; ?>
-
                                 <div class="mb-1">
                                     <label for="custom_materi" class="form-label-custom mb-1" style="font-size: 0.82rem;">
-                                        <span>Permintaan Materi Khusus / Custom Materi (Opsional)</span>
+                                        <span>Permintaan Materi Khusus / Catatan Tambahan (Opsional)</span>
                                     </label>
                                     <textarea class="form-control" id="custom_materi" name="custom_materi" rows="3" placeholder="Tuliskan materi spesifik atau topik tambahan yang ingin Anda pelajari secara khusus..." style="font-size: 0.82rem; border-color: var(--purple-border); border-radius: var(--radius-sm);"></textarea>
                                     <div class="form-text text-muted mt-2 p-2 rounded-2" style="font-size: 0.72rem; background: #ffffff; border: 1px dashed var(--purple-border);">
-                                        <i class="bi bi-hourglass-split me-1 text-warning"></i><strong>Alur Kelas Privat:</strong> Pendaftaran Anda akan berstatus <strong>Menunggu Persetujuan</strong> terlebih dahulu. Jadwal kelas dan akses ruang belajar baru akan dibuka setelah pembuatan kelas privat disetujui oleh Admin.
+                                        <i class="bi bi-hourglass-split me-1 text-warning"></i><strong>Alur Kelas Privat:</strong> Anda mendaftar dengan memilih materi pelatihan. Pendaftaran akan masuk ke Admin CI4 untuk divalidasi. Setelah pembayaran disetujui, data akan dikirim ke Admin Laravel untuk dibuatkan kelas privat.
                                     </div>
                                 </div>
                             </div>
                         </div>
                     <?php else: ?>
-                        <!-- Mode Reguler: Jenis kelas otomatis terkunci Reguler tanpa materi privat -->
+                        <!-- Mode Reguler: Pilih Kelas Pelatihan yang Dibuka -->
                         <input type="hidden" name="jenis_kelas" id="kelas_reguler" value="Reguler">
+                        <div class="mb-3">
+                            <label for="select_kelas" class="form-label-custom mb-2">
+                                <span>Pilih Kelas Pelatihan <span class="required-star">*</span></span>
+                                <span class="badge bg-purple-subtle text-purple ms-2" style="font-size: 0.72rem;">Daftar Kelas Dibuka</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted" style="border-color: var(--purple-border); border-radius: var(--radius-md) 0 0 var(--radius-md);">
+                                    <i class="bi bi-journal-bookmark-fill text-primary"></i>
+                                </span>
+                                <select class="form-select border-start-0" id="select_kelas" name="id_kelas" required onchange="handleSelectKelas(this)" style="border-radius: 0 var(--radius-md) var(--radius-md) 0; font-weight: 600;">
+                                    <?php if (!empty($kelasList)): ?>
+                                        <?php foreach ($kelasList as $kOpt): ?>
+                                            <option value="<?= esc($kOpt['id_kelas']) ?>"
+                                                <?= ($kOpt['id_kelas'] == $kelas['id_kelas']) ? 'selected' : '' ?>
+                                                data-nama="<?= esc($kOpt['nama_kelas']) ?>"
+                                                data-kategori="<?= esc($kOpt['kategori'] ?? 'Pelatihan') ?>"
+                                                data-tipe="<?= esc(strtolower($kOpt['tipe_kelas'] ?? 'offline')) ?>"
+                                                data-reguler="<?= (float)($kOpt['harga_reguler'] ?? 0) ?>"
+                                                data-privat="<?= (float)($kOpt['harga_privat'] ?? 0) ?>"
+                                                data-mentor="<?= esc($kOpt['nama_mentor'] ?? 'Mentor Creativemu') ?>"
+                                                data-tanggal="<?= esc($kOpt['tanggal_mulai_kelas'] ?? '-') ?>"
+                                                data-pertemuan="<?= esc($kOpt['jumlah_pertemuan'] ?? '6') ?>"
+                                                data-kuota="<?= esc($kOpt['kapasitas_tersedia'] ?? $kOpt['kapasitas'] ?? '0') ?>">
+                                                <?= esc($kOpt['nama_kelas']) ?> | Sisa kuota: <?= esc($kOpt['kapasitas_tersedia'] ?? $kOpt['kapasitas'] ?? '0') ?> kursi
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <option value="<?= esc($kelas['id_kelas']) ?>" selected>
+                                            <?= esc($kelas['nama_kelas']) ?> | Sisa kuota: <?= esc($kelas['kapasitas_tersedia'] ?? $kelas['kapasitas'] ?? '0') ?> kursi
+                                        </option>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+                            <small class="text-muted d-block mt-1" style="font-size: 0.72rem;"><i class="bi bi-info-circle me-1"></i>Menampilkan kelas aktif yang tersedia untuk didaftarkan.</small>
+                        </div>
                     <?php endif; ?>
-
                     <!-- Metode Pembelajaran (Kategori Kelas Dihapus dari UI) -->
                     <?php 
                         $tipeKelasKelas = strtolower($kelas['tipe_kelas'] ?? 'offline');
@@ -1443,6 +1431,19 @@
 /**
  * Logika pemilihan kelas secara dinamis dari database
  */
+function handleSelectMateriPrivat(selectEl) {
+    if (!selectEl) return;
+    const materiName = selectEl.value;
+    if (!materiName) return;
+
+    const hiddenPelatihan = document.getElementById('hidden_pilihan_pelatihan');
+    if (hiddenPelatihan) hiddenPelatihan.value = materiName;
+    const hiddenPilihanKelas = document.getElementById('hidden_pilihan_kelas');
+    if (hiddenPilihanKelas) hiddenPilihanKelas.value = materiName;
+    const titleEl = document.getElementById('titleSummaryNamaKelas');
+    if (titleEl) titleEl.textContent = materiName;
+}
+
 function handleSelectKelas(selectEl) {
     if (!selectEl) return;
     const opt = selectEl.options[selectEl.selectedIndex];

@@ -2195,14 +2195,16 @@ $data = [
                 if (!empty($userIdPendaftaran)) {
                     $syncOther['id_users'] = $userIdPendaftaran;
                 }
-                $db->table('pendaftaran')
-                    ->where('id_kelas', $idKelas)
-                    ->where('id_pendaftaran !=', $id_pendaftaran)
-                    ->groupStart()
-                        ->where('email', $pendaftaran['email'])
-                        ->orWhere('id_users', $userIdPendaftaran ?? ($pendaftaran['id_users'] ?? 0))
-                    ->groupEnd()
-                    ->update($syncOther);
+                if ($idKelas > 0) {
+                    $db->table('pendaftaran')
+                        ->where('id_kelas', $idKelas)
+                        ->where('id_pendaftaran !=', $id_pendaftaran)
+                        ->groupStart()
+                            ->where('email', $pendaftaran['email'])
+                            ->orWhere('id_users', $userIdPendaftaran ?? ($pendaftaran['id_users'] ?? 0))
+                        ->groupEnd()
+                        ->update($syncOther);
+                }
             }
 
             if ($db->transStatus() === false) {
@@ -2426,14 +2428,16 @@ $data = [
                 if (!empty($userIdPendaftaran)) {
                     $syncOther['id_users'] = $userIdPendaftaran;
                 }
-                $db->table('pendaftaran')
-                    ->where('id_kelas', $idKelas)
-                    ->where('id_pendaftaran !=', $id_pendaftaran)
-                    ->groupStart()
-                        ->where('email', $pendaftaranLama['email'])
-                        ->orWhere('id_users', $userIdPendaftaran ?? ($pendaftaranLama['id_users'] ?? 0))
-                    ->groupEnd()
-                    ->update($syncOther);
+                if ($idKelas > 0) {
+                    $db->table('pendaftaran')
+                        ->where('id_kelas', $idKelas)
+                        ->where('id_pendaftaran !=', $id_pendaftaran)
+                        ->groupStart()
+                            ->where('email', $pendaftaranLama['email'])
+                            ->orWhere('id_users', $userIdPendaftaran ?? ($pendaftaranLama['id_users'] ?? 0))
+                        ->groupEnd()
+                        ->update($syncOther);
+                }
             }
 
             if (!$berhasilUpdate || $db->transStatus() === false) {

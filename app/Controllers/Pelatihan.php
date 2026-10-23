@@ -599,7 +599,7 @@ class Pelatihan extends BaseController
     {
         $apiService = $apiService ?? new \App\Services\LaravelApiService();
         try {
-            $res = $apiService->request('GET', 'classes', ['include_private' => 1]);
+            $res = $apiService->request('GET', 'classes', ['include_private' => 'true']);
             $classes = $res['data'] ?? $res ?? [];
             if (!empty($classes) && is_array($classes)) {
                 $trainingNameLower = strtolower(trim($trainingName));
@@ -632,7 +632,7 @@ class Pelatihan extends BaseController
         $apiService = $apiService ?? new \App\Services\LaravelApiService();
         $map = [];
         try {
-            $response = $apiService->request('GET', 'classes', ['include_private' => 1]);
+            $response = $apiService->request('GET', 'classes', ['include_private' => 'true']);
             $kelasApi = $response['data'] ?? $response ?? [];
             if (!empty($kelasApi) && is_array($kelasApi)) {
                 foreach ($kelasApi as $k) {
@@ -659,18 +659,87 @@ class Pelatihan extends BaseController
     {
         $apiService = $apiService ?? new \App\Services\LaravelApiService();
         $idPendaftaran = (int) ($pendaftaran['id_pendaftaran'] ?? 0);
-        $idKelas = (int) ($pendaftaran['id_kelas'] ?? 0);
-        if ($idPendaftaran <= 0 || $idKelas <= 0) {
+        if ($idPendaftaran <= 0) {
             return $pendaftaran;
         }
 
+        $idKelas = (int) ($pendaftaran['id_kelas'] ?? 0);
         $extId = 'REG-' . $idPendaftaran;
         $jenisKelas = trim((string) ($pendaftaran['jenis_kelas'] ?? ($kelas['jenis_kelas'] ?? 'Reguler')));
         $isPrivat = in_array(strtolower($jenisKelas), ['privat', 'private'], true);
 
+        // Jika bukan privat dan id_kelas belum ada, tidak bisa sync
+        if (!$isPrivat && $idKelas <= 0) {
+            return $pendaftaran;
+        }
+
         $ciStatus = strtolower(trim((string) ($pendaftaran['status_pendaftaran'] ?? 'menunggu')));
         $ciPay    = strtolower(trim((string) ($pendaftaran['status_pembayaran'] ?? 'pending')));
 
+        $isAccAdmin = in_array($ciStatus, ['disetujui', 'approved', 'diterima'], true) && in_array($ciPay, ['valid', 'lunas', 'paid', 'terkonfirmasi'], true);
+
+        // =========================================================================
+        // 1. ALUR KELAS PRIVAT:
+        // HANYA DI-POST KE LARAVEL JIKA SUDAH DIVALIDASI / DI-ACC OLEH ADMIN CI4!
+        // =========================================================================
+        if ($isPrivat) {
+            if (!$isAccAdmin) {
+                // Belum di-ACC oleh Admin CI4 -> JANGAN POST KE LARAVEL!
+                return $pendaftaran;
+            }
+
+            // Sudah di-ACC oleh Admin CI4:
+            // Kirim request materi privat ke Laravel (POST /api/private-class-requests)
+            $customMateri = trim((string) ($pendaftaran['custom_materi'] ?? ''));
+            $materiPrivat = trim((string) ($pendaftaran['materi_privat'] ?? ''));
+            $trainingName = $materiPrivat !== ''
+                ? $materiPrivat
+                : ($customMateri !== ''
+                    ? $customMateri
+                    : ($pendaftaran['pilihan_pelatihan'] ?? $kelas['nama_kelas'] ?? 'Materi Privat'));
+
+            $studentId = !empty($pendaftaran['nis']) ? trim((string)$pendaftaran['nis']) : null;
+            $price = (float) ($pendaftaran['harga_privat'] ?? $kelas['harga_privat'] ?? 1500000);
+            $trainingId = !empty($kelas['training_id']) ? (int)$kelas['training_id'] : null;
+
+            $privPayload = [
+                'external_registration_id' => $extId,
+                'training_id'              => $trainingId,
+                'training_name'            => $trainingName,
+                'student_id'               => $studentId,
+                'name'                     => trim((string)($pendaftaran['nama'] ?? '')),
+                'email'                    => !empty($pendaftaran['email']) ? trim((string)$pendaftaran['email']) : null,
+                'phone'                    => !empty($pendaftaran['no_hp']) ? trim((string)$pendaftaran['no_hp']) : null,
+                'price'                    => $price,
+            ];
+
+            // Request pembuatan kelas privat di Laravel via POST /api/private-class-requests
+            $resPriv = $apiService->requestWithResponse('POST', 'private-class-requests', $privPayload);
+
+            $newClasId = null;
+            if (!empty($resPriv['body']) && is_array($resPriv['body'])) {
+                $bodyData = $resPriv['body']['data'] ?? $resPriv['body'];
+                if (is_array($bodyData)) {
+                    $newClasId = $bodyData['id'] ?? $bodyData['clas_id'] ?? $bodyData['class_id'] ?? null;
+                }
+            }
+
+            if (is_numeric($newClasId) && (int)$newClasId > 0) {
+                $idKelas = (int)$newClasId;
+                $pendaftaran['id_kelas'] = $idKelas;
+                $pendaftaran['sync_status'] = 'synced';
+                \Config\Database::connect()->table('pendaftaran')
+                    ->where('id_pendaftaran', $idPendaftaran)
+                    ->update(['id_kelas' => $idKelas]);
+            }
+
+            return $pendaftaran;
+        }
+
+        // =========================================================================
+        // 2. ALUR KELAS REGULER:
+        // Sinkronkan ke endpoint registrants kelas di Laravel
+        // =========================================================================
         $regStatus = 'pending';
         if (in_array($ciStatus, ['ditolak', 'rejected', 'batal'], true) || in_array($ciPay, ['rejected', 'ditolak'], true)) {
             $regStatus = 'rejected';
@@ -685,90 +754,6 @@ class Pelatihan extends BaseController
             $payStatus = 'paid';
         }
 
-        // 1. Jika Kelas Privat baru dan id_kelas masih merujuk pada kelas template reguler (belum dibuatkan kelas privat di Laravel)
-        $alreadyPrivateInLaravel = in_array(strtolower(trim((string)($kelas['jenis_kelas'] ?? ($kelas['tipe_kelas'] ?? '')))), ['privat', 'private'], true)
-            || (isset($kelas['type']) && strtolower(trim((string)$kelas['type'])) === 'private')
-            || (isset($kelas['training']['jenis_kelas']) && in_array(strtolower(trim((string)$kelas['training']['jenis_kelas'])), ['privat', 'private'], true));
-
-        if ($isPrivat && !$alreadyPrivateInLaravel && $regStatus !== 'rejected') {
-            $customMateri = trim((string) ($pendaftaran['custom_materi'] ?? ''));
-            $materiPrivat = trim((string) ($pendaftaran['materi_privat'] ?? ''));
-            $trainingName = $customMateri !== ''
-                ? $customMateri
-                : ($materiPrivat !== ''
-                    ? $materiPrivat
-                    : ($kelas['kategori'] ?? $pendaftaran['kategori_kelas'] ?? $pendaftaran['pilihan_pelatihan'] ?? 'Kelas Privat'));
-
-            $studentId = !empty($pendaftaran['nis']) ? trim((string)$pendaftaran['nis']) : null;
-            $price = (float) ($kelas['harga_privat'] ?? $kelas['harga_reguler'] ?? 0);
-            $trainingId = !empty($kelas['training_id']) ? (int)$kelas['training_id'] : null;
-            $regionId = !empty($kelas['region_id']) ? (int)$kelas['region_id'] : null;
-
-            $privPayload = [
-                'external_registration_id' => $extId,
-                'training_id'              => $trainingId,
-                'training_name'            => $trainingName,
-                'student_id'               => $studentId,
-                'name'                     => trim((string)($pendaftaran['nama'] ?? '')),
-                'email'                    => !empty($pendaftaran['email']) ? trim((string)$pendaftaran['email']) : null,
-                'phone'                    => !empty($pendaftaran['no_hp']) ? trim((string)$pendaftaran['no_hp']) : null,
-                'price'                    => $price,
-                'region_id'                => $regionId,
-            ];
-
-            // Jalur 1: Coba temukan kelas Private yang sudah ada di Laravel
-            $foundClassId = $this->findMatchingPrivateClassInLaravel($trainingId, $trainingName, $apiService);
-            if ($foundClassId !== null) {
-                $idKelas = $foundClassId;
-                $pendaftaran['id_kelas'] = $idKelas;
-                $pendaftaran['sync_status'] = 'synced';
-                \Config\Database::connect()->table('pendaftaran')
-                    ->where('id_pendaftaran', $idPendaftaran)
-                    ->update(['id_kelas' => $idKelas]);
-            } else {
-                // Jalur 2: Coba request pembuatan kelas privat baru via endpoint API
-                $resPriv = $apiService->requestWithResponse('POST', 'private-class-requests', $privPayload);
-
-                // Periksa ID kelas dari data.id, atau fallback data.clas_id, lalu data.class_id
-                $rawClasId = null;
-                if (!empty($resPriv['body']) && is_array($resPriv['body'])) {
-                    $bodyData = $resPriv['body']['data'] ?? $resPriv['body'];
-                    if (is_array($bodyData)) {
-                        $rawClasId = $bodyData['id'] ?? $bodyData['clas_id'] ?? $bodyData['class_id'] ?? null;
-                    }
-                }
-
-                $newClasId = (is_numeric($rawClasId) && (int)$rawClasId > 0) ? (int)$rawClasId : null;
-
-                if ($newClasId !== null) {
-                    $idKelas = $newClasId;
-                    $pendaftaran['id_kelas'] = $idKelas;
-                    $pendaftaran['sync_status'] = 'synced';
-                    \Config\Database::connect()->table('pendaftaran')
-                        ->where('id_pendaftaran', $idPendaftaran)
-                        ->update(['id_kelas' => $idKelas]);
-                } else {
-                    // Jalur 3 (Fallback Cerdas):
-                    // Jika endpoint pembuatan kelas privat otomatis di Laravel merespons error (misal 500 karena kolom user_id belum diset di sisi Laravel),
-                    // sistem CI4 tetap menyambungkan pendaftaran siswa ke kelas terpilih ($idKelas) di Laravel sebagai registrant
-                    // dengan membawa metadata jenis_kelas: Privat dan materi yang dipilih, sehingga data pendaftaran siswa tetap aman
-                    // tersimpan di Laravel dan dapat diproses oleh admin kantor tanpa kendala.
-                    $errMsg = $resPriv['message'] ?? 'Endpoint private-class-requests di Laravel merespons ' . ($resPriv['status'] ?? 'unknown');
-                    log_message('info', "Pendaftaran [{$extId}]: {$errMsg}. Melanjutkan sinkronisasi registrant ke kelas ID {$idKelas} di Laravel.");
-                }
-            }
-        }
-
-        // Untuk Kelas Privat: Jika pembayaran sudah valid (disetujui admin CI4), status registrant di Laravel adalah confirmed
-        if ($isPrivat && $regStatus !== 'rejected') {
-            if ($payStatus === 'paid' || in_array($ciStatus, ['disetujui', 'approved'], true)) {
-                $regStatus = 'confirmed';
-            } else {
-                $regStatus = 'pending';
-            }
-        }
-
-        // 2. Sinkronkan ke endpoint registrants kelas di Laravel (Idempotent berdasarkan external_registration_id)
         $studentId = !empty($pendaftaran['nis']) ? trim((string)$pendaftaran['nis']) : null;
         $regPayload = [
             'external_registration_id' => $extId,
@@ -783,10 +768,8 @@ class Pelatihan extends BaseController
             'metadata'                 => [
                 'id_pendaftaran'      => $idPendaftaran,
                 'id_users'            => $pendaftaran['id_users'] ?? null,
-                'jenis_kelas'         => $isPrivat ? 'Privat' : 'Reguler',
+                'jenis_kelas'         => 'Reguler',
                 'kategori_kelas'      => $pendaftaran['kategori_kelas'] ?? ($kelas['kategori'] ?? null),
-                'materi_privat'       => $pendaftaran['materi_privat'] ?? null,
-                'custom_materi'       => $pendaftaran['custom_materi'] ?? null,
                 'metode_pembelajaran' => $pendaftaran['metode_pembelajaran'] ?? null,
                 'lokasi_pelatihan'    => $pendaftaran['lokasi_pelatihan'] ?? null,
                 'metode_pembayaran'   => $pendaftaran['metode_pembayaran'] ?? null,
@@ -799,7 +782,6 @@ class Pelatihan extends BaseController
         if ($resReg['success']) {
             $pendaftaran['sync_status'] = 'synced';
         } else {
-            log_message('warning', "Pendaftaran [{$extId}]: Sinkronisasi registrant ke kelas {$idKelas} belum berhasil (HTTP {$resReg['status']}): {$resReg['message']}");
             $pendaftaran['sync_status'] = 'failed';
         }
 
@@ -807,14 +789,7 @@ class Pelatihan extends BaseController
     }
 
     /**
-     * Memperkaya baris pendaftaran dengan data kelas & jadwal asli dari Laravel,
-     * menyinkronkan status persetujuan antara Laravel dan CI4, serta menentukan 4 status kelas:
-     * 1. menunggu     -> Menunggu Persetujuan (jadwal & akses disembunyikan)
-     * 2. disetujui    -> Disetujui (sudah disetujui namun jadwal belum tersedia, akses disembunyikan)
-     * 3. siap_diakses -> Siap Diakses (sudah disetujui DAN jadwal kelas tersedia, akses dibuka)
-     * 4. ditolak      -> Ditolak (jadwal & akses disembunyikan)
-     */
-    public function syncAndEnrichPendaftaranRow(array $row, array &$laravelClassesMap, ?\App\Services\LaravelApiService $apiService = null): array
+     * Memperkaya baris pendaftaran dengan data kelas & jadwal asli dari Laravel,    public function syncAndEnrichPendaftaranRow(array $row, array &$laravelClassesMap, ?\App\Services\LaravelApiService $apiService = null): array
     {
         $apiService = $apiService ?? new \App\Services\LaravelApiService();
         $db = \Config\Database::connect();
@@ -906,7 +881,7 @@ class Pelatihan extends BaseController
         $row['jenis_kelas'] = $isPrivat ? 'Privat' : 'Reguler';
 
         // Jika kelas ditemukan di Laravel namun pendaftaran ini belum tercatat di registrants Laravel (atau kelas privat belum diajukan), sinkronkan otomatis
-        if ($cData && !empty($cData['detail_loaded']) && !$laravelReg && $idPendaftaran > 0) {
+        if (!$isPrivat && $cData && !empty($cData['detail_loaded']) && !$laravelReg && $idPendaftaran > 0) {
             $row = $this->syncRegistrationToLaravel($row, $cData, $apiService);
             $newIdKelas = (int) ($row['id_kelas'] ?? 0);
             if ($newIdKelas > 0 && $newIdKelas !== $idKelas) {
@@ -1493,7 +1468,7 @@ class Pelatihan extends BaseController
         $materiPrivatList = [];
         $materiApiError = null;
         try {
-            $responseMateri = $apiService->request('GET', 'trainings?jenis_kelas=Private');
+            $responseMateri = $apiService->request('GET', 'trainings');
             $trainingsData = $responseMateri['data'] ?? $responseMateri ?? [];
             if (!empty($trainingsData) && is_array($trainingsData)) {
                 $seenNames = [];
@@ -1558,39 +1533,56 @@ class Pelatihan extends BaseController
             }
         }
 
-        // Jika tidak ada kelas aktif yang tersedia untuk diambil user ini
-        if (empty($availableClasses)) {
-            if ($userId) {
-                return redirect()->to(base_url('pelatihan/daftar-kelas-peserta'))
-                    ->with('error', 'Saat ini tidak ada kelas tambahan yang tersedia untuk didaftarkan atau Anda telah mengikuti semua kelas aktif.');
-            } else {
-                return redirect()->to(base_url('pelatihan/daftar-kelas'))
-                    ->with('error', 'Saat ini belum ada kelas pelatihan aktif yang dibuka.');
-            }
-        }
-
-        // Tentukan kelas yang terpilih (default atau dari ID URL)
+        // Penentuan kelas terpilih untuk Reguler atau default materi untuk Privat
         $selectedKelas = null;
-        if ($id_kelas !== null) {
-            if ($userId && in_array((int)$id_kelas, $takenClassIds, true)) {
-                return redirect()->to(base_url('pelatihan/daftar-kelas-peserta'))
-                    ->with('error', 'Anda sudah terdaftar di kelas tersebut. Silakan pilih kelas lainnya.');
-            }
-
-            foreach ($availableClasses as $ac) {
-                if ((int)$ac['id_kelas'] === (int)$id_kelas) {
-                    $selectedKelas = $ac;
-                    break;
+        if ($isModePrivat) {
+            $defaultMateri = !empty($materiPrivatList[0]['nama_materi']) ? $materiPrivatList[0]['nama_materi'] : 'Pelatihan Privat';
+            $selectedKelas = [
+                'id_kelas'            => '',
+                'id'                  => '',
+                'nama_kelas'          => $defaultMateri,
+                'kategori'            => 'Privat',
+                'tipe_kelas'          => 'offline',
+                'harga_reguler'       => 0,
+                'harga_privat'        => 1500000,
+                'nama_mentor'         => 'Ditentukan Admin Laravel',
+                'tanggal_mulai_kelas' => '-',
+                'jumlah_pertemuan'    => '1',
+                'kapasitas'           => 1,
+                'kapasitas_tersedia'  => 1,
+            ];
+        } else {
+            // Jika tidak ada kelas aktif yang tersedia untuk diambil user ini
+            if (empty($availableClasses)) {
+                if ($userId) {
+                    return redirect()->to(base_url('pelatihan/daftar-kelas-peserta'))
+                        ->with('error', 'Saat ini tidak ada kelas tambahan yang tersedia untuk didaftarkan atau Anda telah mengikuti semua kelas aktif.');
+                } else {
+                    return redirect()->to(base_url('pelatihan/daftar-kelas'))
+                        ->with('error', 'Saat ini belum ada kelas pelatihan aktif yang dibuka.');
                 }
             }
 
-            if (!$selectedKelas) {
+            if ($id_kelas !== null) {
+                if ($userId && in_array((int)$id_kelas, $takenClassIds, true)) {
+                    return redirect()->to(base_url('pelatihan/daftar-kelas-peserta'))
+                        ->with('error', 'Anda sudah terdaftar di kelas tersebut. Silakan pilih kelas lainnya.');
+                }
+
+                foreach ($availableClasses as $ac) {
+                    if ((int)$ac['id_kelas'] === (int)$id_kelas) {
+                        $selectedKelas = $ac;
+                        break;
+                    }
+                }
+
+                if (!$selectedKelas) {
+                    $selectedKelas = $availableClasses[0];
+                }
+            } else {
                 $selectedKelas = $availableClasses[0];
             }
-        } else {
-            $selectedKelas = $availableClasses[0];
         }
-
         // 3. Ambil data akun dan riwayat profil peserta login secara dinamis
         $userData = [
             'is_logged_in'        => false,
@@ -1664,66 +1656,110 @@ class Pelatihan extends BaseController
         $pendaftaranModel = new \App\Models\PendaftaranModel();
 
         // =========================================================
-        // 1. CEK ID KELAS & CEK DUPLIKASI PENDAFTARAN
+        // 1. CEK PILIHAN PELATIHAN / KELAS & CEK DUPLIKASI
         // =========================================================
-        $idKelas = $this->request->getPost('id_kelas');
-        if (!$idKelas) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Silakan pilih kelas pelatihan terlebih dahulu.');
-        }
-
         $jenisKelas = trim((string) $this->request->getPost('jenis_kelas')) ?: 'Reguler';
         $isPrivat   = (strtolower($jenisKelas) === 'privat');
         $jenisKelas = $isPrivat ? 'Privat' : 'Reguler';
 
-        $userId = method_exists($this, 'userId') ? $this->userId() : session()->get('id_users');
-        if ($userId) {
-            $dupBuilder = $db->table('pendaftaran')
-                ->where('id_users', $userId)
-                ->where('id_kelas', $idKelas)
-                ->whereNotIn('status_pendaftaran', ['Ditolak', 'ditolak', 'Rejected', 'rejected']);
+        $idKelas = $this->request->getPost('id_kelas');
+        $idKelas = (is_numeric($idKelas) && (int)$idKelas > 0) ? (int)$idKelas : null;
 
-            if ($isPrivat) {
-                $dupBuilder->where('jenis_kelas', 'Privat');
+        $materiPrivatPost = $this->request->getPost('materi_privat');
+        $customMateri     = trim((string)$this->request->getPost('custom_materi'));
+        $materiPrivatStr  = null;
+        if (!empty($materiPrivatPost)) {
+            if (is_array($materiPrivatPost)) {
+                $materiPrivatStr = implode(', ', array_filter(array_map('trim', $materiPrivatPost)));
             } else {
-                $dupBuilder->where('jenis_kelas !=', 'Privat');
-            }
-
-            if ($dupBuilder->countAllResults() > 0) {
-                return redirect()->to(base_url('pelatihan/daftar-kelas-peserta'))
-                    ->with('error', 'Anda sudah terdaftar di kelas ini. Tidak dapat mendaftarkan kelas yang sama dua kali.');
+                $materiPrivatStr = trim((string)$materiPrivatPost);
             }
         }
 
-        // Ambil data kelas dari API Laravel sebagai sumber utama (atau fallback database lokal)
-        $kelas = null;
-        try {
-            $apiService = new \App\Services\LaravelApiService();
-            $resApi = $apiService->request('GET', 'classes/' . $idKelas);
-            $kApi = $resApi['data'] ?? $resApi ?? [];
-            if (!empty($kApi) && isset($kApi['id'])) {
-                $kelas = $this->formatKelasFromApi($kApi);
+        if ($isPrivat) {
+            // ALUR KELAS PRIVAT:
+            // Siswa HANYA memilih materi pelatihan privat, bukan memilih kelas.
+            // id_kelas bernilai null dan kelas privat belum dibuat di Laravel.
+            $idKelas = null;
+            $namaMateriFinal = $materiPrivatStr ?: ($customMateri ?: trim((string)$this->request->getPost('pilihan_pelatihan')));
+            if (empty($namaMateriFinal)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Silakan pilih materi pelatihan privat yang ingin Anda ikuti.');
             }
-        } catch (\Exception $e) {
-            log_message('error', 'Gagal memuat kelas dari API pada simpanPendaftaran: ' . $e->getMessage());
-        }
+            $kelas = [
+                'id_kelas'            => null,
+                'nama_kelas'          => $namaMateriFinal,
+                'kategori'            => 'Privat',
+                'tipe_kelas'          => 'offline',
+                'kapasitas'           => 1,
+                'tanggal_mulai_kelas' => null,
+            ];
 
-        if (!$kelas) {
-            $kelas = $db->table('kelas')
-                ->where('id_kelas', $idKelas)
-                ->get()
-                ->getRowArray();
-        }
+            // Cek duplikasi pendaftaran privat untuk user ini
+            $userId = method_exists($this, 'userId') ? $this->userId() : session()->get('id_users');
+            if ($userId) {
+                $dupPriv = $db->table('pendaftaran')
+                    ->where('id_users', $userId)
+                    ->where('jenis_kelas', 'Privat')
+                    ->where('pilihan_pelatihan', $namaMateriFinal)
+                    ->whereNotIn('status_pendaftaran', ['Ditolak', 'ditolak', 'Rejected', 'rejected'])
+                    ->countAllResults();
+                if ($dupPriv > 0) {
+                    return redirect()->to(base_url('pelatihan/daftar-kelas-peserta'))
+                        ->with('error', 'Anda sudah mengajukan pendaftaran kelas privat untuk materi ini. Silakan tunggu proses verifikasi admin.');
+                }
+            }
+        } else {
+            // ALUR KELAS REGULER:
+            // Wajib memilih kelas aktif
+            if (!$idKelas) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Silakan pilih kelas pelatihan terlebih dahulu.');
+            }
 
-        if (!$kelas) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Data kelas pelatihan tidak ditemukan.');
-        }
+            $userId = method_exists($this, 'userId') ? $this->userId() : session()->get('id_users');
+            if ($userId) {
+                $dupBuilder = $db->table('pendaftaran')
+                    ->where('id_users', $userId)
+                    ->where('id_kelas', $idKelas)
+                    ->whereNotIn('status_pendaftaran', ['Ditolak', 'ditolak', 'Rejected', 'rejected'])
+                    ->where('jenis_kelas !=', 'Privat');
 
-        // Cek kapasitas kelas yang tersedia (Hanya untuk Kelas Reguler)
-        if (!$isPrivat) {
+                if ($dupBuilder->countAllResults() > 0) {
+                    return redirect()->to(base_url('pelatihan/daftar-kelas-peserta'))
+                        ->with('error', 'Anda sudah terdaftar di kelas ini. Tidak dapat mendaftarkan kelas yang sama dua kali.');
+                }
+            }
+
+            // Ambil data kelas dari API Laravel sebagai sumber utama (atau fallback database lokal)
+            $kelas = null;
+            try {
+                $apiService = new \App\Services\LaravelApiService();
+                $resApi = $apiService->request('GET', 'classes/' . $idKelas);
+                $kApi = $resApi['data'] ?? $resApi ?? [];
+                if (!empty($kApi) && isset($kApi['id'])) {
+                    $kelas = $this->formatKelasFromApi($kApi);
+                }
+            } catch (\Exception $e) {
+                log_message('error', 'Gagal memuat kelas dari API pada simpanPendaftaran: ' . $e->getMessage());
+            }
+
+            if (!$kelas) {
+                $kelas = $db->table('kelas')
+                    ->where('id_kelas', $idKelas)
+                    ->get()
+                    ->getRowArray();
+            }
+
+            if (!$kelas) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Data kelas pelatihan tidak ditemukan.');
+            }
+
+            // Cek kapasitas kelas yang tersedia
             $jumlahDisetujui = $db->table('pendaftaran')
                 ->where('id_kelas', $idKelas)
                 ->where('status_pembayaran', 'valid')
@@ -1736,7 +1772,6 @@ class Pelatihan extends BaseController
                     ->with('error', 'Maaf, kapasitas kelas "' . $kelas['nama_kelas'] . '" sudah penuh.');
             }
         }
-
         // =========================================================
         // 2. AMBIL & SANITASI INPUT FORM (TANPA UPLOAD PAS FOTO)
         // =========================================================
@@ -1931,7 +1966,14 @@ class Pelatihan extends BaseController
                 $savedRow['id_pendaftaran'] = (int) $insertId;
 
                 // Sinkronisasi data pendaftaran ke Laravel API tanpa duplikasi
-                $this->syncRegistrationToLaravel($savedRow, $kelas);
+                // Sinkronisasi data pendaftaran ke Laravel API:
+                // HANYA UNTUK KELAS REGULER!
+                // Untuk Kelas Privat: data HANYA disimpan di database lokal CI4 (Menunggu & Pending).
+                // TIDAK DI-POST KE LARAVEL saat siswa mendaftar!
+                // Data kelas privat BARU di-post ke Laravel setelah divalidasi dan di-ACC oleh Admin CI4.
+                if (!$isPrivat && !empty($savedRow['id_kelas'])) {
+                    $this->syncRegistrationToLaravel($savedRow, $kelas);
+                }
 
                 $successMsg = $isPrivat
                     ? 'Permintaan pendaftaran Kelas Privat "' . $kelas['nama_kelas'] . '" berhasil dikirim dan berstatus Menunggu Persetujuan. Jadwal dan akses kelas akan dibuka setelah disetujui oleh Admin.'
