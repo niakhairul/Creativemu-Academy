@@ -214,8 +214,18 @@
                 </div>
 
                 <?php if(session()->getFlashdata('error')) : ?>
-                    <div class="alert alert-danger border-0 rounded-3 small mb-3">
-                        <?= session()->getFlashdata('error') ?>
+                    <div class="alert alert-danger border-0 rounded-3 small mb-3 py-2">
+                        <i class="fas fa-exclamation-circle me-1"></i> <?= session()->getFlashdata('error') ?>
+                    </div>
+                <?php endif; ?>
+                <?php if(session()->getFlashdata('success')) : ?>
+                    <div class="alert alert-success border-0 rounded-3 small mb-3 py-2">
+                        <i class="fas fa-check-circle me-1"></i> <?= session()->getFlashdata('success') ?>
+                    </div>
+                <?php endif; ?>
+                <?php if(session()->getFlashdata('info')) : ?>
+                    <div class="alert alert-info border-0 rounded-3 small mb-3 py-2">
+                        <i class="fas fa-info-circle me-1"></i> <?= session()->getFlashdata('info') ?>
                     </div>
                 <?php endif; ?>
 
@@ -223,8 +233,9 @@
                     <?= csrf_field() ?>
 
                     <div class="mb-3">
-    <label class="form-label">Nama Lengkap</label>
-    <input type="text" name="nama" class="form-control" placeholder="Masukkan Nama Lengkap" required>
+                        <label class="form-label">Nama Lengkap</label>
+                        <input type="text" name="nama" class="form-control" placeholder="Masukkan Nama Lengkap" value="<?= esc(old('nama')) ?>" required>
+                    </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -237,13 +248,13 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Nomor HP</label>
-                            <input type="text" name="no_hp" class="form-control" placeholder="08..." required>
+                            <input type="text" name="no_hp" class="form-control" placeholder="08..." value="<?= esc(old('no_hp')) ?>" required>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control" placeholder="nama@email.com" required>
+                        <input type="email" name="email" class="form-control" placeholder="nama@email.com" value="<?= esc(old('email')) ?>" required>
                     </div>
 
                     <div class="row">

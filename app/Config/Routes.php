@@ -50,7 +50,8 @@ $routes->match(['get', 'post'], 'pelatihan/proses-upload-ulang/(:num)', 'Pelatih
 $routes->match(['get', 'post'], 'pelatihan/upload[-_]ulang/(:num)', 'Pelatihan::uploadUlang/$1');
 
 // Controller alternatif register
-$routes->post('pelatihan/register', 'PelatihanController::register');
+$routes->match(['get', 'post'], 'pelatihan/register/save', 'Auth::save');
+$routes->post('pelatihan/register', 'Auth::save');
 
 $routes->get('pelatihan/daftar-kelas-peserta', 'Pelatihan::daftarKelasPeserta');
 $routes->get('pelatihan/tambah-kelas', 'Pelatihan::tambahKelas');

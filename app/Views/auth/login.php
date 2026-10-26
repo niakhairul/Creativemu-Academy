@@ -409,6 +409,12 @@
                     </div>
                 <?php endif; ?>
 
+                <?php if(session()->getFlashdata('info')) : ?>
+                    <div class="alert alert-info border-0 shadow-sm rounded-3 small mb-3 py-2">
+                        <i class="fas fa-info-circle me-1"></i> <?= session()->getFlashdata('info') ?>
+                    </div>
+                <?php endif; ?>
+
                 <h1 class="form-heading">Selamat Datang</h1>
                 <p class="form-subheading">Silakan masukkan akun Anda untuk melanjutkan</p>
 

@@ -106,9 +106,54 @@ class Auth extends BaseController
         // 2. Validasi keberadaan akun
         if (!$user) {
             log_message('warning', "Login failed: Email not found [{$cleanEmail}] from IP: " . $this->request->getIPAddress());
+
+            // Cek apakah email terdaftar di data pendaftaran kelas
+            if ($db->tableExists('pendaftaran')) {
+                $pendaftaranList = $db->table('pendaftaran')
+                    ->where('LOWER(email)', $cleanEmail)
+                    ->orderBy('id_pendaftaran', 'DESC')
+                    ->get()
+                    ->getResultArray();
+
+                if (!empty($pendaftaranList)) {
+                    $hasApproved = false;
+                    $hasPending  = false;
+                    foreach ($pendaftaranList as $p) {
+                        $stDaftar = strtolower(trim((string) ($p['status_pendaftaran'] ?? '')));
+                        $stBayar  = strtolower(trim((string) ($p['status_pembayaran'] ?? '')));
+                        if (in_array($stDaftar, ['disetujui', 'approved'], true) || in_array($stBayar, ['valid', 'disetujui', 'approved'], true)) {
+                            $hasApproved = true;
+                            break;
+                        } elseif (in_array($stDaftar, ['menunggu', 'pending'], true) || in_array($stBayar, ['pending', 'menunggu'], true)) {
+                            $hasPending = true;
+                        }
+                    }
+
+                    if ($hasApproved) {
+                        return redirect()->to(base_url('pelatihan/register'))
+                            ->with('error', 'Pendaftaran Anda telah disetujui Admin! Silakan lakukan registrasi akun terlebih dahulu untuk membuat kata sandi Anda.');
+                    }
+
+                    if ($hasPending) {
+                        return redirect()->back()
+                            ->withInput()
+                            ->with('error', 'Pendaftaran kelas Anda masih dalam proses verifikasi Admin. Anda baru dapat melakukan registrasi akun dan login setelah pendaftaran disetujui.');
+                    }
+                }
+            }
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Email tidak ditemukan.');
+        }
+
+        // 2b. Khusus Peserta: Cegah login jika akun masih menggunakan password placeholder default '123456' dari validasi Admin
+        // Peserta wajib registrasi mandiri terlebih dahulu untuk membuat kata sandi sendiri
+        $roleUser = strtolower(trim((string) ($user['role'] ?? 'peserta')));
+        $storedPassCheck = (string) ($user['password'] ?? '');
+        if ($roleUser === 'peserta' && password_verify('123456', $storedPassCheck)) {
+            return redirect()->to(base_url('pelatihan/register'))
+                ->with('error', 'Pendaftaran Anda telah disetujui Admin! Silakan lakukan registrasi akun terlebih dahulu untuk membuat kata sandi baru sebelum login.');
         }
 
         // 3. Verifikasi Password Standar menggunakan password_verify()
@@ -233,8 +278,58 @@ class Auth extends BaseController
         }
 
         $db = \Config\Database::connect();
+        $cleanEmail = strtolower(trim((string)$email));
 
-        // Ambil ID user terakhir untuk menentukan ID berikutnya
+        // Validasi Alur Pendaftaran:
+        // Peserta HANYA dapat melakukan registrasi akun setelah pendaftaran kelasnya disetujui / divalidasi oleh Admin.
+        if ($db->tableExists('pendaftaran')) {
+            $pendaftaranList = $db->table('pendaftaran')
+                ->where('LOWER(email)', $cleanEmail)
+                ->orderBy('id_pendaftaran', 'DESC')
+                ->get()
+                ->getResultArray();
+
+            if (empty($pendaftaranList)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Email belum terdaftar pada formulir pendaftaran kelas pelatihan. Silakan mendaftar kelas terlebih dahulu di katalog Daftar Kelas.');
+            }
+
+            $hasApproved = false;
+            $hasPending  = false;
+            $hasRejected = false;
+
+            foreach ($pendaftaranList as $p) {
+                $stDaftar = strtolower(trim((string) ($p['status_pendaftaran'] ?? '')));
+                $stBayar  = strtolower(trim((string) ($p['status_pembayaran'] ?? '')));
+                if (in_array($stDaftar, ['disetujui', 'approved'], true) || in_array($stBayar, ['valid', 'disetujui', 'approved'], true)) {
+                    $hasApproved = true;
+                    break;
+                } elseif (in_array($stDaftar, ['menunggu', 'pending'], true) || in_array($stBayar, ['pending', 'menunggu'], true)) {
+                    $hasPending = true;
+                } elseif (in_array($stDaftar, ['ditolak', 'rejected'], true)) {
+                    $hasRejected = true;
+                }
+            }
+
+            if (!$hasApproved) {
+                if ($hasPending) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->with('error', 'Pendaftaran kelas Anda masih dalam proses verifikasi dan validasi Admin. Anda baru dapat melakukan registrasi akun setelah pendaftaran disetujui.');
+                }
+                if ($hasRejected) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->with('error', 'Pendaftaran kelas Anda ditolak oleh Admin. Silakan hubungi admin atau mendaftar kembali kelas yang tersedia.');
+                }
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Pendaftaran kelas Anda belum disetujui oleh Admin.');
+            }
+        }
+
+        // Ambil ID user terakhir untuk menentukan ID berikutnya jika butuh insert baru
         $lastUser = $db->table('users')
             ->selectMax('id_users')
             ->get()
@@ -242,65 +337,77 @@ class Auth extends BaseController
 
         $nextId = ((int) ($lastUser['id_users'] ?? 0)) + 1;
 
-        // Cek apakah email sudah terdaftar
+        // Cek apakah email sudah terdaftar di tabel users
         $cekEmail = $db->table('users')
-            ->where('LOWER(email)', strtolower($email))
+            ->where('LOWER(email)', $cleanEmail)
             ->get()
             ->getRowArray();
 
         if ($cekEmail) {
-            // Jika akun ini hanya placeholder pendaftaran dengan password default '123456', perbarui akun & password resminya
+            // Jika akun ini berupa placeholder pendaftaran dengan password default '123456', perbarui akun & password resminya
             $existingPass = (string) ($cekEmail['password'] ?? '');
             if (password_verify('123456', $existingPass)) {
+                $updateUser = [
+                    'nama'          => trim($nama),
+                    'jenis_kelamin' => $jenisKelamin,
+                    'no_hp'         => $no_hp,
+                    'password'      => password_hash($password, PASSWORD_DEFAULT),
+                ];
+                if ($db->fieldExists('updated_at', 'users')) {
+                    $updateUser['updated_at'] = date('Y-m-d H:i:s');
+                }
+
                 $db->table('users')
                     ->where('id_users', $cekEmail['id_users'])
-                    ->update([
-                        'nama'          => trim($nama),
-                        'jenis_kelamin' => $jenisKelamin,
-                        'no_hp'         => $no_hp,
-                        'password'      => password_hash($password, PASSWORD_DEFAULT),
-                        'updated_at'    => date('Y-m-d H:i:s'),
-                    ]);
+                    ->update($updateUser);
 
                 // Tautkan data pendaftaran kelas yang sebelumnya menggunakan email ini
-                $db->table('pendaftaran')
-                    ->where('LOWER(email)', strtolower($email))
-                    ->update(['id_users' => $cekEmail['id_users']]);
+                if ($db->tableExists('pendaftaran')) {
+                    $db->table('pendaftaran')
+                        ->where('LOWER(email)', $cleanEmail)
+                        ->update(['id_users' => $cekEmail['id_users']]);
+                }
 
                 return redirect()
                     ->to(base_url('pelatihan/login'))
-                    ->with('success', 'Registrasi berhasil! Silakan login dengan akun Anda.');
+                    ->with('success', 'Registrasi berhasil! Akun Anda telah aktif, silakan login dengan email dan password Anda.');
             }
 
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Email sudah terdaftar, silakan gunakan email lain atau langsung login.');
+                ->with('error', 'Email sudah terdaftar dan akun Anda sudah aktif. Silakan langsung login dengan password Anda.');
         }
 
-        // Data yang akan disimpan ke database
+        // Data yang akan disimpan ke database jika akun users belum ada
         $dataSimpan = [
             'id_users'      => $nextId,
             'nama'          => trim($nama),
             'jenis_kelamin' => $jenisKelamin,
             'no_hp'         => $no_hp,
-            'email'         => strtolower(trim($email)),
+            'email'         => $cleanEmail,
             'password'      => password_hash($password, PASSWORD_DEFAULT),
             'role'          => 'peserta',
-            'created_at'    => date('Y-m-d H:i:s'),
-            'updated_at'    => date('Y-m-d H:i:s'),
         ];
+        if ($db->fieldExists('created_at', 'users')) {
+            $dataSimpan['created_at'] = date('Y-m-d H:i:s');
+        }
+        if ($db->fieldExists('updated_at', 'users')) {
+            $dataSimpan['updated_at'] = date('Y-m-d H:i:s');
+        }
 
         // Proses insert ke tabel users
         $db->table('users')->insert($dataSimpan);
 
         // Tautkan data pendaftaran kelas yang sebelumnya menggunakan email ini
-        $db->table('pendaftaran')
-            ->where('LOWER(email)', strtolower($email))
-            ->where('id_users IS NULL', null, false)
-            ->update(['id_users' => $nextId]);
+        if ($db->tableExists('pendaftaran')) {
+            $db->table('pendaftaran')
+                ->where('LOWER(email)', $cleanEmail)
+                ->where('id_users IS NULL', null, false)
+                ->update(['id_users' => $nextId]);
+        }
 
         return redirect()
             ->to(base_url('pelatihan/login'))
-            ->with('success', 'Registrasi berhasil! Silakan login.');
+            ->with('success', 'Registrasi berhasil! Akun Anda telah aktif, silakan login dengan email dan password Anda.');
     }
 }

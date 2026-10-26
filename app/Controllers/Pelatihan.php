@@ -2037,40 +2037,13 @@ class Pelatihan extends BaseController
                 }
 
                 $successMsg = $isPrivat
-                    ? 'Permintaan pendaftaran Kelas Privat "' . $kelas['nama_kelas'] . '" berhasil dikirim dan berstatus Menunggu Persetujuan. Jadwal dan akses kelas akan dibuka setelah disetujui oleh Admin.'
-                    : 'Pendaftaran kelas "' . $kelas['nama_kelas'] . '" berhasil dikirim! Silakan menunggu verifikasi dan persetujuan Admin.';
+                    ? 'Permintaan pendaftaran Kelas Privat "' . $kelas['nama_kelas'] . '" berhasil dikirim dan berstatus Menunggu Persetujuan. Silakan menunggu verifikasi dan validasi Admin. Setelah pendaftaran disetujui, silakan lakukan registrasi akun terlebih dahulu untuk membuat kata sandi Anda.'
+                    : 'Pendaftaran kelas "' . $kelas['nama_kelas'] . '" berhasil dikirim! Silakan menunggu verifikasi dan validasi Admin. Setelah pendaftaran disetujui, silakan lakukan registrasi akun terlebih dahulu untuk membuat kata sandi Anda.';
 
-                // Jika user sedang login, langsung arahkan ke halaman Daftar Kelas Saya
-                if (session()->get('logged_in')) {
-                    return redirect()
-                        ->to(base_url('pelatihan/daftar-kelas-peserta'))
-                        ->with('success', $successMsg);
-                }
-
-                // Jika user belum login, tetapi emailnya terdaftar di tabel users, aktifkan sesi login otomatis
-                if ($userId) {
-                    $u = $db->table('users')->where('id_users', $userId)->get()->getRowArray();
-                    if ($u) {
-                        session()->set([
-                            'id_users'    => (int) $u['id_users'],
-                            'id'          => (int) $u['id_users'],
-                            'nama'        => $u['nama'] ?? $nama,
-                            'email'       => $u['email'],
-                            'no_hp'       => $u['no_hp'] ?? '',
-                            'foto_profil' => $u['foto_profil'] ?? null,
-                            'role'        => $u['role'] ?? 'peserta',
-                            'logged_in'   => true,
-                        ]);
-                        return redirect()
-                            ->to(base_url('pelatihan/daftar-kelas-peserta'))
-                            ->with('success', $successMsg);
-                    }
-                }
-
-                // Jika calon peserta belum memiliki akun, arahkan ke login dengan notifikasi sukses ramah
+                // Selalu arahkan ke halaman Daftar Kelas setelah mengirim formulir pendaftaran
                 return redirect()
-                    ->to(base_url('pelatihan/login'))
-                    ->with('success', $successMsg . ' Silakan masuk ke akun Anda untuk memantau status kelas.');
+                    ->to(base_url('pelatihan/daftar-kelas'))
+                    ->with('success', $successMsg);
             } else {
                 $errors = $pendaftaranModel->errors();
                 return redirect()->back()
