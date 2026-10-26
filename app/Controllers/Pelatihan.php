@@ -2558,6 +2558,11 @@ class Pelatihan extends BaseController
                 'metode_pembelajaran' => $pendaftaran['metode_pembelajaran'] ?? null,
             ];
 
+        $kelas['nis'] = $pendaftaran['nis'] ?? null;
+        $kelas['id_pendaftaran'] = $pendaftaran['id_pendaftaran'] ?? null;
+        $kelas['id_users'] = $pendaftaran['id_users'] ?? null;
+        $kelas['student_id'] = !empty($pendaftaran['nis']) && $pendaftaran['nis'] !== '-' ? (string)$pendaftaran['nis'] : null;
+
         // 3. Ambil data seluruh sesi dan absensi resmi dari Laravel & sinkronisasi peserta
         $jadwal = $this->getSessionsAndAttendanceForClass((int)$idKelas, (int)$userId, $kelas);
 
@@ -2741,17 +2746,38 @@ class Pelatihan extends BaseController
         // Ambil info berkas nilai dari instruktur via API Laravel
         $grade_file_result = null;
         if ($kelas && !empty($kelas['id_kelas'])) {
-            $studentIdentifier = !empty($kelas['student_id'])
-                ? (string) $kelas['student_id']
-                : (!empty($kelas['nis']) && $kelas['nis'] !== '-'
-                    ? (string) $kelas['nis']
-                    : (!empty($kelas['id_pendaftaran'])
-                        ? 'REG-' . $kelas['id_pendaftaran']
-                        : (string) ($kelas['id_users'] ?? session()->get('id_users') ?? '')));
+            $studentIdentifier = !empty($pendaftaran['nis']) && $pendaftaran['nis'] !== '-'
+                ? (string) $pendaftaran['nis']
+                : (!empty($pendaftaran['student_id'])
+                    ? (string) $pendaftaran['student_id']
+                    : (!empty($kelas['nis']) && $kelas['nis'] !== '-'
+                        ? (string) $kelas['nis']
+                        : (!empty($kelas['student_id'])
+                            ? (string) $kelas['student_id']
+                            : (!empty($pendaftaran['id_pendaftaran'])
+                                ? 'REG-' . $pendaftaran['id_pendaftaran']
+                                : (string) ($pendaftaran['id_users'] ?? session()->get('id_users') ?? '')))));
 
             try {
                 $apiService = new \App\Services\LaravelApiService();
                 $grade_file_result = $apiService->getGradeFiles((int)$kelas['id_kelas'], $studentIdentifier);
+
+                if (($grade_file_result['status_code'] ?? 0) === 403) {
+                    $fallbackCandidates = array_unique(array_filter([
+                        !empty($pendaftaran['nis']) && $pendaftaran['nis'] !== '-' ? (string)$pendaftaran['nis'] : null,
+                        !empty($pendaftaran['id_pendaftaran']) ? 'REG-' . $pendaftaran['id_pendaftaran'] : null,
+                        (string)($pendaftaran['id_users'] ?? session()->get('id_users') ?? ''),
+                    ]));
+                    foreach ($fallbackCandidates as $candidate) {
+                        if ($candidate !== $studentIdentifier) {
+                            $retry = $apiService->getGradeFiles((int)$kelas['id_kelas'], $candidate);
+                            if (!empty($retry['file']) || ($retry['status_code'] ?? 0) === 200) {
+                                $grade_file_result = $retry;
+                                break;
+                            }
+                        }
+                    }
+                }
             } catch (\Throwable $eGf) {
                 log_message('warning', 'Pelatihan::kelas getGradeFiles error: ' . $eGf->getMessage());
             }
@@ -3731,16 +3757,33 @@ class Pelatihan extends BaseController
         }
 
         // Mengambil informasi file nilai dari API Laravel
-        $studentIdentifier = !empty($kelas['student_id'])
-            ? (string) $kelas['student_id']
-            : (!empty($kelas['nis']) && $kelas['nis'] !== '-'
-                ? (string) $kelas['nis']
+        $studentIdentifier = !empty($kelas['nis']) && $kelas['nis'] !== '-'
+            ? (string) $kelas['nis']
+            : (!empty($kelas['student_id'])
+                ? (string) $kelas['student_id']
                 : (!empty($kelas['id_pendaftaran'])
                     ? 'REG-' . $kelas['id_pendaftaran']
                     : (string) ($kelas['id_users'] ?? session()->get('id_users') ?? '')));
 
         $apiService = new \App\Services\LaravelApiService();
         $gradeFileResult = $apiService->getGradeFiles((int)($kelas['id_kelas'] ?? 0), $studentIdentifier);
+
+        if (($gradeFileResult['status_code'] ?? 0) === 403) {
+            $fallbackCandidates = array_unique(array_filter([
+                !empty($kelas['nis']) && $kelas['nis'] !== '-' ? (string)$kelas['nis'] : null,
+                !empty($kelas['id_pendaftaran']) ? 'REG-' . $kelas['id_pendaftaran'] : null,
+                (string)($kelas['id_users'] ?? session()->get('id_users') ?? ''),
+            ]));
+            foreach ($fallbackCandidates as $candidate) {
+                if ($candidate !== $studentIdentifier) {
+                    $retry = $apiService->getGradeFiles((int)($kelas['id_kelas'] ?? 0), $candidate);
+                    if (!empty($retry['file']) || ($retry['status_code'] ?? 0) === 200) {
+                        $gradeFileResult = $retry;
+                        break;
+                    }
+                }
+            }
+        }
 
         return view('peserta/ujian', [
             'title'             => 'Ujian Peserta',
@@ -3946,10 +3989,10 @@ public function simpanJawabanUjian()
                 ->with('error', 'Anda tidak memiliki akses ke kelas ini.');
         }
 
-        $studentIdentifier = !empty($kelas['student_id'])
-            ? (string) $kelas['student_id']
-            : (!empty($kelas['nis']) && $kelas['nis'] !== '-'
-                ? (string) $kelas['nis']
+        $studentIdentifier = !empty($kelas['nis']) && $kelas['nis'] !== '-'
+            ? (string) $kelas['nis']
+            : (!empty($kelas['student_id'])
+                ? (string) $kelas['student_id']
                 : (!empty($kelas['id_pendaftaran'])
                     ? 'REG-' . $kelas['id_pendaftaran']
                     : (string) ($kelas['id_users'] ?? session()->get('id_users') ?? '')));
@@ -3957,6 +4000,25 @@ public function simpanJawabanUjian()
         $apiService = new \App\Services\LaravelApiService();
 
         $fileInfo = $apiService->getGradeFiles((int)$idKelas, $studentIdentifier);
+
+        if (($fileInfo['status_code'] ?? 0) === 403) {
+            $fallbackCandidates = array_unique(array_filter([
+                !empty($kelas['nis']) && $kelas['nis'] !== '-' ? (string)$kelas['nis'] : null,
+                !empty($kelas['id_pendaftaran']) ? 'REG-' . $kelas['id_pendaftaran'] : null,
+                (string)($kelas['id_users'] ?? session()->get('id_users') ?? ''),
+            ]));
+            foreach ($fallbackCandidates as $candidate) {
+                if ($candidate !== $studentIdentifier) {
+                    $retry = $apiService->getGradeFiles((int)$idKelas, $candidate);
+                    if (!empty($retry['file']) || ($retry['status_code'] ?? 0) === 200) {
+                        $fileInfo = $retry;
+                        $studentIdentifier = $candidate;
+                        break;
+                    }
+                }
+            }
+        }
+
         $fileName = $fileInfo['file']['file_name'] ?? ('file-nilai-kelas-' . $idKelas . '.pdf');
 
         if (empty($gradeFileId)) {
@@ -3972,6 +4034,18 @@ public function simpanJawabanUjian()
         }
 
         $downloadResult = $apiService->downloadGradeFile((int)$idKelas, $gradeFileId, $studentIdentifier);
+
+        if (!$downloadResult['success'] && ($downloadResult['status_code'] ?? 0) === 403 && !empty($fallbackCandidates)) {
+            foreach ($fallbackCandidates as $candidate) {
+                if ($candidate !== $studentIdentifier) {
+                    $retryDl = $apiService->downloadGradeFile((int)$idKelas, $gradeFileId, $candidate);
+                    if (!empty($retryDl['success'])) {
+                        $downloadResult = $retryDl;
+                        break;
+                    }
+                }
+            }
+        }
 
         if (!$downloadResult['success']) {
             if ($downloadResult['status_code'] === 403) {
