@@ -147,11 +147,15 @@ class Auth extends BaseController
                 ->with('error', 'Email tidak ditemukan.');
         }
 
-        // 2b. Khusus Peserta: Cegah login jika akun masih menggunakan password placeholder default '123456' dari validasi Admin
+        // 2b. Khusus Peserta: Cegah login jika akun masih menggunakan password placeholder default ('123456' / '12345678') dari validasi Admin atau sinkronisasi API
         // Peserta wajib registrasi mandiri terlebih dahulu untuk membuat kata sandi sendiri
         $roleUser = strtolower(trim((string) ($user['role'] ?? 'peserta')));
         $storedPassCheck = (string) ($user['password'] ?? '');
-        if ($roleUser === 'peserta' && password_verify('123456', $storedPassCheck)) {
+        $isPlaceholder = password_verify('123456', $storedPassCheck)
+            || password_verify('12345678', $storedPassCheck)
+            || in_array($storedPassCheck, ['123456', '12345678', md5('123456'), md5('12345678')], true);
+
+        if ($roleUser === 'peserta' && $isPlaceholder) {
             return redirect()->to(base_url('pelatihan/register'))
                 ->with('error', 'Pendaftaran Anda telah disetujui Admin! Silakan lakukan registrasi akun terlebih dahulu untuk membuat kata sandi baru sebelum login.');
         }
@@ -344,9 +348,14 @@ class Auth extends BaseController
             ->getRowArray();
 
         if ($cekEmail) {
-            // Jika akun ini berupa placeholder pendaftaran dengan password default '123456', perbarui akun & password resminya
             $existingPass = (string) ($cekEmail['password'] ?? '');
-            if (password_verify('123456', $existingPass)) {
+            $isPlaceholder = password_verify('123456', $existingPass)
+                || password_verify('12345678', $existingPass)
+                || in_array($existingPass, ['123456', '12345678', md5('123456'), md5('12345678')], true);
+
+            // Jika akun ini berupa placeholder pendaftaran dengan password default sistem ('123456' atau '12345678'),
+            // perbarui akun & password resminya sesuai yang diisi peserta saat registrasi
+            if ($isPlaceholder) {
                 $updateUser = [
                     'nama'          => trim($nama),
                     'jenis_kelamin' => $jenisKelamin,

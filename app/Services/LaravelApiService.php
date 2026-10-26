@@ -249,7 +249,7 @@ class LaravelApiService
                         'id_users'   => $nextUserId,
                         'nama'       => substr($name, 0, 50),
                         'email'      => substr($rawEmail, 0, 30),
-                        'password'   => password_hash('12345678', PASSWORD_BCRYPT),
+                        'password'   => password_hash('123456', PASSWORD_BCRYPT),
                         'role'       => 'peserta',
                         'no_hp'      => $phone,
                         'created_at' => date('Y-m-d H:i:s'),
