@@ -3230,7 +3230,14 @@ class Pelatihan extends BaseController
 
         $targetLat       = (float) (!empty($jadwal['latitude']) ? $jadwal['latitude'] : $lokasiInfo['latitude']);
         $targetLng       = (float) (!empty($jadwal['longitude']) ? $jadwal['longitude'] : $lokasiInfo['longitude']);
-        $radiusToleransi = (int) (!empty($jadwal['radius_meter']) ? $jadwal['radius_meter'] : ($lokasiInfo['radius_meter'] ?? 100));
+        $radiusToleransi = (int) (!empty($jadwal['radius_meter']) ? $jadwal['radius_meter'] : ($lokasiInfo['radius_meter'] ?? 300));
+
+        // Normalisasi titik presisi Kantor Pusat (-7.812551, 110.268521) jika tabel jadwal masih menyimpan titik lama
+        if (abs($targetLat - (-7.818933)) < 0.001) {
+            $targetLat = -7.812551;
+            $targetLng = 110.268521;
+        }
+        $radiusToleransi = max($radiusToleransi, 300);
 
         $jarakMeter = round($this->hitungJarakGPS($userLat, $userLng, $targetLat, $targetLng));
 
@@ -3429,7 +3436,14 @@ class Pelatihan extends BaseController
 
         $targetLat       = (float) (!empty($jadwal['latitude']) ? $jadwal['latitude'] : $lokasiInfo['latitude']);
         $targetLng       = (float) (!empty($jadwal['longitude']) ? $jadwal['longitude'] : $lokasiInfo['longitude']);
-        $radiusToleransi = (int) (!empty($jadwal['radius_meter']) ? $jadwal['radius_meter'] : ($lokasiInfo['radius_meter'] ?? 100));
+        $radiusToleransi = (int) (!empty($jadwal['radius_meter']) ? $jadwal['radius_meter'] : ($lokasiInfo['radius_meter'] ?? 300));
+
+        // Normalisasi titik presisi Kantor Pusat (-7.812551, 110.268521) jika tabel jadwal masih menyimpan titik lama
+        if (abs($targetLat - (-7.818933)) < 0.001) {
+            $targetLat = -7.812551;
+            $targetLng = 110.268521;
+        }
+        $radiusToleransi = max($radiusToleransi, 300);
 
         // Hitung jarak Haversine di server
         $jarakMeter = round($this->hitungJarakGPS($userLat, $userLng, $targetLat, $targetLng));
@@ -3515,9 +3529,9 @@ class Pelatihan extends BaseController
             return [
                 'nama_lokasi'  => 'Kantor Pusat',
                 'alamat'       => 'Jl. Gn. Bulu No.89, RT.34, Bandut Lor, Argorejo, Kec. Sedayu, Kabupaten Bantul, Daerah Istimewa Yogyakarta 55752',
-                'latitude'     => -7.818933,
-                'longitude'    => 110.285813,
-                'radius_meter' => 100,
+                'latitude'     => -7.812551,
+                'longitude'    => 110.268521,
+                'radius_meter' => 300,
                 'is_online'    => 0,
             ];
         }
@@ -3547,9 +3561,9 @@ class Pelatihan extends BaseController
         return [
             'nama_lokasi'  => $namaLokasi ?: 'Kantor Pusat',
             'alamat'       => 'Jl. Gn. Bulu No.89, RT.34, Bandut Lor, Argorejo, Kec. Sedayu, Kabupaten Bantul, Daerah Istimewa Yogyakarta 55752',
-            'latitude'     => -7.818933,
-            'longitude'    => 110.285813,
-            'radius_meter' => 100,
+            'latitude'     => -7.812551,
+            'longitude'    => 110.268521,
+            'radius_meter' => 300,
             'is_online'    => 0,
         ];
     }
