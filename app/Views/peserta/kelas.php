@@ -440,7 +440,7 @@
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link <?= $activeTab === 'ujian' ? 'active' : '' ?>" id="ujian-tab" data-bs-toggle="tab" data-bs-target="#ujian" type="button" role="tab">
-                        <i class="fa-solid fa-award me-1.5" style="color: var(--color-orange);"></i> Ujian & Nilai
+                        <i class="fa-solid fa-file-earmark-text me-1.5" style="color: var(--color-orange);"></i> File Nilai
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -597,177 +597,186 @@
                     </div>
                 </div>
 
-                <!-- ================= TAB 3 : UJIAN ================= -->
-<div class="tab-pane fade <?= $activeTab === 'ujian' ? 'show active' : '' ?>" id="ujian" role="tabpanel">
-    <div class="card shadow-sm hover-card">
-        <div class="card-body p-3.5 p-lg-4">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
-                <div>
-                    <span class="badge text-white px-2.5 py-1 rounded-pill fw-bold mb-1 shadow-sm" style="background: var(--color-purple); font-size: 11px;">
-                        <i class="fas fa-award me-1" style="color: var(--color-orange);"></i> EVALUASI AKHIR KOMPETENSI
-                    </span>
-                    <h4 class="fw-bold text-dark mb-1" style="color: var(--color-purple); font-size: 18px;">Status Ujian & Hasil Kelulusan</h4>
-                    <p class="text-muted small mb-0" style="font-size: 13px;">Standar minimum nilai kelulusan pelatihan adalah <strong>70</strong>. Nilai dan keterangan akan tampil setelah diunggah/divalidasi oleh admin.</p>
-                </div>
-            </div>
+                <!-- ================= TAB 3 : FILE NILAI & KELULUSAN ================= -->
+                <div class="tab-pane fade <?= $activeTab === 'ujian' ? 'show active' : '' ?>" id="ujian" role="tabpanel">
+                    <div class="card shadow-sm hover-card">
+                        <div class="card-body p-3.5 p-lg-4">
+                            
+                            <!-- HEADER SECTION -->
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+                                <div>
+                                    <span class="badge text-white px-2.5 py-1 rounded-pill fw-bold mb-1 shadow-sm" style="background: var(--color-purple); font-size: 11px;">
+                                        <i class="fas fa-award me-1" style="color: var(--color-orange);"></i> STATUS KELULUSAN & EVALUASI
+                                    </span>
+                                    <h4 class="fw-bold text-dark mb-1" style="color: var(--color-purple); font-size: 18px;">Hasil Kelulusan & Berkas Nilai</h4>
+                                    <p class="text-muted small mb-0" style="font-size: 13px;">Keputusan status kelulusan ditentukan resmi oleh Admin CI4 berdasarkan evaluasi pembelajaran dari instruktur.</p>
+                                </div>
+                            </div>
 
-            <?php if (!empty($ujian) && is_array($ujian)): ?>
-                <div class="row g-3">
-                    <?php foreach ($ujian as $u): ?>
-                        <div class="col-12">
-                            <div class="exam-status-card">
-                                <div class="row align-items-center">
-                                    <div class="col-lg-5 mb-3 mb-lg-0">
-                                        <div class="d-flex align-items-start gap-2.5">
-                                            <div class="rounded-3 p-2 text-white shadow-sm" style="background: var(--color-purple);">
-                                                <i class="bi bi-file-earmark-check-fill fs-5"></i>
+                            <!-- 1. KARTU STATUS KELULUSAN DARI ADMIN -->
+                            <?php 
+                                $stKelulusan = strtolower(trim((string)($status_kelulusan ?? 'menunggu')));
+                                if (empty($stKelulusan)) $stKelulusan = 'menunggu';
+                            ?>
+
+                            <div class="card border-0 rounded-4 mb-4 shadow-sm" style="border: 1.5px solid <?php 
+                                if ($stKelulusan === 'lulus') echo 'rgba(21, 128, 61, 0.25); background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);';
+                                elseif ($stKelulusan === 'remidi') echo 'rgba(217, 119, 6, 0.25); background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);';
+                                elseif ($stKelulusan === 'tidak lulus') echo 'rgba(220, 38, 38, 0.25); background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);';
+                                else echo 'rgba(122, 63, 242, 0.2); background: linear-gradient(135deg, #faf5ff 0%, #ffffff 100%);';
+                            ?>">
+                                <div class="card-body p-3.5 p-md-4">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center shadow-sm text-white flex-shrink-0" style="width: 52px; height: 52px; background: <?php 
+                                                if ($stKelulusan === 'lulus') echo '#15803d;';
+                                                elseif ($stKelulusan === 'remidi') echo '#d97706;';
+                                                elseif ($stKelulusan === 'tidak lulus') echo '#dc2626;';
+                                                else echo 'var(--color-purple);';
+                                            ?>">
+                                                <?php if ($stKelulusan === 'lulus'): ?>
+                                                    <i class="bi bi-patch-check-fill fs-3"></i>
+                                                <?php elseif ($stKelulusan === 'remidi'): ?>
+                                                    <i class="bi bi-arrow-repeat fs-3"></i>
+                                                <?php elseif ($stKelulusan === 'tidak lulus'): ?>
+                                                    <i class="bi bi-x-circle-fill fs-3"></i>
+                                                <?php else: ?>
+                                                    <i class="bi bi-hourglass-split fs-3"></i>
+                                                <?php endif; ?>
                                             </div>
                                             <div>
-                                                <h5 class="fw-bold text-dark mb-1" style="font-size: 14px;"><?= esc($u['judul_ujian'] ?? 'Ujian Pelatihan'); ?></h5>
-                                                <p class="text-muted mb-0" style="font-size: 12px;"><?= esc($u['keterangan'] ?? 'Ujian kompetensi materi pelatihan.'); ?></p>
+                                                <div class="d-flex align-items-center gap-2 mb-1">
+                                                    <span class="text-uppercase text-muted fw-bold" style="font-size: 11px; letter-spacing: 0.5px;">Status Kelulusan:</span>
+                                                    <?php if ($stKelulusan === 'lulus'): ?>
+                                                        <span class="badge bg-success px-3 py-1 rounded-pill fw-bold" style="font-size: 11.5px;">
+                                                            <i class="bi bi-check-circle-fill me-1"></i> LULUS / KOMPETEN
+                                                        </span>
+                                                    <?php elseif ($stKelulusan === 'remidi'): ?>
+                                                        <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold" style="font-size: 11.5px;">
+                                                            <i class="bi bi-exclamation-triangle-fill me-1"></i> REMIDI
+                                                        </span>
+                                                    <?php elseif ($stKelulusan === 'tidak lulus'): ?>
+                                                        <span class="badge bg-danger px-3 py-1 rounded-pill fw-bold" style="font-size: 11.5px;">
+                                                            <i class="bi bi-x-circle-fill me-1"></i> TIDAK LULUS
+                                                        </span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-secondary bg-opacity-15 text-secondary px-3 py-1 rounded-pill fw-bold" style="font-size: 11.5px;">
+                                                            <i class="bi bi-clock-history me-1"></i> MENUNGGU KEPUTUSAN ADMIN
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <p class="mb-0 text-dark small" style="font-size: 12.5px;">
+                                                    <?php if ($stKelulusan === 'lulus'): ?>
+                                                        Selamat! Anda telah dinyatakan <strong>LULUS</strong> pelatihan oleh Administrator. Silakan lanjutkan ke menu <strong>Angket Evaluasi</strong> untuk mengaktifkan penerbitan sertifikat.
+                                                    <?php elseif ($stKelulusan === 'remidi'): ?>
+                                                        Status evaluasi Anda adalah <strong>REMIDI</strong>. Silakan koordinasikan jadwal ujian perbaikan dengan instruktur atau admin kelas.
+                                                    <?php elseif ($stKelulusan === 'tidak lulus'): ?>
+                                                        Status evaluasi Anda dinyatakan <strong>TIDAK LULUS</strong>. Silakan hubungi admin pelatihan untuk informasi lebih lanjut.
+                                                    <?php else: ?>
+                                                        Hasil evaluasi dan kelulusan Anda saat ini sedang dalam proses peninjauan & verifikasi oleh Administrator SIM Academy.
+                                                    <?php endif; ?>
+                                                </p>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="col-lg-2 text-center mb-3 mb-lg-0 border-start border-end">
-                                        <span class="text-uppercase text-muted fw-bold d-block mb-1" style="font-size: 10px; letter-spacing: 0.5px;">Skor Anda</span>
-                                        <?php 
-                                            $uStatus = strtolower(trim((string)($u['status_kelulusan'] ?? '')));
-                                            $uColor = 'var(--color-purple)';
-                                            if ($uStatus === 'lulus') $uColor = '#15803d';
-                                            elseif ($uStatus === 'remidi') $uColor = '#d97706';
-                                            elseif ($uStatus === 'tidak lulus') $uColor = '#dc2626';
-                                            $uSkor = (isset($u['nilai_terbaru']) && $u['nilai_terbaru'] !== null) ? esc($u['nilai_terbaru']) . '%' : '-';
-                                        ?>
-                                        <span class="fs-4 fw-bold" style="color: <?= $uColor ?>;">
-                                            <?= $uSkor ?>
-                                        </span>
-                                        <?php if ($uStatus === 'remidi' && !empty($u['nilai_awal']) && (float)$u['nilai_awal'] != (float)$u['nilai_terbaru']): ?>
-                                            <small class="d-block text-muted" style="font-size: 10px;">Awal: <?= (int)$u['nilai_awal'] ?>%</small>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div class="col-lg-3 text-center mb-3 mb-lg-0">
-                                        <span class="text-uppercase text-muted fw-bold d-block mb-1" style="font-size: 10px; letter-spacing: 0.5px;">Status Kelulusan</span>
-                                        
-                                        <?php if (!isset($u['nilai_terbaru']) || $u['nilai_terbaru'] === null): ?>
-                                            <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-1.5 rounded-pill fw-bold" style="font-size: 11px;">
-                                                <i class="fas fa-clock me-1"></i> MENUNGGU PENILAIAN ADMIN
-                                            </span>
-                                        <?php elseif (!empty($u['is_lulus']) || $uStatus === 'lulus' || (empty($uStatus) && (float)$u['nilai_terbaru'] >= 70)): ?>
-                                            <span class="badge bg-success bg-opacity-10 text-success px-3 py-1.5 rounded-pill fw-bold" style="font-size: 11px;">
-                                                <i class="fas fa-check-circle me-1"></i> LULUS / KOMPETEN
-                                            </span>
-                                        <?php elseif ($uStatus === 'remidi'): ?>
-                                            <span class="badge px-3 py-1.5 rounded-pill fw-bold border border-warning" style="font-size: 11px; background-color: #fef3c7; color: #92400e;">
-                                                <i class="fas fa-exclamation-triangle me-1 text-warning"></i> REMIDI (Skor: <?= (int)$u['nilai_terbaru'] ?>%)
-                                            </span>
-                                            <small class="d-block text-muted mt-0.5" style="font-size: 10px;">Perlu Ujian Perbaikan</small>
-                                        <?php else: ?>
-                                            <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-1.5 rounded-pill fw-bold" style="font-size: 11px;">
-                                                <i class="fas fa-times-circle me-1"></i> TIDAK LULUS
-                                            </span>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div class="col-lg-2 text-end">
-                                        <?php if (!isset($u['nilai_terbaru']) || $u['nilai_terbaru'] === null): ?>
-                                            <button class="btn btn-sm w-100 rounded-pill fw-semibold text-muted bg-light border shadow-sm py-1.5" style="font-size: 12px;" disabled>
-                                                <i class="bi bi-hourglass-split me-1"></i> Belum Dinilai
-                                            </button>
-                                        <?php elseif (!empty($u['is_lulus']) || $uStatus === 'lulus'): ?>
-                                            <span class="text-success small fw-bold d-inline-flex align-items-center gap-1" style="font-size: 12px;">
-                                                <i class="fas fa-check-circle"></i> Selesai
-                                            </span>
-                                        <?php elseif ($uStatus === 'remidi'): ?>
-                                            <span class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning border-opacity-25 px-2.5 py-1.5 rounded-pill small fw-semibold" style="font-size: 11px; background-color: #fef3c7; color: #92400e;">
-                                                <i class="fas fa-clock me-1 text-warning"></i> Perlu Remidi
-                                            </span>
-                                        <?php else: ?>
-                                            <span class="text-danger small fw-semibold d-inline-flex align-items-center gap-1" style="font-size: 12px;">
-                                                <i class="fas fa-times-circle"></i> Selesai
-                                            </span>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php else: ?>
-                <!-- Fallback jika struktur tabel ujian tunggal -->
-                <?php 
-                    $skorNilai = (isset($nilai_ujian) && $nilai_ujian !== '-') ? $nilai_ujian : '-';
-                    $isLulus = (isset($status_kelulusan) && $status_kelulusan === 'lulus') || (empty($status_kelulusan) && is_numeric($skorNilai) && ((float)$skorNilai >= 70));
-                    $isRemidi = (isset($status_kelulusan) && $status_kelulusan === 'remidi');
-                    $isMenunggu = (isset($status_kelulusan) && $status_kelulusan === 'menunggu') || ($skorNilai === '-' && empty($status_kelulusan));
-                    $skorColor = $isLulus ? '#15803d' : ($isRemidi ? '#d97706' : ($isMenunggu ? 'var(--color-purple)' : '#dc2626'));
-                ?>
-                <div class="row g-3 align-items-center">
-                    <div class="col-lg-5">
-                        <div class="p-4 rounded-4 text-center position-relative overflow-hidden shadow-sm border border-purple border-opacity-25 bg-white">
-                            <span class="text-uppercase text-muted fw-bold d-block mb-1" style="font-size: 11px; letter-spacing: 1px;">Skor Akhir Ujian</span>
-                            <div class="display-4 fw-bold mb-2" style="color: <?= $skorColor ?>; font-weight: 800;">
-                                <?= esc($skorNilai); ?><?= is_numeric($skorNilai) ? '%' : '' ?>
-                            </div>
-                            <div class="d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill bg-light text-muted small border shadow-sm" style="font-size: 12px;">
-                                <i class="bi bi-shield-check" style="color: var(--color-orange);"></i> Standar Minimum: <strong class="text-dark">70%</strong>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-7">
-                        <div class="p-4 rounded-4 h-100 d-flex flex-column justify-content-center bg-white border border-purple border-opacity-25 shadow-sm">
-                            <?php if ($isMenunggu): ?>
-                                <div class="d-flex align-items-start gap-3">
-                                    <div class="rounded-3 p-3 bg-secondary bg-opacity-10 text-secondary fs-4"><i class="bi bi-clock-history"></i></div>
-                                    <div>
-                                        <span class="badge bg-secondary bg-opacity-15 text-secondary mb-1 px-2.5 py-1 rounded-pill fw-semibold" style="font-size: 10px;">MENUNGGU PENILAIAN</span>
-                                        <h5 class="fw-bold text-dark mb-1" style="font-size: 14px;">Menunggu Konfirmasi Admin</h5>
-                                        <p class="text-muted mb-0" style="font-size: 12px;">Nilai dan status keterangan ujian Anda akan muncul di sini setelah diperiksa dan diinput oleh administrator/mentor.</p>
-                                    </div>
-                                </div>
-                            <?php elseif ($isLulus): ?>
-                                <div class="d-flex align-items-start gap-3">
-                                    <div class="rounded-3 p-3 bg-success bg-opacity-10 text-success fs-4"><i class="bi bi-patch-check-fill"></i></div>
-                                    <div>
-                                        <span class="badge bg-success bg-opacity-15 text-success mb-1 px-2.5 py-1 rounded-pill fw-bold" style="font-size: 10px;"><i class="fas fa-check-circle me-1"></i> STATUS: KOMPETEN / LULUS</span>
-                                        <h5 class="fw-bold text-dark mb-1" style="font-size: 14px;">Selamat, Anda Dinyatakan Lulus!</h5>
-                                        <p class="text-muted mb-0" style="font-size: 12px;">Nilai Anda (<?= esc($skorNilai) ?>%) telah divalidasi admin. Silakan lanjutkan ke menu <strong>Angket Evaluasi</strong>.</p>
-                                    </div>
-                                </div>
-                            <?php elseif ($isRemidi): ?>
-                                <div class="d-flex align-items-start gap-3">
-                                    <div class="rounded-3 p-3 bg-warning bg-opacity-10 text-warning fs-4"><i class="bi bi-arrow-repeat"></i></div>
-                                    <div>
-                                        <span class="badge bg-warning bg-opacity-15 text-warning mb-1 px-2.5 py-1 rounded-pill fw-bold" style="font-size: 10px;"><i class="fas fa-exclamation-triangle me-1"></i> STATUS: REMIDI</span>
-                                        <h5 class="fw-bold text-dark mb-1" style="font-size: 14px;">Ujian Perlu Diremidi</h5>
-                                        <div class="alert alert-warning py-1.5 px-2.5 mb-2 rounded-3 border border-warning border-opacity-50" style="background-color: #fffbeb;">
-                                            <div class="fw-bold text-dark" style="font-size: 12px;">
-                                                <i class="fas fa-info-circle text-warning me-1"></i> Nilai Ujian Anda Saat Ini: <span class="fs-6 fw-bold" style="color: #d97706;"><?= esc($skorNilai); ?>%</span>
+
+                                        <?php if ($stKelulusan === 'lulus'): ?>
+                                            <div>
+                                                <a href="<?= base_url('pelatihan/angket?id_kelas=' . ($kelas['id_kelas'] ?? 0)); ?>" 
+                                                   class="btn btn-sm text-white px-3.5 py-2 rounded-pill fw-semibold shadow-sm text-nowrap"
+                                                   style="background: linear-gradient(135deg, #15803d, #166534); font-size: 12px;">
+                                                    <i class="bi bi-clipboard2-check me-1"></i> Lanjut Isi Angket
+                                                </a>
                                             </div>
-                                            <div class="text-muted" style="font-size: 11px;">
-                                                Nilai belum mencapai standar kelulusan minimum (70%). Admin menentukan Anda perlu mengikuti ujian remidi.
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2. KARTU BERKAS NILAI DARI INSTRUKTUR -->
+                            <div class="d-flex align-items-center gap-2 mb-2.5">
+                                <span class="fw-bold text-dark" style="font-size: 13.5px;">
+                                    <i class="bi bi-file-earmark-spreadsheet-fill me-1" style="color: var(--color-purple);"></i> Berkas Nilai dari Instruktur
+                                </span>
+                            </div>
+
+                            <?php if (!empty($grade_file_result['file']) && !empty($grade_file_result['file']['id'])): ?>
+                                <!-- KARTU FILE NILAI RESMI TERSEDIA -->
+                                <div class="p-4 bg-white rounded-4 border shadow-sm" style="border: 1.5px solid rgba(122, 63, 242, 0.2) !important;">
+                                    <div class="row align-items-center g-3">
+                                        <div class="col-md-8">
+                                            <div class="d-flex align-items-start gap-3">
+                                                <div class="rounded-3 p-3 text-white shadow-sm flex-shrink-0" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); width: 54px; height: 54px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="bi bi-file-earmark-check-fill fs-3"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                                        <span class="badge bg-success bg-opacity-15 text-success px-2.5 py-1 rounded-pill fw-bold" style="font-size: 11px;">
+                                                            <i class="bi bi-patch-check-fill me-1"></i> Berkas Resmi Disetujui
+                                                        </span>
+                                                        <span class="badge bg-light text-muted border px-2 py-0.5 rounded-pill" style="font-size: 11px;">
+                                                            Versi <?= esc($grade_file_result['file']['version'] ?? '1'); ?>
+                                                        </span>
+                                                    </div>
+                                                    <h5 class="fw-bold text-dark mb-1" style="font-size: 14.5px;">
+                                                        <?= esc($grade_file_result['file']['file_name'] ?? 'Berkas_Nilai_Kelas.pdf'); ?>
+                                                    </h5>
+                                                    <div class="text-muted small d-flex flex-wrap align-items-center gap-2" style="font-size: 12px;">
+                                                        <?php if (!empty($grade_file_result['file']['uploaded_at'])): ?>
+                                                            <span><i class="bi bi-calendar-event me-1"></i> Diunggah: <?= date('d M Y, H.i', strtotime($grade_file_result['file']['uploaded_at'])); ?> WIB</span>
+                                                        <?php endif; ?>
+                                                        <?php if (!empty($grade_file_result['file']['file_size'])): ?>
+                                                            <span>• <i class="bi bi-hdd me-1"></i> <?= round($grade_file_result['file']['file_size'] / 1024, 1); ?> KB</span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="text-muted small mt-1" style="font-size: 11px;">
-                                            <i class="fas fa-info-circle me-1 text-warning"></i> Silakan koordinasikan jadwal pelaksanaan ujian remidi perbaikan dengan instruktur atau admin kelas.
+                                        <div class="col-md-4 text-md-end">
+                                            <a href="<?= base_url('pelatihan/ujian/unduh-file-nilai/' . ($kelas['id_kelas'] ?? 0) . '/' . $grade_file_result['file']['id']); ?>"
+                                               class="btn text-white px-4 py-2.5 rounded-pill fw-semibold shadow-sm w-100 w-md-auto"
+                                               style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); font-size: 13px;">
+                                                <i class="bi bi-cloud-arrow-down-fill me-1.5 fs-6"></i> Unduh File Nilai
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 pt-3 border-top border-light text-muted small d-flex align-items-center gap-2" style="font-size: 12px;">
+                                        <i class="bi bi-info-circle text-primary"></i>
+                                        <span>Berkas nilai ini telah diverifikasi dan disetujui resmi oleh Administrator SIM Creativemu.</span>
+                                    </div>
+                                </div>
+                            <?php elseif (($grade_file_result['status_code'] ?? 0) === 403): ?>
+                                <!-- KARTU 403 / TIDAK TERDAFTAR -->
+                                <div class="alert alert-warning border-0 rounded-4 p-3.5 shadow-sm mb-0" style="background-color: #fffbeb; color: #92400e;">
+                                    <div class="d-flex align-items-start gap-3">
+                                        <div class="rounded-3 p-2 text-warning fs-4 flex-shrink-0">
+                                            <i class="bi bi-shield-exclamation"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="fw-bold mb-1" style="font-size: 14px;">Akses Berkas Nilai Dibatasi (403)</h5>
+                                            <p class="mb-0 small" style="font-size: 12px;">
+                                                Identitas akun peserta belum terverifikasi pada kelas ini di sistem server instruktur. Silakan konfirmasikan dengan admin pelatihan.
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
                             <?php else: ?>
-                                <div class="d-flex align-items-start gap-3">
-                                    <div class="rounded-3 p-3 bg-danger bg-opacity-10 text-danger fs-4"><i class="bi bi-exclamation-octagon-fill"></i></div>
-                                    <div>
-                                        <span class="badge bg-danger bg-opacity-15 text-danger mb-1 px-2.5 py-1 rounded-pill fw-bold" style="font-size: 10px;"><i class="fas fa-times-circle me-1"></i> STATUS: TIDAK LULUS</span>
-                                        <h5 class="fw-bold text-dark mb-1" style="font-size: 14px;">Belum Memenuhi Batas Kelulusan</h5>
-                                        <p class="text-muted mb-0" style="font-size: 12px;">Nilai Anda belum memenuhi standar kelulusan.</p>
+                                <!-- KARTU MENUNGGU UNGGAHAN / PERSETUJUAN BERKAS NILAI -->
+                                <div class="p-4 p-md-5 bg-light bg-opacity-50 rounded-4 border border-dashed text-center">
+                                    <div class="text-muted mb-2.5" style="font-size: 36px; color: var(--color-purple) !important; opacity: 0.8;">
+                                        <i class="bi bi-file-earmark-arrow-up"></i>
                                     </div>
+                                    <h5 class="fw-bold text-dark mb-1" style="font-size: 14.5px;">Berkas Nilai Belum Tersedia</h5>
+                                    <p class="text-muted small mx-auto mb-3" style="max-width: 520px; font-size: 12px;">
+                                        <?= esc($grade_file_result['message'] ?? 'Instruktur kelas belum mengunggah daftar berkas nilai, atau berkas nilai masih dalam proses peninjauan persetujuan admin.'); ?>
+                                    </p>
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-1.5 rounded-pill fw-semibold" style="font-size: 11px;">
+                                        <i class="bi bi-hourglass-split me-1"></i> Menunggu Verifikasi & Persetujuan Admin
+                                    </span>
                                 </div>
                             <?php endif; ?>
                         </div>
                     </div>
                 </div>
-            <?php endif; ?>
-        </div>
-    </div>
-</div>
 
                 <!-- ================= TAB 4 : ANGKET EVALUASI ================= -->
                 <div class="tab-pane fade <?= $activeTab === 'angket' ? 'show active' : '' ?>" id="angket" role="tabpanel">

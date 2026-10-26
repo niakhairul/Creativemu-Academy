@@ -86,6 +86,8 @@ $routes->post('pelatihan/ujian/kumpulkan', 'Pelatihan::submitUjian');
 $routes->get('pelatihan/ujian/hasil', 'Pelatihan::hasilUjian');
 $routes->get('pelatihan/ujian/unduh-file-nilai/(:num)', 'Pelatihan::unduhFileNilai/$1');
 $routes->get('pelatihan/ujian/unduh-file-nilai/(:num)/(:num)', 'Pelatihan::unduhFileNilai/$1/$2');
+$routes->get('pelatihan/unduh-file-nilai/(:num)', 'Pelatihan::unduhFileNilai/$1');
+$routes->get('pelatihan/unduh-file-nilai/(:num)/(:num)', 'Pelatihan::unduhFileNilai/$1/$2');
 $routes->get('pelatihan/ikut-remidi', 'Pelatihan::ikutRemidi');
 
 // ===== MENU ANGKET & SERTIFIKAT PESERTA =====

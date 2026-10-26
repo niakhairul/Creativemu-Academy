@@ -20,7 +20,8 @@ class UserModel extends Model
         'jenis_kelamin',
         'asal_sekolah',
         'foto',
-        'foto_profil'
+        'foto_profil',
+        'is_registered'
     ];
 
     protected $useTimestamps = true;

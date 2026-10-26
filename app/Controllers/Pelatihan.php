@@ -2738,6 +2738,25 @@ class Pelatihan extends BaseController
             $bisa_isi_angket = true;
         }
 
+        // Ambil info berkas nilai dari instruktur via API Laravel
+        $grade_file_result = null;
+        if ($kelas && !empty($kelas['id_kelas'])) {
+            $studentIdentifier = !empty($kelas['student_id'])
+                ? (string) $kelas['student_id']
+                : (!empty($kelas['nis']) && $kelas['nis'] !== '-'
+                    ? (string) $kelas['nis']
+                    : (!empty($kelas['id_pendaftaran'])
+                        ? 'REG-' . $kelas['id_pendaftaran']
+                        : (string) ($kelas['id_users'] ?? session()->get('id_users') ?? '')));
+
+            try {
+                $apiService = new \App\Services\LaravelApiService();
+                $grade_file_result = $apiService->getGradeFiles((int)$kelas['id_kelas'], $studentIdentifier);
+            } catch (\Throwable $eGf) {
+                log_message('warning', 'Pelatihan::kelas getGradeFiles error: ' . $eGf->getMessage());
+            }
+        }
+
     return view('peserta/kelas', [
     'kelas'               => $kelas,
     'jadwal'              => $jadwal,
@@ -2749,6 +2768,7 @@ class Pelatihan extends BaseController
     'bisa_isi_angket'     => $bisa_isi_angket,
     'sudah_isi_angket'    => $sudah_isi_angket,
     'sertifikatTerbit'    => $sertifikatTerbit,
+    'grade_file_result'   => $grade_file_result,
 ]);
 }
 
@@ -3936,34 +3956,33 @@ public function simpanJawabanUjian()
 
         $apiService = new \App\Services\LaravelApiService();
 
+        $fileInfo = $apiService->getGradeFiles((int)$idKelas, $studentIdentifier);
+        $fileName = $fileInfo['file']['file_name'] ?? ('file-nilai-kelas-' . $idKelas . '.pdf');
+
         if (empty($gradeFileId)) {
-            $fileInfo = $apiService->getGradeFiles((int)$idKelas, $studentIdentifier);
             if ($fileInfo['status_code'] === 403) {
-                return redirect()->to(base_url('pelatihan/ujian'))
+                return redirect()->back()
                     ->with('error', 'Akses berkas nilai belum dibuka oleh server pusat (Status 403: Akun siswa belum terverifikasi di server Laravel).');
             }
             if (empty($fileInfo['file']) || empty($fileInfo['file']['id'])) {
-                return redirect()->to(base_url('pelatihan/ujian'))
+                return redirect()->back()
                     ->with('error', $fileInfo['message'] ?? 'Berkas nilai belum tersedia atau belum disetujui admin di server pusat.');
             }
             $gradeFileId = $fileInfo['file']['id'];
-            $fileName = $fileInfo['file']['file_name'] ?? ('file-nilai-kelas-' . $idKelas . '.pdf');
-        } else {
-            $fileName = 'file-nilai-kelas-' . $idKelas . '-id' . $gradeFileId . '.pdf';
         }
 
         $downloadResult = $apiService->downloadGradeFile((int)$idKelas, $gradeFileId, $studentIdentifier);
 
         if (!$downloadResult['success']) {
             if ($downloadResult['status_code'] === 403) {
-                return redirect()->to(base_url('pelatihan/ujian'))
+                return redirect()->back()
                     ->with('error', 'Akses unduh ditolak oleh server pusat (Status 403: Siswa belum terdaftar/terverifikasi).');
             }
             if ($downloadResult['status_code'] === 404) {
-                return redirect()->to(base_url('pelatihan/ujian'))
+                return redirect()->back()
                     ->with('error', 'Berkas nilai tidak ditemukan atau belum disetujui admin di server pusat.');
             }
-            return redirect()->to(base_url('pelatihan/ujian'))
+            return redirect()->back()
                 ->with('error', $downloadResult['message'] ?? 'Gagal mengunduh berkas nilai.');
         }
 

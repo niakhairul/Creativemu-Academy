@@ -147,17 +147,22 @@ class Auth extends BaseController
                 ->with('error', 'Email tidak ditemukan.');
         }
 
-        // 2b. Khusus Peserta: Cegah login jika akun masih menggunakan password placeholder default ('123456' / '12345678') dari validasi Admin atau sinkronisasi API
-        // Peserta wajib registrasi mandiri terlebih dahulu untuk membuat kata sandi sendiri
+        // 2b. Khusus Peserta: Cegah login jika akun belum menyelesaikan registrasi akun mandiri
         $roleUser = strtolower(trim((string) ($user['role'] ?? 'peserta')));
-        $storedPassCheck = (string) ($user['password'] ?? '');
-        $isPlaceholder = password_verify('123456', $storedPassCheck)
-            || password_verify('12345678', $storedPassCheck)
-            || in_array($storedPassCheck, ['123456', '12345678', md5('123456'), md5('12345678')], true);
+        if ($roleUser === 'peserta') {
+            $isRegistered = false;
+            if (isset($user['is_registered'])) {
+                $isRegistered = ((int) $user['is_registered'] === 1);
+            } else {
+                // Fallback jika kolom is_registered belum ada di database
+                $storedPassCheck = (string) ($user['password'] ?? '');
+                $isRegistered = !password_verify('123456', $storedPassCheck) && !password_verify('12345678', $storedPassCheck);
+            }
 
-        if ($roleUser === 'peserta' && $isPlaceholder) {
-            return redirect()->to(base_url('pelatihan/register'))
-                ->with('error', 'Pendaftaran Anda telah disetujui Admin! Silakan lakukan registrasi akun terlebih dahulu untuk membuat kata sandi baru sebelum login.');
+            if (!$isRegistered) {
+                return redirect()->to(base_url('pelatihan/register'))
+                    ->with('error', 'Pendaftaran Anda telah disetujui Admin! Silakan lakukan registrasi akun terlebih dahulu untuk membuat kata sandi Anda sebelum login.');
+            }
         }
 
         // 3. Verifikasi Password Standar menggunakan password_verify()
@@ -348,20 +353,20 @@ class Auth extends BaseController
             ->getRowArray();
 
         if ($cekEmail) {
-            $existingPass = (string) ($cekEmail['password'] ?? '');
-            $isPlaceholder = password_verify('123456', $existingPass)
-                || password_verify('12345678', $existingPass)
-                || in_array($existingPass, ['123456', '12345678', md5('123456'), md5('12345678')], true);
+            $isAlreadyRegistered = isset($cekEmail['is_registered']) && (int) $cekEmail['is_registered'] === 1;
 
-            // Jika akun ini berupa placeholder pendaftaran dengan password default sistem ('123456' atau '12345678'),
-            // perbarui akun & password resminya sesuai yang diisi peserta saat registrasi
-            if ($isPlaceholder) {
+            // Jika belum registrasi mandiri (is_registered == 0):
+            // perbarui akun, pasang is_registered = 1, dan simpan password pilihan peserta
+            if (!$isAlreadyRegistered) {
                 $updateUser = [
                     'nama'          => trim($nama),
                     'jenis_kelamin' => $jenisKelamin,
                     'no_hp'         => $no_hp,
                     'password'      => password_hash($password, PASSWORD_DEFAULT),
                 ];
+                if ($db->fieldExists('is_registered', 'users')) {
+                    $updateUser['is_registered'] = 1;
+                }
                 if ($db->fieldExists('updated_at', 'users')) {
                     $updateUser['updated_at'] = date('Y-m-d H:i:s');
                 }
@@ -396,6 +401,7 @@ class Auth extends BaseController
             'email'         => $cleanEmail,
             'password'      => password_hash($password, PASSWORD_DEFAULT),
             'role'          => 'peserta',
+            'is_registered' => 1,
         ];
         if ($db->fieldExists('created_at', 'users')) {
             $dataSimpan['created_at'] = date('Y-m-d H:i:s');

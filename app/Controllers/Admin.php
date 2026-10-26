@@ -2164,6 +2164,9 @@ $data = [
                         if ($db->fieldExists('semester', 'users') && !empty($pendaftaran['semester'])) {
                             $insertUser['semester'] = $pendaftaran['semester'];
                         }
+                        if ($db->fieldExists('is_registered', 'users')) {
+                            $insertUser['is_registered'] = 0;
+                        }
 
                         $db->table('users')->insert($insertUser);
                         $userIdPendaftaran = $nextId;
@@ -2396,6 +2399,9 @@ $data = [
                         }
                         if ($db->fieldExists('semester', 'users') && !empty($pendaftaranLama['semester'])) {
                             $insertUser['semester'] = $pendaftaranLama['semester'];
+                        }
+                        if ($db->fieldExists('is_registered', 'users')) {
+                            $insertUser['is_registered'] = 0;
                         }
 
                         $db->table('users')->insert($insertUser);

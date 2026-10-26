@@ -255,6 +255,9 @@ class LaravelApiService
                         'created_at' => date('Y-m-d H:i:s'),
                         'updated_at' => date('Y-m-d H:i:s'),
                     ];
+                    if ($db->fieldExists('is_registered', 'users')) {
+                        $newUserData['is_registered'] = 0;
+                    }
                     $db->table('users')->insert($newUserData);
                     $userId = $nextUserId;
                 }
