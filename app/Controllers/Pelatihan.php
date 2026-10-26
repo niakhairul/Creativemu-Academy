@@ -1217,7 +1217,21 @@ class Pelatihan extends BaseController
             log_message('info', 'Laravel sessions endpoint unavailable: ' . $eSess->getMessage());
         }
 
-        // 3. Ambil data jadwal lokal untuk pemetaan ID jadwal lokal & status buka jika tabel lokal ada
+        // 3. Status Absensi Instruktur dari API Laravel (Dokumen Integrasi Bagian 11)
+        // Endpoint: GET /api/classes/{idKelas}/trainer-attendance
+        $trainerAttendance = [];
+        try {
+            $trainerAttendance = $apiService->getTrainerAttendance($idKelas);
+        } catch (\Throwable $eAtt) {
+            log_message('info', 'Laravel trainer-attendance error: ' . $eAtt->getMessage());
+        }
+
+        $isTrainerCheckedIn   = !empty($trainerAttendance['checked_in']);
+        $trainerAttData       = $trainerAttendance['attendance'] ?? [];
+        $trainerSessionNumber = !empty($trainerAttData['session_number']) ? (int)$trainerAttData['session_number'] : 0;
+        $trainerAttDate       = !empty($trainerAttData['attendance_date']) ? $trainerAttData['attendance_date'] : date('Y-m-d');
+
+        // 4. Ambil data jadwal lokal untuk pemetaan ID jadwal lokal & status buka jika tabel lokal ada
         $localMap = [];
         if ($db->tableExists('jadwal')) {
             $existingJadwal = $db->table('jadwal')
@@ -1236,8 +1250,21 @@ class Pelatihan extends BaseController
                 $localRow = $localMap[$num] ?? null;
                 $idJadwal = $localRow['id_jadwal'] ?? ($sess['id'] ?? $num);
 
+                $sessDate = (!empty($sess['date']) && $sess['date'] !== '-') ? $sess['date'] : null;
+                $isTrainerActiveHere = false;
+                if ($isTrainerCheckedIn) {
+                    if ($trainerSessionNumber > 0 && $num === $trainerSessionNumber) {
+                        $isTrainerActiveHere = true;
+                    } elseif ($trainerSessionNumber === 0 && !empty($sessDate) && $sessDate === $trainerAttDate) {
+                        $isTrainerActiveHere = true;
+                    } elseif ($trainerSessionNumber === 0 && empty($sessDate) && $num === 1) {
+                        $isTrainerActiveHere = true;
+                    }
+                }
+
                 // Status absensi dibuka otomatis saat instruktur membuka di Laravel
                 $absensiDibuka = (
+                    $isTrainerActiveHere ||
                     !empty($sess['is_attendance_open']) ||
                     !empty($sess['is_open']) ||
                     in_array(strtolower($sess['status'] ?? ''), ['open', 'opened', 'dibuka', 'aktif'], true) ||
@@ -1390,7 +1417,30 @@ class Pelatihan extends BaseController
 
                 $localRow = $localMap[$i] ?? [];
                 $idJadwal = (int)($localRow['id_jadwal'] ?? $i);
-                $absensiDibuka = (int)($localRow['absensi_dibuka'] ?? 0);
+                $tglFinal = (!empty($localRow['tanggal_kbm']) && $localRow['tanggal_kbm'] !== '-') ? $localRow['tanggal_kbm'] : $tglPertemuan;
+
+                $isTrainerActiveHere = false;
+                if ($isTrainerCheckedIn) {
+                    if ($trainerSessionNumber > 0 && $i === $trainerSessionNumber) {
+                        $isTrainerActiveHere = true;
+                    } elseif ($trainerSessionNumber === 0 && !empty($tglFinal) && $tglFinal === $trainerAttDate) {
+                        $isTrainerActiveHere = true;
+                    } elseif ($trainerSessionNumber === 0 && $i === 1 && $tglFinal === date('Y-m-d')) {
+                        $isTrainerActiveHere = true;
+                    }
+                }
+
+                $absensiDibuka = (
+                    $isTrainerActiveHere ||
+                    (!empty($localRow['absensi_dibuka']) && (int)$localRow['absensi_dibuka'] === 1)
+                ) ? 1 : 0;
+
+                // Jika instruktur sudah absen di Laravel, sinkronkan juga status buka ke database lokal
+                if ($isTrainerActiveHere && $idJadwal && empty($localRow['absensi_dibuka']) && $db->tableExists('jadwal')) {
+                    try {
+                        $db->table('jadwal')->where('id_jadwal', $idJadwal)->update(['absensi_dibuka' => 1]);
+                    } catch (\Throwable $eSync) {}
+                }
 
                 // Cek absensi peserta untuk pertemuan ini
                 $userAbsensi = null;
@@ -1404,8 +1454,6 @@ class Pelatihan extends BaseController
                         ->get()
                         ->getRowArray();
                 }
-
-                $tglFinal = (!empty($localRow['tanggal_kbm']) && $localRow['tanggal_kbm'] !== '-') ? $localRow['tanggal_kbm'] : $tglPertemuan;
 
                 $jadwal[] = [
                     'id_jadwal'       => $idJadwal,
@@ -3060,10 +3108,26 @@ class Pelatihan extends BaseController
         }
 
         if ((int)($jadwal['absensi_dibuka'] ?? 0) !== 1) {
-            return $this->response->setJSON([
-                'status'  => false,
-                'message' => 'Sesi absensi untuk pertemuan ini belum dibuka oleh mentor/admin.'
-            ]);
+            $idKelasJadwal = (int) ($jadwal['id_kelas'] ?? 0);
+            $dibukaByTrainer = false;
+            if ($idKelasJadwal > 0) {
+                try {
+                    $apiService = new \App\Services\LaravelApiService();
+                    $attCheck = $apiService->getTrainerAttendance($idKelasJadwal, (int)($jadwal['pertemuan_ke'] ?? 1));
+                    if (!empty($attCheck['checked_in'])) {
+                        $dibukaByTrainer = true;
+                        if (!empty($jadwal['id_jadwal'])) {
+                            $db->table('jadwal')->where('id_jadwal', $jadwal['id_jadwal'])->update(['absensi_dibuka' => 1]);
+                        }
+                    }
+                } catch (\Throwable $eChk) {}
+            }
+            if (!$dibukaByTrainer) {
+                return $this->response->setJSON([
+                    'status'  => false,
+                    'message' => 'Sesi absensi untuk pertemuan ini belum dibuka oleh mentor/admin.'
+                ]);
+            }
         }
 
         if (!empty($jadwal['absensi_selesai']) && strtotime($jadwal['absensi_selesai']) < time()) {
@@ -3239,6 +3303,21 @@ class Pelatihan extends BaseController
 
         // 2. Cek apakah absensi dibuka
         $absensiDibuka = (int) ($jadwal['absensi_dibuka'] ?? 0);
+        if ($absensiDibuka !== 1) {
+            $idKelasJadwal = (int) ($jadwal['id_kelas'] ?? 0);
+            if ($idKelasJadwal > 0) {
+                try {
+                    $apiService = new \App\Services\LaravelApiService();
+                    $attCheck = $apiService->getTrainerAttendance($idKelasJadwal, (int)($jadwal['pertemuan_ke'] ?? 1));
+                    if (!empty($attCheck['checked_in'])) {
+                        $absensiDibuka = 1;
+                        if (!empty($jadwal['id_jadwal'])) {
+                            $db->table('jadwal')->where('id_jadwal', $jadwal['id_jadwal'])->update(['absensi_dibuka' => 1]);
+                        }
+                    }
+                } catch (\Throwable $eChk) {}
+            }
+        }
         if ($absensiDibuka !== 1) {
             return redirect()->back()->with('error', 'Sesi absensi untuk pertemuan ini belum dibuka oleh mentor/admin.')->with('active_tab', 'absensi');
         }

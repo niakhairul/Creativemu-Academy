@@ -701,5 +701,46 @@ class LaravelApiService
             ];
         }
     }
-}
+/**
+     * Mengecek status absensi trainer dari API Laravel (Dokumen Integrasi Bagian 11)
+     * Endpoint: GET /api/classes/{class_id}/trainer-attendance
+     *
+     * @param int $classId ID kelas Laravel
+     * @param int|null $sessionNumber Nomor sesi pertemuan (opsional)
+     * @return array [
+     *     'success'     => bool,
+     *     'checked_in'  => bool,
+     *     'checked_out' => bool,
+     *     'attendance'  => array|null,
+     *     'raw'         => array
+     * ]
+     */
+    public function getTrainerAttendance(int $classId, ?int $sessionNumber = null): array
+    {
+        if ($classId <= 0) {
+            return [
+                'success'     => false,
+                'checked_in'  => false,
+                'checked_out' => false,
+                'attendance'  => null,
+                'raw'         => [],
+            ];
+        }
 
+        $query = [];
+        if ($sessionNumber !== null && $sessionNumber > 0) {
+            $query['session_number'] = $sessionNumber;
+        }
+
+        $res = $this->requestWithResponse('GET', 'classes/' . $classId . '/trainer-attendance', $query);
+        $body = $res['body'] ?? [];
+
+        return [
+            'success'     => !empty($body['success']),
+            'checked_in'  => !empty($body['checked_in']),
+            'checked_out' => !empty($body['checked_out']),
+            'attendance'  => $body['attendance'] ?? null,
+            'raw'         => $body,
+        ];
+    }
+}
