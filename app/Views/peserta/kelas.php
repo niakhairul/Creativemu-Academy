@@ -943,6 +943,9 @@ document.addEventListener("DOMContentLoaded", function() {
                     btnAbsen.innerText = "GPS Tidak Didukung";
                 }
             });
+        }
+    });
+
     // Auto-activate tab from URL query (?tab=...) or hash (#...)
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get('tab');
