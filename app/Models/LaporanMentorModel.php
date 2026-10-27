@@ -395,15 +395,17 @@ class LaporanMentorModel extends Model
             $sesiIzin  = 0;
             $sesiSakit = 0;
 
-            if ($sesiTotal > 0 && !empty($jadwalIds)) {
-                $userCheckIds = array_unique(array_filter([$idUser, $idMentor]));
-                if ($idMentor === 70 || $idMentor === 2 || in_array($namaMentor, ['arifin', 'nur arifin']) || $idMentor === 69) {
-                    $userCheckIds[] = 5; // Local Arifin user ID / test mentor
-                }
-                if ($idMentor === 5 || $idMentor === 3 || $namaMentor === 'hasan') {
-                    $userCheckIds[] = 1; // Local Hasan user ID
-                }
+            $userCheckIds = array_unique(array_filter([$idUser, $idMentor]));
+            if ($idMentor === 70 || $idMentor === 2 || in_array($namaMentor, ['arifin', 'nur arifin']) || $idMentor === 69) {
+                $userCheckIds[] = 5; // Local Arifin user ID / test mentor
+            }
+            if ($idMentor === 5 || $idMentor === 3 || $namaMentor === 'hasan') {
+                $userCheckIds[] = 1; // Local Hasan user ID
+            }
 
+            $processedJadwalIds = [];
+
+            if ($sesiTotal > 0 && !empty($jadwalIds)) {
                 $absensiList = $this->db->table('absensi')
                     ->groupStart()
                         ->whereIn('id_jadwal', $jadwalIds)
@@ -412,7 +414,6 @@ class LaporanMentorModel extends Model
                     ->whereIn('id_user', $userCheckIds)
                     ->get()->getResultArray();
 
-                $processedJadwalIds = [];
                 foreach ($absensiList as $absen) {
                     $jMatch = null;
                     foreach ($jadwalList as $jl) {
@@ -450,6 +451,42 @@ class LaporanMentorModel extends Model
                         }
                     }
                 }
+            }
+
+            // Periksa juga absensi langsung pada tabel absensi berdasarkan user & periode waktu absen
+            if (!empty($userCheckIds)) {
+                $extraAbsenB = $this->db->table('absensi')->whereIn('id_user', $userCheckIds);
+                if (isset($filters['tahun']) && $filters['tahun'] !== 'all') {
+                    $extraAbsenB->where("YEAR(waktu_absen)", $tahun);
+                }
+                if (isset($filters['bulan']) && $filters['bulan'] !== 'all') {
+                    $extraAbsenB->where("MONTH(waktu_absen)", $bulan);
+                }
+                $extraAbsenList = $extraAbsenB->get()->getResultArray();
+                foreach ($extraAbsenList as $ea) {
+                    $eaJadwalId = $ea['id_jadwal'] ?? $ea['id_jadwal_kelas'];
+                    if (!$eaJadwalId || !in_array($eaJadwalId, $processedJadwalIds)) {
+                        if ($eaJadwalId) {
+                            $processedJadwalIds[] = $eaJadwalId;
+                        }
+                        $st = strtolower(trim($ea['status'] ?? ''));
+                        if ($st === 'hadir' || $st === 'terlambat') {
+                            $sesiHadir++;
+                            if ($st === 'terlambat') {
+                                $sesiTelat++;
+                            }
+                        } elseif ($st === 'izin') {
+                            $sesiIzin++;
+                        } elseif ($st === 'sakit') {
+                            $sesiSakit++;
+                        }
+                    }
+                }
+            }
+
+            // Jika ada sesi yang dihadiri tapi total sesi KBM pada periode tersebut belum terdaftar di jadwal, sesuaikan total sesi
+            if ($sesiHadir > $sesiTotal) {
+                $sesiTotal = $sesiHadir;
             }
 
             // Nilai Angket dari jawaban_angket siswa riil

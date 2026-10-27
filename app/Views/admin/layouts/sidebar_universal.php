@@ -263,7 +263,7 @@
                         </li>
                         <li class="nav-item">
                             <a href="<?= base_url('admin/laporan-angket'); ?>" class="nav-link <?= url_is('admin/laporan-angket*') ? 'active' : ''; ?>" style="padding: 6px 14px; font-size: 0.78rem;">
-                                <i class="fas fa-star" style="width: 14px; margin-right: 8px;"></i> <span>Laporan Angket Mentor</span>
+                                <i class="fas fa-star" style="width: 14px; margin-right: 8px;"></i> <span>Laporan Angket Instruktur</span>
                             </a>
                         </li>
                     </ul>

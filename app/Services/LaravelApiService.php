@@ -746,4 +746,171 @@ class LaravelApiService
             'raw'         => $body,
         ];
     }
+
+    /**
+     * Sinkronisasi data kehadiran / absensi instruktur dari API Laravel ke database lokal CI4.
+     * Menggunakan endpoint: GET /api/classes/{class_id}/trainer-attendance
+     *
+     * @param bool $force Jika true, abaikan throttle 30 detik
+     * @return array
+     */
+    public function syncTrainerAttendanceFromLaravel(bool $force = false): array
+    {
+        $cacheKey = 'laravel_trainer_attendance_last_synced';
+        if (!$force) {
+            $lastSynced = cache($cacheKey);
+            if ($lastSynced !== null && (time() - (int)$lastSynced) < 30) {
+                return ['status' => 'skipped', 'message' => 'Synced recently within 30s'];
+            }
+        }
+
+        $classesRes = $this->request('GET', 'classes');
+        $classes = $classesRes['data'] ?? $classesRes ?? [];
+        if (empty($classes) || !is_array($classes)) {
+            return ['status' => 'error', 'message' => 'Empty classes response from Laravel API'];
+        }
+
+        $db = \Config\Database::connect();
+        $syncedCount = 0;
+
+        foreach ($classes as $c) {
+            $classId = (int) ($c['id'] ?? 0);
+            if ($classId <= 0) {
+                continue;
+            }
+
+            try {
+                $attCheck = $this->getTrainerAttendance($classId);
+            } catch (\Throwable $eAtt) {
+                continue;
+            }
+
+            if (empty($attCheck['checked_in']) && empty($attCheck['attendance'])) {
+                continue;
+            }
+
+            $attData = $attCheck['attendance'] ?? [];
+            $sessionNum = !empty($attData['session_number']) ? (int)$attData['session_number'] : 1;
+            $attDate = !empty($attData['attendance_date']) ? $attData['attendance_date'] : date('Y-m-d');
+            $checkInTime = !empty($attData['check_in_time']) ? $attData['check_in_time'] : date('H:i:s');
+            $statusRaw = strtolower(trim((string)($attData['status'] ?? 'hadir')));
+            $statusAbsen = (in_array($statusRaw, ['terlambat', 'late'], true)) ? 'terlambat' : 'hadir';
+
+            $waktuAbsen = $attDate . ' ' . (strlen($checkInTime) === 5 ? ($checkInTime . ':00') : $checkInTime);
+
+            // Identifikasi trainer dari kelas ini
+            $trainers = $c['trainers'] ?? [];
+            $targetUserIds = [];
+
+            if (!empty($trainers) && is_array($trainers)) {
+                foreach ($trainers as $trainerItem) {
+                    $trainerEmail = !empty($trainerItem['email']) ? strtolower(trim($trainerItem['email'])) : null;
+                    $trainerName = !empty($trainerItem['name']) ? trim($trainerItem['name']) : null;
+                    $trainerIdLaravel = (int)($trainerItem['id'] ?? 0);
+
+                    if ($trainerEmail) {
+                        $uRow = $db->table('users')->where('LOWER(email)', $trainerEmail)->get()->getRowArray();
+                        if ($uRow) {
+                            $targetUserIds[] = (int)$uRow['id_users'];
+                        }
+                    }
+                    if ($trainerName) {
+                        $uRow = $db->table('users')->where('LOWER(nama)', strtolower($trainerName))->get()->getRowArray();
+                        if ($uRow) {
+                            $targetUserIds[] = (int)$uRow['id_users'];
+                        }
+                    }
+                    $mRow = null;
+                    if ($trainerEmail) {
+                        $mRow = $db->table('mentor')->where('LOWER(email)', $trainerEmail)->get()->getRowArray();
+                    }
+                    if (!$mRow && $trainerName) {
+                        $mRow = $db->table('mentor')->where('LOWER(nama_mentor)', strtolower($trainerName))->get()->getRowArray();
+                    }
+                    if ($mRow) {
+                        if (!empty($mRow['id_users'])) $targetUserIds[] = (int)$mRow['id_users'];
+                        $targetUserIds[] = (int)$mRow['id_mentor'];
+                    }
+                    if ($trainerIdLaravel > 0) {
+                        $targetUserIds[] = $trainerIdLaravel;
+                    }
+                }
+            }
+
+            $targetUserIds = array_unique(array_filter($targetUserIds));
+            if (empty($targetUserIds)) {
+                continue;
+            }
+
+            // Pastikan baris jadwal untuk kelas & sesi ini ada di database CI4
+            $jadwalRow = $db->table('jadwal')
+                ->where('id_kelas', $classId)
+                ->where('pertemuan_ke', $sessionNum)
+                ->get()
+                ->getRowArray();
+
+            if (!$jadwalRow) {
+                // Buat baris jadwal otomatis jika belum ada
+                $db->table('jadwal')->insert([
+                    'id_kelas'        => $classId,
+                    'pertemuan_ke'    => $sessionNum,
+                    'tanggal_kbm'     => $attDate,
+                    'waktu_mulai'     => '08:00:00',
+                    'waktu_selesai'   => '10:00:00',
+                    'materi'          => 'Pertemuan ' . $sessionNum,
+                    'absensi_dibuka'  => 1,
+                    'radius_meter'    => 100,
+                    'created_at'      => date('Y-m-d H:i:s'),
+                ]);
+                $idJadwal = (int)$db->insertID();
+            } else {
+                $idJadwal = (int)$jadwalRow['id_jadwal'];
+                // Update tanggal kbm jika kosong atau berbeda
+                if (empty($jadwalRow['tanggal_kbm']) || $jadwalRow['tanggal_kbm'] === '-') {
+                    $db->table('jadwal')->where('id_jadwal', $idJadwal)->update([
+                        'tanggal_kbm'    => $attDate,
+                        'absensi_dibuka' => 1,
+                    ]);
+                }
+            }
+
+            foreach ($targetUserIds as $uId) {
+                $existingAbsen = $db->table('absensi')
+                    ->groupStart()
+                        ->where('id_jadwal', $idJadwal)
+                        ->orWhere('id_jadwal_kelas', $idJadwal)
+                    ->groupEnd()
+                    ->where('id_user', $uId)
+                    ->get()
+                    ->getRowArray();
+
+                if (!$existingAbsen) {
+                    $db->table('absensi')->insert([
+                        'id_jadwal'       => $idJadwal,
+                        'id_jadwal_kelas' => $idJadwal,
+                        'id_user'         => $uId,
+                        'status'          => $statusAbsen,
+                        'waktu_absen'     => $waktuAbsen,
+                        'created_at'      => $waktuAbsen,
+                        'updated_at'      => $waktuAbsen,
+                    ]);
+                    $syncedCount++;
+                } else {
+                    if (strtolower($existingAbsen['status']) !== $statusAbsen) {
+                        $db->table('absensi')->where('id_absensi', $existingAbsen['id_absensi'])->update([
+                            'status'     => $statusAbsen,
+                            'updated_at' => date('Y-m-d H:i:s'),
+                        ]);
+                        $syncedCount++;
+                    }
+                }
+            }
+        }
+
+        try {
+            cache()->save($cacheKey, time(), 30);
+        } catch (\Throwable $eCache) {}
+
+        return ['status' => 'success', 'synced' => $syncedCount];
+    }
 }

@@ -115,6 +115,14 @@ class LaporanMentorController extends BaseController
         $categories = $this->laporanMentorModel->getFilterCategories();
         $tempatList = $this->laporanMentorModel->getFilterTempatPelatihan();
 
+        // Sinkronisasi data kehadiran instruktur dari API Laravel jika ada pembaruan
+        try {
+            $apiService = new \App\Services\LaravelApiService();
+            $apiService->syncTrainerAttendanceFromLaravel();
+        } catch (\Throwable $eAtt) {
+            log_message('notice', 'LaporanMentorController: syncTrainerAttendance error: ' . $eAtt->getMessage());
+        }
+
         $stats       = $this->laporanMentorModel->getRingkasanStats($filters);
         $mentorListAll  = $this->laporanMentorModel->getLaporanMentorList($filters);
         $rankingList = $this->laporanMentorModel->getRankingMentor($filters);
@@ -188,6 +196,10 @@ class LaporanMentorController extends BaseController
         }
 
         $filters    = $this->parseFilters();
+        try {
+            $apiService = new \App\Services\LaravelApiService();
+            $apiService->syncTrainerAttendanceFromLaravel();
+        } catch (\Throwable $eAtt) {}
         $stats      = $this->laporanMentorModel->getRingkasanStats($filters);
         $mentorList = $this->laporanMentorModel->getLaporanMentorList($filters);
 
@@ -394,6 +406,10 @@ class LaporanMentorController extends BaseController
         }
 
         $filters    = $this->parseFilters();
+        try {
+            $apiService = new \App\Services\LaravelApiService();
+            $apiService->syncTrainerAttendanceFromLaravel();
+        } catch (\Throwable $eAtt) {}
         $stats      = $this->laporanMentorModel->getRingkasanStats($filters);
         $mentorList = $this->laporanMentorModel->getLaporanMentorList($filters);
         $rankingList= $this->laporanMentorModel->getRankingMentor($filters);
