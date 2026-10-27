@@ -62,7 +62,45 @@ class Pelatihan extends BaseController
 
     public function register()
     {
-        return view('auth/register');
+        $db = \Config\Database::connect();
+        $email = trim((string)($this->request->getGet('email') ?? ''));
+        $prefill = [];
+
+        if (!empty($email)) {
+            $cleanEmail = strtolower($email);
+            $p = null;
+            if ($db->tableExists('pendaftaran')) {
+                $p = $db->table('pendaftaran')
+                    ->where('LOWER(email)', $cleanEmail)
+                    ->orderBy('id_pendaftaran', 'DESC')
+                    ->get()
+                    ->getRowArray();
+            }
+
+            if ($p) {
+                $prefill = [
+                    'nama'          => $p['nama'] ?? '',
+                    'email'         => $p['email'] ?? $email,
+                    'no_hp'         => $p['no_hp'] ?? '',
+                    'jenis_kelamin' => $p['jenis_kelamin'] ?? '',
+                ];
+            } else {
+                $u = $db->table('users')
+                    ->where('LOWER(email)', $cleanEmail)
+                    ->get()
+                    ->getRowArray();
+                if ($u) {
+                    $prefill = [
+                        'nama'          => $u['nama'] ?? '',
+                        'email'         => $u['email'] ?? $email,
+                        'no_hp'         => $u['no_hp'] ?? '',
+                        'jenis_kelamin' => $u['jenis_kelamin'] ?? '',
+                    ];
+                }
+            }
+        }
+
+        return view('auth/register', ['prefill' => $prefill]);
     }
 
     protected function requireLogin()

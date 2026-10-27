@@ -171,9 +171,19 @@
                                         <div><strong>Pendaftaran Ditolak.</strong> Silakan hubungi admin atau lakukan pendaftaran ulang dengan bukti pembayaran yang valid.</div>
                                     </div>
                                 <?php elseif ($row['status_pendaftaran'] == 'Disetujui' || $row['status_pendaftaran'] == 'Diterima') : ?>
-                                    <div class="alert alert-success border-0 rounded-3 mb-0 d-flex align-items-center">
-                                        <i class="bi bi-check-circle-fill fs-5 me-2"></i>
-                                        <div><strong>Selamat!</strong> Pendaftaran Anda telah divalidasi dan disetujui oleh admin. Silakan bersiap mengikuti kelas.</div>
+                                    <div class="alert alert-success border-0 rounded-3 mb-0">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="bi bi-check-circle-fill fs-5 me-2 text-success"></i>
+                                            <div><strong>Selamat!</strong> Pendaftaran Anda telah disetujui oleh admin. Silakan lakukan registrasi akun terlebih dahulu untuk membuat kata sandi Anda sendiri sebelum login.</div>
+                                        </div>
+                                        <div class="mt-3 pt-2 border-top border-success border-opacity-25 d-flex flex-wrap gap-2 justify-content-end">
+                                            <a href="<?= base_url('pelatihan/register?email=' . urlencode($row['email'])) ?>" class="btn btn-sm btn-success px-3 rounded-pill fw-semibold shadow-sm">
+                                                <i class="bi bi-key-fill me-1"></i> Buat Kata Sandi / Registrasi Akun
+                                            </a>
+                                            <a href="<?= base_url('pelatihan/login') ?>" class="btn btn-sm btn-outline-success px-3 rounded-pill fw-semibold">
+                                                <i class="bi bi-box-arrow-in-right me-1"></i> Login Peserta
+                                            </a>
+                                        </div>
                                     </div>
                                 <?php else : ?>
                                     <div class="alert alert-warning border-0 rounded-3 mb-0 d-flex align-items-center bg-light text-secondary">

@@ -130,8 +130,8 @@ class Auth extends BaseController
                     }
 
                     if ($hasApproved) {
-                        return redirect()->to(base_url('pelatihan/register'))
-                            ->with('error', 'Pendaftaran Anda telah disetujui Admin! Silakan lakukan registrasi akun terlebih dahulu untuk membuat kata sandi Anda.');
+                        return redirect()->to(base_url('pelatihan/register?email=' . urlencode($cleanEmail)))
+                            ->with('error', 'Pendaftaran Anda telah disetujui Admin! Silakan lakukan registrasi akun terlebih dahulu untuk membuat kata sandi Anda sebelum login.');
                     }
 
                     if ($hasPending) {
@@ -145,24 +145,6 @@ class Auth extends BaseController
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Email tidak ditemukan.');
-        }
-
-        // 2b. Khusus Peserta: Cegah login jika akun belum menyelesaikan registrasi akun mandiri
-        $roleUser = strtolower(trim((string) ($user['role'] ?? 'peserta')));
-        if ($roleUser === 'peserta') {
-            $isRegistered = false;
-            if (isset($user['is_registered'])) {
-                $isRegistered = ((int) $user['is_registered'] === 1);
-            } else {
-                // Fallback jika kolom is_registered belum ada di database
-                $storedPassCheck = (string) ($user['password'] ?? '');
-                $isRegistered = !password_verify('123456', $storedPassCheck) && !password_verify('12345678', $storedPassCheck);
-            }
-
-            if (!$isRegistered) {
-                return redirect()->to(base_url('pelatihan/register'))
-                    ->with('error', 'Pendaftaran Anda telah disetujui Admin! Silakan lakukan registrasi akun terlebih dahulu untuk membuat kata sandi Anda sebelum login.');
-            }
         }
 
         // 3. Verifikasi Password Standar menggunakan password_verify()
@@ -193,17 +175,19 @@ class Auth extends BaseController
             }
         }
 
-        // 5. Cek apakah hash perlu diperbarui (rehash) jika algoritma PHP berubah
-        if ($passwordValid && password_needs_rehash($user['password'], PASSWORD_DEFAULT)) {
-            $rehashed = password_hash($password, PASSWORD_DEFAULT);
-            $db->table('users')
-                ->where('id_users', $user['id_users'])
-                ->update(['password' => $rehashed]);
-            $user['password'] = $rehashed;
-        }
+        // 5. Pemeriksaan Khusus Peserta: Cek apakah akun masih menggunakan password placeholder default
+        $roleUser      = strtolower(trim((string) ($user['role'] ?? 'peserta')));
+        $isPlaceholder = password_verify('123456', $storedPassword) || password_verify('12345678', $storedPassword);
+        $isRegistered  = isset($user['is_registered']) ? ((int) $user['is_registered'] === 1) : !$isPlaceholder;
 
-        // 6. Tangani kegagalan verifikasi password
+        // Tangani jika verifikasi password gagal
         if (!$passwordValid) {
+            // Jika akun peserta masih menggunakan password placeholder dan belum registrasi mandiri, arahkan untuk buat kata sandi
+            if ($roleUser === 'peserta' && (!$isRegistered || $isPlaceholder)) {
+                return redirect()->to(base_url('pelatihan/register?email=' . urlencode($user['email'])))
+                    ->with('error', 'Pendaftaran Anda telah disetujui Admin! Silakan lakukan registrasi akun terlebih dahulu untuk membuat kata sandi Anda sebelum login.');
+            }
+
             $hashLen  = strlen($storedPassword);
             $isBcrypt = str_starts_with($storedPassword, '$2y$') || str_starts_with($storedPassword, '$2a$') || str_starts_with($storedPassword, '$2b$');
             log_message('warning', "Login failed: Password mismatch for user ID [{$user['id_users']}], Email [{$user['email']}], Hash length: {$hashLen}, IsBcrypt: " . ($isBcrypt ? 'yes' : 'no') . ' from IP: ' . $this->request->getIPAddress());
@@ -211,6 +195,27 @@ class Auth extends BaseController
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Password salah.');
+        }
+
+        // Jika password valid, tetapi peserta login menggunakan default placeholder (123456 / 12345678) dan belum registrasi akun mandiri
+        if ($roleUser === 'peserta' && !$isRegistered && in_array($password, ['123456', '12345678'], true) && $isPlaceholder) {
+            return redirect()->to(base_url('pelatihan/register?email=' . urlencode($user['email'])))
+                ->with('error', 'Pendaftaran Anda telah disetujui Admin! Silakan lakukan registrasi akun terlebih dahulu untuk membuat kata sandi Anda sebelum login.');
+        }
+
+        // Jika password valid (password resmi peserta), otomatis pastikan status is_registered = 1
+        if ($roleUser === 'peserta' && $db->fieldExists('is_registered', 'users') && (int)($user['is_registered'] ?? 0) !== 1) {
+            $db->table('users')->where('id_users', $user['id_users'])->update(['is_registered' => 1]);
+            $user['is_registered'] = 1;
+        }
+
+        // 6. Cek apakah hash perlu diperbarui (rehash) jika algoritma PHP berubah
+        if ($passwordValid && password_needs_rehash($user['password'], PASSWORD_DEFAULT)) {
+            $rehashed = password_hash($password, PASSWORD_DEFAULT);
+            $db->table('users')
+                ->where('id_users', $user['id_users'])
+                ->update(['password' => $rehashed]);
+            $user['password'] = $rehashed;
         }
 
         // 7. Pengaturan Role dan Sesi Login
@@ -221,13 +226,15 @@ class Auth extends BaseController
 
         session()->set([
             'id_users'    => $user['id_users'],
+            'id_user'     => $user['id_users'],
             'id'          => $user['id_users'],
             'nama'        => $user['nama'] ?? 'User',
             'email'       => $user['email'],
             'no_hp'       => $user['no_hp'] ?? '',
             'foto_profil' => $user['foto_profil'] ?? null,
             'role'        => $role,
-            'logged_in'   => true
+            'logged_in'   => true,
+            'isLoggedIn'  => true,
         ]);
 
         log_message('info', "Login success for user ID [{$user['id_users']}], Role [{$role}] from IP: " . $this->request->getIPAddress());
@@ -353,43 +360,35 @@ class Auth extends BaseController
             ->getRowArray();
 
         if ($cekEmail) {
-            $isAlreadyRegistered = isset($cekEmail['is_registered']) && (int) $cekEmail['is_registered'] === 1;
-
-            // Jika belum registrasi mandiri (is_registered == 0):
-            // perbarui akun, pasang is_registered = 1, dan simpan password pilihan peserta
-            if (!$isAlreadyRegistered) {
-                $updateUser = [
-                    'nama'          => trim($nama),
-                    'jenis_kelamin' => $jenisKelamin,
-                    'no_hp'         => $no_hp,
-                    'password'      => password_hash($password, PASSWORD_DEFAULT),
-                ];
-                if ($db->fieldExists('is_registered', 'users')) {
-                    $updateUser['is_registered'] = 1;
-                }
-                if ($db->fieldExists('updated_at', 'users')) {
-                    $updateUser['updated_at'] = date('Y-m-d H:i:s');
-                }
-
-                $db->table('users')
-                    ->where('id_users', $cekEmail['id_users'])
-                    ->update($updateUser);
-
-                // Tautkan data pendaftaran kelas yang sebelumnya menggunakan email ini
-                if ($db->tableExists('pendaftaran')) {
-                    $db->table('pendaftaran')
-                        ->where('LOWER(email)', $cleanEmail)
-                        ->update(['id_users' => $cekEmail['id_users']]);
-                }
-
-                return redirect()
-                    ->to(base_url('pelatihan/login'))
-                    ->with('success', 'Registrasi berhasil! Akun Anda telah aktif, silakan login dengan email dan password Anda.');
+            // Perbarui data nama, no_hp, kata sandi, dan aktifkan akun peserta
+            $updateUser = [
+                'nama'          => trim($nama),
+                'jenis_kelamin' => $jenisKelamin,
+                'no_hp'         => $no_hp,
+                'password'      => password_hash($password, PASSWORD_DEFAULT),
+            ];
+            if ($db->fieldExists('is_registered', 'users')) {
+                $updateUser['is_registered'] = 1;
+            }
+            if ($db->fieldExists('updated_at', 'users')) {
+                $updateUser['updated_at'] = date('Y-m-d H:i:s');
             }
 
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Email sudah terdaftar dan akun Anda sudah aktif. Silakan langsung login dengan password Anda.');
+            $db->table('users')
+                ->where('id_users', $cekEmail['id_users'])
+                ->update($updateUser);
+
+            // Tautkan data pendaftaran kelas yang sebelumnya menggunakan email ini
+            if ($db->tableExists('pendaftaran')) {
+                $db->table('pendaftaran')
+                    ->where('LOWER(email)', $cleanEmail)
+                    ->update(['id_users' => $cekEmail['id_users']]);
+            }
+
+            return redirect()
+                ->to(base_url('pelatihan/login'))
+                ->with('email', $cleanEmail)
+                ->with('success', 'Registrasi berhasil! Akun Anda telah aktif, silakan login dengan email dan kata sandi Anda.');
         }
 
         // Data yang akan disimpan ke database jika akun users belum ada
@@ -423,6 +422,7 @@ class Auth extends BaseController
 
         return redirect()
             ->to(base_url('pelatihan/login'))
-            ->with('success', 'Registrasi berhasil! Akun Anda telah aktif, silakan login dengan email dan password Anda.');
+            ->with('email', $cleanEmail)
+            ->with('success', 'Registrasi berhasil! Akun Anda telah aktif, silakan login dengan email dan kata sandi Anda.');
     }
 }

@@ -424,7 +424,7 @@
                     <div class="mb-3">
                         <label class="form-label">Email</label>
                         <div class="input-group-custom">
-                            <input type="email" name="email" class="form-control" placeholder="nama@email.com" required autofocus>
+                            <input type="email" name="email" class="form-control" placeholder="nama@email.com" value="<?= esc(old('email', session()->getFlashdata('email') ?? '')) ?>" required autofocus>
                             <i class="fas fa-envelope input-icon"></i>
                         </div>
                     </div>

@@ -234,27 +234,28 @@
 
                     <div class="mb-3">
                         <label class="form-label">Nama Lengkap</label>
-                        <input type="text" name="nama" class="form-control" placeholder="Masukkan Nama Lengkap" value="<?= esc(old('nama')) ?>" required>
+                        <input type="text" name="nama" class="form-control" placeholder="Masukkan Nama Lengkap" value="<?= esc(old('nama', $prefill['nama'] ?? '')) ?>" required>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Jenis Kelamin</label>
+                            <?php $valJk = old('jenis_kelamin', $prefill['jenis_kelamin'] ?? ''); ?>
                             <select name="jenis_kelamin" class="form-select" required>
                                 <option value="">Pilih...</option>
-                                <option value="Laki-laki">Laki-laki</option>
-                                <option value="Perempuan">Perempuan</option>
+                                <option value="Laki-laki" <?= ($valJk === 'Laki-laki') ? 'selected' : '' ?>>Laki-laki</option>
+                                <option value="Perempuan" <?= ($valJk === 'Perempuan') ? 'selected' : '' ?>>Perempuan</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Nomor HP</label>
-                            <input type="text" name="no_hp" class="form-control" placeholder="08..." value="<?= esc(old('no_hp')) ?>" required>
+                            <input type="text" name="no_hp" class="form-control" placeholder="08..." value="<?= esc(old('no_hp', $prefill['no_hp'] ?? '')) ?>" required>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control" placeholder="nama@email.com" value="<?= esc(old('email')) ?>" required>
+                        <input type="email" name="email" class="form-control" placeholder="nama@email.com" value="<?= esc(old('email', $prefill['email'] ?? '')) ?>" required>
                     </div>
 
                     <div class="row">
