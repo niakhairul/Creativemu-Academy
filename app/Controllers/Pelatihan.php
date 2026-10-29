@@ -2080,7 +2080,6 @@ class Pelatihan extends BaseController
             'pilihan_kelas'       => $kelas['nama_kelas'],
             'kategori_kelas'      => $kategoriKelas,
             'tanggal_mulai_kelas' => $tanggalMulaiDb,
-            'jam_pelatihan'       => $jamFinal,
             'metode_pembayaran'   => $metodePembayaran,
             'bukti_pembayaran'    => $namaBukti,
             'status_pembayaran'   => 'pending',
@@ -2111,8 +2110,36 @@ class Pelatihan extends BaseController
         if ($db->fieldExists('custom_materi', 'pendaftaran')) {
             $dataPendaftaran['custom_materi'] = $customMateri ?: null;
         }
+        if (!$db->fieldExists('sumber_informasi', 'pendaftaran')) {
+            try {
+                $forge = \Config\Database::forge();
+                $forge->addColumn('pendaftaran', [
+                    'sumber_informasi' => [
+                        'type'       => 'VARCHAR',
+                        'constraint' => '100',
+                        'null'       => true,
+                    ],
+                ]);
+            } catch (\Throwable $eF) {}
+        }
         if ($db->fieldExists('sumber_informasi', 'pendaftaran')) {
             $dataPendaftaran['sumber_informasi'] = $sumberInformasi;
+        }
+
+        if (!$db->fieldExists('jam_pelatihan', 'pendaftaran')) {
+            try {
+                $forge = \Config\Database::forge();
+                $forge->addColumn('pendaftaran', [
+                    'jam_pelatihan' => [
+                        'type'       => 'VARCHAR',
+                        'constraint' => '100',
+                        'null'       => true,
+                    ],
+                ]);
+            } catch (\Throwable $eF) {}
+        }
+        if ($db->fieldExists('jam_pelatihan', 'pendaftaran')) {
+            $dataPendaftaran['jam_pelatihan'] = $jamFinal;
         }
 
         try {

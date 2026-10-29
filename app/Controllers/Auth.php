@@ -401,6 +401,19 @@ class Auth extends BaseController
             'password'      => password_hash($password, PASSWORD_DEFAULT),
             'role'          => 'peserta',
         ];
+        if (!$db->fieldExists('is_registered', 'users')) {
+            try {
+                $forge = \Config\Database::forge();
+                $forge->addColumn('users', [
+                    'is_registered' => [
+                        'type'       => 'TINYINT',
+                        'constraint' => 1,
+                        'default'    => 1,
+                        'after'      => 'role',
+                    ],
+                ]);
+            } catch (\Throwable $eF) {}
+        }
         if ($db->fieldExists('is_registered', 'users')) {
             $dataSimpan['is_registered'] = 1;
         }
