@@ -400,8 +400,10 @@ class Auth extends BaseController
             'email'         => $cleanEmail,
             'password'      => password_hash($password, PASSWORD_DEFAULT),
             'role'          => 'peserta',
-            'is_registered' => 1,
         ];
+        if ($db->fieldExists('is_registered', 'users')) {
+            $dataSimpan['is_registered'] = 1;
+        }
         if ($db->fieldExists('created_at', 'users')) {
             $dataSimpan['created_at'] = date('Y-m-d H:i:s');
         }
