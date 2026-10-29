@@ -18,6 +18,7 @@ class PendaftaranModel extends Model
         'pilihan_pelatihan',
         'pilihan_kelas',
         'tanggal_mulai_kelas',
+        'jam_pelatihan',
         'nama',
         'email',
         'no_hp',

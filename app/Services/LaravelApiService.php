@@ -54,6 +54,7 @@ class LaravelApiService
                 'X-API-KEY'    => $this->apiKey,
                 'Accept'       => 'application/json',
                 'Content-Type' => 'application/json',
+                'User-Agent'   => 'Creativemu-Academy-CI4/1.0',
             ],
             'http_errors'     => false, // Mencegah lemparan exception pada 4xx/5xx agar response body tetap dapat diurai
         ];

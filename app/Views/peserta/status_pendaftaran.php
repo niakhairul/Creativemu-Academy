@@ -162,6 +162,15 @@
                                         <span class="text-muted d-block small">Metode Pembayaran</span>
                                         <strong class="text-dark text-capitalize"><?= esc($row['pembayaran']) ?></strong>
                                     </div>
+                                    <?php if (!empty($row['jam_pelatihan']) || (!empty($row['tanggal_mulai_kelas']) && strtolower($row['jenis_kelas'] ?? '') === 'privat')) : ?>
+                                        <div class="col-sm-6">
+                                            <span class="text-muted d-block small">Jadwal Belajar Privat Pilihan</span>
+                                            <strong class="text-dark">
+                                                <?= !empty($row['tanggal_mulai_kelas']) ? esc(date('d M Y', strtotime($row['tanggal_mulai_kelas']))) : '' ?>
+                                                <?= !empty($row['jam_pelatihan']) ? ' • ' . esc($row['jam_pelatihan']) : '' ?>
+                                            </strong>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
 
                                 <!-- Kotak Informasi Pesan Berdasarkan Status -->

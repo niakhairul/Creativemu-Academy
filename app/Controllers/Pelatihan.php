@@ -718,60 +718,114 @@ class Pelatihan extends BaseController
 
         // =========================================================================
         // 1. ALUR KELAS PRIVAT:
-        // HANYA DI-POST KE LARAVEL JIKA SUDAH DIVALIDASI / DI-ACC OLEH ADMIN CI4!
+        // Setiap pendaftaran siswa kelas Private yang tersimpan di CI4 membuat / mencari
+        // kelas Private di Laravel, menyambungkan siswa sebagai registrant, dan menyimpan ID kelas.
         // =========================================================================
         if ($isPrivat) {
-            if (!$isAccAdmin) {
-                // Belum di-ACC oleh Admin CI4 -> JANGAN POST KE LARAVEL!
-                return $pendaftaran;
-            }
-
-            // Sudah di-ACC oleh Admin CI4:
-            // Kirim request materi privat ke Laravel (POST /api/private-class-requests)
-            $customMateri = trim((string) ($pendaftaran['custom_materi'] ?? ''));
-            $materiPrivat = trim((string) ($pendaftaran['materi_privat'] ?? ''));
-            $isCustom = in_array(strtolower($materiPrivat), ['custom materi', 'custom', 'lainnya'], true);
-            $trainingName = ($isCustom && $customMateri !== '')
-                ? $customMateri
-                : ($materiPrivat !== ''
-                    ? $materiPrivat
-                    : ($customMateri !== ''
-                        ? $customMateri
-                        : ($pendaftaran['pilihan_pelatihan'] ?? $kelas['nama_kelas'] ?? 'Materi Privat')));
-
             $studentId = !empty($pendaftaran['nis']) ? trim((string)$pendaftaran['nis']) : null;
-            $price = (float) ($pendaftaran['harga_privat'] ?? $kelas['harga_privat'] ?? 1500000);
+            $price     = (float) ($pendaftaran['harga_privat'] ?? $kelas['harga_privat'] ?? 1500000);
             $trainingId = !empty($kelas['training_id']) ? (int)$kelas['training_id'] : null;
 
-            $privPayload = [
-                'external_registration_id' => $extId,
-                'training_id'              => $trainingId,
-                'training_name'            => $trainingName,
-                'student_id'               => $studentId,
-                'name'                     => trim((string)($pendaftaran['nama'] ?? '')),
-                'email'                    => !empty($pendaftaran['email']) ? trim((string)$pendaftaran['email']) : null,
-                'phone'                    => !empty($pendaftaran['no_hp']) ? trim((string)$pendaftaran['no_hp']) : null,
-                'price'                    => $price,
-            ];
+            // Region ID: ambil dari data kelas/training atau default region Laravel (1)
+            $regionId = !empty($kelas['region_id'])
+                ? (int)$kelas['region_id']
+                : (!empty($pendaftaran['region_id'])
+                    ? (int)$pendaftaran['region_id']
+                    : (int)env('LARAVEL_DEFAULT_REGION_ID', 1));
 
-            // Request pembuatan kelas privat di Laravel via POST /api/private-class-requests
-            $resPriv = $apiService->requestWithResponse('POST', 'private-class-requests', $privPayload);
+            // Jika id_kelas belum ada di Laravel untuk pendaftaran privat ini, buat/temukan via private-class-requests
+            if ($idKelas <= 0) {
+                $customMateri = trim((string) ($pendaftaran['custom_materi'] ?? ''));
+                $materiPrivat = trim((string) ($pendaftaran['materi_privat'] ?? ''));
+                $isCustom = in_array(strtolower($materiPrivat), ['custom materi', 'custom', 'lainnya'], true);
+                $trainingName = ($isCustom && $customMateri !== '')
+                    ? $customMateri
+                    : ($materiPrivat !== ''
+                        ? $materiPrivat
+                        : ($customMateri !== ''
+                            ? $customMateri
+                            : ($pendaftaran['pilihan_pelatihan'] ?? $kelas['nama_kelas'] ?? 'Materi Privat')));
 
-            $newClasId = null;
-            if (!empty($resPriv['body']) && is_array($resPriv['body'])) {
-                $bodyData = $resPriv['body']['data'] ?? $resPriv['body'];
-                if (is_array($bodyData)) {
-                    $newClasId = $bodyData['id'] ?? $bodyData['clas_id'] ?? $bodyData['class_id'] ?? null;
+                $privPayload = [
+                    'external_registration_id' => $extId,
+                    'training_id'              => $trainingId,
+                    'training_name'            => $trainingName,
+                    'student_id'               => $studentId,
+                    'name'                     => trim((string)($pendaftaran['nama'] ?? '')),
+                    'email'                    => !empty($pendaftaran['email']) ? trim((string)$pendaftaran['email']) : null,
+                    'phone'                    => !empty($pendaftaran['no_hp']) ? trim((string)$pendaftaran['no_hp']) : null,
+                    'price'                    => $price,
+                    'region_id'                => $regionId > 0 ? $regionId : 1,
+                ];
+
+                $resPriv = $apiService->requestWithResponse('POST', 'private-class-requests', $privPayload);
+
+                $newClasId = null;
+                if (!empty($resPriv['body']) && is_array($resPriv['body'])) {
+                    $bodyData = $resPriv['body']['data'] ?? $resPriv['body'];
+                    if (is_array($bodyData)) {
+                        $newClasId = $bodyData['id'] ?? $bodyData['clas_id'] ?? $bodyData['class_id'] ?? null;
+                    }
+                }
+
+                if (is_numeric($newClasId) && (int)$newClasId > 0) {
+                    $idKelas = (int)$newClasId;
+                    $pendaftaran['id_kelas'] = $idKelas;
+                    \Config\Database::connect()->table('pendaftaran')
+                        ->where('id_pendaftaran', $idPendaftaran)
+                        ->update(['id_kelas' => $idKelas]);
+                } else {
+                    // Jika endpoint private-class-requests gagal, jangan lanjut mengirim registrant ke ID template
+                    log_message('warning', "LaravelApiService: Gagal membuat/menemukan kelas privat Laravel untuk pendaftaran ID #{$idPendaftaran} (extId: {$extId}): " . ($resPriv['message'] ?? 'Respons tidak memuat ID kelas'));
+                    $pendaftaran['sync_status'] = 'failed';
+                    return $pendaftaran;
                 }
             }
 
-            if (is_numeric($newClasId) && (int)$newClasId > 0) {
-                $idKelas = (int)$newClasId;
-                $pendaftaran['id_kelas'] = $idKelas;
+            // Status registrant di Laravel untuk kelas privat
+            $regStatus = 'pending';
+            if (in_array($ciStatus, ['ditolak', 'rejected', 'batal'], true) || in_array($ciPay, ['rejected', 'ditolak'], true)) {
+                $regStatus = 'rejected';
+            } elseif (in_array($ciStatus, ['disetujui', 'approved', 'diterima'], true)) {
+                $regStatus = 'approved';
+            }
+
+            $payStatus = 'pending';
+            if (in_array($ciPay, ['rejected', 'ditolak', 'failed'], true)) {
+                $payStatus = 'rejected';
+            } elseif (in_array($ciPay, ['valid', 'lunas', 'paid', 'terkonfirmasi'], true)) {
+                $payStatus = 'paid';
+            }
+
+            $regPrivPayload = [
+                'external_registration_id' => $extId,
+                'student_id'               => $studentId,
+                'nis'                      => $studentId,
+                'name'                     => trim((string)($pendaftaran['nama'] ?? '')),
+                'email'                    => !empty($pendaftaran['email']) ? trim((string)$pendaftaran['email']) : null,
+                'phone'                    => !empty($pendaftaran['no_hp']) ? trim((string)$pendaftaran['no_hp']) : null,
+                'status'                   => $regStatus,
+                'payment_status'           => $payStatus,
+                'registered_at'            => $pendaftaran['created_at'] ?? date('Y-m-d H:i:s'),
+                'metadata'                 => [
+                    'id_pendaftaran'      => $idPendaftaran,
+                    'id_users'            => $pendaftaran['id_users'] ?? null,
+                    'jenis_kelas'         => 'Private',
+                    'kategori_kelas'      => 'Reguler',
+                    'metode_pembelajaran' => $pendaftaran['metode_pembelajaran'] ?? null,
+                    'lokasi_pelatihan'    => $pendaftaran['lokasi_pelatihan'] ?? null,
+                    'metode_pembayaran'   => $pendaftaran['metode_pembayaran'] ?? null,
+                    'status_pembayaran'   => $pendaftaran['status_pembayaran'] ?? 'pending',
+                    'status_pendaftaran'  => $pendaftaran['status_pendaftaran'] ?? 'Menunggu',
+                ],
+            ];
+
+            $resReg = $apiService->requestWithResponse('POST', 'classes/' . $idKelas . '/registrants', $regPrivPayload);
+            if ($resReg['success']) {
                 $pendaftaran['sync_status'] = 'synced';
-                \Config\Database::connect()->table('pendaftaran')
-                    ->where('id_pendaftaran', $idPendaftaran)
-                    ->update(['id_kelas' => $idKelas]);
+            } else {
+                $pendaftaran['sync_status'] = 'failed';
+                log_message('warning', "LaravelApiService: Gagal menyambungkan registrant kelas privat #{$idKelas} (extId: {$extId}): " . ($resReg['message'] ?? 'HTTP Error'));
             }
 
             return $pendaftaran;
@@ -1982,22 +2036,24 @@ class Pelatihan extends BaseController
             }
         }
 
-        $tanggalMulaiDb = (!$isPrivat && !empty($kelas['tanggal_mulai_kelas']) && $kelas['tanggal_mulai_kelas'] !== '-')
-            ? $kelas['tanggal_mulai_kelas']
-            : null;
+        $tanggalMulaiPost = trim((string)$this->request->getPost('tanggal_mulai_kelas'));
+        if ($isPrivat && !empty($tanggalMulaiPost)) {
+            $tanggalMulaiDb = $tanggalMulaiPost;
+        } elseif (!$isPrivat && !empty($kelas['tanggal_mulai_kelas']) && $kelas['tanggal_mulai_kelas'] !== '-') {
+            $tanggalMulaiDb = $kelas['tanggal_mulai_kelas'];
+        } else {
+            $tanggalMulaiDb = !empty($tanggalMulaiPost) ? $tanggalMulaiPost : date('Y-m-d');
+        }
 
-        // Fallback jika database belum mendukung NULL pada kolom tanggal_mulai_kelas
-        if ($tanggalMulaiDb === null) {
-            try {
-                $fieldData = $db->getFieldData('pendaftaran');
-                foreach ($fieldData as $fd) {
-                    if ($fd->name === 'tanggal_mulai_kelas' && empty($fd->nullable)) {
-                        $tanggalMulaiDb = date('Y-m-d');
-                        break;
-                    }
-                }
-            } catch (\Throwable $eF) {
-                // Abaikan
+        // Tangkap Jam Pelatihan untuk Kelas Privat
+        $jamPelatihanPost = trim((string)$this->request->getPost('jam_pelatihan'));
+        $customJamPost    = trim((string)$this->request->getPost('custom_jam'));
+        $jamFinal         = null;
+        if ($isPrivat) {
+            if ($jamPelatihanPost === 'Custom' || strtolower($jamPelatihanPost) === 'custom') {
+                $jamFinal = ($customJamPost !== '') ? $customJamPost : 'Custom Jam Pilihan';
+            } else {
+                $jamFinal = $jamPelatihanPost ?: null;
             }
         }
 
@@ -2024,6 +2080,7 @@ class Pelatihan extends BaseController
             'pilihan_kelas'       => $kelas['nama_kelas'],
             'kategori_kelas'      => $kategoriKelas,
             'tanggal_mulai_kelas' => $tanggalMulaiDb,
+            'jam_pelatihan'       => $jamFinal,
             'metode_pembayaran'   => $metodePembayaran,
             'bukti_pembayaran'    => $namaBukti,
             'status_pembayaran'   => 'pending',
@@ -2064,13 +2121,8 @@ class Pelatihan extends BaseController
                 $savedRow = $dataPendaftaran;
                 $savedRow['id_pendaftaran'] = (int) $insertId;
 
-                // Sinkronisasi data pendaftaran ke Laravel API tanpa duplikasi
-                // Sinkronisasi data pendaftaran ke Laravel API:
-                // HANYA UNTUK KELAS REGULER!
-                // Untuk Kelas Privat: data HANYA disimpan di database lokal CI4 (Menunggu & Pending).
-                // TIDAK DI-POST KE LARAVEL saat siswa mendaftar!
-                // Data kelas privat BARU di-post ke Laravel setelah divalidasi dan di-ACC oleh Admin CI4.
-                if (!$isPrivat && !empty($savedRow['id_kelas'])) {
+                // Sinkronisasi data pendaftaran ke Laravel API secara idempotent
+                if (!empty($savedRow['id_pendaftaran'])) {
                     $this->syncRegistrationToLaravel($savedRow, $kelas);
                 }
 
@@ -2197,26 +2249,27 @@ class Pelatihan extends BaseController
     }
 
     public function status()
-{
-    $keyword = $this->request->getGet('keyword') ?? $this->request->getPost('keyword');
-    $pendaftaran = null;
+    {
+        $keyword = $this->request->getGet('keyword') ?? $this->request->getPost('keyword');
+        $pendaftaran = [];
 
-    if ($keyword) {
-        $pendaftaran = (new \App\Models\PendaftaranModel())
-            ->select('pendaftaran.*, kelas.nama_kelas')
-            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-            ->groupStart()
-                ->where('pendaftaran.email', $keyword)
-                ->orWhere('pendaftaran.no_hp', $keyword)
-            ->groupEnd()
-            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
-            ->first();
+        if ($keyword) {
+            $pendaftaran = (new \App\Models\PendaftaranModel())
+                ->select('pendaftaran.*, kelas.nama_kelas')
+                ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+                ->groupStart()
+                    ->where('pendaftaran.email', $keyword)
+                    ->orWhere('pendaftaran.no_hp', $keyword)
+                ->groupEnd()
+                ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+                ->findAll();
+        }
+
+        return view('peserta/status_pendaftaran', [
+            'pendaftaran' => $pendaftaran,
+            'keyword'     => $keyword
+        ]);
     }
-
-
-
-   return redirect()->to(base_url('admin/validasi'))->with('success', 'Pendaftaran berhasil disetujui!');
-}
 
     public function updateBukti($id)
 {

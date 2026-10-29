@@ -858,7 +858,9 @@
         <input type="hidden" name="id_kelas" id="hidden_id_kelas" value="<?= $isDefaultPrivat ? '' : ($kelas['id_kelas'] ?? $kelas['id'] ?? ''); ?>">
         <input type="hidden" name="pilihan_pelatihan" id="hidden_pilihan_pelatihan" value="<?= esc($kelas['nama_kelas'] ?? $kelas['nama'] ?? 'Pelatihan Umum') ?>">
         <input type="hidden" name="pilihan_kelas" id="hidden_pilihan_kelas" value="<?= esc($kelas['nama_kelas'] ?? $kelas['nama'] ?? 'Kelas Umum') ?>">
+        <?php if (!$isDefaultPrivat): ?>
         <input type="hidden" name="tanggal_mulai_kelas" id="hidden_tanggal_mulai_kelas" value="<?= esc($kelas['tanggal_mulai_kelas'] ?? $kelas['awal_pelatihan'] ?? '') ?>">
+        <?php endif; ?>
 
         <!-- ============================================================== -->
         <!-- 1. BAGIAN PERSETUJUAN (PALING ATAS, LEBAR PENUH CARD KHUSUS)  -->
@@ -1236,7 +1238,74 @@
                         </div>
                     </div>
 
-                    <!-- Sumber Informasi (12 Pilihan Resmi) -->
+                                        <?php if ($isDefaultPrivat): ?>
+                    <!-- PILIHAN JADWAL PRIVAT: TANGGAL & JAM BELAJAR MANDIRI -->
+                    <div class="mb-3">
+                        <div class="p-3 rounded-3" style="background: #faf8fe; border: 1.5px solid var(--purple-border, #e9d5ff); box-shadow: 0 2px 6px rgba(107,33,168,0.03);">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <label class="form-label-custom mb-0">
+                                    <i class="bi bi-calendar2-week-fill text-purple me-1"></i>
+                                    <span>Pilihan Jadwal Kelas Privat <span class="required-star">*</span></span>
+                                </label>
+                                <span class="badge bg-purple-subtle text-purple" style="font-size: 0.72rem;">Bebas Tentukan Jadwal</span>
+                            </div>
+                            <p class="text-muted small mb-3" style="font-size: 0.76rem;">
+                                Sebagai peserta kelas privat, Anda menentukan tanggal mulai dan jam belajar mandiri sesuai kesiapan waktu Anda.
+                            </p>
+                            
+                            <div class="row g-2">
+                                <!-- Tanggal Mulai Pilihan -->
+                                <div class="col-sm-6">
+                                    <label for="tanggal_mulai_privat" class="form-label small fw-semibold text-dark mb-1" style="font-size: 0.8rem;">
+                                        Tanggal Mulai yang Diinginkan <span class="required-star">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light text-purple border-end-0" style="border-color: var(--purple-border);">
+                                            <i class="bi bi-calendar3"></i>
+                                        </span>
+                                        <input type="date" class="form-control border-start-0" id="tanggal_mulai_privat" name="tanggal_mulai_kelas" 
+                                               min="<?= date('Y-m-d') ?>" 
+                                               value="<?= esc(old('tanggal_mulai_kelas') ?: date('Y-m-d', strtotime('+1 day'))) ?>" 
+                                               required style="border-color: var(--purple-border); font-size: 0.84rem; font-weight: 600;">
+                                    </div>
+                                    <small class="text-muted d-block mt-1" style="font-size: 0.7rem;">Pilih tanggal awal mulai kelas.</small>
+                                </div>
+
+                                <!-- Jam / Waktu Belajar Pilihan -->
+                                <div class="col-sm-6">
+                                    <label for="select_jam_privat" class="form-label small fw-semibold text-dark mb-1" style="font-size: 0.8rem;">
+                                        Jam / Sesi Belajar Pilihan <span class="required-star">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light text-purple border-end-0" style="border-color: var(--purple-border);">
+                                            <i class="bi bi-clock-fill"></i>
+                                        </span>
+                                        <select class="form-select border-start-0" id="select_jam_privat" name="jam_pelatihan" required onchange="handleSelectJamPrivat(this)" style="border-color: var(--purple-border); font-size: 0.84rem; font-weight: 600;">
+                                            <?php $oldJam = old('jam_pelatihan'); ?>
+                                            <option value="" disabled <?= empty($oldJam) ? 'selected' : '' ?>>-- Pilih Jam Belajar --</option>
+                                            <option value="09:00 - 11:00 WIB (Pagi)" <?= ($oldJam === '09:00 - 11:00 WIB (Pagi)') ? 'selected' : '' ?>>09:00 - 11:00 WIB (Pagi)</option>
+                                            <option value="13:00 - 15:00 WIB (Siang)" <?= ($oldJam === '13:00 - 15:00 WIB (Siang)') ? 'selected' : '' ?>>13:00 - 15:00 WIB (Siang)</option>
+                                            <option value="15:30 - 17:30 WIB (Sore)" <?= ($oldJam === '15:30 - 17:30 WIB (Sore)') ? 'selected' : '' ?>>15:30 - 17:30 WIB (Sore)</option>
+                                            <option value="19:00 - 21:00 WIB (Malam)" <?= ($oldJam === '19:00 - 21:00 WIB (Malam)') ? 'selected' : '' ?>>19:00 - 21:00 WIB (Malam)</option>
+                                            <option value="Custom" <?= ($oldJam === 'Custom' || !empty(old('custom_jam'))) ? 'selected' : '' ?> style="font-weight: 600; color: var(--purple-primary, #6366f1);">
+                                                ✨ Jam Lainnya (Ketik Sendiri)
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <small class="text-muted d-block mt-1" style="font-size: 0.7rem;">Pilih waktu belajar yang Anda inginkan.</small>
+                                </div>
+                            </div>
+
+                            <!-- Input Custom Jam jika memilih Jam Lainnya -->
+                            <div id="wrapCustomJam" class="mt-2" style="<?= ($oldJam === 'Custom' || !empty(old('custom_jam'))) ? 'display: block;' : 'display: none;' ?>">
+                                <label for="custom_jam" class="form-label small text-muted mb-1" style="font-size: 0.75rem;">Tuliskan Jam / Waktu yang Anda Inginkan:</label>
+                                <input type="text" class="form-control" id="custom_jam" name="custom_jam" value="<?= esc(old('custom_jam')) ?>" placeholder="Contoh: 10:00 - 12:00 WIB atau Setiap Sabtu jam 14:00" style="border-color: var(--purple-border); border-radius: var(--radius-md); font-size: 0.84rem;">
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+<!-- Sumber Informasi (12 Pilihan Resmi) -->
                     <div class="mb-0">
                         <label for="sumber_informasi" class="form-label-custom">
                             <span>Anda mengetahui CreativeMU dari mana? <span class="required-star">*</span></span>
@@ -1416,6 +1485,24 @@
 /**
  * Logika pemilihan kelas secara dinamis dari database
  */
+function handleSelectJamPrivat(selectEl) {
+    const wrap = document.getElementById('wrapCustomJam');
+    const inputCustom = document.getElementById('custom_jam');
+    if (!wrap) return;
+    if (selectEl.value === 'Custom') {
+        wrap.style.display = 'block';
+        if (inputCustom) {
+            inputCustom.setAttribute('required', 'required');
+            inputCustom.focus();
+        }
+    } else {
+        wrap.style.display = 'none';
+        if (inputCustom) {
+            inputCustom.removeAttribute('required');
+        }
+    }
+}
+
 function handleSelectMateriPrivat(selectEl) {
     if (!selectEl) return;
     const materiName = selectEl.value;

@@ -410,14 +410,14 @@
             <div class="d-flex align-items-center">
                 <button class="mobile-toggle-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
                 <div>
-                    <h4 class="mb-0 fw-bold" style="color: var(--dark-purple);">Laporan Angket Instrukur</h4>
+                    <h4 class="mb-0 fw-bold" style="color: var(--dark-purple);">Laporan Angket Instruktur</h4>
                     <p class="text-muted small mb-0">Hasil evaluasi, kepuasan peserta, dan analisis indikator penilaian pengajar</p>
                 </div>
             </div>
 
             <!-- ACTION BUTTONS: EXPORT & CETAK -->
             <?php
-                $baseUrlReport = $isMentor ? 'instruktur/laporan-angket' : 'admin/laporan-angket';
+                $baseUrlReport = $isMentor ? 'mentor/laporan-angket' : 'admin/laporan-angket';
                 $queryString = http_build_query($filters);
             ?>
             <div class="d-flex gap-2">

@@ -585,15 +585,23 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                 <div class="detail-item"><div class="detail-label">Metode Pembelajaran</div><div class="detail-value"><?= esc($row['metode_pembelajaran'] ?? '-'); ?></div></div>
                                 <div class="detail-item"><div class="detail-label">Lokasi</div><div class="detail-value"><?= esc($row['lokasi_pelatihan'] ?? $row['lokasi_media'] ?? '-'); ?></div></div>
                                 <div class="detail-item">
-                                    <div class="detail-label">Jadwal Mulai</div>
+                                    <div class="detail-label"><?= (strtolower($row['jenis_kelas'] ?? '') === 'privat') ? 'Tanggal Pilihan Privat' : 'Jadwal Mulai' ?></div>
                                     <div class="detail-value">
-                                        <?php if ($statusLabel === 'Disetujui'): ?>
+                                        <?php if ($statusLabel === 'Disetujui' || strtolower($row['jenis_kelas'] ?? '') === 'privat'): ?>
                                             <?= esc(validasi_tanggal($row['tanggal_mulai_kelas'] ?? $row['tanggal_mulai_master'] ?? null)); ?>
                                         <?php else: ?>
                                             <span class="text-muted fst-italic">Ditampilkan setelah disetujui</span>
                                         <?php endif; ?>
                                     </div>
                                 </div>
+                                <?php if (!empty($row['jam_pelatihan'])): ?>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Jam Belajar Pilihan (Privat)</div>
+                                        <div class="detail-value fw-bold" style="color: #682bd8;">
+                                            <i class="fas fa-clock me-1"></i><?= esc($row['jam_pelatihan']); ?>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
                                 <div class="detail-item"><div class="detail-label">Tanggal Daftar</div><div class="detail-value"><?= esc(validasi_tanggal($row['created_at'] ?? null)); ?></div></div>
                                 <?php if (!empty($row['materi_privat'])): ?>
                                     <div class="detail-item" style="grid-column: span 2;">
