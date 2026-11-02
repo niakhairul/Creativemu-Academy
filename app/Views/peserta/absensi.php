@@ -601,12 +601,7 @@
             <!-- Nav Tabs -->
             <ul class="nav nav-tabs mb-4" id="kelasTab" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="materi-tab" data-bs-toggle="tab" data-bs-target="#materi" type="button" role="tab">
-                        <i class="fa-solid fa-book me-1"></i> Materi Pembelajaran
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="absensi-tab" data-bs-toggle="tab" data-bs-target="#absensi" type="button" role="tab">
+                    <button class="nav-link active" id="absensi-tab" data-bs-toggle="tab" data-bs-target="#absensi" type="button" role="tab">
                         <i class="fa-solid fa-calendar-check me-1"></i> Absensi & Riwayat
                     </button>
                 </li>
@@ -631,46 +626,8 @@
             <!-- Tab Content -->
             <div class="tab-content" id="kelasTabContent">
 
-                <!-- ================= TAB 1 : MATERI ================= -->
-                <div class="tab-pane fade show active" id="materi" role="tabpanel">
-                    <div class="card">
-                        <div class="card-body p-4">
-                            <h5 class="fw-bold mb-2 text-dark">Daftar Modul & Materi Sesi</h5>
-                            <p class="text-muted mb-4">Unduh atau pelajari modul materi yang telah diunggah oleh mentor.</p>
-
-                            <?php if (!empty($materi)): ?>
-                                <div class="row g-4">
-                                    <?php foreach ($materi as $item): ?>
-                                        <div class="col-lg-4 col-md-6">
-                                            <div class="materi-card">
-                                                <div class="materi-icon"><i class="bi bi-journal-richtext"></i></div>
-                                                <h5 class="fw-bold mt-3 text-dark"><?= esc($item['judul_materi'] ?? '-') ?></h5>
-                                                <p class="text-muted mb-3"><?= esc($item['deskripsi'] ?? 'Tidak ada deskripsi materi.') ?></p>
-                                                <div class="materi-footer">
-                                                    <?php if (!empty($item['file_materi'])): ?>
-                                                        <a href="<?= base_url('uploads/materi/' . $item['file_materi']) ?>" target="_blank" class="btn btn-sm btn-primary px-3 rounded-pill shadow-sm">
-                                                            Download <i class="bi bi-download ms-1"></i>
-                                                        </a>
-                                                    <?php else: ?>
-                                                        <span class="text-muted small">File belum ada</span>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    <?php endforeach; ?>
-                                </div>
-                            <?php else: ?>
-                                <div class="alert alert-info border-0 shadow-sm rounded-4 mb-0">
-                                    <i class="bi bi-info-circle me-2"></i> Belum ada materi yang diunggah oleh mentor.
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
-
-
-                <!-- ================= TAB 2 : ABSENSI ================= -->
-                <div class="tab-pane fade" id="absensi" role="tabpanel">
+                <!-- ================= TAB 1 : ABSENSI ================= -->
+                <div class="tab-pane fade show active" id="absensi" role="tabpanel">
                     <div class="card">
                         <div class="card-body p-4">
                             <h5 class="fw-bold mb-2 text-dark">Rekap Absensi Kehadiran</h5>

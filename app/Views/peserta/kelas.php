@@ -422,17 +422,14 @@
 
             <?php 
             $requestedTab = service('request')->getGet('tab');
-            $activeTab = in_array($requestedTab, ['materi', 'absensi', 'ujian', 'angket', 'sertifikat'], true) 
+            $activeTab = in_array($requestedTab, ['absensi', 'ujian', 'angket', 'sertifikat'], true) 
                 ? $requestedTab 
-                : (session()->getFlashdata('active_tab') ?? 'materi'); 
+                : (in_array(session()->getFlashdata('active_tab'), ['absensi', 'ujian', 'angket', 'sertifikat'], true) 
+                    ? session()->getFlashdata('active_tab') 
+                    : 'absensi'); 
             ?>
             <!-- NAV TABS -->
             <ul class="nav nav-tabs mb-3" id="kelasTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link <?= $activeTab === 'materi' ? 'active' : '' ?>" id="materi-tab" data-bs-toggle="tab" data-bs-target="#materi" type="button" role="tab">
-                        <i class="fa-solid fa-book-open me-1.5" style="color: var(--color-cyan);"></i> Materi
-                    </button>
-                </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link <?= $activeTab === 'absensi' ? 'active' : '' ?>" id="absensi-tab" data-bs-toggle="tab" data-bs-target="#absensi" type="button" role="tab">
                         <i class="fa-solid fa-map-location-dot me-1.5" style="color: var(--color-pink);"></i> Absensi & GPS
@@ -458,51 +455,7 @@
             <!-- TAB CONTENT -->
             <div class="tab-content" id="kelasTabContent">
 
-                <!-- ================= TAB 1 : MATERI ================= -->
-                <div class="tab-pane fade <?= $activeTab === 'materi' ? 'show active' : '' ?>" id="materi" role="tabpanel">
-                    <div class="card shadow-sm hover-card">
-                        <div class="card-body p-3.5">
-                            <h5 class="fw-bold text-dark mb-1" style="color: var(--color-purple); font-size: 15px;">Modul & Dokumen Pembelajaran</h5>
-                            <p class="text-muted small mb-3" style="font-size: 13px;">Unduh bahan bacaan materi yang telah disediakan oleh mentor pengampu.</p>
-
-                            <?php if (!empty($materi)): ?>
-                                <div class="row g-3">
-                                    <?php foreach ($materi as $item): ?>
-                                        <div class="col-lg-4 col-md-6">
-                                            <div class="materi-card">
-                                                <div class="d-flex align-items-center gap-2 mb-2">
-                                                    <div class="materi-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
-                                                    <div>
-                                                        <span class="materi-badge">Modul</span>
-                                                    </div>
-                                                </div>
-                                                <h5 class="fw-bold mt-2 text-dark" style="font-size: 13.5px;"><?= esc($item['judul_materi'] ?? '-') ?></h5>
-                                                <p class="text-muted mb-3" style="font-size: 12px;"><?= esc($item['deskripsi'] ?? 'Tidak ada deskripsi materi.') ?></p>
-                                                <div class="materi-footer mt-auto pt-2 border-top border-light">
-                                                    <?php if (!empty($item['file_materi'])): ?>
-                                                        <a href="<?= base_url('uploads/materi/' . $item['file_materi']) ?>" target="_blank" class="btn btn-sm w-100 rounded-pill fw-semibold text-white shadow-sm" style="background: var(--color-purple); font-size: 12px;">
-                                                            Unduh Modul <i class="bi bi-download ms-1"></i>
-                                                        </a>
-                                                    <?php else: ?>
-                                                        <span class="text-muted small fst-italic" style="font-size: 12px;">File belum tersedia</span>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    <?php endforeach; ?>
-                                </div>
-                            <?php else: ?>
-                                <div class="text-center py-4">
-                                    <div class="text-muted fs-2 mb-2"><i class="bi bi-folder2-open opacity-50"></i></div>
-                                    <h6 class="fw-bold text-dark" style="font-size: 14px;">Belum Ada Materi</h6>
-                                    <p class="text-muted small" style="font-size: 13px;">Mentor belum mengunggah materi pembelajaran.</p>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ================= TAB 2 : ABSENSI ================= -->
+                <!-- ================= TAB 1 : ABSENSI & GPS ================= -->
                 <div class="tab-pane fade <?= $activeTab === 'absensi' ? 'show active' : '' ?>" id="absensi" role="tabpanel">
                     <div class="card shadow-sm hover-card">
                         <div class="card-body p-3.5">

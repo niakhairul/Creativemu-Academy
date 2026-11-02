@@ -568,6 +568,7 @@ class LaravelApiService
                 'X-API-KEY'    => $this->apiKey,
                 'Accept'       => 'application/json',
                 'Content-Type' => 'application/json',
+                'User-Agent'   => 'Creativemu-Academy-CI4/1.0',
             ],
             'query'           => [
                 'student_id' => $studentId,
@@ -650,8 +651,9 @@ class LaravelApiService
             'timeout'         => 30, // 30 detik untuk download file binary
             'connect_timeout' => 5,
             'headers'         => [
-                'X-API-KEY' => $this->apiKey,
-                'Accept'    => '*/*',
+                'X-API-KEY'   => $this->apiKey,
+                'Accept'      => '*/*',
+                'User-Agent'  => 'Creativemu-Academy-CI4/1.0',
             ],
             'query'           => [
                 'student_id' => $studentId,

@@ -343,6 +343,76 @@
         }
 
         /* =========================
+           CARD KELAS
+        ========================= */
+
+        .class-card {
+            background: #ffffff;
+            border: 1.5px solid #eae5f5;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .class-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary);
+            box-shadow: 0 8px 22px rgba(121, 75, 196, 0.12);
+        }
+
+        .class-card.active {
+            border: 2px solid var(--primary);
+            background: linear-gradient(135deg, #ffffff 0%, #f7f2fe 100%);
+            box-shadow: 0 8px 24px rgba(121, 75, 196, 0.18);
+        }
+
+        .class-card.active .class-card-icon {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .class-card.active .card-action-icon {
+            transform: translateX(3px);
+            color: var(--primary-dark) !important;
+            font-weight: 700;
+        }
+
+        .class-card.active .card-status-label {
+            color: var(--primary) !important;
+            font-weight: 700;
+        }
+
+        .class-card-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            transition: all 0.25s ease;
+        }
+
+        .class-card-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .bg-purple-soft {
+            background: rgba(121, 75, 196, 0.1);
+        }
+
+        .text-purple {
+            color: var(--primary) !important;
+        }
+
+        /* =========================
            ANGKET BADGE
         ========================= */
 
@@ -559,16 +629,125 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                 </div>
             <?php endif; ?>
 
-            <!-- CARD TITLE -->
-            <div class="card-header-custom">
+<?php
+// Grouping data kelas dari $list_kbm
+$daftarKelas = [];
+foreach ($list_kbm as $kbm) {
+    $cId = (int)($kbm['id_kelas'] ?? 0);
+    $cName = trim((string)($kbm['kelas'] ?? 'Kelas Pelatihan'));
+    if (!isset($daftarKelas[$cId])) {
+        $daftarKelas[$cId] = [
+            'id_kelas'      => $cId,
+            'nama_kelas'    => $cName,
+            'total_peserta' => 0,
+            'lulus'         => 0,
+            'menunggu'      => 0,
+            'remidi'        => 0,
+            'tidak_lulus'   => 0,
+        ];
+    }
+    $daftarKelas[$cId]['total_peserta']++;
+    $st = strtolower(trim((string)($kbm['status_kelulusan'] ?? 'menunggu')));
+    if ($st === 'lulus') $daftarKelas[$cId]['lulus']++;
+    elseif ($st === 'remidi') $daftarKelas[$cId]['remidi']++;
+    elseif ($st === 'tidak lulus') $daftarKelas[$cId]['tidak_lulus']++;
+    else $daftarKelas[$cId]['menunggu']++;
+}
+?>
+
+            <!-- SECTION CARD KELAS -->
+            <div class="class-cards-section mb-4">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                    <div>
+                        <h6 class="fw-bold mb-1" style="color: var(--dark); font-size: 0.95rem;">
+                            <i class="fas fa-layer-group me-1.5" style="color: var(--primary);"></i> Pilih Kelas Pelatihan
+                        </h6>
+                        <p class="text-muted small mb-0" style="font-size: 0.76rem;">Klik salah satu card kelas di bawah untuk melihat daftar nama peserta yang mengikuti kelas tersebut.</p>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-none active" id="btn-show-all-class" onclick="resetClassFilter()">
+                            <i class="fas fa-list me-1"></i> Tampilkan Semua Kelas (<?= count($list_kbm); ?> Peserta)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <?php if (!empty($daftarKelas)): ?>
+                        <?php foreach ($daftarKelas as $cId => $kInfo): ?>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <div class="class-card h-100 p-3" data-class-id="<?= $cId; ?>" onclick="selectClassCard(<?= $cId; ?>, '<?= esc(addslashes($kInfo['nama_kelas'])); ?>')">
+                                    <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+                                        <div class="class-card-icon">
+                                            <i class="fas fa-chalkboard-user"></i>
+                                        </div>
+                                        <span class="badge rounded-pill bg-purple-soft text-purple fw-bold px-2.5 py-1" style="font-size: 0.7rem;">
+                                            <i class="fas fa-users me-1"></i> <?= $kInfo['total_peserta']; ?> Peserta
+                                        </span>
+                                    </div>
+
+                                    <h6 class="class-card-title mb-2 text-truncate" title="<?= esc($kInfo['nama_kelas']); ?>">
+                                        <?= esc($kInfo['nama_kelas']); ?>
+                                    </h6>
+
+                                    <div class="d-flex align-items-center gap-1.5 flex-wrap mb-3" style="font-size: 0.68rem;">
+                                        <?php if ($kInfo['menunggu'] > 0): ?>
+                                            <span class="badge bg-warning bg-opacity-15 text-warning px-2 py-1 rounded-pill">
+                                                <i class="fas fa-clock me-1"></i> <?= $kInfo['menunggu']; ?> Menunggu
+                                            </span>
+                                        <?php endif; ?>
+                                        <?php if ($kInfo['lulus'] > 0): ?>
+                                            <span class="badge bg-success bg-opacity-15 text-success px-2 py-1 rounded-pill">
+                                                <i class="fas fa-check-circle me-1"></i> <?= $kInfo['lulus']; ?> Lulus
+                                            </span>
+                                        <?php endif; ?>
+                                        <?php if ($kInfo['remidi'] > 0): ?>
+                                            <span class="badge bg-purple bg-opacity-15 text-purple px-2 py-1 rounded-pill">
+                                                <i class="fas fa-redo me-1"></i> <?= $kInfo['remidi']; ?> Remidi
+                                            </span>
+                                        <?php endif; ?>
+                                        <?php if ($kInfo['tidak_lulus'] > 0): ?>
+                                            <span class="badge bg-danger bg-opacity-15 text-danger px-2 py-1 rounded-pill">
+                                                <i class="fas fa-times-circle me-1"></i> <?= $kInfo['tidak_lulus']; ?> Tidak Lulus
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <div class="class-card-footer mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
+                                        <span class="card-status-label small text-muted" style="font-size: 0.72rem;">Klik untuk buka</span>
+                                        <span class="card-action-icon text-primary"><i class="fas fa-arrow-right"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="col-12">
+                            <div class="alert alert-info py-2 px-3 small rounded-3 mb-0">
+                                <i class="fas fa-info-circle me-1"></i> Belum ada kelas yang memiliki peserta aktif.
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- CARD TITLE & TABLE HEADER -->
+            <div class="card-header-custom" id="daftar-peserta-header">
                 <div class="title-wrapper">
                     <div class="title-icon">
                         <i class="fas fa-graduation-cap"></i>
                     </div>
                     <div>
-                        <h5 class="card-title-custom">Daftar Penilaian & Kelulusan Peserta</h5>
-                        <p class="card-description">Tinjau nilai ujian dan tentukan status akhir peserta.</p>
+                        <h5 class="card-title-custom" id="selected-class-title">Daftar Penilaian &amp; Kelulusan Peserta</h5>
+                        <p class="card-description" id="selected-class-desc">Menampilkan semua peserta dari seluruh kelas pelatihan.</p>
                     </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="input-group input-group-sm" style="max-width: 220px;">
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                        <input type="text" id="search-peserta-input" class="form-control border-start-0" placeholder="Cari nama / NIS..." oninput="filterPesertaByName(this.value)">
+                    </div>
+                    <button type="button" class="btn btn-sm btn-light border rounded-pill px-3" id="btn-reset-filter" onclick="resetClassFilter()" style="display: none;">
+                        <i class="fas fa-rotate-left me-1"></i> Tampilkan Semua
+                    </button>
                 </div>
             </div>
 
@@ -579,14 +758,13 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                         <thead>
                             <tr>
                                 <th class="text-center" width="5%">No</th>
-                                <th width="10%">NIS</th>
+                                <th width="11%">NIS</th>
                                 <th width="18%">Peserta</th>
                                 <th width="18%">Email</th>
-                                <th width="14%">Kelas</th>
-                                <th class="text-center" width="10%">Nilai</th>
-                                <th class="text-center" width="10%">Angket</th>
-                                <th width="14%">Status</th>
-                                <th class="text-center" width="9%">Aksi</th>
+                                <th width="16%">Kelas</th>
+                                <th class="text-center" width="11%">Angket</th>
+                                <th width="13%">Status</th>
+                                <th class="text-center" width="8%">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -600,10 +778,10 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                         <?= csrf_field(); ?>
                                     </form>
 
-                                    <tr>
+                                    <tr class="peserta-row" data-id-kelas="<?= (int)($row['id_kelas'] ?? 0); ?>" data-nama="<?= esc(strtolower($row['nama_peserta'] ?? '')); ?>" data-nis="<?= esc(strtolower($row['nis'] ?? '')); ?>">
                                         <!-- NO -->
                                         <td class="text-center">
-                                            <span class="fw-semibold"><?= $index + 1; ?></span>
+                                            <span class="fw-semibold row-number"><?= $index + 1; ?></span>
                                         </td>
 
                                         <!-- NIS -->
@@ -639,19 +817,6 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                             </div>
                                         </td>
 
-                                        <!-- NILAI -->
-                                        <td class="text-center">
-                                            <input
-                                                type="number"
-                                                form="form-update-<?= $row['id_nilai_ujian']; ?>"
-                                                name="nilai"
-                                                value="<?= esc((float)($row['nilai'] ?? 0)); ?>"
-                                                class="form-control score-input text-center"
-                                                min="0"
-                                                max="100"
-                                                step="0.01"
-                                                title="Nilai ujian peserta">
-                                        </td>
 
                                         <td class="text-center">
                                             <?php if (isset($row['jumlah_angket']) && $row['jumlah_angket'] > 0): ?>
@@ -713,9 +878,18 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                     </tr>
 
                                 <?php endforeach; ?>
+                                <tr id="no-matching-row" style="display: none;">
+                                    <td colspan="8" class="text-center py-4 text-muted">
+                                        <div class="py-3">
+                                            <i class="fas fa-users-slash fs-2 d-block mb-2 opacity-50"></i>
+                                            <strong class="d-block mb-1">Tidak ada peserta ditemukan</strong>
+                                            <span class="small">Tidak ada data peserta yang cocok pada kelas ini atau pencarian Anda.</span>
+                                        </div>
+                                    </td>
+                                </tr>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="9" class="empty-data">
+                                    <td colspan="8" class="empty-data">
                                         <div class="empty-icon">
                                             <i class="fas fa-clipboard-list"></i>
                                         </div>
@@ -778,6 +952,146 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
             document.querySelectorAll('.status-select').forEach(function (select) {
                 changeStatusColor(select);
             });
+        });
+
+        /* ======================================================
+           FILTER KELAS BERDASARKAN CARD KELAS
+        ====================================================== */
+        let currentSelectedClassId = 'all';
+
+        function selectClassCard(classId, className) {
+            currentSelectedClassId = String(classId);
+            
+            // Simpan ke localStorage agar tidak hilang saat reload atau setelah submit form
+            localStorage.setItem('active_kbm_kelas', currentSelectedClassId);
+            localStorage.setItem('active_kbm_kelas_name', className);
+
+            // Update styling card
+            document.querySelectorAll('.class-card').forEach(card => {
+                if (card.getAttribute('data-class-id') === String(classId)) {
+                    card.classList.add('active');
+                    const lbl = card.querySelector('.card-status-label');
+                    if (lbl) lbl.textContent = 'Sedang Ditampilkan';
+                } else {
+                    card.classList.remove('active');
+                    const lbl = card.querySelector('.card-status-label');
+                    if (lbl) lbl.textContent = 'Klik untuk buka';
+                }
+            });
+
+            const btnAll = document.getElementById('btn-show-all-class');
+            if (btnAll) {
+                btnAll.classList.remove('active');
+            }
+
+            const btnReset = document.getElementById('btn-reset-filter');
+            if (btnReset) btnReset.style.display = 'inline-block';
+
+            // Update judul section tabel
+            const titleEl = document.getElementById('selected-class-title');
+            if (titleEl) titleEl.textContent = 'Peserta Kelas: ' + className;
+            
+            applyFilters();
+
+            // Smooth scroll ke tabel peserta
+            const headerEl = document.getElementById('daftar-peserta-header');
+            if (headerEl) {
+                headerEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function resetClassFilter() {
+            currentSelectedClassId = 'all';
+            localStorage.removeItem('active_kbm_kelas');
+            localStorage.removeItem('active_kbm_kelas_name');
+
+            document.querySelectorAll('.class-card').forEach(card => {
+                card.classList.remove('active');
+                const lbl = card.querySelector('.card-status-label');
+                if (lbl) lbl.textContent = 'Klik untuk buka';
+            });
+
+            const btnAll = document.getElementById('btn-show-all-class');
+            if (btnAll) {
+                btnAll.classList.add('active');
+            }
+
+            const btnReset = document.getElementById('btn-reset-filter');
+            if (btnReset) btnReset.style.display = 'none';
+
+            const searchInput = document.getElementById('search-peserta-input');
+            if (searchInput) searchInput.value = '';
+
+            const titleEl = document.getElementById('selected-class-title');
+            const descEl = document.getElementById('selected-class-desc');
+            if (titleEl) titleEl.textContent = 'Daftar Penilaian & Kelulusan Peserta';
+            if (descEl) descEl.textContent = 'Menampilkan semua peserta dari seluruh kelas pelatihan.';
+
+            applyFilters();
+        }
+
+        function filterPesertaByName(query) {
+            applyFilters(query.trim().toLowerCase());
+        }
+
+        function applyFilters(searchQuery = null) {
+            if (searchQuery === null) {
+                const input = document.getElementById('search-peserta-input');
+                searchQuery = input ? input.value.trim().toLowerCase() : '';
+            }
+
+            const rows = document.querySelectorAll('tbody tr.peserta-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const rowClassId = String(row.getAttribute('data-id-kelas') || '');
+                const rowNama = row.getAttribute('data-nama') || '';
+                const rowNis = row.getAttribute('data-nis') || '';
+
+                const matchClass = (currentSelectedClassId === 'all' || rowClassId === currentSelectedClassId);
+                const matchSearch = (!searchQuery || rowNama.includes(searchQuery) || rowNis.includes(searchQuery));
+
+                if (matchClass && matchSearch) {
+                    row.style.display = '';
+                    visibleCount++;
+                    const numEl = row.querySelector('.row-number');
+                    if (numEl) numEl.textContent = visibleCount;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            const noRow = document.getElementById('no-matching-row');
+            if (noRow) {
+                noRow.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+            }
+
+            const descEl = document.getElementById('selected-class-desc');
+            if (descEl) {
+                if (currentSelectedClassId !== 'all') {
+                    descEl.textContent = 'Menampilkan ' + visibleCount + ' peserta pada kelas ini.';
+                } else {
+                    descEl.textContent = 'Menampilkan ' + visibleCount + ' peserta dari seluruh kelas pelatihan.';
+                }
+            }
+        }
+
+        // Inisialisasi saat DOM siap: periksa URL param ?id_kelas=... atau localStorage
+        document.addEventListener("DOMContentLoaded", function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramClassId = urlParams.get('id_kelas');
+            const savedClassId = localStorage.getItem('active_kbm_kelas');
+            const savedClassName = localStorage.getItem('active_kbm_kelas_name');
+
+            const targetClassId = paramClassId || savedClassId;
+
+            if (targetClassId && targetClassId !== 'all') {
+                const cardTarget = document.querySelector('.class-card[data-class-id="' + targetClassId + '"]');
+                if (cardTarget) {
+                    const cName = cardTarget.querySelector('.class-card-title')?.textContent?.trim() || savedClassName || 'Kelas';
+                    selectClassCard(targetClassId, cName);
+                }
+            }
         });
     </script>
 </body>
