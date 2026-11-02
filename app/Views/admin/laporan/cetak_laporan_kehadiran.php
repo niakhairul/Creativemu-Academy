@@ -191,8 +191,8 @@
                 <h2>CreativeMU Academy</h2>
                 <h4>Lembaga Pendidikan & Pelatihan Kejuruan Terpadu</h4>
                 <p>
-                    Jl. Pemuda No. 45, Kompleks Edukasi Mandiri, Indonesia<br>
-                    Website: creativemuacademy.com | Email: info@creativemu.id | Telp: (0274) 889922
+                    Jl. Gn. Bulu No.89, RT.34, Argorejo, Kec. Sedayu, Kab. Bantul, Daerah Istimewa Yogyakarta 55752<br>
+                    Website: www.creativemu.id &bull; Instagram: @creativemu.id &bull; Email: admin_official@creativemu.id &bull; Telp/WA: +62 896 1847 2759
                 </p>
             </div>
         </div>

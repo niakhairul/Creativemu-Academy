@@ -4,6 +4,12 @@ namespace App\Controllers;
 
 use App\Controllers\BaseController;
 use App\Models\LaporanPesertaModel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
 class LaporanPesertaController extends BaseController
 {
@@ -152,7 +158,7 @@ class LaporanPesertaController extends BaseController
     }
 
     /**
-     * Export Laporan ke format Excel / CSV
+     * Export Laporan Peserta ke Excel (.xlsx resmi via PhpSpreadsheet)
      */
     public function exportExcel()
     {
@@ -179,10 +185,199 @@ class LaporanPesertaController extends BaseController
         $teksTahun = ($filters['tahun'] === 'all') ? 'Semua Tahun' : $filters['tahun'];
         $periodeText = $teksBulan . ' ' . $teksTahun;
 
-        $filename = 'Laporan_Peserta_CreativeMU_' . str_replace(' ', '_', $periodeText) . '_' . date('Ymd_His') . '.csv';
+        $filename = 'Laporan_Peserta_CreativeMU_' . str_replace(' ', '_', $periodeText) . '_' . date('Ymd_His') . '.xlsx';
 
+        // Gunakan PhpSpreadsheet jika tersedia (menghasilkan format .xlsx profesional konsisten)
+        if (class_exists('PhpOffice\PhpSpreadsheet\Spreadsheet')) {
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->setTitle('Laporan Peserta');
+
+            // 1. Header Lembaga (Resmi Sesuai Identitas CreativeMU)
+            $sheet->setCellValue('A1', 'LAPORAN REKAPITULASI PESERTA PELATIHAN');
+            $sheet->setCellValue('A2', 'CreativeMU Academy - Jl. Gn. Bulu No.89, RT.34, Argorejo, Sedayu, Bantul, D.I. Yogyakarta 55752');
+            $sheet->setCellValue('A3', 'Telp/WA: +62 896 1847 2759 | Email: admin_official@creativemu.id | Web: www.creativemu.id | IG: creativemu.id | Periode: ' . $periodeText . ' (' . date('d-m-Y H:i') . ' WIB)');
+
+            $filterDesc = 'Filter Digunakan: Periode ' . $periodeText . 
+                ' | Pelatihan: ' . ($filters['kategori'] === 'all' ? 'Semua' : $filters['kategori']) . 
+                ' | Tempat: ' . ($filters['tempat_pelatihan'] === 'all' ? 'Semua' : $filters['tempat_pelatihan']) . 
+                ' | Status: ' . ($filters['status_kelulusan'] === 'all' ? 'Semua' : ucfirst($filters['status_kelulusan']));
+            $sheet->setCellValue('A4', $filterDesc);
+
+            $sheet->mergeCells('A1:K1');
+            $sheet->mergeCells('A2:K2');
+            $sheet->mergeCells('A3:K3');
+            $sheet->mergeCells('A4:K4');
+
+            $sheet->getStyle('A1')->getFont()->setSize(16)->setBold(true)->getColor()->setRGB('22133C');
+            $sheet->getStyle('A2')->getFont()->setSize(11)->setItalic(true)->getColor()->setRGB('5931A0');
+            $sheet->getStyle('A3')->getFont()->setSize(10)->setBold(true)->getColor()->setRGB('555555');
+            $sheet->getStyle('A4')->getFont()->setSize(9)->setItalic(true)->getColor()->setRGB('777777');
+            $sheet->getStyle('A1:A4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+            // 2. Ringkasan Statistik Peserta
+            $sheet->setCellValue('A6', 'RINGKASAN METRIK PESERTA PELATIHAN');
+            $sheet->getStyle('A6')->getFont()->setSize(11)->setBold(true)->getColor()->setRGB('22133C');
+
+            $sumHeaders = ['Total Peserta', 'Total Kelas', 'Peserta Laki-laki', 'Peserta Perempuan', 'Peserta Lulus', 'Peserta Tidak Lulus'];
+            $sumCols = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+            for ($i = 0; $i < count($sumHeaders); $i++) {
+                $sheet->setCellValue($sumCols[$i] . '7', $sumHeaders[$i]);
+            }
+
+            $sheet->setCellValue('A8', $stats['total_peserta'] . ' Siswa');
+            $sheet->setCellValue('B8', $stats['total_kelas'] . ' Kelas');
+            $sheet->setCellValue('C8', $stats['peserta_laki'] . ' Siswa');
+            $sheet->setCellValue('D8', $stats['peserta_perempuan'] . ' Siswi');
+            $sheet->setCellValue('E8', $stats['peserta_lulus'] . ' Orang');
+            $sheet->setCellValue('F8', $stats['peserta_tidak_lulus'] . ' Orang');
+
+            $sheet->getStyle('A7:F7')->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');
+            $sheet->getStyle('A7:F7')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('5931A0');
+            $sheet->getStyle('A7:F8')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('A7:F8')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('CCCCCC');
+
+            // 3. Tabel Rekapitulasi Peserta Per Kelas
+            $rowRekapHeader = 11;
+            $sheet->setCellValue('A10', 'REKAPITULASI PESERTA PER KELAS');
+            $sheet->getStyle('A10')->getFont()->setSize(11)->setBold(true)->getColor()->setRGB('22133C');
+
+            $rekapHeaders = ['No', 'Nama Kelas', 'Kategori Pelatihan', 'Jumlah Peserta', 'Laki-laki', 'Perempuan', 'Lulus', 'Tidak Lulus'];
+            $rekapCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+
+            for ($k = 0; $k < count($rekapHeaders); $k++) {
+                $sheet->setCellValue($rekapCols[$k] . $rowRekapHeader, $rekapHeaders[$k]);
+            }
+
+            $sheet->getStyle('A' . $rowRekapHeader . ':H' . $rowRekapHeader)->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');
+            $sheet->getStyle('A' . $rowRekapHeader . ':H' . $rowRekapHeader)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('4B2382');
+            $sheet->getStyle('A' . $rowRekapHeader . ':H' . $rowRekapHeader)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getRowDimension($rowRekapHeader)->setRowHeight(26);
+
+            $currRekapRow = $rowRekapHeader + 1;
+            $noK = 1;
+            foreach ($rekapKelas as $rk) {
+                $sheet->setCellValue('A' . $currRekapRow, $noK++);
+                $sheet->setCellValue('B' . $currRekapRow, $rk['nama_kelas']);
+                $sheet->setCellValue('C' . $currRekapRow, $rk['kategori']);
+                $sheet->setCellValue('D' . $currRekapRow, $rk['jumlah_peserta']);
+                $sheet->setCellValue('E' . $currRekapRow, $rk['laki_laki']);
+                $sheet->setCellValue('F' . $currRekapRow, $rk['perempuan']);
+                $sheet->setCellValue('G' . $currRekapRow, $rk['lulus']);
+                $sheet->setCellValue('H' . $currRekapRow, $rk['tidak_lulus']);
+
+                $sheet->getStyle('A' . $currRekapRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle('B' . $currRekapRow)->getFont()->setBold(true);
+                $sheet->getStyle('C' . $currRekapRow . ':H' . $currRekapRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+                if ($noK % 2 === 1) {
+                    $sheet->getStyle('A' . $currRekapRow . ':H' . $currRekapRow)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F8F6FD');
+                }
+                $sheet->getRowDimension($currRekapRow)->setRowHeight(20);
+                $currRekapRow++;
+            }
+            $lastRekapRow = max($rowRekapHeader, $currRekapRow - 1);
+            $sheet->getStyle('A' . $rowRekapHeader . ':H' . $lastRekapRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('D0C9E8');
+
+            // 4. Tabel Detail Data Peserta
+            $rowDetailStart = $currRekapRow + 2;
+            $sheet->setCellValue('A' . ($rowDetailStart - 1), 'DETAIL DATA PESERTA PELATIHAN');
+            $sheet->getStyle('A' . ($rowDetailStart - 1))->getFont()->setSize(11)->setBold(true)->getColor()->setRGB('22133C');
+
+            $mainHeaders = [
+                'No', 'NIS / ID', 'Nama Peserta', 'Gender', 'Email', 'No. WhatsApp',
+                'Kelas', 'Kategori Pelatihan', 'Tempat Pelatihan', 'Tanggal Daftar', 'Status Kelulusan'
+            ];
+            $mainCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+
+            for ($m = 0; $m < count($mainHeaders); $m++) {
+                $sheet->setCellValue($mainCols[$m] . $rowDetailStart, $mainHeaders[$m]);
+            }
+
+            $sheet->getStyle('A' . $rowDetailStart . ':K' . $rowDetailStart)->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');
+            $sheet->getStyle('A' . $rowDetailStart . ':K' . $rowDetailStart)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('22133C');
+            $sheet->getStyle('A' . $rowDetailStart . ':K' . $rowDetailStart)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getRowDimension($rowDetailStart)->setRowHeight(28);
+
+            $currDetailRow = $rowDetailStart + 1;
+            $noP = 1;
+            foreach ($detailList as $p) {
+                $sheet->setCellValue('A' . $currDetailRow, $noP++);
+                $sheet->setCellValueExplicit('B' . $currDetailRow, (string) $p['resolved_nis'], DataType::TYPE_STRING);
+                $sheet->setCellValue('C' . $currDetailRow, $p['nama_peserta']);
+                $sheet->setCellValue('D' . $currDetailRow, $p['resolved_gender']);
+                $sheet->setCellValue('E' . $currDetailRow, $p['resolved_email'] ?? '-');
+                $sheet->setCellValueExplicit('F' . $currDetailRow, (string) ($p['resolved_no_hp'] ?? '-'), DataType::TYPE_STRING);
+                $sheet->setCellValue('G' . $currDetailRow, $p['nama_kelas'] ?? '-');
+                $sheet->setCellValue('H' . $currDetailRow, $p['kategori'] ?? '-');
+                $sheet->setCellValue('I' . $currDetailRow, $p['tempat_pelatihan'] ?? '-');
+                $sheet->setCellValue('J' . $currDetailRow, !empty($p['tanggal_daftar']) ? date('d-m-Y H:i', strtotime($p['tanggal_daftar'])) : '-');
+                $sheet->setCellValue('K' . $currDetailRow, $p['status_kelulusan']);
+
+                $sheet->getStyle('A' . $currDetailRow . ':B' . $currDetailRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle('C' . $currDetailRow)->getFont()->setBold(true);
+                $sheet->getStyle('D' . $currDetailRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle('F' . $currDetailRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle('H' . $currDetailRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle('J' . $currDetailRow . ':K' . $currDetailRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+                // Warna status kelulusan
+                if ($p['status_kelulusan'] === 'Lulus') {
+                    $sheet->getStyle('K' . $currDetailRow)->getFont()->setBold(true)->getColor()->setRGB('0B8A44');
+                } elseif ($p['status_kelulusan'] === 'Tidak Lulus') {
+                    $sheet->getStyle('K' . $currDetailRow)->getFont()->setBold(true)->getColor()->setRGB('D32F2F');
+                }
+
+                if ($noP % 2 === 1) {
+                    $sheet->getStyle('A' . $currDetailRow . ':K' . $currDetailRow)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F8F6FD');
+                }
+
+                $sheet->getRowDimension($currDetailRow)->setRowHeight(22);
+                $currDetailRow++;
+            }
+
+            $lastDetailRow = max($rowDetailStart, $currDetailRow - 1);
+            $sheet->getStyle('A' . $rowDetailStart . ':K' . $lastDetailRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('D0C9E8');
+
+            // Auto width kolom A-K
+            foreach (range('A', 'K') as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+            }
+
+            // Setup halaman cetak landscape
+            $sheet->getPageSetup()->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE);
+            $sheet->getPageSetup()->setPaperSize(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::PAPERSIZE_A4);
+            $sheet->getPageSetup()->setFitToPage(true);
+            $sheet->getPageSetup()->setFitToWidth(1);
+            $sheet->getPageSetup()->setFitToHeight(0);
+
+            // Footer halaman
+            $sheet->getHeaderFooter()->setOddFooter('&R Halaman &P dari &N | CreativeMU Academy');
+
+            // Output XLSX
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment;filename="' . $filename . '"');
+            header('Cache-Control: max-age=0');
+            header('Pragma: public');
+
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+            exit();
+        }
+
+        // Fallback jika PhpSpreadsheet belum siap
+        $this->exportCsvFallback($filename, $periodeText, $stats, $rekapKelas, $detailList);
+    }
+
+    /**
+     * Fallback CSV exporter jika library XLSX tidak tersedia
+     */
+    private function exportCsvFallback($filename, $periodeText, $stats, $rekapKelas, $detailList)
+    {
+        $csvFilename = str_replace('.xlsx', '.csv', $filename);
         header('Content-Type: text/csv; charset=UTF-8');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Content-Disposition: attachment; filename="' . $csvFilename . '"');
         header('Pragma: no-cache');
         header('Expires: 0');
 
@@ -192,6 +387,8 @@ class LaporanPesertaController extends BaseController
 
         // Header Laporan
         fputcsv($output, ['CREATIVEMU ACADEMY - LAPORAN REKAPITULASI PESERTA PELATIHAN']);
+        fputcsv($output, ['Alamat', 'Jl. Gn. Bulu No.89, RT.34, Argorejo, Kec. Sedayu, Kab. Bantul, D.I. Yogyakarta 55752']);
+        fputcsv($output, ['Kontak & Web', 'Telp/WA: +62 896 1847 2759 | Email: admin_official@creativemu.id | Web: www.creativemu.id | IG: creativemu.id']);
         fputcsv($output, ['Periode Laporan', $periodeText]);
         fputcsv($output, ['Tanggal Ekspor', date('d-m-Y H:i:s')]);
         fputcsv($output, ['Diekspor Oleh', session()->get('nama') ?: session()->get('role')]);
@@ -227,7 +424,6 @@ class LaporanPesertaController extends BaseController
 
         // Detail Data Peserta
         fputcsv($output, ['=== DETAIL DATA PESERTA ===']);
-        // [TAMBAHAN] Kolom 'Tempat Pelatihan' ditambahkan ke header CSV
         fputcsv($output, ['No', 'NIS / ID', 'Nama Peserta', 'Gender', 'Email', 'No. WhatsApp', 'Kelas', 'Kategori Pelatihan', 'Tempat Pelatihan', 'Tanggal Daftar', 'Status Kelulusan']);
         
         $noP = 1;
@@ -241,7 +437,7 @@ class LaporanPesertaController extends BaseController
                 $p['resolved_no_hp'] ?? '-',
                 $p['nama_kelas'] ?? '-',
                 $p['kategori'] ?? '-',
-                $p['tempat_pelatihan'] ?? '-', // [TAMBAHAN] Nilai tempat pelatihan diexport
+                $p['tempat_pelatihan'] ?? '-',
                 !empty($p['tanggal_daftar']) ? date('d-m-Y H:i', strtotime($p['tanggal_daftar'])) : '-',
                 $p['status_kelulusan']
             ]);

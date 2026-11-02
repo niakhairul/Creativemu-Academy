@@ -422,10 +422,10 @@
             ?>
             <div class="d-flex gap-2">
                 <a href="<?= base_url($baseUrlReport . '/export-excel?' . $queryString); ?>" class="btn btn-excel btn-sm d-flex align-items-center">
-                    <i class="fas fa-file-excel me-2"></i> <span>Download Excel</span>
+                    <i class="fas fa-file-excel me-1"></i> <span>Export Excel</span>
                 </a>
                 <a href="<?= base_url($baseUrlReport . '/cetak?' . $queryString); ?>" target="_blank" class="btn btn-creative-primary btn-sm d-flex align-items-center">
-                    <i class="fas fa-print me-2"></i> <span>Cetak / PDF</span>
+                    <i class="fas fa-print me-1"></i> <span>Cetak / PDF</span>
                 </a>
             </div>
         </div>

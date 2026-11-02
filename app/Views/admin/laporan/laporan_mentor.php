@@ -461,7 +461,7 @@
             ?>
             <div class="d-flex gap-2 flex-wrap">
                 <a href="<?= base_url($baseUrlReport . '/export-excel?' . $exportQuery); ?>" class="btn-excel">
-                    <i class="fas fa-file-excel me-1"></i> Excel (.xlsx)
+                    <i class="fas fa-file-excel me-1"></i> Export Excel
                 </a>
                 <a href="<?= base_url($baseUrlReport . '/cetak?' . $exportQuery); ?>" target="_blank" class="btn-print">
                     <i class="fas fa-print me-1"></i> Cetak / PDF

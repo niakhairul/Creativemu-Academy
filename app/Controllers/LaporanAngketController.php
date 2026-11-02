@@ -241,8 +241,8 @@ class LaporanAngketController extends BaseController
 
             // 1. Judul Laporan (Header Lembaga)
             $sheet->setCellValue('A1', 'LAPORAN HASIL ANGKET & EVALUASI KEPUASAN INSTRUKTUR');
-            $sheet->setCellValue('A2', 'CreativeMU Academy - Lembaga Pendidikan & Pelatihan Kejuruan Terpadu');
-            $sheet->setCellValue('A3', 'Periode Evaluasi: ' . $periodeText . ' | Tanggal Ekspor: ' . date('d-m-Y H:i') . ' WIB');
+            $sheet->setCellValue('A2', 'CreativeMU Academy - Jl. Gn. Bulu No.89, RT.34, Argorejo, Sedayu, Bantul, D.I. Yogyakarta 55752');
+            $sheet->setCellValue('A3', 'Telp/WA: +62 896 1847 2759 | Email: admin_official@creativemu.id | Web: www.creativemu.id | IG: creativemu.id | Periode: ' . $periodeText . ' (' . date('d-m-Y H:i') . ' WIB)');
 
             $sheet->mergeCells('A1:I1');
             $sheet->mergeCells('A2:I2');
@@ -413,6 +413,8 @@ class LaporanAngketController extends BaseController
         fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
         fputcsv($output, ['CREATIVEMU ACADEMY - LAPORAN ANGKET MENTOR & KEPUASAN PESERTA']);
+        fputcsv($output, ['Alamat', 'Jl. Gn. Bulu No.89, RT.34, Argorejo, Kec. Sedayu, Kab. Bantul, D.I. Yogyakarta 55752']);
+        fputcsv($output, ['Kontak & Web', 'Telp/WA: +62 896 1847 2759 | Email: admin_official@creativemu.id | Web: www.creativemu.id | IG: creativemu.id']);
         fputcsv($output, ['Periode Laporan', $periodeText]);
         fputcsv($output, ['Tanggal Ekspor', date('d-m-Y H:i:s')]);
         fputcsv($output, []);
