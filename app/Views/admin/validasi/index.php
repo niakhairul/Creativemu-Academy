@@ -395,7 +395,7 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                 <td>
                                     <strong><?= esc($row['nama'] ?? '-'); ?></strong>
                                     <div class="text-muted" style="font-size:0.72rem"><?= esc($row['email'] ?? '-'); ?></div>
-                                    <?= !empty($row['nis']) ? '<span class="nis-badge mt-1">'.esc($row['nis']).'</span>' : '<span class="badge bg-warning-subtle text-warning-emphasis rounded-pill mt-1" style="font-size:0.68rem">NIS belum dibuat</span>'; ?>
+                                    <?= ($isApproved && !empty($row['nis'])) ? '<span class="nis-badge mt-1">'.esc($row['nis']).'</span>' : '<span class="badge bg-warning-subtle text-warning-emphasis rounded-pill mt-1" style="font-size:0.68rem">NIS belum dibuat</span>'; ?>
                                 </td>
                                 <td>
                                     <div class="fw-bold text-dark"><?= esc($row['nama_kelas'] ?? $row['pilihan_kelas'] ?? '-'); ?></div>
@@ -569,7 +569,7 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                             <h6>Data Peserta</h6>
                             <div class="detail-grid">
                                 <div class="detail-item"><div class="detail-label">Nama</div><div class="detail-value"><?= esc($row['nama'] ?? '-'); ?></div></div>
-                                <div class="detail-item"><div class="detail-label">NIS</div><div class="detail-value"><?= esc($row['nis'] ?: 'Belum dibuat'); ?></div></div>
+                                <div class="detail-item"><div class="detail-label">NIS</div><div class="detail-value"><?= ($isApproved && !empty($row['nis'])) ? esc($row['nis']) : 'Belum dibuat (Menunggu Disetujui)'; ?></div></div>
                                 <div class="detail-item"><div class="detail-label">Email</div><div class="detail-value"><?= esc($row['email'] ?? '-'); ?></div></div>
                                 <div class="detail-item"><div class="detail-label">No. WhatsApp</div><div class="detail-value"><?= esc($row['no_hp'] ?? '-'); ?></div></div>
                                 <div class="detail-item"><div class="detail-label">Jenis Kelamin</div><div class="detail-value"><?= esc($row['jenis_kelamin'] ?? '-'); ?></div></div>

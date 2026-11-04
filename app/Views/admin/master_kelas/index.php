@@ -323,17 +323,45 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
             </div>
         <?php endif; ?>
 
+        <?php
+        $totalReguler = 0;
+        $totalPrivat = 0;
+        if (!empty($kelas) && is_array($kelas)) {
+            foreach ($kelas as $kItem) {
+                $stType = strtolower((string)($kItem['tipe_kelas'] ?? $kItem['jenis_kelas'] ?? ''));
+                if (in_array($stType, ['privat', 'private'], true)) {
+                    $totalPrivat++;
+                } else {
+                    $totalReguler++;
+                }
+            }
+        }
+        ?>
+
         <!-- === SECTION: DAFTAR KELAS (BENTUK GRID/KOTAK) === -->
         <div class="content-card">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
-                <div class="card-title-custom">
-                    <i class="fas fa-th-large me-1"></i> Katalog Kelas Akademi
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3 flex-wrap">
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <div class="card-title-custom mb-0">
+                        <i class="fas fa-th-large me-1"></i> Katalog Kelas Akademi
+                    </div>
+                    <!-- Pembeda Filter: Semua, Reguler, Privat -->
+                    <div class="btn-group btn-group-sm p-1 bg-light rounded-pill border" role="group" id="filter-katalog-kelas">
+                        <button type="button" class="btn btn-sm rounded-pill px-3 py-1 fw-bold filter-katalog-btn active" data-filter="all" onclick="filterKatalogKelas('all', this)" style="font-size: 0.76rem; background: var(--primary-purple); color: #fff;">
+                            Semua (<?= count($kelas ?? []); ?>)
+                        </button>
+                        <button type="button" class="btn btn-sm rounded-pill px-3 py-1 fw-semibold filter-katalog-btn text-muted" data-filter="reguler" onclick="filterKatalogKelas('reguler', this)" style="font-size: 0.76rem;">
+                            <i class="fas fa-users me-1 text-primary"></i> Reguler (<?= $totalReguler; ?>)
+                        </button>
+                        <button type="button" class="btn btn-sm rounded-pill px-3 py-1 fw-semibold filter-katalog-btn text-muted" data-filter="privat" onclick="filterKatalogKelas('privat', this)" style="font-size: 0.76rem;">
+                            <i class="fas fa-user-lock me-1 text-purple"></i> Privat (<?= $totalPrivat; ?>)
+                        </button>
+                    </div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <span class="badge px-2 py-1 rounded-pill fw-semibold" style="background-color: var(--light-purple); color: var(--primary-purple) !important; font-size: 0.75rem;">
+                    <span class="badge px-2.5 py-1.5 rounded-pill fw-semibold bg-light text-dark border" style="font-size: 0.75rem;">
                         Total: <?= isset($kelas) ? count($kelas) : 0; ?> Kelas
                     </span>
-
                 </div>
             </div>
 
@@ -341,21 +369,28 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
             <!-- Grid Container -->
             <div class="row g-3">
                 <?php if (!empty($kelas) && is_array($kelas)): ?>
-                    <?php foreach ($kelas as $row): ?>
-                        <div class="col-md-6 col-xl-4">
-                            <div class="card h-100 shadow-sm rounded-3 border-0 bg-white" style="border: 1px solid rgba(121, 75, 196, 0.08) !important;">
+                    <?php foreach ($kelas as $row): 
+                        $isPrivat = in_array(strtolower($row['tipe_kelas'] ?? $row['jenis_kelas'] ?? ''), ['privat', 'private'], true);
+                    ?>
+                        <div class="col-md-6 col-xl-4 class-card-col" data-katalog-type="<?= $isPrivat ? 'privat' : 'reguler'; ?>">
+                            <div class="card h-100 shadow-sm rounded-3 border-0 bg-white" style="border: 1px solid <?= $isPrivat ? '#ddd6fe' : 'rgba(121, 75, 196, 0.08)'; ?> !important;">
                                 <div class="card-body p-3 d-flex flex-column">
-                                    <!-- Badges Header -->
+                                    <!-- Badges Header: Pembeda Jelas Reguler vs Privat -->
                                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-1 mb-2">
-                                        <div class="d-flex flex-wrap gap-1">
+                                        <div class="d-flex flex-wrap gap-1 align-items-center">
+                                            <?php if ($isPrivat): ?>
+                                                <span class="badge rounded-pill px-2.5 py-1 fw-bold" style="background: linear-gradient(135deg, var(--primary-purple), var(--dark-purple)); color: #fff; font-size: 0.7rem;">
+                                                    <i class="fas fa-user-lock me-1"></i> Privat
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="badge rounded-pill px-2.5 py-1 fw-bold bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 0.7rem;">
+                                                    <i class="fas fa-users me-1"></i> Reguler
+                                                </span>
+                                            <?php endif; ?>
+
                                             <?php if (!empty($row['kategori']) && $row['kategori'] !== '-'): ?>
                                                 <span class="badge px-2 py-1 rounded-pill" style="background-color: var(--light-purple); color: var(--primary-purple) !important; font-size: 0.7rem; font-weight: 600;">
                                                     <?= esc($row['kategori']); ?>
-                                                </span>
-                                            <?php endif; ?>
-                                            <?php if (!empty($row['tipe_kelas']) || !empty($row['jenis_kelas'])): ?>
-                                                <span class="badge bg-light text-secondary border px-2 py-1 rounded-pill" style="font-size: 0.7rem;">
-                                                    <?= esc($row['tipe_kelas'] ?? $row['jenis_kelas']); ?>
                                                 </span>
                                             <?php endif; ?>
                                         </div>
@@ -416,16 +451,13 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                         <?php endif; ?>
                                     </div>
 
-                                    <!-- Tombol Aksi -->
-                                    <div class="mt-auto pt-3 d-flex gap-2">
-                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill flex-fill py-1 fw-semibold" style="font-size: 0.78rem;" 
+                                    <!-- Tombol Aksi (Jadwal Kelas telah dihapus sesuai instruksi) -->
+                                    <div class="mt-auto pt-3">
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill w-100 py-1.5 fw-semibold" style="font-size: 0.8rem;" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#modalDetailKelas<?= $row['id_kelas']; ?>">
                                             <i class="fas fa-eye me-1"></i> Lihat Detail Kelas
                                         </button>
-                                        <a href="<?= base_url('admin/master-kelas/jadwal/' . $row['id_kelas']); ?>" class="btn btn-sm btn-warning text-dark rounded-pill flex-fill py-1 fw-semibold text-center" style="font-size: 0.78rem;">
-                                            <i class="fas fa-calendar-alt me-1"></i> Jadwal Kelas
-                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -546,6 +578,11 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                         <div class="text-muted small">Belum ada data kelas yang tersedia. Silakan tambahkan kelas baru.</div>
                     </div>
                 <?php endif; ?>
+
+                <div class="col-12 text-center py-5 text-muted" id="empty-filter-katalog" style="display: none;">
+                    <i class="fas fa-chalkboard-user fs-2 d-block mb-2 opacity-50"></i>
+                    Belum ada kelas pada kategori yang dipilih.
+                </div>
             </div>
         </div>
 
@@ -563,6 +600,38 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
 
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function filterKatalogKelas(type, btn) {
+            const buttons = document.querySelectorAll('.filter-katalog-btn');
+            buttons.forEach(b => {
+                b.classList.remove('active');
+                b.classList.add('text-muted');
+                b.style.background = '';
+                b.style.color = '';
+            });
+            btn.classList.add('active');
+            btn.classList.remove('text-muted');
+            btn.style.background = 'var(--primary-purple)';
+            btn.style.color = '#fff';
+
+            const cards = document.querySelectorAll('.class-card-col');
+            let visible = 0;
+            cards.forEach(card => {
+                const cardType = card.getAttribute('data-katalog-type');
+                if (type === 'all' || cardType === type) {
+                    card.style.display = '';
+                    visible++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            const empty = document.getElementById('empty-filter-katalog');
+            if (empty) {
+                empty.style.display = visible === 0 ? '' : 'none';
+            }
+        }
+    </script>
 </body>
 </html>
 

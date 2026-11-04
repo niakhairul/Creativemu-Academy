@@ -123,6 +123,13 @@ class Pelatihan extends BaseController
             return null;
         }
 
+        if (!$idKelas) {
+            $idKelasParam = $this->request->getGet('id_kelas') ?? $this->request->getPost('id_kelas');
+            if ($idKelasParam && is_numeric($idKelasParam) && (int)$idKelasParam > 0) {
+                $idKelas = (int)$idKelasParam;
+            }
+        }
+
         $builder = (new PendaftaranModel())->where('id_users', $userId);
         if ($idKelas) {
             $builder->where('id_kelas', $idKelas);
@@ -1035,8 +1042,8 @@ class Pelatihan extends BaseController
             }
         }
 
-        // Jika di Laravel status registrant adalah paid / confirmed / approved, pembayaran di CI4 otomatis valid
-        if (in_array($laravelPayStatus, ['paid', 'valid', 'lunas'], true) || in_array($laravelRegStatus, ['confirmed', 'approved', 'active'], true)) {
+        // Jika di Laravel status registrant adalah paid / confirmed / approved (dan bukan pendaftaran baru di CI4 yang masih pending verifikasi admin)
+        if (($ciStatusPendaftaran === 'disetujui' || $ciPayStatus !== 'pending') && (in_array($laravelPayStatus, ['paid', 'valid', 'lunas'], true) || in_array($laravelRegStatus, ['confirmed', 'approved', 'active'], true))) {
             if (!in_array($ciPayStatus, ['valid', 'disetujui', 'lunas'], true)) {
                 $ciPayStatus = 'valid';
                 $row['status_pembayaran'] = 'valid';
@@ -1100,12 +1107,17 @@ class Pelatihan extends BaseController
                 }
             } else {
                 // Untuk Kelas Reguler:
-                $approvedInLaravel = in_array($laravelRegStatus, ['approved', 'active', 'disetujui'], true)
-                    || in_array($laravelPayStatus, ['paid', 'valid', 'lunas', 'approved'], true)
-                    || !empty($laravelReg['student_id']);
+                // Persetujuan pendaftaran di CI4 ditentukan oleh persetujuan Admin CI4 di menu Validasi
                 $approvedInCi = in_array($ciStatusPendaftaran, ['disetujui', 'approved', 'diterima'], true);
-
-                $isApproved = ($approvedInLaravel || $approvedInCi);
+                if ($approvedInCi) {
+                    $isApproved = true;
+                } elseif ($ciStatusPendaftaran === 'menunggu' || $ciPayStatus === 'pending') {
+                    // Pendaftaran baru di CI4: WAJIB menunggu persetujuan Admin CI4 di menu Validasi
+                    $isApproved = false;
+                } else {
+                    $isApproved = in_array($laravelRegStatus, ['approved', 'active', 'disetujui'], true)
+                        && in_array($laravelPayStatus, ['paid', 'valid', 'lunas', 'approved'], true);
+                }
             }
 
             // Sinkronkan persetujuan ke database CI4 jika sudah disetujui
@@ -2157,9 +2169,17 @@ class Pelatihan extends BaseController
                     ? 'Permintaan pendaftaran Kelas Privat "' . $kelas['nama_kelas'] . '" berhasil dikirim dan berstatus Menunggu Persetujuan. Silakan menunggu verifikasi dan validasi Admin. Setelah pendaftaran disetujui, silakan lakukan registrasi akun terlebih dahulu untuk membuat kata sandi Anda.'
                     : 'Pendaftaran kelas "' . $kelas['nama_kelas'] . '" berhasil dikirim! Silakan menunggu verifikasi dan validasi Admin. Setelah pendaftaran disetujui, silakan lakukan registrasi akun terlebih dahulu untuk membuat kata sandi Anda.';
 
-                // Selalu arahkan ke halaman Daftar Kelas setelah mengirim formulir pendaftaran
+                if ($userId) {
+                    $successMsg = $isPrivat
+                        ? 'Permintaan pendaftaran Kelas Privat "' . $kelas['nama_kelas'] . '" berhasil dikirim dan berstatus Menunggu Persetujuan. Silakan menunggu proses verifikasi dan validasi Admin.'
+                        : 'Pendaftaran kelas "' . $kelas['nama_kelas'] . '" berhasil dikirim! Silakan menunggu proses verifikasi dan validasi Admin.';
+                    $targetRedirect = base_url('pelatihan/daftar-kelas-peserta');
+                } else {
+                    $targetRedirect = base_url('pelatihan/daftar-kelas');
+                }
+
                 return redirect()
-                    ->to(base_url('pelatihan/daftar-kelas'))
+                    ->to($targetRedirect)
                     ->with('success', $successMsg);
             } else {
                 $errors = $pendaftaranModel->errors();
@@ -2618,22 +2638,59 @@ class Pelatihan extends BaseController
         $db = \Config\Database::connect();
         $pendaftaranModel = new \App\Models\PendaftaranModel();
 
-        // 1. Ambil pendaftaran kelas milik peserta yang sedang login (isolasi user)
-        $pendaftaranBuilder = $pendaftaranModel->where('id_users', $userId);
-        if (!empty($idKelas)) {
-            $pendaftaranBuilder->where('id_kelas', $idKelas);
+        // 1. Ambil seluruh pendaftaran kelas milik peserta yang sedang login (isolasi user)
+        $allRegistrations = $pendaftaranModel->where('id_users', $userId)->orderBy('id_pendaftaran', 'DESC')->findAll();
+        if (empty($allRegistrations)) {
+            $userEmail = session()->get('email');
+            if ($userEmail) {
+                $allRegistrations = $pendaftaranModel->where('email', $userEmail)->orderBy('id_pendaftaran', 'DESC')->findAll();
+            }
         }
-        $pendaftaran = $pendaftaranBuilder->orderBy('id_pendaftaran', 'DESC')->first();
 
-        if (!$pendaftaran) {
+        if (empty($allRegistrations)) {
             return redirect()->to(base_url('pelatihan/daftar-kelas-peserta'))
-                ->with('error', 'Anda tidak memiliki akses ke kelas tersebut.');
+                ->with('error', 'Anda belum memiliki kelas pelatihan yang terdaftar.');
         }
 
-        // 2. Sinkronkan & periksa status persetujuan dan ketersediaan jadwal dari API Laravel
+        // 2. Sinkronkan & periksa status persetujuan dari API Laravel untuk seluruh kelas user
         $apiService = new \App\Services\LaravelApiService();
         $laravelClassesMap = $this->fetchLaravelClassesMap($apiService);
-        $pendaftaran = $this->syncAndEnrichPendaftaranRow($pendaftaran, $laravelClassesMap, $apiService);
+
+        $enrichedClasses = [];
+        $selectedPendaftaran = null;
+
+        foreach ($allRegistrations as $rowP) {
+            $enriched = $this->syncAndEnrichPendaftaranRow($rowP, $laravelClassesMap, $apiService);
+            $enrichedClasses[] = $enriched;
+        }
+
+        // Tentukan kelas yang akan dibuka di KBM:
+        // A. Jika id_kelas spesifik diberikan di URL, cari kelas tersebut
+        if (!empty($idKelas)) {
+            foreach ($enrichedClasses as $ec) {
+                if ((int)($ec['id_kelas'] ?? 0) === (int)$idKelas) {
+                    $selectedPendaftaran = $ec;
+                    break;
+                }
+            }
+        }
+
+        // B. Jika tidak ada id_kelas spesifik atau belum ditemukan, utamakan kelas yang sudah SIAP DIAKSES
+        if (!$selectedPendaftaran) {
+            foreach ($enrichedClasses as $ec) {
+                if (!empty($ec['bisa_diakses'])) {
+                    $selectedPendaftaran = $ec;
+                    break;
+                }
+            }
+        }
+
+        // C. Jika belum ada yang siap diakses, ambil pendaftaran pertama untuk menampilkan pesan statusnya
+        if (!$selectedPendaftaran) {
+            $selectedPendaftaran = $enrichedClasses[0];
+        }
+
+        $pendaftaran = $selectedPendaftaran;
 
         // Proteksi akses kelas: hanya boleh dibuka jika sudah disetujui DAN jadwal kelas tersedia
         if (empty($pendaftaran['bisa_diakses'])) {
@@ -2881,7 +2938,29 @@ class Pelatihan extends BaseController
                 $grade_file_result = $apiService->getGradeFiles((int)$kelas['id_kelas'], $studentIdentifier);
 
                 if (($grade_file_result['status_code'] ?? 0) === 403) {
+                    $matchedStudentId = null;
+                    try {
+                        $cDetail = $apiService->request('GET', 'classes/' . (int)$kelas['id_kelas']);
+                        $registrants = $cDetail['data']['registrants'] ?? [];
+                        foreach ($registrants as $reg) {
+                            $regExt = $reg['external_registration_id'] ?? '';
+                            $regMail = strtolower(trim($reg['email'] ?? ''));
+                            $regName = strtolower(trim($reg['name'] ?? ''));
+                            if (
+                                (!empty($pendaftaran['id_pendaftaran']) && $regExt === 'REG-' . $pendaftaran['id_pendaftaran']) ||
+                                (!empty($pendaftaran['email']) && (str_contains($regMail, strtolower(trim($pendaftaran['email']))) || str_contains(strtolower(trim($pendaftaran['email'])), $regMail))) ||
+                                (!empty($pendaftaran['nama']) && $regName === strtolower(trim($pendaftaran['nama'])))
+                            ) {
+                                $matchedStudentId = $reg['student_id'] ?? $reg['nis'] ?? null;
+                                if (!empty($matchedStudentId)) {
+                                    break;
+                                }
+                            }
+                        }
+                    } catch (\Throwable $eDetail) {}
+
                     $fallbackCandidates = array_unique(array_filter([
+                        $matchedStudentId,
                         !empty($pendaftaran['nis']) && $pendaftaran['nis'] !== '-' ? (string)$pendaftaran['nis'] : null,
                         !empty($pendaftaran['id_pendaftaran']) ? 'REG-' . $pendaftaran['id_pendaftaran'] : null,
                         (string)($pendaftaran['id_users'] ?? session()->get('id_users') ?? ''),
@@ -2891,6 +2970,7 @@ class Pelatihan extends BaseController
                             $retry = $apiService->getGradeFiles((int)$kelas['id_kelas'], $candidate);
                             if (!empty($retry['file']) || ($retry['status_code'] ?? 0) === 200) {
                                 $grade_file_result = $retry;
+                                $studentIdentifier = $candidate;
                                 break;
                             }
                         }
@@ -2913,6 +2993,7 @@ class Pelatihan extends BaseController
     'sudah_isi_angket'    => $sudah_isi_angket,
     'sertifikatTerbit'    => $sertifikatTerbit,
     'grade_file_result'   => $grade_file_result,
+    'semua_kelas_peserta' => $enrichedClasses ?? [],
 ]);
 }
 
@@ -4120,7 +4201,29 @@ public function simpanJawabanUjian()
         $fileInfo = $apiService->getGradeFiles((int)$idKelas, $studentIdentifier);
 
         if (($fileInfo['status_code'] ?? 0) === 403) {
+            $matchedStudentId = null;
+            try {
+                $cDetail = $apiService->request('GET', 'classes/' . (int)$idKelas);
+                $registrants = $cDetail['data']['registrants'] ?? [];
+                foreach ($registrants as $reg) {
+                    $regExt = $reg['external_registration_id'] ?? '';
+                    $regMail = strtolower(trim($reg['email'] ?? ''));
+                    $regName = strtolower(trim($reg['name'] ?? ''));
+                    if (
+                        (!empty($kelas['id_pendaftaran']) && $regExt === 'REG-' . $kelas['id_pendaftaran']) ||
+                        (!empty($kelas['email']) && (str_contains($regMail, strtolower(trim($kelas['email']))) || str_contains(strtolower(trim($kelas['email'])), $regMail))) ||
+                        (!empty($kelas['nama']) && $regName === strtolower(trim($kelas['nama'])))
+                    ) {
+                        $matchedStudentId = $reg['student_id'] ?? $reg['nis'] ?? null;
+                        if (!empty($matchedStudentId)) {
+                            break;
+                        }
+                    }
+                }
+            } catch (\Throwable $eDetail) {}
+
             $fallbackCandidates = array_unique(array_filter([
+                $matchedStudentId,
                 !empty($kelas['nis']) && $kelas['nis'] !== '-' ? (string)$kelas['nis'] : null,
                 !empty($kelas['id_pendaftaran']) ? 'REG-' . $kelas['id_pendaftaran'] : null,
                 (string)($kelas['id_users'] ?? session()->get('id_users') ?? ''),

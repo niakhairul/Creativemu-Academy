@@ -139,7 +139,18 @@ class Admin extends BaseController
             ->select('pendaftaran.*, users.nama, users.email, kelas.nama_kelas')
             ->join('users', 'users.id_users = pendaftaran.id_users', 'left')
             ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
-            ->where('pendaftaran.status', 'pending')
+            ->groupStart()
+                ->where('pendaftaran.status_pendaftaran', 'Menunggu')
+                ->orWhere('pendaftaran.status_pendaftaran IS NULL', null, false)
+                ->orWhere('pendaftaran.status_pendaftaran', '')
+                ->orWhere('pendaftaran.status_pembayaran', 'pending')
+                ->orWhere('pendaftaran.status', 'Menunggu')
+                ->orWhere('pendaftaran.status', 'pending')
+            ->groupEnd()
+            ->groupStart()
+                ->whereNotIn('pendaftaran.status_pendaftaran', ['Disetujui', 'Ditolak'])
+                ->orWhere('pendaftaran.status_pendaftaran IS NULL', null, false)
+            ->groupEnd()
             ->orderBy('pendaftaran.created_at', 'DESC')
             ->get()
             ->getResultArray();
@@ -304,7 +315,7 @@ class Admin extends BaseController
             'total_kelas'                 => $totalKelas,
             'total_mentor'                => $totalMentor,
             'total_peserta'               => $totalPesertaAktif,
-            'pending_validasi'            => $db->table('pendaftaran')->where('status', 'pending')->countAllResults(),
+            'pending_validasi'            => count($pendaftaranPending),
             'pendaftaran_pending'         => $pendaftaranPending,
             'angket_data'                 => $angketData,
             'total_responden_angket'      => $totalRespondenAngket,
@@ -327,7 +338,7 @@ class Admin extends BaseController
         $apiService = new \App\Services\LaravelApiService();
         $kelasData = [];
         try {
-            $response = $apiService->request('GET', 'classes');
+            $response = $apiService->request('GET', 'classes', ['include_private' => 'true']);
             $kelasApi = $response['data'] ?? $response ?? [];
             if (!empty($kelasApi) && is_array($kelasApi)) {
                 foreach ($kelasApi as $k) {
@@ -401,6 +412,63 @@ class Admin extends BaseController
             log_message('error', 'Gagal memuat master kelas dari API Laravel: ' . $e->getMessage());
         }
 
+        // Gabungkan kelas privat yang telah disetujui/di-ACC di CI4 agar otomatis tampil di Master Kelas
+        $db = \Config\Database::connect();
+        $approvedPrivat = $db->table('pendaftaran')
+            ->select('pendaftaran.*, kelas.nama_kelas AS nama_kelas_master, kelas.id_mentor, mentor.nama_mentor')
+            ->join('kelas', 'kelas.id_kelas = pendaftaran.id_kelas', 'left')
+            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+            ->where('LOWER(pendaftaran.jenis_kelas)', 'privat')
+            ->whereIn('LOWER(pendaftaran.status_pendaftaran)', ['disetujui', 'approved'])
+            ->orderBy('pendaftaran.id_pendaftaran', 'DESC')
+            ->get()
+            ->getResultArray();
+
+        $existingIdsMap = array_flip(array_filter(array_column($kelasData, 'id_kelas')));
+
+        foreach ($approvedPrivat as $ap) {
+            $cId = (int)($ap['id_kelas'] ?? 0);
+            if ($cId > 0 && isset($existingIdsMap[$cId])) {
+                continue;
+            }
+            if ($cId > 0) {
+                $existingIdsMap[$cId] = true;
+            }
+
+            $customMat = trim((string)($ap['custom_materi'] ?? ''));
+            $matPriv = trim((string)($ap['materi_privat'] ?? ''));
+            $namaKelas = !empty($customMat)
+                ? 'Privat - ' . $customMat
+                : (!empty($matPriv)
+                    ? 'Privat - ' . $matPriv
+                    : (!empty($ap['nama_kelas_master'])
+                        ? 'Privat - ' . $ap['nama_kelas_master']
+                        : ($ap['pilihan_kelas'] ?? 'Kelas Privat')));
+
+            $namaMentor = !empty($ap['nama_mentor']) ? $ap['nama_mentor'] : 'Sedang Ditentukan';
+
+            $kelasData[] = [
+                'id_kelas'            => $cId > 0 ? $cId : (9000 + (int)$ap['id_pendaftaran']),
+                'nama_kelas'          => $namaKelas,
+                'thumbnail'           => null,
+                'foto'                => null,
+                'kategori'            => !empty($customMat) ? $customMat : ($ap['kategori_kelas'] ?: 'Privat'),
+                'status'              => 'Approved',
+                'deskripsi'           => 'Kelas privat custom materi untuk ' . ($ap['nama'] ?? 'Peserta') . ' (' . ucfirst($ap['metode_pembelajaran'] ?? 'offline') . ')',
+                'ringkasan'           => 'Kelas privat telah disetujui Admin. Jadwal dan instruktur dikoordinasikan bersama tim Laravel.',
+                'nama_mentor'         => $namaMentor,
+                'jumlah_pertemuan'    => 6,
+                'kapasitas'           => 1,
+                'kapasitas_tersedia'  => 0,
+                'harga_reguler'       => null,
+                'harga_privat'        => (float)($ap['harga_privat'] ?? 1500000),
+                'tanggal_mulai_kelas' => !empty($ap['tanggal_mulai_kelas']) ? date('Y-m-d', strtotime($ap['tanggal_mulai_kelas'])) : null,
+                'jenis_kelas'         => 'Privat',
+                'tipe_kelas'          => 'Privat',
+                'metode_pembelajaran' => $ap['metode_pembelajaran'] ?? 'offline',
+            ];
+        }
+
         $mentorModel = new \App\Models\MentorModel();
 
         $data = [
@@ -443,11 +511,12 @@ class Admin extends BaseController
 
 
         if ($fileThumbnail && $fileThumbnail->isValid() && !$fileThumbnail->hasMoved()) {
-
+            $folderKelas = FCPATH . 'uploads/kelas';
+            if (!is_dir($folderKelas)) {
+                mkdir($folderKelas, 0777, true);
+            }
             $namaThumbnail = $fileThumbnail->getRandomName();
-
-            $fileThumbnail->move('uploads/kelas/', $namaThumbnail);
-
+            $fileThumbnail->move($folderKelas, $namaThumbnail);
         }
 
 
@@ -589,12 +658,12 @@ class Admin extends BaseController
         $fileThumbnail = $this->request->getFile('foto');
 
         if ($fileThumbnail && $fileThumbnail->isValid() && !$fileThumbnail->hasMoved()) {
-
+            $folderKelas = FCPATH . 'uploads/kelas';
+            if (!is_dir($folderKelas)) {
+                mkdir($folderKelas, 0777, true);
+            }
             $namaThumbnail = $fileThumbnail->getRandomName();
-
-            $fileThumbnail->move('uploads/kelas/', $namaThumbnail);
-
-
+            $fileThumbnail->move($folderKelas, $namaThumbnail);
 
             $data['thumbnail'] = $namaThumbnail;
 
@@ -2527,25 +2596,16 @@ private function generateNisPendaftaran($db, array $pendaftaran): string
     $timestamp = strtotime($tanggalDaftar) ?: time();
 
     $prefix = date('ym', $timestamp);
-
-
+    $yearPrefix = date('y', $timestamp);
 
     $row = $db->query(
-
-        'SELECT nis FROM pendaftaran WHERE nis LIKE ? AND CHAR_LENGTH(nis) = 8 ORDER BY nis DESC LIMIT 1 FOR UPDATE',
-
-        [$prefix . '%']
-
+        'SELECT MAX(CAST(SUBSTRING(nis, 5, 4) AS UNSIGNED)) AS max_seq FROM pendaftaran WHERE nis LIKE ? AND CHAR_LENGTH(nis) = 8 FOR UPDATE',
+        [$yearPrefix . '%']
     )->getRowArray();
 
-
-
     $nextSequence = 1;
-
-    if (!empty($row['nis'])) {
-
-        $nextSequence = ((int) substr($row['nis'], 4, 4)) + 1;
-
+    if (!empty($row['max_seq'])) {
+        $nextSequence = ((int) $row['max_seq']) + 1;
     }
 
 
@@ -2645,12 +2705,17 @@ private function generateNisPendaftaran($db, array $pendaftaran): string
             COALESCE(users.nama, MAX(pendaftaran.nama), "Peserta") AS nama_peserta,
             COALESCE(users.email, MAX(pendaftaran.email), "-") AS email_peserta,
             COALESCE(kelas.nama_kelas, MAX(pendaftaran.pilihan_kelas), MAX(pendaftaran.pilihan_pelatihan), "Kelas Pelatihan") AS kelas,
+            MAX(pendaftaran.id_pendaftaran) AS id_pendaftaran,
             (SELECT COUNT(ja.id_jawaban) 
              FROM jawaban_angket ja 
              JOIN angket_pertanyaan ap ON ap.id_angket_pertanyaan = ja.id_pertanyaan 
              WHERE ja.id_siswa = nilai_ujian.id_users 
                AND (ap.id_kelas IS NULL OR ap.id_kelas = nilai_ujian.id_kelas)
-            ) as jumlah_angket
+            ) as jumlah_angket,
+            (SELECT COUNT(ab.id_absensi)
+             FROM absensi ab
+             WHERE ab.id_user = nilai_ujian.id_users AND (ab.status = "hadir" OR ab.status = "Hadir")
+            ) as total_hadir
         ');
 
         $builder->join('users', 'users.id_users = nilai_ujian.id_users', 'left');
@@ -2661,10 +2726,194 @@ private function generateNisPendaftaran($db, array $pendaftaran): string
         $builder->orderBy('nilai_ujian.id_nilai_ujian', 'ASC');
 
         $query = $builder->get();
+        $listKbm = $query->getResultArray();
+
+        // Cek ketersediaan file nilai dari instruktur (Laravel API)
+        $apiService = new \App\Services\LaravelApiService();
+        $classNoFileMap = [];
+
+        foreach ($listKbm as &$row) {
+            $classId = (int)($row['id_kelas'] ?? 0);
+            $studentIdentifier = !empty($row['nis']) && $row['nis'] !== '-'
+                ? (string)$row['nis']
+                : (!empty($row['id_pendaftaran'])
+                    ? 'REG-' . $row['id_pendaftaran']
+                    : (string)$row['id_users']);
+
+            if (isset($classNoFileMap[$classId])) {
+                $row['has_file_nilai'] = false;
+                $row['file_nilai_info'] = null;
+                continue;
+            }
+
+            $cacheKey = 'grade_file_avail_' . $classId . '_' . md5($studentIdentifier);
+            $cachedFile = cache($cacheKey);
+
+            if ($cachedFile !== null) {
+                $row['has_file_nilai'] = (bool)($cachedFile['has_file'] ?? false);
+                $row['file_nilai_info'] = $cachedFile['file_info'] ?? null;
+            } else {
+                try {
+                    $fileInfo = $apiService->getGradeFiles($classId, $studentIdentifier);
+                    $hasFile = !empty($fileInfo['file']) && !empty($fileInfo['file']['id']);
+
+                    if (($fileInfo['status_code'] ?? 0) === 404 || str_contains($fileInfo['message'] ?? '', 'tidak ditemukan') || str_contains($fileInfo['message'] ?? '', 'belum diunggah')) {
+                        $classNoFileMap[$classId] = true;
+                    }
+
+                    $saveData = [
+                        'has_file'  => $hasFile,
+                        'file_info' => $hasFile ? $fileInfo['file'] : null,
+                    ];
+                    cache()->save($cacheKey, $saveData, 180);
+                    $row['has_file_nilai'] = $hasFile;
+                    $row['file_nilai_info'] = $saveData['file_info'];
+                } catch (\Throwable $e) {
+                    $row['has_file_nilai'] = false;
+                    $row['file_nilai_info'] = null;
+                }
+            }
+        }
+        unset($row);
+
+        $pelatihanCtrl = new \App\Controllers\Pelatihan();
+        $laravelClassesMap = $pelatihanCtrl->fetchLaravelClassesMap($apiService);
+
+        $allKelasDb = $db->table('kelas')
+            ->select('kelas.*, mentor.nama_mentor')
+            ->join('mentor', 'mentor.id_mentor = kelas.id_mentor', 'left')
+            ->orderBy('kelas.id_kelas', 'DESC')
+            ->get()
+            ->getResultArray();
+
+        $kbmByClass = [];
+        foreach ($listKbm as $row) {
+            $cid = (int)($row['id_kelas'] ?? 0);
+            $kbmByClass[$cid][] = $row;
+        }
+
+        $classTrainerMap = [
+            2   => 'Nur Arifin',
+            174 => 'Rizki Setiawan',
+            183 => 'Khafid Anwar',
+            191 => 'Nabiel',
+            192 => 'Nur Arifin',
+            193 => 'Nabiel',
+            199 => 'Instruktur SIM CMU',
+            200 => 'Khafid Anwar',
+        ];
+
+        $daftarKelasMaster = [];
+
+        foreach ($allKelasDb as $k) {
+            $cid = (int)$k['id_kelas'];
+            $pesertaList = $kbmByClass[$cid] ?? [];
+            $totalPeserta = count($pesertaList);
+            $lulus = 0; $tidakLulus = 0; $menunggu = 0; $remidi = 0;
+            foreach ($pesertaList as $p) {
+                $st = strtolower(trim((string)($p['status_kelulusan'] ?? 'menunggu')));
+                if ($st === 'lulus') $lulus++;
+                elseif ($st === 'tidak lulus') $tidakLulus++;
+                elseif ($st === 'remidi') $remidi++;
+                else $menunggu++;
+            }
+
+            $namaMentor = !empty($k['nama_mentor']) ? $k['nama_mentor'] : ($laravelClassesMap[$cid]['mentor'] ?? ($classTrainerMap[$cid] ?? 'Instruktur'));
+            $program = !empty($k['kategori']) ? $k['kategori'] : ($laravelClassesMap[$cid]['kategori'] ?? 'Pelatihan');
+            $sesi = (int)($k['jumlah_pertemuan'] ?? 0);
+            if ($sesi <= 0) $sesi = (int)($laravelClassesMap[$cid]['meetings'] ?? 6);
+            $kuota = (int)($k['kapasitas'] ?? 0);
+            if ($kuota <= 0) $kuota = (int)($laravelClassesMap[$cid]['capacity'] ?? 20);
+            $tglMulai = !empty($k['tanggal_mulai_kelas']) ? date('d M Y', strtotime($k['tanggal_mulai_kelas'])) : '-';
+
+            $daftarKelasMaster[$cid] = [
+                'id_kelas'      => $cid,
+                'nama_kelas'    => $k['nama_kelas'],
+                'program'       => $program,
+                'instruktur'    => $namaMentor,
+                'total_siswa'   => $totalPeserta,
+                'jumlah_sesi'   => $sesi,
+                'kuota'         => $kuota,
+                'periode'       => $tglMulai . ' s/d -',
+                'lulus'         => $lulus,
+                'tidak_lulus'   => $tidakLulus,
+                'menunggu'      => $menunggu,
+                'remidi'        => $remidi,
+                'peserta'       => $pesertaList,
+            ];
+        }
+
+        foreach ($laravelClassesMap as $cid => $lInfo) {
+            if (!isset($daftarKelasMaster[$cid])) {
+                $pesertaList = $kbmByClass[$cid] ?? [];
+                $totalPeserta = count($pesertaList);
+                $lulus = 0; $tidakLulus = 0; $menunggu = 0; $remidi = 0;
+                foreach ($pesertaList as $p) {
+                    $st = strtolower(trim((string)($p['status_kelulusan'] ?? 'menunggu')));
+                    if ($st === 'lulus') $lulus++;
+                    elseif ($st === 'tidak lulus') $tidakLulus++;
+                    elseif ($st === 'remidi') $remidi++;
+                    else $menunggu++;
+                }
+                $daftarKelasMaster[$cid] = [
+                    'id_kelas'      => $cid,
+                    'nama_kelas'    => $lInfo['nama_kelas'] ?? ('Kelas #' . $cid),
+                    'program'       => $lInfo['kategori'] ?? 'Pelatihan',
+                    'instruktur'    => $lInfo['mentor'] ?? ($classTrainerMap[$cid] ?? 'Instruktur'),
+                    'total_siswa'   => $totalPeserta,
+                    'jumlah_sesi'   => (int)($lInfo['meetings'] ?? 6),
+                    'kuota'         => (int)($lInfo['capacity'] ?? 20),
+                    'periode'       => ($lInfo['start_date'] ?? '-') . ' s/d ' . ($lInfo['end_date'] ?? '-'),
+                    'lulus'         => $lulus,
+                    'tidak_lulus'   => $tidakLulus,
+                    'menunggu'      => $menunggu,
+                    'remidi'        => $remidi,
+                    'peserta'       => $pesertaList,
+                ];
+            }
+        }
+
+        foreach ($kbmByClass as $cid => $pesertaList) {
+            if (!isset($daftarKelasMaster[$cid])) {
+                $firstP = $pesertaList[0] ?? [];
+                $totalPeserta = count($pesertaList);
+                $lulus = 0; $tidakLulus = 0; $menunggu = 0; $remidi = 0;
+                foreach ($pesertaList as $p) {
+                    $st = strtolower(trim((string)($p['status_kelulusan'] ?? 'menunggu')));
+                    if ($st === 'lulus') $lulus++;
+                    elseif ($st === 'tidak lulus') $tidakLulus++;
+                    elseif ($st === 'remidi') $remidi++;
+                    else $menunggu++;
+                }
+                $daftarKelasMaster[$cid] = [
+                    'id_kelas'      => $cid,
+                    'nama_kelas'    => $firstP['kelas'] ?? ('Kelas #' . $cid),
+                    'program'       => 'Pelatihan',
+                    'instruktur'    => $classTrainerMap[$cid] ?? 'Instruktur',
+                    'total_siswa'   => $totalPeserta,
+                    'jumlah_sesi'   => 6,
+                    'kuota'         => 20,
+                    'periode'       => '- s/d -',
+                    'lulus'         => $lulus,
+                    'tidak_lulus'   => $tidakLulus,
+                    'menunggu'      => $menunggu,
+                    'remidi'        => $remidi,
+                    'peserta'       => $pesertaList,
+                ];
+            }
+        }
+
+        $totalKelasDipantau = count($daftarKelasMaster);
+        $totalPesertaAktif = count($listKbm);
+        $totalSesiKbm = array_sum(array_column($daftarKelasMaster, 'jumlah_sesi'));
 
         $data = [
-            'title'    => 'Manajemen KBM',
-            'list_kbm' => $query->getResultArray()
+            'title'                => 'Manajemen KBM',
+            'list_kbm'             => $listKbm,
+            'daftar_kelas'         => $daftarKelasMaster,
+            'total_kelas_dipantau' => $totalKelasDipantau,
+            'total_peserta_aktif'  => $totalPesertaAktif,
+            'total_sesi_kbm'       => $totalSesiKbm,
         ];
 
         return view('admin/KBM/index', $data);
@@ -2718,6 +2967,11 @@ private function generateNisPendaftaran($db, array $pendaftaran): string
         }
 
         $statusTeks = ($statusKelulusan === 'lulus') ? 'Lulus' : (($statusKelulusan === 'tidak lulus') ? 'Tidak Lulus' : ucfirst($statusKelulusan));
+
+        $idKelas = (int)($dataLama['id_kelas'] ?? 0);
+        if ($idKelas > 0) {
+            session()->setFlashdata('active_class_id', $idKelas);
+        }
 
         return redirect()->back()
             ->with('success', "Status kelulusan peserta berhasil diperbarui menjadi {$statusTeks}.");
@@ -4736,11 +4990,21 @@ public function downloadFileSertifikat($id)
 
         $fileFoto = $this->request->getFile('foto_profil');
         if ($fileFoto && $fileFoto->isValid() && !$fileFoto->hasMoved()) {
-            $namaFile = $fileFoto->getRandomName();
-            $fileFoto->move('assets/img', $namaFile);
+            $folderImg = rtrim(FCPATH, '\\/') . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'img';
+            if (!is_dir($folderImg)) {
+                mkdir($folderImg, 0777, true);
+            }
+            try {
+                $namaFile = $fileFoto->getRandomName();
+                $fileFoto->move($folderImg, $namaFile);
 
-            $dataUpdate['foto_profil'] = $namaFile;
-            $session->set('foto_profil', $namaFile);
+                $dataUpdate['foto_profil'] = $namaFile;
+                $session->set('foto_profil', $namaFile);
+            } catch (\Throwable $e) {
+                log_message('error', 'Gagal upload foto profil admin: ' . $e->getMessage());
+                return redirect()->to(base_url('admin/pengaturan'))
+                    ->with('error', 'Gagal mengunggah foto profil: ' . $e->getMessage() . '. Pastikan folder assets/img di server memiliki izin tulis (writable / chmod 755 atau 777).');
+            }
         }
 
         if ($passwordBaru !== '') {

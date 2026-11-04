@@ -437,7 +437,7 @@
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link <?= $activeTab === 'ujian' ? 'active' : '' ?>" id="ujian-tab" data-bs-toggle="tab" data-bs-target="#ujian" type="button" role="tab">
-                        <i class="fa-solid fa-file-earmark-text me-1.5" style="color: var(--color-orange);"></i> File Nilai
+                        <i class="fa-solid fa-file-earmark-text me-1.5" style="color: var(--color-orange);"></i> Nilai & Kelulusan
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">

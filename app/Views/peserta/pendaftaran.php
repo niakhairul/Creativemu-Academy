@@ -1378,7 +1378,7 @@
                             </div>
                             <div>
                                 <span class="d-block fw-bold fs-6" style="color: var(--text-main);">Transfer Bank</span>
-                                <span class="d-block text-muted" style="font-size: 0.78rem;">Transfer via Bank BCA / M-Banking / ATM</span>
+                                <span class="d-block text-muted" style="font-size: 0.78rem;">Transfer via Bank BRI / M-Banking / ATM</span>
                             </div>
                         </label>
                     </div>
@@ -1392,14 +1392,14 @@
                         <i class="bi bi-info-circle-fill fs-5 me-2" style="color: var(--purple-primary);"></i>
                         <h6 class="fw-bold mb-0" style="color: var(--purple-dark);">Instruksi Pembayaran Transfer Bank:</h6>
                     </div>
-                    <span class="badge" style="background: var(--purple-primary); color: #ffffff; padding: 6px 12px;">Bank BCA</span>
+                    <span class="badge" style="background: var(--purple-primary); color: #ffffff; padding: 6px 12px;">Bank BRI</span>
                 </div>
 
                 <div class="bg-white p-3 rounded-3 border mb-2 d-flex flex-wrap align-items-center justify-content-between gap-3" style="border-color: var(--purple-border) !important;">
                     <div>
-                        <small class="text-muted d-block" style="font-size: 0.75rem;">Nomor Rekening BCA Resmi:</small>
-                        <span class="fs-4 fw-bold font-monospace" id="nomorRekeningText" style="color: var(--purple-title); letter-spacing: 1px;">1234567890</span>
-                        <small class="text-muted d-block mt-1" style="font-size: 0.8rem;">Atas Nama: <strong>Creativemu Academy</strong></small>
+                        <small class="text-muted d-block" style="font-size: 0.75rem;">Nomor Rekening BRI Resmi (PT BANK RAKYAT INDONESIA (PERSERO)):</small>
+                        <span class="fs-4 fw-bold font-monospace" id="nomorRekeningText" style="color: var(--purple-title); letter-spacing: 1px;">098601000016560</span>
+                        <small class="text-muted d-block mt-1" style="font-size: 0.8rem;">Atas Nama: <strong>CV MULYA KREATIF CIPTA</strong></small>
                     </div>
                     <button type="button" class="btn btn-copy d-inline-flex align-items-center" id="btnSalinRekening" onclick="salinRekening()">
                         <i class="bi bi-clipboard me-1" id="iconSalin"></i> <span id="labelSalin">Salin No. Rekening</span>

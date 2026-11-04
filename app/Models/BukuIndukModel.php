@@ -50,18 +50,16 @@ class BukuIndukModel extends Model
     public function generateNis(?string $yearMonth = null): string
     {
         $prefix = $this->normalisasiPrefixNis($yearMonth);
+        $yearPrefix = substr($prefix, 0, 2);
 
-        $row = $this->db->table('pendaftaran')
-            ->select('nis')
-            ->like('nis', $prefix, 'after')
-            ->where('LENGTH(nis)', 8)
-            ->orderBy('nis', 'DESC')
-            ->get(1)
-            ->getRowArray();
+        $row = $this->db->query(
+            'SELECT MAX(CAST(SUBSTRING(nis, 5, 4) AS UNSIGNED)) AS max_seq FROM pendaftaran WHERE nis LIKE ? AND CHAR_LENGTH(nis) = 8',
+            [$yearPrefix . '%']
+        )->getRowArray();
 
         $nextSequence = 1;
-        if (!empty($row['nis'])) {
-            $nextSequence = ((int) substr($row['nis'], 4, 4)) + 1;
+        if (!empty($row['max_seq'])) {
+            $nextSequence = ((int) $row['max_seq']) + 1;
         }
 
         do {

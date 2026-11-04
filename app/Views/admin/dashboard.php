@@ -271,7 +271,6 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                     <div>
                         <small>TOTAL KELAS</small>
                         <h3><?= $total_kelas ?? 0; ?></h3>
-                        <span class="badge bg-light text-primary border" style="font-size: 0.65rem;">API Laravel</span>
                     </div>
                     <div class="stat-icon"><i class="fas fa-book-open"></i></div>
                 </div>
@@ -281,7 +280,6 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                     <div>
                         <small>TOTAL INSTRUKTUR</small>
                         <h3><?= $total_mentor ?? 0; ?></h3>
-                        <span class="badge bg-light text-primary border" style="font-size: 0.65rem;">API Laravel</span>
                     </div>
                     <div class="stat-icon"><i class="fas fa-chalkboard-user"></i></div>
                 </div>
@@ -291,7 +289,6 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                     <div>
                         <small>TOTAL SISWA</small>
                         <h3><?= $total_peserta ?? 0; ?></h3>
-                        <span class="badge bg-light text-success border" style="font-size: 0.65rem;">Peserta Aktif</span>
                     </div>
                     <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
                 </div>
@@ -301,7 +298,6 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                     <div>
                         <small>PENDING VALIDASI</small>
                         <h3 class="text-warning"><?= $pending_validasi ?? 0; ?></h3>
-                        <span class="badge bg-light text-warning border" style="font-size: 0.65rem;">Menunggu</span>
                     </div>
                     <div class="stat-icon" style="background: #fff8e1; color: #fbc02d;"><i class="fas fa-clock-rotate-left"></i></div>
                 </div>
@@ -388,9 +384,6 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                             <i class="fas fa-clipboard-user text-primary"></i> Monitoring Kehadiran Instruktur
                         </div>
                         <div class="d-flex align-items-center gap-1">
-                            <span class="badge bg-light text-primary border" style="font-size: 0.7rem;">
-                                <i class="fas fa-database me-1"></i> API Laravel
-                            </span>
                             <a href="<?= base_url('admin/laporan-mentor'); ?>" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 0.68rem;">
                                 Laporan <i class="fas fa-arrow-right ms-1"></i>
                             </a>
