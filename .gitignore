@@ -126,3 +126,6 @@ _modules/*
 /phpunit.xml
 
 /public/uploads/*
+!/public/uploads/sertifikat/
+/public/uploads/sertifikat/*
+!/public/uploads/sertifikat/.gitkeep

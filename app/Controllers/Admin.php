@@ -4364,15 +4364,22 @@ public function hasilAngket()
 
 
     // Pastikan folder upload tersedia
-
     $uploadPath = FCPATH . 'uploads/sertifikat/';
 
-
-
     if (!is_dir($uploadPath)) {
+        @mkdir($uploadPath, 0775, true);
+    }
 
-        mkdir($uploadPath, 0775, true);
+    if (!is_dir($uploadPath) || !is_writable($uploadPath)) {
+        if (is_dir($uploadPath)) {
+            @chmod($uploadPath, 0775);
+        }
+    }
 
+    if (!is_dir($uploadPath) || !is_writable($uploadPath)) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Direktori upload sertifikat (public/uploads/sertifikat/) belum memiliki izin tulis di server. Harap atur izin folder menjadi 775 atau 777.');
     }
 
 
@@ -4761,12 +4768,20 @@ public function updateSertifikat($id)
 
         $uploadPath = FCPATH . 'uploads/sertifikat/';
 
-
-
         if (!is_dir($uploadPath)) {
+            @mkdir($uploadPath, 0775, true);
+        }
 
-            mkdir($uploadPath, 0775, true);
+        if (!is_dir($uploadPath) || !is_writable($uploadPath)) {
+            if (is_dir($uploadPath)) {
+                @chmod($uploadPath, 0775);
+            }
+        }
 
+        if (!is_dir($uploadPath) || !is_writable($uploadPath)) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Direktori upload sertifikat (public/uploads/sertifikat/) belum memiliki izin tulis di server. Harap atur izin folder menjadi 775 atau 777.');
         }
 
 
