@@ -360,7 +360,7 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                                     <?= esc($p['nama_peserta'] ?? '-'); ?>
                                     —
                                     <?= esc($p['nama_kelas'] ?? '-'); ?>
-                                    (Nilai: <?= esc($p['nilai'] ?? '-'); ?>)
+                                  
                                 </option>
                             <?php endforeach; ?>
                         </select>

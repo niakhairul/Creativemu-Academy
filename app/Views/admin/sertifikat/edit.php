@@ -430,20 +430,6 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
 
                 </div>
 
-                <!-- NILAI -->
-                <div class="mb-3">
-
-                    <label class="form-label">
-                        Nilai
-                    </label>
-
-                    <input type="text"
-                           class="form-control readonly-field"
-                           value="<?= esc($sertifikat['nilai'] ?? '-'); ?>"
-                           readonly>
-
-                </div>
-
                 <!-- STATUS KELULUSAN -->
                 <div class="mb-3">
 

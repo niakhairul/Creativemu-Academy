@@ -467,7 +467,6 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                         <th>Peserta</th>
                         <th>Email</th>
                         <th>Kelas</th>
-                        <th>Nilai</th>
                         <th>Status</th>
                         <th>Sertifikat</th>
                         <th class="text-center" style="min-width: 120px;">Aksi</th>
@@ -504,7 +503,6 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                             <td><strong style="color: var(--dark-purple);"><?= esc($p['nama_peserta'] ?? '-'); ?></strong></td>
                             <td><?= esc($p['email'] ?? '-'); ?></td>
                             <td class="text-primary fw-semibold"><?= esc($p['nama_kelas'] ?? '-'); ?></td>
-                            <td><strong><?= esc($p['nilai'] ?? '-'); ?></strong></td>
                             <td>
                                 <span class="badge badge-lulus rounded-pill px-2 py-1">LULUS</span>
                             </td>
@@ -548,7 +546,7 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                     <?php endforeach; ?>
                 <?php else : ?>
                     <tr>
-                        <td colspan="8">
+                        <td colspan="7">
                             <div class="empty-state">
                                 <i class="fas fa-user-graduate d-block"></i>
                                 <div>Belum ada peserta yang dinyatakan lulus.</div>
@@ -588,7 +586,6 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
                         <div class="name"><?= esc($p['nama_peserta'] ?? '-'); ?></div>
                         <div class="detail"><i class="fas fa-envelope me-1"></i> <?= esc($p['email'] ?? '-'); ?></div>
                         <div class="detail"><i class="fas fa-book me-1"></i> <?= esc($p['nama_kelas'] ?? '-'); ?></div>
-                        <div class="detail"><i class="fas fa-star me-1"></i> Nilai: <strong><?= esc($p['nilai'] ?? '-'); ?></strong></div>
 
                         <div class="mt-2 d-flex gap-1">
                             <span class="badge badge-lulus rounded-pill px-2 py-1">LULUS</span>
