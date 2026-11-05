@@ -4363,23 +4363,34 @@ public function hasilAngket()
 
 
 
-    // Pastikan folder upload tersedia
+    // Pastikan folder upload tersedia (Prioritas: public/uploads/sertifikat/ -> Fallback: writable/uploads/sertifikat/)
     $uploadPath = FCPATH . 'uploads/sertifikat/';
 
     if (!is_dir($uploadPath)) {
-        @mkdir($uploadPath, 0775, true);
+        @mkdir($uploadPath, 0777, true);
+    }
+    if (is_dir($uploadPath)) {
+        @chmod($uploadPath, 0777);
     }
 
-    if (!is_dir($uploadPath) || !is_writable($uploadPath)) {
-        if (is_dir($uploadPath)) {
-            @chmod($uploadPath, 0775);
+    // Jika direktori public tidak dapat ditulisi (karena batasan izin server Linux), gunakan fallback direktori internal writable/
+    if (!is_writable($uploadPath)) {
+        $uploadPathWritable = WRITEPATH . 'uploads/sertifikat/';
+        if (!is_dir($uploadPathWritable)) {
+            @mkdir($uploadPathWritable, 0777, true);
+        }
+        if (is_dir($uploadPathWritable)) {
+            @chmod($uploadPathWritable, 0777);
+        }
+        if (is_writable($uploadPathWritable)) {
+            $uploadPath = $uploadPathWritable;
         }
     }
 
     if (!is_dir($uploadPath) || !is_writable($uploadPath)) {
         return redirect()->back()
             ->withInput()
-            ->with('error', 'Direktori upload sertifikat (public/uploads/sertifikat/) belum memiliki izin tulis di server. Harap atur izin folder menjadi 775 atau 777.');
+            ->with('error', 'Direktori upload sertifikat belum memiliki izin tulis di server. Harap atur izin folder menjadi 775 atau 777.');
     }
 
 
@@ -4578,20 +4589,16 @@ public function hasilAngket()
 
 
 
-    $pathPublic = FCPATH . 'uploads/sertifikat/' . $namaFile;
-
-    $pathRoot   = ROOTPATH . 'uploads/sertifikat/' . $namaFile;
-
-
+    $pathPublic   = FCPATH . 'uploads/sertifikat/' . $namaFile;
+    $pathWritable = WRITEPATH . 'uploads/sertifikat/' . $namaFile;
+    $pathRoot     = ROOTPATH . 'uploads/sertifikat/' . $namaFile;
 
     if (is_file($pathPublic)) {
-
         $path = $pathPublic;
-
+    } elseif (is_file($pathWritable)) {
+        $path = $pathWritable;
     } elseif (is_file($pathRoot)) {
-
         $path = $pathRoot;
-
     } else {
 
         return redirect()->to(base_url('admin/sertifikat'))
@@ -4769,19 +4776,29 @@ public function updateSertifikat($id)
         $uploadPath = FCPATH . 'uploads/sertifikat/';
 
         if (!is_dir($uploadPath)) {
-            @mkdir($uploadPath, 0775, true);
+            @mkdir($uploadPath, 0777, true);
+        }
+        if (is_dir($uploadPath)) {
+            @chmod($uploadPath, 0777);
         }
 
-        if (!is_dir($uploadPath) || !is_writable($uploadPath)) {
-            if (is_dir($uploadPath)) {
-                @chmod($uploadPath, 0775);
+        if (!is_writable($uploadPath)) {
+            $uploadPathWritable = WRITEPATH . 'uploads/sertifikat/';
+            if (!is_dir($uploadPathWritable)) {
+                @mkdir($uploadPathWritable, 0777, true);
+            }
+            if (is_dir($uploadPathWritable)) {
+                @chmod($uploadPathWritable, 0777);
+            }
+            if (is_writable($uploadPathWritable)) {
+                $uploadPath = $uploadPathWritable;
             }
         }
 
         if (!is_dir($uploadPath) || !is_writable($uploadPath)) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Direktori upload sertifikat (public/uploads/sertifikat/) belum memiliki izin tulis di server. Harap atur izin folder menjadi 775 atau 777.');
+                ->with('error', 'Direktori upload sertifikat belum memiliki izin tulis di server. Harap atur izin folder menjadi 775 atau 777.');
         }
 
 
@@ -4910,20 +4927,16 @@ public function downloadFileSertifikat($id)
 
 
 
-    $pathPublic = FCPATH . 'uploads/sertifikat/' . $namaFile;
-
-    $pathRoot   = ROOTPATH . 'uploads/sertifikat/' . $namaFile;
-
-
+    $pathPublic   = FCPATH . 'uploads/sertifikat/' . $namaFile;
+    $pathWritable = WRITEPATH . 'uploads/sertifikat/' . $namaFile;
+    $pathRoot     = ROOTPATH . 'uploads/sertifikat/' . $namaFile;
 
     if (is_file($pathPublic)) {
-
         $path = $pathPublic;
-
+    } elseif (is_file($pathWritable)) {
+        $path = $pathWritable;
     } elseif (is_file($pathRoot)) {
-
         $path = $pathRoot;
-
     } else {
 
         return redirect()->to(base_url('admin/sertifikat'))

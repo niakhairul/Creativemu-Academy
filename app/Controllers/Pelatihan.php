@@ -4699,9 +4699,11 @@ public function simpanJawabanUjian()
 
     $namaFile = $sertifikat['file_sertifikat'];
 
-    $path = FCPATH . 'uploads/sertifikat/' . $namaFile;
+    $pathPublic   = FCPATH . 'uploads/sertifikat/' . $namaFile;
+    $pathWritable = WRITEPATH . 'uploads/sertifikat/' . $namaFile;
+    $path = is_file($pathPublic) ? $pathPublic : (is_file($pathWritable) ? $pathWritable : null);
 
-    if (!is_file($path)) {
+    if (!$path || !is_file($path)) {
         return redirect()->back()
             ->with('error', 'File sertifikat tidak ditemukan di server.');
     }
