@@ -281,6 +281,23 @@ $tanggal_indo = $hari[date('w')] . ', ' . date('d') . ' ' . $bulan[date('n')] . 
         </a>
     </div>
 
+    <!-- ALERT NOTIFIKASI -->
+    <?php if (session()->getFlashdata('error')) : ?>
+        <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-3">
+            <i class="fas fa-circle-exclamation me-2"></i>
+            <?= esc(session()->getFlashdata('error')); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+
+    <?php if (session()->getFlashdata('success')) : ?>
+        <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-3">
+            <i class="fas fa-circle-check me-2"></i>
+            <?= esc(session()->getFlashdata('success')); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+
     <!-- FORM -->
     <div class="form-card">
         <div class="card-body p-4 p-md-5">
