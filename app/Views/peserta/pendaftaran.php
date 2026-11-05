@@ -1211,15 +1211,20 @@
                         $isOnlineKelas = ($tipeKelasKelas === 'online');
                     ?>
                     <input type="hidden" name="kategori_kelas" id="kategori_kelas" value="<?= esc($kelas['kategori_kelas'] ?? $kelas['kategori'] ?? 'Basic Pelatihan') ?>">
-                    <div class="mb-3">
-                        <label for="metode_pembelajaran" class="form-label-custom">
-                            <span>Metode Pembelajaran <span class="required-star">*</span></span>
-                        </label>
-                        <select class="form-select" id="metode_pembelajaran" name="metode_pembelajaran" required onchange="toggleLokasiPelatihan()">
-                            <option value="online" <?= $isOnlineKelas ? 'selected' : '' ?>>Online (Virtual Class)</option>
-                            <option value="offline" <?= (!$isOnlineKelas) ? 'selected' : '' ?>>Offline (Tatap Muka)</option>
-                        </select>
-                    </div>
+                    <?php if ($isDefaultPrivat): ?>
+                        <div class="mb-3">
+                            <label for="metode_pembelajaran" class="form-label-custom">
+                                <span>Metode Pembelajaran <span class="required-star">*</span></span>
+                            </label>
+                            <select class="form-select" id="metode_pembelajaran" name="metode_pembelajaran" required onchange="toggleLokasiPelatihan()">
+                                <option value="online" <?= $isOnlineKelas ? 'selected' : '' ?>>Online (Virtual Class)</option>
+                                <option value="offline" <?= (!$isOnlineKelas) ? 'selected' : '' ?>>Offline (Tatap Muka)</option>
+                            </select>
+                        </div>
+                    <?php else: ?>
+                        <!-- Pada Kelas Reguler: Metode pembelajaran otomatis mengikuti tipe kelas dan dropdown disembunyikan dari UI -->
+                        <input type="hidden" name="metode_pembelajaran" id="metode_pembelajaran" value="<?= $isOnlineKelas ? 'online' : 'offline' ?>">
+                    <?php endif; ?>
 
                     <!-- 11. Tempat Pelatihan Offline (Kondisional) -->
                     <div class="mb-3" id="lokasiPelatihanContainer" style="display: none;">

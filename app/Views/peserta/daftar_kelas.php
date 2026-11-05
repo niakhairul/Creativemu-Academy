@@ -931,6 +931,18 @@
         </form>
     </div>
 
+    <!-- Header Seksi: Kelas Reguler -->
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-3 pb-1 mb-2 animate-fade-in">
+        <div class="d-flex align-items-center gap-2">
+            <h4 class="fw-bold mb-0" style="color: var(--purple-strong, #4d1d95); font-size: 1.25rem; letter-spacing: -0.2px;">
+                <i class="bi bi-grid-fill me-1.5" style="color: var(--purple-primary, #7a3ff2);"></i> Kelas Reguler
+            </h4>
+            <span class="badge rounded-pill px-2.5 py-1 fw-semibold" style="background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; font-size: 0.75rem;">
+                Tersedia <?= !empty($kelasList) ? count($kelasList) : 0 ?> Kelas
+            </span>
+        </div>
+    </div>
+
     <!-- Daftar Kelas Grid -->
     <div class="kelas-grid mt-2">
         <?php if (empty($kelasList)) : ?>
