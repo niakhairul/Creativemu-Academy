@@ -2298,33 +2298,15 @@ $data = [
         }
 
         if (!empty($pendaftaran['email']) && empty($waitingLaravelPrivateApproval)) {
-            $email = \Config\Services::email();
-            $email->setTo($pendaftaran['email']);
-            $email->setFrom('email_anda@gmail.com', 'Creativemu Academy');
+            $emailSent = $this->kirimEmailNotifikasiPendaftaran(
+                $pendaftaran,
+                $aksi,
+                $nisBaru,
+                $kelasInfo ?? null,
+                null
+            );
 
-            if ($aksi === 'setuju') {
-                $email->setSubject('Selamat! Pendaftaran Kelas Anda di Creativemu Academy Telah Diterima');
-                $email->setMessage('
-                    <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background-color: #faf5ff; border-radius: 10px;">
-                        <h2 style="color: #7c3aed;">Halo, ' . esc($pendaftaran['nama'] ?? 'Peserta') . '</h2>
-                        <p>Kabar gembira! Pendaftaran Anda untuk mengikuti pelatihan di <strong>Creativemu Academy</strong> telah <strong>DISETUJUI</strong>.</p>
-                        <p>NIS Anda adalah: <strong>' . esc($nisBaru) . '</strong></p>
-                        <p>Silakan login dan lengkapi aktivitas pelatihan Anda melalui akun peserta.</p>
-                        <p>Salam hangat,<br><strong>Tim Akademik Creativemu</strong></p>
-                    </div>
-                ');
-            } else {
-                $email->setSubject('Informasi Status Pendaftaran Kelas Creativemu Academy');
-                $email->setMessage('
-                    <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background-color: #fff1f2; border-radius: 10px;">
-                        <h2 style="color: #e11d48;">Halo, ' . esc($pendaftaran['nama'] ?? 'Peserta') . '</h2>
-                        <p>Mohon maaf, pendaftaran Anda di <strong>Creativemu Academy</strong> belum dapat kami setujui saat ini.</p>
-                        <p>Salam hangat,<br><strong>Tim Akademik Creativemu</strong></p>
-                    </div>
-                ');
-            }
-
-            if (!$email->send()) {
+            if (!$emailSent) {
                 return redirect()->to(base_url('admin/validasi'))
                     ->with('warning', 'Status pendaftaran berhasil diperbarui, tetapi email notifikasi gagal dikirim.');
             }
@@ -2358,7 +2340,22 @@ $data = [
             $newBuktiName = $fileBukti->getRandomName();
             $folderTujuan = FCPATH . 'uploads/bukti/';
             if (!is_dir($folderTujuan)) {
-                mkdir($folderTujuan, 0777, true);
+                @mkdir($folderTujuan, 0777, true);
+            }
+            if (is_dir($folderTujuan)) {
+                @chmod($folderTujuan, 0777);
+            }
+            if (!is_dir($folderTujuan) || !is_writable($folderTujuan)) {
+                $folderWritable = WRITEPATH . 'uploads/bukti/';
+                if (!is_dir($folderWritable)) {
+                    @mkdir($folderWritable, 0777, true);
+                }
+                if (is_dir($folderWritable)) {
+                    @chmod($folderWritable, 0777);
+                }
+                if (is_dir($folderWritable) && is_writable($folderWritable)) {
+                    $folderTujuan = $folderWritable;
+                }
             }
             $fileBukti->move($folderTujuan, $newBuktiName);
         }
@@ -2534,38 +2531,16 @@ $data = [
         }
 
         if ($pendaftaranLama && !empty($pendaftaranLama['email']) && empty($waitingLaravelPrivateApproval)) {
-            $email = \Config\Services::email();
-            $email->setTo($pendaftaranLama['email']);
-            $email->setFrom('email_anda@gmail.com', 'Creativemu Academy');
+            $aksiEmail = $isDisetujui ? 'setuju' : 'tolak';
+            $emailSent = $this->kirimEmailNotifikasiPendaftaran(
+                $pendaftaranLama,
+                $aksiEmail,
+                $nisBaru,
+                $kelasInfo ?? null,
+                $alasan
+            );
 
-            if ($isDisetujui) {
-                $email->setSubject('Selamat! Pendaftaran Kelas Anda di Creativemu Academy Telah Diterima');
-                $email->setMessage('
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; color: #333; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
-                        <h2 style="color: #7c3aed; margin-top: 0;">Halo, ' . esc($pendaftaranLama['nama'] ?? 'Peserta') . '</h2>
-                        <p>Kabar gembira! Pendaftaran Anda untuk mengikuti pelatihan di <strong>Creativemu Academy</strong> telah resmi <strong>DISETUJUI</strong>.</p>
-                        <p>NIS Anda adalah: <strong>' . esc($nisBaru ?? '-') . '</strong></p>
-                        <p>Silakan login dan mengikuti informasi pelatihan melalui akun peserta Anda.</p>
-                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-                        <p style="font-size: 13px; color: #94a3b8; margin-bottom: 0;">Salam hangat,<br><strong>Tim Akademik Creativemu Academy</strong></p>
-                    </div>
-                ');
-            } else {
-                $email->setSubject('Informasi Penting: Status Pendaftaran Creativemu Academy');
-                $email->setMessage('
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; color: #333; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
-                        <h2 style="color: #e11d48; margin-top: 0;">Halo, ' . esc($pendaftaranLama['nama'] ?? 'Peserta') . '</h2>
-                        <p>Terima kasih telah mendaftar di <strong>Creativemu Academy</strong>. Mohon maaf, pendaftaran Anda saat ini <strong>belum dapat kami setujui</strong>.</p>
-                        <div style="background-color: #fff1f2; border-left: 4px solid #e11d48; padding: 15px; margin: 20px 0; border-radius: 4px;">
-                            <p style="margin: 0 0 5px 0; font-weight: bold; color: #9f1239;">Catatan / Alasan Penolakan:</p>
-                            <p style="margin: 0; color: #881337;">' . esc($alasan ?? 'Tidak ada catatan khusus.') . '</p>
-                        </div>
-                        <p style="font-size: 13px; color: #94a3b8; margin-bottom: 0;">Salam hangat,<br><strong>Tim Akademik Creativemu Academy</strong></p>
-                    </div>
-                ');
-            }
-
-            if (!$email->send()) {
+            if (!$emailSent) {
                 return redirect()->to(base_url('admin/validasi'))
                     ->with('warning', 'Status pendaftaran berhasil diperbarui, tetapi email notifikasi gagal dikirim.');
             }
@@ -2581,6 +2556,106 @@ $data = [
         }
 
         return redirect()->to(base_url('admin/validasi'))->with('success', $pesan);
+    }
+
+    /**
+     * Kirim email notifikasi status pendaftaran (Disetujui / Ditolak)
+     */
+    private function kirimEmailNotifikasiPendaftaran(array $pendaftaran, string $aksi, ?string $nisBaru = null, ?array $kelasInfo = null, ?string $alasan = null): bool
+    {
+        if (empty($pendaftaran['email'])) {
+            return false;
+        }
+
+        $email = \Config\Services::email();
+        $emailConfig = config('Email');
+
+        // Gunakan email pengirim resmi dari konfigurasi agar tidak spoofing/spam
+        $fromEmail = !empty($emailConfig->fromEmail) && $emailConfig->fromEmail !== 'email_anda@gmail.com'
+            ? $emailConfig->fromEmail
+            : 'admin_official@creativemuacademy.com';
+        $fromName = !empty($emailConfig->fromName) ? $emailConfig->fromName : 'Creativemu Academy';
+
+        $email->setFrom($fromEmail, $fromName);
+        $email->setTo($pendaftaran['email']);
+        $email->setMailType('html');
+
+        $namaKelas = !empty($kelasInfo['nama_kelas'])
+            ? $kelasInfo['nama_kelas']
+            : ($pendaftaran['pilihan_kelas'] ?? ($pendaftaran['pilihan_pelatihan'] ?? 'Kelas Pelatihan'));
+
+        $kategori = !empty($kelasInfo['kategori'])
+            ? $kelasInfo['kategori']
+            : ($pendaftaran['kategori_kelas'] ?? null);
+
+        $jenisKelas = !empty($kelasInfo['jenis_kelas'])
+            ? $kelasInfo['jenis_kelas']
+            : ($pendaftaran['jenis_kelas'] ?? 'Reguler');
+
+        $metodePembelajaran = $pendaftaran['metode_pembelajaran'] ?? 'offline';
+        $lokasiPelatihan = $pendaftaran['lokasi_pelatihan'] ?? null;
+
+        if ($aksi === 'setuju') {
+            $email->setSubject('Selamat! Pendaftaran Kelas Anda di Creativemu Academy Telah Diterima');
+
+            $db = \Config\Database::connect();
+            $isRegistered = false;
+            if (!empty($pendaftaran['email']) && $db->tableExists('users')) {
+                $userFound = $db->table('users')
+                    ->where('LOWER(email)', strtolower($pendaftaran['email']))
+                    ->get()
+                    ->getRowArray();
+                if ($userFound) {
+                    $storedPwd = (string) ($userFound['password'] ?? '');
+                    $isPlaceholder = password_verify('123456', $storedPwd) || password_verify('12345678', $storedPwd);
+                    if (isset($userFound['is_registered'])) {
+                        $isRegistered = ((int) $userFound['is_registered'] === 1) && !$isPlaceholder;
+                    } else {
+                        $isRegistered = !$isPlaceholder;
+                    }
+                }
+            }
+
+            $registerUrl = base_url('pelatihan/register?email=' . urlencode($pendaftaran['email'] ?? ''));
+            $loginUrl    = base_url('pelatihan/login');
+            $actionUrl   = $isRegistered ? $loginUrl : $registerUrl;
+            $btnText     = $isRegistered ? 'Masuk ke Portal Peserta →' : 'Aktivasi Akun & Buat Kata Sandi →';
+
+            $body = view('emails/pendaftaran_disetujui', [
+                'nama'                => $pendaftaran['nama'] ?? 'Peserta',
+                'email'               => $pendaftaran['email'],
+                'nis'                 => $nisBaru ?? ($pendaftaran['nis'] ?? '-'),
+                'nama_kelas'          => $namaKelas,
+                'kategori'            => $kategori,
+                'jenis_kelas'         => $jenisKelas,
+                'metode_pembelajaran' => $metodePembelajaran,
+                'lokasi_pelatihan'    => $lokasiPelatihan,
+                'tanggal_disetujui'   => date('d F Y'),
+                'is_registered'       => $isRegistered,
+                'register_url'        => $registerUrl,
+                'login_url'           => $loginUrl,
+                'action_url'          => $actionUrl,
+                'button_text'         => $btnText,
+            ], ['debug' => false]);
+        } else {
+            $email->setSubject('Informasi Penting: Status Pendaftaran Creativemu Academy');
+            $body = view('emails/pendaftaran_ditolak', [
+                'nama'       => $pendaftaran['nama'] ?? 'Peserta',
+                'email'      => $pendaftaran['email'],
+                'nama_kelas' => $namaKelas,
+                'alasan'     => $alasan ?? 'Berkas pendaftaran atau bukti pembayaran belum memenuhi syarat.',
+                'portal_url' => base_url('pelatihan/login'),
+            ], ['debug' => false]);
+        }
+
+        $email->setMessage($body);
+
+        try {
+            return (bool) $email->send();
+        } catch (\Throwable $e) {
+            log_message('error', 'Gagal mengirim email notifikasi pendaftaran: ' . $e->getMessage());
+            return false;
+        }
     }
 
 
@@ -5020,18 +5095,56 @@ public function downloadFileSertifikat($id)
         if ($fileFoto && $fileFoto->isValid() && !$fileFoto->hasMoved()) {
             $folderImg = rtrim(FCPATH, '\\/') . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'img';
             if (!is_dir($folderImg)) {
-                mkdir($folderImg, 0777, true);
+                @mkdir($folderImg, 0777, true);
             }
+            if (is_dir($folderImg)) {
+                @chmod($folderImg, 0777);
+            }
+
+            // Smart Fallback jika assets/img memiliki batasan izin tulis di server Linux
+            $targetFolder = $folderImg;
+            if (!is_writable($targetFolder)) {
+                // Fallback 1: public/uploads/profil/
+                $folderUploads = rtrim(FCPATH, '\\/') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'profil';
+                if (!is_dir($folderUploads)) {
+                    @mkdir($folderUploads, 0777, true);
+                }
+                if (is_dir($folderUploads)) {
+                    @chmod($folderUploads, 0777);
+                }
+
+                if (is_writable($folderUploads)) {
+                    $targetFolder = $folderUploads;
+                } else {
+                    // Fallback 2: writable/uploads/profil/ (100% selalu writable oleh web server)
+                    $folderWritable = rtrim(WRITEPATH, '\\/') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'profil';
+                    if (!is_dir($folderWritable)) {
+                        @mkdir($folderWritable, 0777, true);
+                    }
+                    if (is_dir($folderWritable)) {
+                        @chmod($folderWritable, 0777);
+                    }
+                    if (is_writable($folderWritable)) {
+                        $targetFolder = $folderWritable;
+                    }
+                }
+            }
+
             try {
                 $namaFile = $fileFoto->getRandomName();
-                $fileFoto->move($folderImg, $namaFile);
+                $fileFoto->move($targetFolder, $namaFile);
+
+                // Jika targetFolder bukan folderImg dan folderImg ternyata writable, coba duplikatkan
+                if ($targetFolder !== $folderImg && is_dir($folderImg) && is_writable($folderImg)) {
+                    @copy($targetFolder . DIRECTORY_SEPARATOR . $namaFile, $folderImg . DIRECTORY_SEPARATOR . $namaFile);
+                }
 
                 $dataUpdate['foto_profil'] = $namaFile;
                 $session->set('foto_profil', $namaFile);
             } catch (\Throwable $e) {
                 log_message('error', 'Gagal upload foto profil admin: ' . $e->getMessage());
                 return redirect()->to(base_url('admin/pengaturan'))
-                    ->with('error', 'Gagal mengunggah foto profil: ' . $e->getMessage() . '. Pastikan folder assets/img di server memiliki izin tulis (writable / chmod 755 atau 777).');
+                    ->with('error', 'Gagal mengunggah foto profil: ' . $e->getMessage());
             }
         }
 
@@ -5059,6 +5172,55 @@ public function downloadFileSertifikat($id)
         $session->set('email', $emailAdmin);
 
         return redirect()->to(base_url('admin/pengaturan'))->with('success', 'Pengaturan berhasil diperbarui!');
+    }
+
+
+
+    /**
+     * Menyajikan berkas aset gambar dengan Smart Fallback.
+     * Otomatis mencari di assets/img, uploads/profil, dan writable/uploads/profil jika izin folder server terbatas.
+     */
+    public function serveAssetImg(string $filename)
+    {
+        $filename = basename($filename);
+
+        $searchPaths = [
+            FCPATH . 'assets' . DIRECTORY_SEPARATOR . 'img' . DIRECTORY_SEPARATOR . $filename,
+            FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'profil' . DIRECTORY_SEPARATOR . $filename,
+            WRITEPATH . 'uploads' . DIRECTORY_SEPARATOR . 'profil' . DIRECTORY_SEPARATOR . $filename,
+            FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'foto' . DIRECTORY_SEPARATOR . $filename,
+        ];
+
+        foreach ($searchPaths as $path) {
+            if (is_file($path)) {
+                $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+                $mimes = [
+                    'jpg'  => 'image/jpeg',
+                    'jpeg' => 'image/jpeg',
+                    'png'  => 'image/png',
+                    'gif'  => 'image/gif',
+                    'webp' => 'image/webp',
+                    'svg'  => 'image/svg+xml',
+                ];
+                $mimeType = $mimes[$ext] ?? 'image/jpeg';
+
+                return $this->response
+                    ->setHeader('Content-Type', $mimeType)
+                    ->setHeader('Cache-Control', 'public, max-age=86400')
+                    ->setBody(file_get_contents($path));
+            }
+        }
+
+        // Fallback jika file spesifik tidak ditemukan di disk
+        $defaultAvatar = FCPATH . 'assets' . DIRECTORY_SEPARATOR . 'img' . DIRECTORY_SEPARATOR . 'admin-profile.jpg';
+        if (is_file($defaultAvatar)) {
+            return $this->response
+                ->setHeader('Content-Type', 'image/jpeg')
+                ->setHeader('Cache-Control', 'public, max-age=86400')
+                ->setBody(file_get_contents($defaultAvatar));
+        }
+
+        return $this->response->setStatusCode(404)->setBody('Gambar tidak ditemukan.');
     }
 
 

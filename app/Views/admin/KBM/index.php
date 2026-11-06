@@ -287,16 +287,32 @@
         .back-link {
             display: inline-flex;
             align-items: center;
-            color: var(--muted);
+            gap: 8px;
+            background: linear-gradient(135deg, #7b5af6 0%, #6366f1 100%);
+            color: #ffffff !important;
             text-decoration: none;
             font-weight: 600;
-            font-size: 0.82rem;
-            margin-bottom: 12px;
-            transition: color 0.2s ease;
+            font-size: 0.84rem;
+            padding: 8px 18px;
+            border-radius: 50px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 14px rgba(123, 90, 246, 0.28);
+            transition: all 0.25s ease;
         }
 
         .back-link:hover {
-            color: var(--primary);
+            background: linear-gradient(135deg, #6d46f5 0%, #4f46e5 100%);
+            color: #ffffff !important;
+            transform: translateX(-3px);
+            box-shadow: 0 6px 18px rgba(123, 90, 246, 0.38);
+        }
+
+        .back-link i {
+            transition: transform 0.2s ease;
+        }
+
+        .back-link:hover i {
+            transform: translateX(-3px);
         }
 
         .detail-meta-text {
@@ -674,15 +690,15 @@
                         <div class="metric-sub" id="metric-lulus-pct">0% dari total siswa</div>
                     </div>
                 </div>
-                <!-- 4. TIDAK LULUS -->
+                <!-- 4. REMIDI -->
                 <div class="col-6 col-md-4 col-lg">
                     <div class="metric-card-detail-white">
                         <div class="d-flex justify-content-between align-items-start">
-                            <span class="metric-title">TIDAK LULUS</span>
-                            <span class="metric-icon-bubble bubble-red"><i class="fas fa-circle"></i></span>
+                            <span class="metric-title">REMIDI</span>
+                            <span class="metric-icon-bubble bubble-yellow" style="background: rgba(226, 160, 72, 0.15); color: #d97706;"><i class="fas fa-circle"></i></span>
                         </div>
-                        <div class="metric-num" id="metric-tidak-lulus">0</div>
-                        <div class="metric-sub" id="metric-tidak-lulus-note">Nihil ketidaklulusan</div>
+                        <div class="metric-num" id="metric-remidi" style="color: #d97706;">0</div>
+                        <div class="metric-sub" id="metric-remidi-note">Nihil remidi</div>
                     </div>
                 </div>
                 <!-- 5. BELUM UJIAN -->
@@ -769,17 +785,14 @@
 
                                         <!-- NILAI UJIAN & BERKAS NILAI -->
                                         <td class="text-center">
-                                            <div class="fw-bold fs-6 text-dark mb-0.5">
-                                                <?= number_format((float)($row['nilai'] ?? 0), 0); ?>
-                                            </div>
                                             <?php if (!empty($row['has_file_nilai'])): ?>
                                                 <a href="<?= base_url('admin/manajemen-kbm/unduh-file-nilai/' . $row['id_nilai_ujian']); ?>"
-                                                   class="badge bg-primary-subtle text-primary border border-primary-subtle text-decoration-none py-1 px-2 rounded-pill shadow-xs mt-1 d-inline-block"
+                                                   class="badge bg-primary-subtle text-primary border border-primary-subtle text-decoration-none py-1.5 px-2.5 rounded-pill shadow-xs d-inline-block"
                                                    title="Unduh Berkas Nilai dari Instruktur">
                                                     <i class="fas fa-file-arrow-down me-1"></i> Berkas Nilai
                                                 </a>
                                             <?php else: ?>
-                                                <small class="text-muted d-block" style="font-size: 0.7rem;">
+                                                <small class="text-muted d-block" style="font-size: 0.72rem;">
                                                     <i class="fas fa-clock opacity-50 me-1"></i> Belum ada file
                                                 </small>
                                             <?php endif; ?>
@@ -802,7 +815,6 @@
                                                     onchange="changeStatusColor(this)">
                                                     <option value="menunggu" <?= ($status === 'menunggu') ? 'selected' : ''; ?>>Menunggu</option>
                                                     <option value="lulus" <?= ($status === 'lulus') ? 'selected' : ''; ?>>Lulus</option>
-                                                    <option value="tidak lulus" <?= ($status === 'tidak lulus') ? 'selected' : ''; ?>>Tidak Lulus</option>
                                                     <option value="remidi" <?= ($status === 'remidi') ? 'selected' : ''; ?>>Remidi</option>
                                                 </select>
                                                 <button
@@ -899,8 +911,15 @@
             const pctLulus = totalSiswa > 0 ? Math.round((lulus / totalSiswa) * 100) : 0;
             document.getElementById('metric-lulus-pct').textContent = pctLulus + '% dari total siswa';
 
-            document.getElementById('metric-tidak-lulus').textContent = tidakLulus;
-            document.getElementById('metric-tidak-lulus-note').textContent = tidakLulus === 0 ? 'Nihil ketidaklulusan' : (tidakLulus + ' siswa tidak lulus');
+            const remidi = parseInt(classInfo.remidi) || 0;
+            const metricRemidiElem = document.getElementById('metric-remidi');
+            if (metricRemidiElem) {
+                metricRemidiElem.textContent = remidi;
+                const metricRemidiNote = document.getElementById('metric-remidi-note');
+                if (metricRemidiNote) metricRemidiNote.textContent = remidi === 0 ? 'Nihil remidi' : (remidi + ' siswa remidi');
+            }
+            const metricTidakLulusElem = document.getElementById('metric-tidak-lulus');
+            if (metricTidakLulusElem) metricTidakLulusElem.textContent = tidakLulus;
 
             document.getElementById('metric-menunggu').textContent = menunggu;
 

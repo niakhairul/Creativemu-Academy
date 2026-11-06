@@ -304,6 +304,7 @@ class Pelatihan extends BaseController
 
         // 4. Ambil Jadwal Kelas dari API Laravel HANYA jika kelas aktif sudah disetujui dan siap diakses
         $list_jadwal = [];
+        $allSessions = [];
         $isPrivatAktif = (strtolower(trim((string)($pendaftaran['jenis_kelas'] ?? ''))) === 'privat');
         if ($pendaftaran && !empty($pendaftaran['id_kelas']) && !empty($pendaftaran['bisa_diakses']) && (!$isPrivatAktif || ($pendaftaran['kode_status'] ?? '') === 'siap_diakses')) {
             $idKelasAktif = (int) $pendaftaran['id_kelas'];
@@ -353,6 +354,67 @@ class Pelatihan extends BaseController
         $isLulus = false;
 
         $effectiveUserId = (int) ($userId ?? ($userData['id_users'] ?? session()->get('id_users') ?? session()->get('id_user') ?? session()->get('id') ?? 0));
+
+        // -------------------------------------------------------------
+        // Perhitungan Persentase Kehadiran Peserta untuk Kelas Aktif
+        // -------------------------------------------------------------
+        $totalKehadiran = 0;
+        $jumlahHadir = 0;
+        $totalPertemuan = !empty($allSessions) ? count($allSessions) : 0;
+
+        if ($totalPertemuan > 0) {
+            foreach ($allSessions as $sess) {
+                $stAbsen = strtolower(trim((string)($sess['absensi']['status'] ?? '')));
+                if ($stAbsen === 'hadir' || (!empty($sess['absensi']) && $stAbsen !== 'alpa')) {
+                    $jumlahHadir++;
+                }
+            }
+        } elseif ($pendaftaran && !empty($pendaftaran['id_kelas']) && $db->tableExists('jadwal')) {
+            // Fallback: hitung dari tabel jadwal lokal jika allSessions kosong
+            $jadwalLokal = $db->table('jadwal')
+                ->where('id_kelas', (int)$pendaftaran['id_kelas'])
+                ->get()
+                ->getResultArray();
+            $totalPertemuan = count($jadwalLokal);
+            if ($totalPertemuan > 0) {
+                $ids = array_column($jadwalLokal, 'id_jadwal');
+                if (!empty($ids) && $db->tableExists('absensi')) {
+                    $jumlahHadir = $db->table('absensi')
+                        ->where('id_user', $effectiveUserId)
+                        ->whereIn('id_jadwal', $ids)
+                        ->where('LOWER(status)', 'hadir')
+                        ->countAllResults();
+                }
+            }
+        }
+
+        if ($totalPertemuan > 0) {
+            $totalKehadiran = (int) round(($jumlahHadir / $totalPertemuan) * 100);
+        }
+
+        // -------------------------------------------------------------
+        // Perhitungan Total Sertifikat yang Telah Diperoleh Peserta
+        // -------------------------------------------------------------
+        $totalSertifikat = 0;
+        if ($db->tableExists('sertifikat') && $effectiveUserId > 0) {
+            $totalSertifikat = $db->table('sertifikat')
+                ->groupStart()
+                    ->where('id_user', $effectiveUserId)
+                    ->orWhere('id_peserta', $effectiveUserId)
+                ->groupEnd()
+                ->where('file_sertifikat IS NOT NULL')
+                ->where('file_sertifikat !=', '')
+                ->countAllResults();
+        }
+
+        if ($totalSertifikat === 0 && !empty($userData['email']) && $db->tableExists('sertifikat') && $db->tableExists('users')) {
+            $totalSertifikat = $db->table('sertifikat s')
+                ->join('users u', 'u.id_users = s.id_user OR u.id_users = s.id_peserta', 'inner')
+                ->where('LOWER(u.email)', strtolower($userData['email']))
+                ->where('s.file_sertifikat IS NOT NULL')
+                ->where('s.file_sertifikat !=', '')
+                ->countAllResults();
+        }
 
         if ($pendaftaran && !empty($pendaftaran['id_kelas']) && $effectiveUserId > 0) {
             $idKelasAktif = (int) $pendaftaran['id_kelas'];
@@ -453,6 +515,10 @@ class Pelatihan extends BaseController
             'is_lulus'            => $isLulus,
             'is_remidi'           => $isRemidi ?? false,
             'notifikasiAngket'    => $notifikasiAngket, 
+            'total_kehadiran'     => $totalKehadiran,
+            'total_sertifikat'    => $totalSertifikat,
+            'jumlah_hadir'        => $jumlahHadir,
+            'total_pertemuan'     => $totalPertemuan,
         ];
 
         return view('peserta/dashboard', $data);
@@ -2026,6 +2092,24 @@ class Pelatihan extends BaseController
             if (!is_dir($targetDir)) {
                 @mkdir($targetDir, 0777, true);
             }
+            if (is_dir($targetDir)) {
+                @chmod($targetDir, 0777);
+            }
+
+            // Smart Fallback jika direktori uploads/bukti di public tidak memiliki izin tulis di Linux
+            if (!is_dir($targetDir) || !is_writable($targetDir)) {
+                $targetDirWritable = rtrim(WRITEPATH, '\\/') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'bukti';
+                if (!is_dir($targetDirWritable)) {
+                    @mkdir($targetDirWritable, 0777, true);
+                }
+                if (is_dir($targetDirWritable)) {
+                    @chmod($targetDirWritable, 0777);
+                }
+                if (is_dir($targetDirWritable) && is_writable($targetDirWritable)) {
+                    $targetDir = $targetDirWritable;
+                }
+            }
+
             $namaBukti = $fileBukti->getRandomName();
             $fileBukti->move($targetDir, $namaBukti);
         }
@@ -2337,9 +2421,28 @@ class Pelatihan extends BaseController
             unlink(FCPATH . 'uploads/pembayaran/' . $pendaftaran['bukti_pembayaran']);
         }
 
-        // PERBAIKAN DI SINI: Menambahkan tanda dolar ($) pada namaBaru
+        $targetDir = rtrim(FCPATH, '\\/') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'bukti';
+        if (!is_dir($targetDir)) {
+            @mkdir($targetDir, 0777, true);
+        }
+        if (is_dir($targetDir)) {
+            @chmod($targetDir, 0777);
+        }
+        if (!is_dir($targetDir) || !is_writable($targetDir)) {
+            $targetDirWritable = rtrim(WRITEPATH, '\\/') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'bukti';
+            if (!is_dir($targetDirWritable)) {
+                @mkdir($targetDirWritable, 0777, true);
+            }
+            if (is_dir($targetDirWritable)) {
+                @chmod($targetDirWritable, 0777);
+            }
+            if (is_dir($targetDirWritable) && is_writable($targetDirWritable)) {
+                $targetDir = $targetDirWritable;
+            }
+        }
+
         $namaBaru = $fileBukti->getRandomName();
-        $fileBukti->move(FCPATH . 'uploads/pembayaran', $namaBaru);
+        $fileBukti->move($targetDir, $namaBaru);
 
         // Update data di database: masukkan file baru, ubah status jadi 'pending' / 'menunggu verifikasi', dan kosongkan alasan penolakan sebelumnya
         $pendaftaranModel->update($id, [
@@ -5218,44 +5321,113 @@ public function updatePassword()
             ->with('error', 'Data akun tidak ditemukan.');
     }
 
-    // Ambil data dari form
-    $passwordLama = $this->request->getPost('password_lama');
-    $passwordBaru = $this->request->getPost('password_baru');
-    $konfirmasi   = $this->request->getPost('konfirmasi_password');
+    // Ambil data dari form dengan pembersihan spasi
+    $passwordLama = trim((string) $this->request->getPost('password_lama'));
+    $passwordBaru = trim((string) $this->request->getPost('password_baru'));
+    $konfirmasi   = trim((string) $this->request->getPost('konfirmasi_password'));
 
-    // Cek password lama
-    if (!password_verify($passwordLama, $user['password'])) {
+    if ($passwordLama === '' || $passwordBaru === '' || $konfirmasi === '') {
         return redirect()->back()
-            ->with('error', 'Password lama salah.');
+            ->withInput()
+            ->with('error', 'Semua kolom kata sandi wajib diisi.');
+    }
+
+    // Cek password lama (termasuk verifikasi standar bcrypt dan fallback legacy jika ada)
+    $storedPassword = (string) ($user['password'] ?? '');
+    $oldPassValid   = password_verify($passwordLama, $storedPassword);
+
+    if (!$oldPassValid && $storedPassword !== '') {
+        if (strlen($storedPassword) === 32 && hash_equals(strtolower($storedPassword), md5($passwordLama))) {
+            $oldPassValid = true;
+        } elseif (strlen($storedPassword) === 40 && hash_equals(strtolower($storedPassword), sha1($passwordLama))) {
+            $oldPassValid = true;
+        } elseif (hash_equals($storedPassword, $passwordLama)) {
+            $oldPassValid = true;
+        }
+    }
+
+    if (!$oldPassValid) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Password lama salah. Pastikan Anda memasukkan kata sandi yang sesuai.');
     }
 
     // Minimal 8 karakter
     if (strlen($passwordBaru) < 8) {
         return redirect()->back()
+            ->withInput()
             ->with('error', 'Password baru minimal 8 karakter.');
     }
 
     // Cek konfirmasi password
     if ($passwordBaru !== $konfirmasi) {
         return redirect()->back()
+            ->withInput()
             ->with('error', 'Konfirmasi password baru tidak sesuai.');
     }
 
     // Jangan menggunakan password lama sebagai password baru
-    if (password_verify($passwordBaru, $user['password'])) {
+    if (password_verify($passwordBaru, $storedPassword)) {
         return redirect()->back()
+            ->withInput()
             ->with('error', 'Password baru harus berbeda dari password lama.');
     }
 
-    // Simpan password baru ke akun yang sedang login
-    $userModel->update($userId, [
+    // Simpan password baru ke akun yang sedang login dan pastikan is_registered aktif
+    $updateData = [
         'password' => password_hash($passwordBaru, PASSWORD_DEFAULT)
-    ]);
+    ];
+
+    $db = \Config\Database::connect();
+    if ($db->fieldExists('is_registered', 'users')) {
+        $updateData['is_registered'] = 1;
+    }
+    if ($db->fieldExists('updated_at', 'users')) {
+        $updateData['updated_at'] = date('Y-m-d H:i:s');
+    }
+
+    $userModel->update($userId, $updateData);
 
     return redirect()
         ->to(base_url('pelatihan/pengaturan'))
-        ->with('success', 'Password berhasil diubah.');
+        ->with('success', 'Kata sandi berhasil diperbarui. Silakan gunakan kata sandi baru untuk login.');
 }
+    /**
+     * Menyajikan berkas bukti pembayaran dengan Smart Fallback (public/uploads/bukti atau writable/uploads/bukti)
+     */
+    public function serveBuktiPembayaran(string $filename)
+    {
+        $filename = basename($filename);
+
+        $searchPaths = [
+            FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'bukti' . DIRECTORY_SEPARATOR . $filename,
+            WRITEPATH . 'uploads' . DIRECTORY_SEPARATOR . 'bukti' . DIRECTORY_SEPARATOR . $filename,
+            FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'pembayaran' . DIRECTORY_SEPARATOR . $filename,
+            WRITEPATH . 'uploads' . DIRECTORY_SEPARATOR . 'pembayaran' . DIRECTORY_SEPARATOR . $filename,
+        ];
+
+        foreach ($searchPaths as $path) {
+            if (is_file($path)) {
+                $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+                $mimes = [
+                    'jpg'  => 'image/jpeg',
+                    'jpeg' => 'image/jpeg',
+                    'png'  => 'image/png',
+                    'webp' => 'image/webp',
+                    'pdf'  => 'application/pdf',
+                ];
+                $mimeType = $mimes[$ext] ?? 'application/octet-stream';
+
+                return $this->response
+                    ->setHeader('Content-Type', $mimeType)
+                    ->setHeader('Cache-Control', 'public, max-age=86400')
+                    ->setBody(file_get_contents($path));
+            }
+        }
+
+        return $this->response->setStatusCode(404)->setBody('Berkas bukti pembayaran tidak ditemukan.');
+    }
+
     public function logout()
     {
         // Menghapus semua data session yang aktif

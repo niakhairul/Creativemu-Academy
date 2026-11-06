@@ -335,21 +335,13 @@
             <div class="card shadow-sm border-0 rounded-4 mb-3 hover-card">
                 <div class="card-body p-3.5">
 
-                    <?php
-                    if (!empty($user['foto_profil'])) {
-                        $fotoUrl = base_url('uploads/profil/' . $user['foto_profil']);
-                    } elseif (!empty($pendaftaran['pas_foto'])) {
-                        $fotoUrl = base_url('uploads/foto/' . $pendaftaran['pas_foto']);
-                    } else {
-                        $fotoUrl = base_url('assets/img/logo creativemu academy.jpg');
-                    }
-                    ?>
-
                     <!-- HEADER PROFIL -->
                     <div class="d-flex flex-column flex-md-row align-items-center align-items-md-center gap-3 mb-3">
-                        <!-- FOTO -->
+                        <!-- AVATAR IKON -->
                         <div class="flex-shrink-0">
-                            <img src="<?= $fotoUrl ?>" class="rounded-circle shadow-sm border" width="85" height="85" style="object-fit: cover;">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm border" style="width: 75px; height: 75px; background: linear-gradient(135deg, #ede9fe, #f5f3ff); color: var(--color-purple); font-size: 32px;">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
                         </div>
 
                         <!-- NAMA DAN STATUS -->

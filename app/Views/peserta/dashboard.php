@@ -412,48 +412,66 @@
             <!-- KOTAK STATISTIK 3 KOLOM -->
             <div class="row mb-3">
                 <div class="col-md-4 mb-3 mb-md-0">
-                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
-                        <div class="card-body p-3.5 d-flex align-items-center">
-                            <div class="stat-icon me-3 flex-shrink-0" style="background: rgba(123, 90, 246, 0.12); color: var(--color-purple);">
-                                <i class="bi bi-mortarboard-fill fs-5"></i>
-                            </div>
-                            <div>
-                                <h4 class="fw-bold mb-0" style="color: var(--color-purple); font-size: 18px;"><?= $pendaftaran ? 1 : 0 ?></h4>
-                                <p class="text-dark mb-0 fw-bold" style="font-size: 13px;">Kelas Aktif</p>
-                                <span class="text-muted" style="font-size: 11px;">Sedang berlangsung</span>
+                    <a href="<?= base_url('pelatihan/daftar-kelas-peserta') ?>" class="text-decoration-none text-reset d-block h-100">
+                        <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
+                            <div class="card-body p-3.5 d-flex align-items-center">
+                                <div class="stat-icon me-3 flex-shrink-0" style="background: rgba(123, 90, 246, 0.12); color: var(--color-purple);">
+                                    <i class="bi bi-mortarboard-fill fs-5"></i>
+                                </div>
+                                <div>
+                                    <h4 class="fw-bold mb-0" style="color: var(--color-purple); font-size: 18px;"><?= $pendaftaran ? 1 : 0 ?></h4>
+                                    <p class="text-dark mb-0 fw-bold" style="font-size: 13px;">Kelas Aktif</p>
+                                    <span class="text-muted" style="font-size: 11px;">Sedang berlangsung</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
                 
                 <div class="col-md-4 mb-3 mb-md-0">
-                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
-                        <div class="card-body p-3.5 d-flex align-items-center">
-                            <div class="stat-icon me-3 flex-shrink-0" style="background: rgba(223, 107, 224, 0.12); color: var(--color-pink);">
-                                <i class="bi bi-calendar-check-fill fs-5"></i>
-                            </div>
-                            <div>
-                                <h4 class="fw-bold mb-0" style="color: var(--color-pink); font-size: 18px;"><?= esc($total_kehadiran ?? '0') ?>%</h4>
-                                <p class="text-dark mb-0 fw-bold" style="font-size: 13px;">Kehadiran</p>
-                                <span class="text-muted" style="font-size: 11px;">Total Kehadiran</span>
+                    <a href="<?= base_url('pelatihan/kelas' . (!empty($pendaftaran['id_kelas']) ? '?id_kelas=' . $pendaftaran['id_kelas'] : '')) ?>" class="text-decoration-none text-reset d-block h-100" title="Buka Presensi dan Ruang Kelas">
+                        <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
+                            <div class="card-body p-3.5 d-flex align-items-center">
+                                <div class="stat-icon me-3 flex-shrink-0" style="background: rgba(223, 107, 224, 0.12); color: var(--color-pink);">
+                                    <i class="bi bi-calendar-check-fill fs-5"></i>
+                                </div>
+                                <div>
+                                    <h4 class="fw-bold mb-0" style="color: var(--color-pink); font-size: 18px;"><?= esc($total_kehadiran ?? '0') ?>%</h4>
+                                    <p class="text-dark mb-0 fw-bold" style="font-size: 13px;">Kehadiran</p>
+                                    <span class="text-muted" style="font-size: 11px;">
+                                        <?php if (!empty($total_pertemuan) && $total_pertemuan > 0): ?>
+                                            <?= (int)($jumlah_hadir ?? 0) ?> dari <?= (int)$total_pertemuan ?> Sesi Hadir
+                                        <?php else: ?>
+                                            Total Kehadiran
+                                        <?php endif; ?>
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
 
                 <div class="col-md-4">
-                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
-                        <div class="card-body p-3.5 d-flex align-items-center">
-                            <div class="stat-icon me-3 flex-shrink-0" style="background: rgba(90, 197, 232, 0.12); color: var(--color-cyan);">
-                                <i class="bi bi-award-fill fs-5"></i>
-                            </div>
-                            <div>
-                                <h4 class="fw-bold mb-0" style="color: var(--color-cyan); font-size: 18px;"><?= esc($total_sertifikat ?? '0') ?></h4>
-                                <p class="text-dark mb-0 fw-bold" style="font-size: 13px;">Sertifikat</p>
-                                <span class="text-muted" style="font-size: 11px;">Telah Diperoleh</span>
+                    <a href="<?= base_url('pelatihan/sertifikat' . (!empty($pendaftaran['id_kelas']) ? '?id_kelas=' . $pendaftaran['id_kelas'] : '')) ?>" class="text-decoration-none text-reset d-block h-100" title="Buka Halaman Sertifikat">
+                        <div class="card shadow-sm border-0 rounded-4 h-100 hover-card">
+                            <div class="card-body p-3.5 d-flex align-items-center">
+                                <div class="stat-icon me-3 flex-shrink-0" style="background: rgba(90, 197, 232, 0.12); color: var(--color-cyan);">
+                                    <i class="bi bi-award-fill fs-5"></i>
+                                </div>
+                                <div>
+                                    <h4 class="fw-bold mb-0" style="color: var(--color-cyan); font-size: 18px;"><?= esc($total_sertifikat ?? '0') ?></h4>
+                                    <p class="text-dark mb-0 fw-bold" style="font-size: 13px;">Sertifikat</p>
+                                    <span class="text-muted" style="font-size: 11px;">
+                                        <?php if (!empty($total_sertifikat) && (int)$total_sertifikat > 0): ?>
+                                            <span class="text-success fw-semibold"><i class="bi bi-check-circle-fill me-1"></i>Telah Diperoleh</span>
+                                        <?php else: ?>
+                                            Telah Diperoleh
+                                        <?php endif; ?>
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
             </div>
 
@@ -649,7 +667,18 @@
                                                     </h6>
                                                 </div>
                                                 <?php if (!empty($jdl['status'])): ?>
-                                                    <span class="badge px-2 py-0.5 rounded-pill" style="font-size: 11px; background: rgba(223, 107, 224, 0.15); color: var(--color-pink);"><?= esc(ucfirst($jdl['status'])); ?></span>
+                                                    <?php $stLower = strtolower(trim((string)$jdl['status'])); ?>
+                                                    <?php if ($stLower === 'dibuka'): ?>
+                                                        <a href="<?= base_url('pelatihan/kelas' . (!empty($pendaftaran['id_kelas']) ? '?id_kelas=' . $pendaftaran['id_kelas'] : '')) ?>" class="badge px-2.5 py-1 rounded-pill text-decoration-none shadow-sm" style="font-size: 11px; background: #22c55e; color: white;" title="Buka ruang presensi">
+                                                            <i class="bi bi-geo-alt-fill me-1"></i> Dibuka (Absen)
+                                                        </a>
+                                                    <?php elseif ($stLower === 'selesai'): ?>
+                                                        <span class="badge px-2.5 py-1 rounded-pill" style="font-size: 11px; background: rgba(34, 197, 94, 0.15); color: #16a34a;">
+                                                            <i class="bi bi-check-circle-fill me-1"></i> Selesai (Hadir)
+                                                        </span>
+                                                    <?php else: ?>
+                                                        <span class="badge px-2 py-0.5 rounded-pill" style="font-size: 11px; background: rgba(223, 107, 224, 0.15); color: var(--color-pink);"><?= esc(ucfirst($jdl['status'])); ?></span>
+                                                    <?php endif; ?>
                                                 <?php endif; ?>
                                             </div>
 
@@ -713,6 +742,25 @@
                 <div class="col-lg-5 mb-3">
                     <div class="d-flex flex-column gap-3">
                         
+                        <!-- BLOK PENGUMUMAN SERTIFIKAT TELAH TERBIT -->
+                        <?php if (!empty($total_sertifikat) && (int)$total_sertifikat > 0): ?>
+                            <div class="p-3 rounded-3 border-0 position-relative overflow-hidden shadow-sm" style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-left: 4px solid #10b981 !important;">
+                                <div class="d-flex align-items-start gap-2.5">
+                                    <div class="fs-5 lh-1 mt-0.5" style="color: #10b981;"><i class="bi bi-award-fill"></i></div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="fw-bold text-dark mb-1" style="font-size: 13px;">Sertifikat Telah Terbit!</h6>
+                                        <p class="text-muted mb-2" style="font-size: 12px; line-height: 1.4;">
+                                            Selamat! Sertifikat resmi kelulusan Anda telah diterbitkan dan sudah siap untuk diunduh.
+                                        </p>
+                                        <a href="<?= base_url('pelatihan/sertifikat' . (!empty($pendaftaran['id_kelas']) ? '?id_kelas=' . $pendaftaran['id_kelas'] : '')) ?>" class="btn btn-sm text-white fw-bold px-3 py-1 rounded-pill shadow-sm d-inline-flex align-items-center gap-1.5" style="font-size: 11px; background-color: #10b981; border: none;">
+                                            <i class="bi bi-download"></i>
+                                            <span>Unduh Sertifikat</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
                         <!-- BLOK PENGUMUMAN / NOTIFIKASI KELUARNYA NILAI UJIAN -->
                         <?php if (!empty($statusUjianKeluar)): ?>
                             <?php if (!empty($is_lulus) && $is_lulus === true): ?>

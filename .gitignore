@@ -129,3 +129,9 @@ _modules/*
 !/public/uploads/sertifikat/
 /public/uploads/sertifikat/*
 !/public/uploads/sertifikat/.gitkeep
+!/public/uploads/bukti/
+/public/uploads/bukti/*
+!/public/uploads/bukti/.gitkeep
+!/public/uploads/profil/
+/public/uploads/profil/*
+!/public/uploads/profil/.gitkeep

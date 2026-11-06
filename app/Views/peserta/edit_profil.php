@@ -52,7 +52,7 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
             <h3 class="fw-bold mb-1" style="color: #4c1d95;">Edit Profil</h3>
-            <p class="text-muted small mb-0">Perbarui informasi pribadi dan foto profil Anda.</p>
+            <p class="text-muted small mb-0">Perbarui informasi pribadi akun Anda.</p>
         </div>
         <div>
             <a href="<?= base_url('pelatihan/pengaturan') ?>" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm fw-semibold" style="font-size: 0.85rem;">
@@ -67,29 +67,6 @@
 
             <form action="<?= base_url('pelatihan/update-profil') ?>" method="post" enctype="multipart/form-data">
                 <?= csrf_field() ?>
-
-                <!-- FOTO PROFIL -->
-                <div class="text-center mb-4">
-                    <?php
-                    if (!empty($pendaftaran['pas_foto'])) {
-                        $fotoUrl = base_url('uploads/foto/' . $pendaftaran['pas_foto']);
-                    } elseif (!empty($user['foto_profil'])) {
-                        $fotoUrl = base_url('uploads/profil/' . $user['foto_profil']);
-                    } else {
-                        $fotoUrl = base_url('assets/img/logo creativemu academy.jpg');
-                    }
-                    ?>
-
-                    <img src="<?= $fotoUrl ?>" class="rounded-circle shadow-sm border" width="100" height="100" style="object-fit: cover;">
-
-                    <div class="mt-3">
-                        <label class="form-label fw-semibold small text-muted">Foto Profil</label>
-                        <input type="file" name="foto" class="form-control form-control-sm mx-auto" style="max-width: 320px;" accept=".jpg,.jpeg,.png">
-                        <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">JPG, JPEG, atau PNG. Maksimal 2 MB.</small>
-                    </div>
-                </div>
-
-                <hr class="my-4 border-purple border-opacity-10">
 
                 <!-- NAMA -->
                 <div class="mb-3">

@@ -21,6 +21,12 @@ $routes->match(['get', 'post'], 'pelatihan/login/process', 'Auth::loginProcess')
 // Logout (Alternatif admin lama)
 $routes->get('logout', 'Admin::logout');
 
+// Rute penyedia aset gambar dengan Smart Fallback (foto profil admin)
+$routes->get('assets/img/(:any)', 'Admin::serveAssetImg/$1');
+
+// Rute penyedia berkas bukti transfer dengan Smart Fallback
+$routes->get('uploads/bukti/(:any)', 'Pelatihan::serveBuktiPembayaran/$1');
+
 // ===== MENU PESERTA & PELATIHAN =====
 $routes->get('pelatihan/pendaftaran/(:num)', 'Pelatihan::pendaftaran/$1');
 $routes->get('pelatihan/pendaftaran', 'Pelatihan::pendaftaran');
